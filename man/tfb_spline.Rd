@@ -91,8 +91,8 @@ tfb_spline(data, ...)
 
 \item{...}{arguments to the calls to \code{\link[mgcv:s]{mgcv::s()}} setting up the basis and
 \code{\link[mgcv:magic]{mgcv::magic()}} or \code{\link[mgcv:gam.fit]{mgcv::gam.fit()}} (if \code{penalized} is TRUE). If not user-specified here,
-\code{tidyfun} uses \code{k = 25} cubic regression spline basis functions
-(i.e., \code{bs = "cr"}) by default, but this should (!) be set appropriately.}
+this uses \code{k = 25} cubic regression spline basis functions
+(i.e., \code{bs = "cr"}) by default, but should be set appropriately by the user.}
 
 \item{id}{The name or number of the column defining which data belong to which function.}
 

@@ -75,7 +75,7 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #'   Defaults to [fpc_wsvd()], which gives unsmoothed eigenfunctions. 
 #' @param ... arguments to the `method` which computes the
 #'  (regularized/smoothed) FPCA. 
-#'  Unless set by the user `tidyfun` uses proportion of variance explained 
+#'  Unless set by the user, uses proportion of variance explained 
 #'  `pve = .995` to determine the truncation levels.
 #' @inheritParams tfb
 #' @return an object of class `tfb_fpc`, inheriting from `tfb`. 
@@ -96,7 +96,7 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #' data <- tf_rgp(15) |> tf_sparsify() |> as.data.frame(unnest = TRUE)
 #' # wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
 #' fpca_sc_wrapper <- function(data, arg, pve = .995, ...) {
-#'   data_mat <- tidyfun:::df_2_mat(data)
+#'   data_mat <- tf:::df_2_mat(data)
 #'   fpca <- refund::fpca.sc(Y = data_mat, 
 #'                           argvals = attr(data_mat, "arg"), 
 #'                           pve = pve, ...)

@@ -94,7 +94,7 @@ dots are only for future extensions and should be empty.}
 \item{y}{Vector types.}
 }
 \description{
-These functions are the extensions that allow \code{tidyfun} vectors
+These functions are the extensions that allow \code{tf} vectors
 to work with \code{vctrs}.
 
 These functions are the extensions that allow \code{tidyfun} vectors

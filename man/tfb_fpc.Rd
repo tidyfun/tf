@@ -57,7 +57,7 @@ tfb_fpc(data, ...)
 
 \item{...}{arguments to the \code{method} which computes the
 (regularized/smoothed) FPCA.
-Unless set by the user \code{tidyfun} uses proportion of variance explained
+Unless set by the user, uses proportion of variance explained
 \code{pve = .995} to determine the truncation levels.}
 
 \item{id}{The name or number of the column defining which data belong to which function.}
@@ -110,7 +110,7 @@ set.seed(99290)
 data <- tf_rgp(15) |> tf_sparsify() |> as.data.frame(unnest = TRUE)
 # wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
 fpca_sc_wrapper <- function(data, arg, pve = .995, ...) {
-  data_mat <- tidyfun:::df_2_mat(data)
+  data_mat <- tf:::df_2_mat(data)
   fpca <- refund::fpca.sc(Y = data_mat, 
                           argvals = attr(data_mat, "arg"), 
                           pve = pve, ...)

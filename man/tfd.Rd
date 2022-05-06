@@ -123,7 +123,7 @@ with \code{na.rm = FALSE}),
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE} and
 \item \code{tf_approx_nocb} for "next observation carried backward" (i.e.,
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
-See \code{tidyfun:::zoo_wrapper} and \code{tidyfun:::tf_approx_linear}, which is simply
+See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
 \code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of implementations of
 this.
 }

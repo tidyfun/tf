@@ -50,7 +50,7 @@ with \code{na.rm = FALSE}),
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
 }
 
-For implementing your own, see source code of \code{tidyfun:::zoo_wrapper}.
+For implementing your own, see source code of \code{tf:::zoo_wrapper}.
 }
 \seealso{
 tfd

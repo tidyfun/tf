@@ -1,6 +1,6 @@
-#' Constructors & convertors for functional data in basis representation
+#' Constructors for functional data in basis representation
 #'
-#' Various constructor and conversion methods.
+#' Various constructors for `tfb`-vectors from different kinds of inputs. 
 #'
 #' `tfb` is a wrapper for functions that set up spline-, principal component- or
 #' wavelet-based representations of functional data. For all three, the input
@@ -40,3 +40,8 @@ tfb <- function(data, basis = c("spline", "fpc", "wavelet"), ...) {
 #' @rdname tfb
 tfb_wavelet <- function(data, ...) .NotYetImplemented()
 
+# ------------------------------------------------------------------------------
+
+#' @rdname tfb
+#' @export
+as.tfb <- function(data, basis = c("spline", "fpc"), ...) tfb(data, basis, ...)

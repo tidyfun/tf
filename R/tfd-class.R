@@ -72,10 +72,10 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
 
 #------------------------------------------------------------------------------
 
-#' Constructors & converters for "raw" functional data
+#' Constructors for vectors of "raw" functional data 
 #'
-#' Various constructor and conversion methods.
-#'
+#' Various constructor methods for `tfd`-objects. 
+#' 
 #' **`evaluator`**: must be the (quoted or bare) name of a
 #' function with signature `function(x, arg, evaluations)` that returns
 #' the functions' (approximated/interpolated) values at locations `x` based on
@@ -91,7 +91,7 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
 #' [zoo::na.locf()] with `na.rm = FALSE` and
 #' - `tf_approx_nocb` for "next observation carried backward" (i.e.,
 #' [zoo::na.locf()] with `na.rm = FALSE, fromLast = TRUE`).
-#' See `tidyfun:::zoo_wrapper` and `tidyfun:::tf_approx_linear`, which is simply
+#' See `tf:::zoo_wrapper` and `tf:::tf_approx_linear`, which is simply
 #' `zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)`, for examples of implementations of
 #' this.
 #'
@@ -301,3 +301,31 @@ tfd.default = function(data, arg = NULL, domain = NULL,
   
 }
 
+#-------------------------------------------------------------------------------
+
+#' @rdname tfd
+#' @export
+as.tfd <- function(data, ...) UseMethod("as.tfd")
+#' @export
+as.tfd.default <- function(data, ...) {
+  tfd(data, ...)
+}
+
+# TODO: this ignores arg, domain for now, only needed internally in c.tfd
+#' @rdname tfd
+#' @export
+as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
+#' @import purrr
+#' @export
+as.tfd_irreg.tfd_reg <- function(data, ...) {
+  arg <- ensure_list(tf_arg(data))
+  ret <- map2(tf_evaluations(data), arg, ~list(arg = .y, value = .x))
+  attributes(ret) <- attributes(data)
+  attr(ret, "arg") <- numeric(0)
+  class(ret)[1] <- "tfd_irreg"
+  ret
+}
+#' @export
+as.tfd_irreg.tfd_irreg <- function(data, ...) {
+  data
+}

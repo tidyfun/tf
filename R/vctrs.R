@@ -17,7 +17,7 @@ c_names <- function(funs) {
 
 #' vctrs methods for \code{tf} objects
 #' 
-#' These functions are the extensions that allow \code{tidyfun} vectors 
+#' These functions are the extensions that allow \code{tf} vectors 
 #' to work with \code{vctrs}.
 #' 
 #' @rdname vctrs

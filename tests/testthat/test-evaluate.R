@@ -1,4 +1,4 @@
-source(system.file("testdata", "make-test-data.R", package = "tidyfun"))
+source(system.file("testdata", "make-test-data.R", package = "tf"))
 
 context("tf_evaluate for tf")
 

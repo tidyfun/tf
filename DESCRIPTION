@@ -1,6 +1,6 @@
 Package: tf
 Title: S3 classes and methods for tidy functional data 
-Version: 0.0.96
+Version: 0.0.1
 Authors@R: c(person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com", role = c("aut", "cre")), person("Jeff", "Goldsmith", role = c("aut")), person("Julia", "Wrobel", role = c("aut")))
 Description: Provides S3 classes and methods for representing, visualizing and wrangling tidy functional data.
 Depends: R (>= 4.1)
@@ -31,7 +31,6 @@ Collate:
     'brackets.R'
     'calculus.R'
     'convert.R'
-    'datasets.R'
     'depth.R'
     'evaluate.R'
     'globals.R'
