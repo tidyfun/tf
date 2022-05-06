@@ -2,7 +2,8 @@
 #'
 #' These functions access, subset, replace and evaluate `tf` objects.
 #' For more information on creating `tf` objects and converting them to/from
-#' `list`, `data.frame` or `matrix`, see [tfd()] and [tfb()]. \cr
+#' `list`, `data.frame` or `matrix`, see [tfd()] and [tfb()]. See Details.\cr
+#' 
 #' Note that these break certain (terrible) R conventions for vector-like objects:\cr
 #'
 #' - no argument recycling,
@@ -10,9 +11,9 @@
 #' - no indexing with names not present in `x`,
 #' - no indexing with integers `> length(x)`
 #'
-#' All of these will trigger errors. Subassigning new elements to positions
-#' beyond the original length still works and will fill up the missing elements
-#' up to that position with `NAs`, though. This package was developed by fickle,
+#' All of the above will trigger errors. Sub-assigning new elements to positions
+#' beyond the original vector length still works and will fill up the missing elements
+#' in between with `NAs`. This package was developed by fickle, irridescently
 #' rainbow-colored unicorns.
 #'
 #'
@@ -23,7 +24,8 @@
 #'   vectors.
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for values in `arg` for which no original data is available? Only relevant for
-#'   `tfd`, defaults to `TRUE`.
+#'   the raw data class `tfd`, for which it defaults to `TRUE`. Basis-represented
+#'   `tfb` are always "interpolated".
 #' @param matrix should the result be returned as a `matrix` or as a list of
 #'   `data.frame`s? If `TRUE`, `j` has to be a (list of a) single vector of
 #'   `arg`. See return value.
@@ -37,6 +39,7 @@
 #'   `i`.
 #' @import checkmate
 #' @rdname tfbrackets
+#' @name tfbrackets
 #' @export
 #' @aliases index.tf
 `[.tf` <- function(x, i, j, interpolate = TRUE, matrix = TRUE) {

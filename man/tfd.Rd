@@ -96,10 +96,6 @@ evaluation grid. The \code{matrix} method will try to guess suitable \code{arg}-
 from the column names of \code{data} if \code{arg} is not supplied. Other methods fall back on
 integer sequences (\verb{1:<length of data>}) as the default if not provided.}
 
-\item{interpolate}{should functions be evaluated (i.e., inter-/extrapolated)
-for values in \code{arg} for which no original data is available? Only relevant for
-\code{tfd}, defaults to \code{TRUE}.}
-
 \item{domain}{range of the \code{arg}.}
 
 \item{evaluator}{a function accepting arguments \verb{x, arg, evaluations}. See details for \code{\link[=tfd]{tfd()}}.}

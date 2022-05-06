@@ -128,10 +128,11 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @param domain range of the `arg`.
 #' @param evaluator a function accepting arguments `x, arg, evaluations`. See details for [tfd()].
 #' @param resolution resolution of the evaluation grid. See details for [tfd()].
+#' @importFrom rlang quo_name enexpr
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, resolution = NULL, ...) {
   stopifnot(is.numeric(data))
-  evaluator <- quo_name(enexpr(evaluator))
+  evaluator <- rlang::quo_name(rlang::enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
   id <- unique_id(rownames(data) %||% seq_len(dim(data)[1]))
   # make factor conversion explicit to avoid reordering

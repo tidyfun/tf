@@ -1,41 +1,31 @@
-#' Evaluate `tf`s, both inside or outside a `data.frame`
+#' Evaluate `tf`-vectors for given argument values
 #'
-#' @details The `arg`-argument of `tf_evaluate.data.frame` method can be a
-#'   list of `arg`-vectors or -lists used as the `arg` argument for the
-#'   [tf_evaluate()]-method for the respective `tf`-columns in `object`.
-#'   `...` is not used for a `tf`-`object`, but a second unnamed argument to these
-#'   methods will be interpreted as `arg`.
 #' @param object a `tf`, or a `data.frame`-like object with `tf` columns.
-#' @param ... optional: a selection of `tf`-columns. If empty, all `tf`-variables
-#'   in the data frame are selected. You can supply bare variable names,
-#'   select all variables between `x` and `z` with `x:z`, exclude `y` with `-y`.
-#'   For more options, see the [dplyr::select()] documentation. 
 #' @param arg optional evaluation grid (vector or list of vectors).
-#'   Defaults to `tf_arg(object)`.
+#'   Defaults to `tf_arg(object)`, implicitly.
 #' @param evaluator optional. The function to use for inter/extrapolating the `tfd`.
 #'   Defaults to `tf_evaluator(object)`. See e.g. [tf_approx_linear()] for details.
-#' @return For `tf`-objects, a list of numeric vectors containing the function
-#'   evaluations. For dataframes, replaces `tf`-columns with list columns of
-#'   smaller `data.frames` containing the functions' arguments (`arg`) and
-#'   evaluations (`value`).
-#' @seealso This is used internally by `[.tf` to evaluate `object`.
+#' @return A list of numeric vectors containing the function
+#'   evaluations on `arg`.
+#' @seealso This is used internally by [`[.tf`][tf::tfbrackets] to evaluate `object`.
 #' @export
-tf_evaluate <- function(object, ..., arg) UseMethod("tf_evaluate")
+#' @examples 
+#' f <- tf_rgp(3, arg = seq(0, 1, l = 11))
+#' tf_evaluate(f) %>% str()
+#' tf_evaluate(f, arg = .5) %>% str()
+#' new_grid <- seq(0, 1, l = 6)
+#' tf_evaluate(d, arg = grid) %>% str()
+tf_evaluate <- function(object, arg, ...) UseMethod("tf_evaluate")
 
 #' @export
-tf_evaluate.default <- function(object, ..., arg) .NotYetImplemented()
+tf_evaluate.default <- function(object, arg, ...) .NotYetImplemented()
 
 #' @export
 #' @rdname tf_evaluate
-tf_evaluate.tfd <- function(object, ..., arg, evaluator = tf_evaluator(object)) {
-  if (missing(arg)) {
-    if (nargs() == 1) return(tf_evaluations(object))
-    if (nargs() == 2) arg <- list(...)[[1]]
-    if (nargs() > 2) {
-      stop("too many arguments - can't use ...")
-    }
+tf_evaluate.tfd <- function(object, arg, evaluator = tf_evaluator(object), ...) {
+  if (missing(arg) || is.null(arg)) {
+    return(tf_evaluations(object))
   }
-  if (is.null(arg)) return(tf_evaluations(object))
   arg <- ensure_list(arg)
   assert_arg(arg, object, check_unique = FALSE)
   ret <- pmap(
@@ -67,15 +57,10 @@ evaluate_tfd_once <- function(new_arg, arg, evaluations, evaluator, resolution) 
 
 #' @export
 #' @rdname tf_evaluate
-tf_evaluate.tfb <- function(object, ..., arg) {
-  if (missing(arg)) {
-    if (nargs() == 1) return(tf_evaluations(object))
-    if (nargs() == 2) arg <- list(...)[[1]]
-    if (nargs() > 2) {
-      stop("too many unnamed arguments - can't use ...")
-    }
+tf_evaluate.tfb <- function(object, arg, ...) {
+  if (missing(arg) || is.null(arg)) {
+    return(tf_evaluations(object))
   }
-  if (is.null(arg)) return(tf_evaluations(object))
   arg <- ensure_list(arg)
   assert_arg(arg, object, check_unique = FALSE)
   if (length(arg) == 1) {
@@ -125,49 +110,3 @@ evaluate_tfb_once <- function(x, arg, coefs, basis, X, resolution) {
   drop(Xnew %*% coefs)
 }
 
-#' @rdname tf_evaluate
-#' @import tidyr
-#' @importFrom tidyselect vars_select quos
-#' @importFrom rlang quo_text
-#' @export
-#' @examples 
-#' library(dplyr)
-#' a <- tf_rgp(3, arg = 7)
-#' b <- tf_rgp(3, arg = 7)
-#' d <- tibble(a = a, b = b)
-#' tf_evaluate(a) %>% str()
-#' tf_evaluate(a, arg = .5) %>% str()
-#' tf_evaluate(d) %>% glimpse()
-#' tf_evaluate(d, -b) %>% glimpse()
-#' tf_evaluate(d, a) %>% glimpse() 
-#' grid <- seq(0, 1, l = 11)
-#' # <arg> must be specified as named argument!
-#' tf_evaluate(d, arg = grid) %>% glimpse() 
-tf_evaluate.data.frame <- function(object, ..., arg) {
-  # figure out which tf columns to evaluate:
-  tf_cols <- names(object)[map_lgl(object, is_tf)]
-  tf_to_evaluate <- enquos(...)
-  if (!is_empty(tf_to_evaluate)) {
-    tf_to_evaluate <- unname(vars_select(names(object), !!!tf_to_evaluate))
-    tf_cols <- intersect(tf_cols, tf_to_evaluate)
-  }
-  if (!length(tf_cols)) {
-    warning("Nothing to be done for tf_evaluate.")
-    return(object)
-  }
-  if (!missing(arg) && !is.null(arg)) {
-    arg <- ensure_list(arg)
-    if (length(arg) == 1 & length(tf_cols) > 1) {
-      arg <- replicate(length(tf_cols), arg, simplify = FALSE)
-    }
-  } else {
-    arg <- map(object[tf_cols], ~ensure_list(tf_arg(.)))
-  }
-  stopifnot(length(arg) == length(tf_cols))
-  names(arg) <- tf_cols
-  # convert them to list-columns of data.frames
-  for (f in tf_cols) {
-    object[[f]] <- object[[f]][, arg[[f]], matrix = FALSE]
-  }
-  object
-}
