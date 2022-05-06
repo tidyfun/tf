@@ -84,7 +84,7 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 }
 
 .adjust_resolution <- function(arg, resolution, unique = TRUE) {
-  u <- if (unique) base::unique else function(x) x
+  u <- if (unique) base::unique else function(x) tf
   if (is.list(arg)) {
     map(arg, ~u(round_resolution(., resolution)))
   } else {
@@ -148,6 +148,29 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
 }
 
 #-------------------------------------------------------------------------------
+
+# replaces functionality of tf_unnest.tf 
+# turn a tf object into a data.frame evaluated on arg with cols id-arg-value
+tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
+  stopifnot(inherits(tf, "tf"))
+  if (missing(arg)) {
+    arg <- tf_arg(tf)
+  }
+  arg <- ensure_list(arg)
+  assert_arg(arg, tf)
+  
+  tmp <- do.call(rbind, 
+                 args = tf[, arg, matrix = FALSE, interpolate = interpolate])
+  n_evals <- vapply(arg, length, numeric(1))
+  tmp$id <-
+    if (length(n_evals) == 1) {
+      rep(unique_id(names(tf)) %||% seq_along(tf), each = n_evals)
+    } else {
+      rep(unique_id(names(tf)) %||% seq_along(tf), times = n_evals)
+    }  
+  tmp[, c("id", "arg", "value")]
+}
+
 
 # from refund
 #' @importFrom stats complete.cases

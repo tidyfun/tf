@@ -10,6 +10,7 @@ as.tfd.default <- function(data, ...) {
 #' @rdname tfd
 #' @export
 as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
+#' @import purrr
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
@@ -27,17 +28,21 @@ as.tfd_irreg.tfd_irreg <- function(data, ...) {
 #' @rdname tfd
 #' @inheritParams base::as.data.frame
 #' @param optional not used!
+#' @param unnest if `TRUE`, the function will return a data.frame with the evaluated functions.
 #' @param x a `tf` object
-#' @return a one-column `data.frame` with a `tf`-column containing `x`
+#' @return if `unnest` is `FALSE` (default), a one-column `data.frame` with a `tf`-column containing `x`.
+#'    if `unnest` is `TRUE`, a 3-column data frame with columns `id` 
+#'    for the (unique) names of `x` or a numeric identifier, `arg` and `value`,
+#'   with each row containing one function evaluation at the original `arg`-values.
 #' @export
-as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, unnest = FALSE, ...) {
+  if (unnest) return(tf_2_df(x))
   colname <- deparse(substitute(x))
   ret <- data.frame(tmp = 1:length(x), row.names = row.names)
   ret[[colname]] <- x
   ret[, colname, drop = FALSE]
 }
-#as.data.frame.tfd <- as.data.frame.tf #TODO: y we need dis?
-#as.data.frame.tfb <- as.data.frame.tf
+
 
 
 #' @rdname tfd
@@ -47,8 +52,7 @@ as.matrix.tfd <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
     arg <- sort(unique(unlist(tf_arg(x))))
   }
-  ret <- x[, arg, interpolate = interpolate, matrix = TRUE]
-  structure(ret, arg = as.numeric(colnames(ret)))
+  x[, arg, interpolate = interpolate, matrix = TRUE]
 }
 
 #-------------------------------------------------------------------------------
@@ -59,19 +63,11 @@ as.tfb <- function(data, basis = c("spline", "fpc"), ...) tfb(data, basis, ...)
 
 #' @rdname tfb
 #' @param x a [tfb] object to be converted
-#' @param arg a grid of argument values to evaluate on
+#' @param arg a grid of argument values to evaluate on.
 #' @export
-as.matrix.tfb <- function(x, arg, ...) {
-  if (missing(arg)) arg <- tf_arg(x)
+as.matrix.tfb <- function(x, arg = tf_arg(x), ...) {
   assert_arg_vector(arg, x)
-  # rm dplyr / tidyr, evaluate basis then mutiply with coefs
-  ret <- tf_unnest(x, arg = arg) %>%
-    dplyr::arrange(arg) %>%
-    tidyr::spread(key = arg, value = value) %>%
-    dplyr::select(-id) %>%
-    as.matrix()
-  rownames(ret) <- names(x)
-  structure(ret, arg = as.numeric(colnames(ret)))
+  x[, arg, matrix = TRUE]
 }
 
 #-------------------------------------------------------------------------------

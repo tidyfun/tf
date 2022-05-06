@@ -225,8 +225,7 @@ tfb_spline.list <- function(data, arg = NULL,
   vectors <- vapply(data, is.numeric, logical(1))
   stopifnot(all(vectors) | !any(vectors))
   
-  # ensure "unique" names (principles.tidyverse.org/names-attribute.html)
-  names_data <- names(data) # %||% rep(".", length(data))
+  names_data <- names(data) 
   
   if (all(vectors)) {
     lengths <- vapply(data, length, numeric(1))
@@ -240,17 +239,17 @@ tfb_spline.list <- function(data, arg = NULL,
       !is.null(arg), length(arg) == length(data),
       all(vapply(arg, length, numeric(1)) == lengths)
     )
-    data <- map2(arg, data, ~as.data.frame(cbind(arg = .x, data = .y)))
+    data <- map2(arg, data, ~as.data.frame(cbind(arg = .x, value = .y)))
   }
   dims <- map(data, dim)
   stopifnot(
     all(vapply(dims, length, numeric(1)) == 2), all(map(dims, ~.x[2]) == 2),
     all(rapply(data, is.numeric))
   )
-  data <- dplyr::tibble(
-    id = unique_id(names(data)) %||% seq_along(data),
-    funs = data
-  ) %>% { tidyr::unnest_legacy(.) }
+  n_evals <- map(dims, ~.x[1]) 
+  tmp <- do.call(rbind, data)
+  tmp <- cbind(rep(unique_id(names(data)) %||% seq_along(data), times = n_evals), 
+               tmp)  
   # dispatch to data.frame method
   ret <- tfb_spline(data, domain = domain, penalized = penalized, 
              global = global, resolution = resolution, ...)
@@ -267,14 +266,11 @@ tfb_spline.tfd <- function(data, arg = NULL,
   arg <- arg %||% tf_arg(data)
   domain <- domain %||% tf_domain(data)
   resolution <- resolution %||% tf_resolution(data)
-  
-  # ensure "unique" names (principles.tidyverse.org/names-attribute.html)
-  names_data <- names(data) # %||% rep(".", length(data))
-  
-  data <- tf_unnest(data, arg = arg)
-  ret <- tfb_spline(data, domain = domain, penalized = penalized, 
-             global = global,  resolution = resolution, ...)
-  names(ret) <- names_data
+
+  tmp <- tf_2_df(data, arg)
+  ret <- tfb_spline(tmp, domain = domain, 
+                    penalized = penalized, global = global, resolution = resolution, ...)
+  names(ret) <- names(data)
   ret
 }
 
@@ -298,7 +294,7 @@ tfb_spline.tfb <- function(data, arg = NULL,
     ret <- new_tfb_spline(data, arg = arg, domain = domain, penalized = penalized,
                           global = global, resolution = resolution, s_args)
   } else {
-    data <- tf_unnest(data, arg = arg)
+    data <- tf_2_df(data, arg = arg)
     ret <- do.call("tfb_spline", c(list(data),
                                    domain = domain, global = global,
                                    penalized = penalized, resolution = resolution, s_args
