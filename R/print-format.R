@@ -19,8 +19,9 @@ string_rep_tf <- function(f, signif_arg = NULL,
   )
   arg_nchar <- map(arg_ch, ~nchar(.x)) %>% unlist() %>% max()
   value_nchar <- map(value_ch, ~nchar(.x)) %>% unlist() %>% max()
-  arg_ch <- map(arg_ch, ~stringr::str_pad(.x, arg_nchar))
-  value_ch <- map(value_ch, ~stringr::str_pad(.x, value_nchar))
+  #left-pad with spaces:
+  arg_ch <- map(arg_ch, ~ sprintf(paste0("%", arg_nchar, "s"), .)) 
+  value_ch <- map(value_ch, ~ sprintf(paste0("%", value_nchar, "s"), .))
   str <- map2(
     arg_ch, value_ch,
     ~paste(paste0("(", .x, ",", .y, ")"), collapse = ";")
@@ -29,7 +30,7 @@ string_rep_tf <- function(f, signif_arg = NULL,
     list(str, arg_len, show),
     ~ifelse(..2 > ..3, paste0(..1, "; ..."), ..1)
   )
-  map_if(str, str_detect(str, "NA\\)"), ~{
+  map_if(str, grepl("NA\\)", str), ~{
     "NA"
   })
 }

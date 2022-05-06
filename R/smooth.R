@@ -39,7 +39,6 @@ tf_smooth.tfb <- function(x, ...) {
 #' @importFrom zoo rollmean rollmedian
 #' @importFrom pracma savgol
 #' @importFrom stats lowess
-#' @importFrom stringr str_detect
 #' @rdname tf_smooth
 #' @export
 #' @examples
@@ -65,14 +64,14 @@ tf_smooth.tfd <-
   method <- match.arg(method)
   smoother <- get(method, mode = "function")
   dots <- list(...)
-  if (any(str_detect(method, c("savgol", "rollm")))) {
+  if (any(grepl(c("savgol", "rollm"), method))) {
     if (!is_equidist(x)) {
       warning(
         "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
         " ignored by ", method, "."
       )
     }
-    if (str_detect(method, "rollm")) {
+    if (grepl("rollm", method)) {
       if (is.null(dots$k)) {
         dots$k <- ceiling(.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
@@ -83,7 +82,7 @@ tf_smooth.tfd <-
         dots$fill <- "extend"
       }
     }
-    if (str_detect(method, "savgol")) {
+    if (grepl("savgol", method)) {
       if (is.null(dots$fl)) {
         dots$fl <- ceiling(.15 * min(tf_count(x)))
         dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
@@ -93,7 +92,7 @@ tf_smooth.tfd <-
     smoothed <- map(tf_evaluations(x), 
                     ~do.call(smoother, append(list(.x), dots)))
   }
-  if (str_detect(method, "lowess")) {
+  if (grepl("lowess", method)) {
     if (is.null(dots$f)) {
       dots$f <- .15
       message("using f = ", dots$f, " as smoother span for lowess")

@@ -17,7 +17,8 @@ na_to_0 <- function(x) {
   x
 }
 
-#' @importFrom stringr str_extract
+n_distinct <- function(x) length(unique(x))
+
 find_arg <- function(data, arg) {
   if (is.null(arg)) {
     names <- dimnames(data)[[2]]
@@ -27,15 +28,16 @@ find_arg <- function(data, arg) {
       # will interpret separating-dashes as minus-signs, so functions may run
       # backwards.
       # regex adt'd from https://www.regular-expressions.info/floatingpoint.html
-      arg <- str_extract(
-        names,
-        "[-+]?(0|(0\\.[0-9]+)|([1-9][0-9]*\\.?[0-9]*))([eE][-+]?[0-9]+)?$"
+      arg_matches <- regexpr(
+        pattern = "[-+]?(0|(0\\.[0-9]+)|([1-9][0-9]*\\.?[0-9]*))([eE][-+]?[0-9]+)?$",
+        names
       )
+      arg <- regmatches(names, arg_matches)
       suppressWarnings(arg <- as.numeric(arg))
       if (length(unique(arg)) != dim(data)[2]) arg <- NULL
     }
     if (is.null(arg) | any(is.na(arg))) {
-      message("Column names not suitable as arg. Using 1:ncol(data).")
+      message("Column names not suitable as 'arg'-values. Using 1:ncol(data).")
       arg <- numeric(0)
     }
   }

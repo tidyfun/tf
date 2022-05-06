@@ -1,8 +1,4 @@
 #' @import purrr
-#' @importFrom dplyr arrange bind_cols desc filter group_by id lead left_join 
-#' @importFrom dplyr mutate n_distinct pull rename row_number select select_if 
-#' @importFrom dplyr slice summarise_all summarize summarize_all ungroup
-#' @importFrom stringr str_c
 new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain = numeric(), 
                     evaluator, resolution = numeric()) {
   
