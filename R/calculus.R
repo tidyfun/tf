@@ -128,12 +128,12 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 
 #-------------------------------------------------------------------------------
 
-#' Integrals and Anti-Derivatives of Functional Data
+#' Integrals and anti-derivatives of functional data
 #'
-#' Integrals of `tf`-objects are computed by simple quadrature (trapezoid rule,
-#' specifically). By default the scalar definite integral
+#' Integrals of `tf`-objects are computed by simple quadrature (trapezoid rule).
+#' By default the scalar definite integral
 #' \eqn{\int^{upper}_{lower}f(s)ds} is returned (option `definite = TRUE`),
-#' alternatively for `definite = FALSE` something like the *anti-derivative* on
+#' alternatively for `definite = FALSE` the *anti-derivative* on
 #' `[lower, upper]`, e.g. a `tfd` or `tfb` object representing \eqn{F(t) \approx
 #' \int^{t}_{lower}f(s)ds}, for \eqn{t \in}`[lower, upper]`, is returned.
 #' @inheritParams tf_derive

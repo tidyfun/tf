@@ -152,7 +152,7 @@ Summary.tf <- function(...) {
 
 #-------------------------------------------------------------------------------
 # TODO:
-# inner product ?
+# inner product?
 # `%*%.default` = .Primitive("%*%") # assign default as current definition
 # `%*%` = function(x,...){ #make S3
 #  UseMethod("%*%",x)

@@ -1,4 +1,4 @@
-#' @include tfd-class.R tfb-class.R tfb-spline.R
+#' @include tfd-class.R tfb-class.R tfb-spline.R tfb-fpc.R
 #' @importFrom methods setClass setOldClass
 setClass("tf",
          contains = "structure",
