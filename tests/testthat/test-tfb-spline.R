@@ -1,4 +1,4 @@
-source(system.file("testdata", "make-test-data.R", package = "tidyfun"))
+source(system.file("testdata", "make-test-data.R", package = "tf"))
 
 # check constructors from tfd, matrix, data.frame, list
 context("tfb_spline constructor: basics")

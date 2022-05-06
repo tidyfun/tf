@@ -2,21 +2,18 @@
 % Please edit documentation in R/convert.R
 \name{as.data.frame.tf}
 \alias{as.data.frame.tf}
-\alias{as.matrix.tfd}
-\alias{as.matrix.tfb}
+\alias{as.matrix.tf}
 \alias{as.function.tf}
 \title{Convert functional data back to tabular data formats}
 \usage{
 \method{as.data.frame}{tf}(x, row.names = NULL, optional = FALSE, unnest = FALSE, ...)
 
-\method{as.matrix}{tfd}(x, arg, interpolate = FALSE, ...)
-
-\method{as.matrix}{tfb}(x, arg = tf_arg(x), ...)
+\method{as.matrix}{tf}(x, arg, interpolate = FALSE, ...)
 
 \method{as.function}{tf}(x, ...)
 }
 \arguments{
-\item{x}{a \link{tfb} object to be converted}
+\item{x}{a \code{tf} object}
 
 \item{row.names}{\code{NULL} or a character vector giving the row
     names for the data frame.  Missing values are not allowed.}
@@ -26,8 +23,6 @@
 \item{unnest}{if \code{TRUE}, the function will return a data.frame with the evaluated functions.}
 
 \item{...}{additional arguments to be passed to or from methods.}
-
-\item{arg}{a grid of argument values to evaluate on.}
 }
 \value{
 \strong{for \code{as.data.frame.tf}:} if \code{unnest} is \code{FALSE} (default), a one-column \code{data.frame} with a \code{tf}-column containing \code{x}.
@@ -36,6 +31,6 @@ for the (unique) names of \code{x} or a numeric identifier, \code{arg} and \code
 with each row containing one function evaluation at the original \code{arg}-values.
 }
 \description{
-Various converters to turn \code{tfb}- or \code{tfd}-vectors back into data.frames or
+Various converters to turn \code{tfb}- or \code{tfd}-vectors into data.frames or
 matrices (or actual functions, even!).
 }

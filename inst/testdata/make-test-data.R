@@ -8,10 +8,10 @@ sparse <- tf_sparsify(smoo)
 
 smoo_list <- tf_evaluations(smoo)
 smoo_matrix <- as.matrix(smoo)
-smoo_df <- tf_unnest(smoo)
+smoo_df <- as.data.frame(smoo, unnest = TRUE)
 
 irr_list <- tf_evaluations(irr)
 irr_matrix <- suppressWarnings(as.matrix(irr))
-irr_df <-  tf_unnest(irr)
-narrow_df <-  tf_unnest(narrow) 
+irr_df <-  as.data.frame(irr, unnest = TRUE)
+narrow_df <-  as.data.frame(narrow, unnest = TRUE) 
 

@@ -1,9 +1,8 @@
 context("names and related issues")
 
-data("dti_df")
-cca_five <- dti_df$cca[1:5, seq(0, 1, l = 93), interpolate = TRUE]
-cca_five <- tfd(cca_five, signif = 2)
-names(cca_five) = LETTERS[1:5]
+
+cca_five <- tf_rgp(5)
+names(cca_five) <- LETTERS[1:5]
 
 test_that("names work", {
   expect_equal(names(cca_five), LETTERS[1:5])
@@ -13,4 +12,15 @@ test_that("names work", {
     c("mean", "sd"))
   expect_equal((1:5 * cca_five[1]) %>% names, NULL)
   expect_equal((3 + cca_five[1]) %>% names, "A")
+})
+
+
+test_that("fun_op keeps names", {
+  x <- tf_rgp(3)
+  xn <- x; names(xn) <- letters[1:3]
+  
+  expect_equal(names(x - xn), names(x))
+  expect_equal(names(xn - x), names(xn))
+  expect_equal(names(xn - mean(x)), names(xn))
+  expect_equal(names(mean(xn) - xn), names(xn - mean(x)))
 })

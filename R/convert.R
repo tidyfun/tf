@@ -1,6 +1,6 @@
 #' Convert functional data back to tabular data formats
 #'
-#' Various converters to turn `tfb`- or `tfd`-vectors back into data.frames or
+#' Various converters to turn `tfb`- or `tfd`-vectors into data.frames or
 #' matrices (or actual functions, even!).
 #'
 #' @rdname converters
@@ -24,22 +24,13 @@ as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, unnest = FAL
 #' @rdname converters
 #' @inheritParams [.tf
 #' @export
-as.matrix.tfd <- function(x, arg, interpolate = FALSE, ...) {
+as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
-    arg <- sort(unique(unlist(tf_arg(x))))
+    arg <- tf_arg(x) |> unlist() |>  unique() |> sort()
   }
+  if (is_tfb(x)) interpolate <- TRUE
+  assert_arg_vector(arg, x, check_unique = FALSE)
   x[, arg, interpolate = interpolate, matrix = TRUE]
-}
-
-#-------------------------------------------------------------------------------
-
-#' @rdname converters
-#' @param x a [tfb] object to be converted
-#' @param arg a grid of argument values to evaluate on.
-#' @export
-as.matrix.tfb <- function(x, arg = tf_arg(x), ...) {
-  assert_arg_vector(arg, x)
-  x[, arg, matrix = TRUE]
 }
 
 #-------------------------------------------------------------------------------
