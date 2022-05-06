@@ -36,7 +36,7 @@ zoo_wrapper <- function(f, ...) {
 #' - `tf_approx_nocb` for "next observation carried backward" (i.e.,
 #' [zoo::na.locf()] with `na.rm = FALSE, fromLast = TRUE`).
 #'
-#' For implementing your own, see source code of `tidyfun:::zoo_wrapper`.
+#' For implementing your own, see source code of `tf:::zoo_wrapper`.
 #'
 #' @rdname tf_approx
 #' @seealso tfd

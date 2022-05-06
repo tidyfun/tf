@@ -52,6 +52,7 @@
 #'   tf_where(f, arg > .5 & value > 0)
 #'   # does the function ever exceed 1:
 #'   tf_anywhere(f, value > 1)
+#' @importFrom rlang enquo   
 #' @export
 tf_where <- function(f, cond, 
                      return = c("all", "first", "last", "range", "any"), arg) {

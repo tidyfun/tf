@@ -92,7 +92,7 @@
     rownames(ret) <- names(x)
     structure(ret, arg = unlist(j))
   } else {
-    ret <- map2(j, evals, ~bind_cols(arg = .x, value = .y))
+    ret <- map2(j, evals, ~ data.frame(arg = .x, value = .y))
     names(ret) <- names(x)
     ret
   }

@@ -1,7 +1,7 @@
 Package: tf
 Title: S3 classes and methods for tidy functional data 
 Version: 0.0.96
-Authors@R: c(person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com", role = c("aut", "cre")), person("Jeff", "Goldsmith", role = c("aut")))
+Authors@R: c(person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com", role = c("aut", "cre")), person("Jeff", "Goldsmith", role = c("aut")), person("Julia", "Wrobel", role = c("aut")))
 Description: Provides S3 classes and methods for representing, visualizing and wrangling tidy functional data.
 Depends: R (>= 4.1)
 Imports:
@@ -44,17 +44,16 @@ Collate:
     'rng.R'
     'smooth.R'
     'summarize.R'
-    'tfb-fpc.R'
-    'tfb-spline.R'
-    'tfb-class.R'
-    'tfd-class.R'
+    'tf-package.R'
     'tf-s4.R'
+    'tfb-class.R'
     'tfb-fpc-utils.R'
+    'tfb-fpc.R'
     'tfb-spline-utils.R'
-    'tidyfun-package.r'
-    'tidyverse-vctrs.R'
+    'tfb-spline.R'
+    'tfd-class.R'
     'utils.R'
+    'vctrs.R'
     'where.R'
     'zoom.R'
 VignetteBuilder: knitr
-
