@@ -1,13 +1,14 @@
 context("tf_where")
-test_that("tf_where works", {
-  lin <- 1:2 * tfd(seq(-1, 1, l = 11), seq(-1, 1, l = 11))
+
+test_that("tf_where basics work", {
+  lin <- 1:2 * tfd(seq(-1, 1, l = 11), seq(-1, 1, l = 11)) + c(0, 0.1)
   expect_equivalent(
     tf_where(lin, value %inr% c(-1, -.5)),
     list(c(-1.0, -0.8, -0.6), c(-0.4))
   )
   expect_equivalent(
     tf_where(lin, value > 0, "first"),
-    c(0.2, 0.2)
+    c(0.2, 0)
   )
   expect_equivalent(
     tf_where(lin, value < 0, "last"),
@@ -15,7 +16,7 @@ test_that("tf_where works", {
   )
   expect_equivalent(
     tf_where(lin, value <= 0, "range"),
-    data.frame(begin = -1, end = c(0, 0))
+    data.frame(begin = -1, end = c(0, -0.2))
   )
   expect_equivalent(
     tf_where(lin, value < -1.5, "any"),

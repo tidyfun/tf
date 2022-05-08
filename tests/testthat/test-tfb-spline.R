@@ -23,12 +23,19 @@ test_that("tfb_spline defaults work for all kinds of irregular input", {
   expect_message(tfb_spline(irr), "100")
   expect_equal(length(tfb_spline(irr, verbose = FALSE)), length(irr))
   expect_message(tfb_spline(irr_df), "100")
-  for (irr_tfb in list(tfb_spline(irr_list, arg = tf_arg(irr), verbose = FALSE),
-                      tfb_spline(irr_matrix, verbose = FALSE), 
-                      tfb_spline(irr_df, verbose = FALSE))) {
-    expect_is(irr_tfb, "tfb_spline")
-    expect_equal(length(irr_tfb), length(irr))
-    expect_equivalent(tf_evaluate(irr_tfb, tf_arg(irr)), 
+  
+  irr_tfb_ <- tfb_spline(irr_list, arg = tf_arg(irr), verbose = FALSE)
+  expect_is(irr_tfb_, "tfb_spline")
+  expect_equal(length(irr_tfb_), length(irr))
+  expect_equivalent(tf_evaluate(irr_tfb_, tf_arg(irr)), 
+                    tf_evaluations(irr), 
+                    tolerance = 1e-1)
+  
+  for (dat in list(irr_matrix, irr_df)) {
+    irr_tfb_ <- tfb_spline(dat, verbose = FALSE)
+    expect_is(irr_tfb_, "tfb_spline")
+    expect_equal(length(irr_tfb_), length(irr))
+    expect_equivalent(tf_evaluate(irr_tfb_, tf_arg(irr)), 
                       tf_evaluations(irr), 
                       tolerance = 1e-1)
   }
@@ -60,7 +67,7 @@ test_that("unpenalized tfb_spline works", {
   expect_equivalent(
     tfb_spline(exp(smoo), family = gaussian(link = "log"), 
                penalized = FALSE, verbose = FALSE) %>% 
-      log %>% as.matrix.tfb, 
+      log %>% as.matrix, 
     as.matrix(smoo), 
     tolerance = .001)
   

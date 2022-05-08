@@ -180,7 +180,7 @@ tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
                                   domain = NULL, penalized = TRUE, 
                                   global = FALSE, resolution = NULL, ...) {
-  data <- df_2_df(data, id, arg, value)
+  data <- df_2_df(data, id = id, arg = arg, value = value)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
                         global = global, resolution = resolution, ...)
   assert_arg(tf_arg(ret), ret)
@@ -193,10 +193,8 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
 tfb_spline.matrix <- function(data, arg = NULL,
                               domain = NULL, penalized = TRUE, 
                               global = FALSE, resolution = NULL, ...) {
-  arg <- unlist(find_arg(data, arg))
-  
-  # ensure "unique" names (principles.tidyverse.org/names-attribute.html)
-  names_data <- rownames(data) # %||% rep(".", nrow(data))
+  if (is.null(arg)) arg <- unlist(find_arg(data, arg))
+  names_data <- rownames(data) 
   
   data <- mat_2_df(data, arg)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
@@ -251,7 +249,7 @@ tfb_spline.list <- function(data, arg = NULL,
   tmp <- cbind(rep(unique_id(names(data)) %||% seq_along(data), times = n_evals), 
                tmp)  
   # dispatch to data.frame method
-  ret <- tfb_spline(data, domain = domain, penalized = penalized, 
+  ret <- tfb_spline(tmp, domain = domain, penalized = penalized, 
              global = global, resolution = resolution, ...)
   names(ret) <- names_data
   ret

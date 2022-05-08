@@ -49,7 +49,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
   args <- prep_tf_zoom_args(f, begin, end)
   ret <- pmap(
     list(f[, tf_arg(f), matrix = FALSE], args$begin, args$end),
-    ~ filter(..1, arg >= ..2 & arg <= ..3)
+    ~ subset(..1, arg >= ..2 & arg <= ..3)
   )
   if (is_irreg(f) | !args$regular) {
     nas <- map_lgl(ret, ~length(.x$arg) == 0)

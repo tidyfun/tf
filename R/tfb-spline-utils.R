@@ -1,28 +1,3 @@
-# input homogenizers
-df_2_df <- function(data, id = 1, arg = 2, value = 3) {
-  data <- na.omit(data[, c(id, arg, value)])
-  colnames(data) <- c("id", "arg", "value")
-  stopifnot(
-    nrow(data) > 0,
-    is.numeric(data[[2]]),
-    is.numeric(data[[3]])
-  )
-  data
-}
-
-mat_2_df <- function(x, arg) {
-  stopifnot(is.numeric(x))
-  id <- unique_id(rownames(x)) %||% seq_len(dim(x)[1])
-  id <- ordered(id, levels = unique(id))
-  df_2_df(data.frame(
-    # use t(x) here so that order of vector remains unchanged...
-    id = id[col(t(x))], arg = arg[row(t(x))],
-    value = as.vector(t(x)),
-    stringsAsFactors = FALSE
-  ))
-}
-
-
 #' @import mgcv
 smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
   stopifnot(deriv %in% c(-1, 0, 1, 2), isTRUE(eps > 0))
@@ -68,8 +43,10 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
   }
 }
 
-#-------------------------------------------------------------------------------
-# utility functions for unpenalized spline representation: least squares & GLM
+# utility functions for unpenalized spline representation: least squares & GLM:
+
+#----------------- Unpenalized LS fits -----------------------------------------
+
 fit_unpenalized <- function(data, spec_object, gam_args, arg_u, regular, 
                             ls_fit) {
   if (ls_fit) {
@@ -104,7 +81,9 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
   return(list(coef = coef_list, pve = pve))
 }
 
-#-------------------------------------------------------------------------------
+#---Penalized LS fits          -------------------------------------------------
+
+
 # utility functions for penalized spline representation: 
 # global fit, curve-specific LS, curve-specific GLM
 fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global, 
@@ -173,6 +152,9 @@ magic_smooth_coef <- function(evaluations, index, spec_object, gam_args) {
   m <- do.call(mgcv::magic, magic_args)
   list(coef = m$b, pve = 1 - m$scale / var(evaluations), sp = m$sp)
 }
+
+
+#------ General Likelihood Fits ------------------------------------------------
 
 # fit gam for one curve, with estimated (default, sp=-1) or fixed penalization
 #  or unpenalized 

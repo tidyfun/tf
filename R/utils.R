@@ -1,23 +1,4 @@
-get_args <- function(args, f) {
-  args[names(args) %in% names(formals(f))]
-}
-
-ensure_list <- function(x) if (!is.list(x)) list(x) else x
-
-unique_id <- function(x) {
-  if (!any(duplicated(x))) return(x)
-  if (is.character(x)) x <- sub("$^", "?", x)
-  x <- make.unique(make.names(as.character(x)))
-  # TODO: make sure this has the correct order (here or in converters?)
-  x
-}
-
-na_to_0 <- function(x) {
-  x[is.na(x)] <- 0
-  x
-}
-
-n_distinct <- function(x) length(unique(x))
+# arg-related
 
 find_arg <- function(data, arg) {
   if (is.null(arg)) {
@@ -66,8 +47,8 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
     }
   }
   assert_numeric(arg,
-    any.missing = FALSE, unique = FALSE,
-    lower = tf_domain(x)[1], upper = tf_domain(x)[2]
+                 any.missing = FALSE, unique = FALSE,
+                 lower = tf_domain(x)[1], upper = tf_domain(x)[2]
   )
 }
 
@@ -116,6 +97,7 @@ is_equidist <- function(f) {
   all(unique_diffs)
 }
 
+#-------------------------------------------------------------------------------
 
 compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
   # TODO: better way to check evaluator/basis functions?
@@ -150,61 +132,41 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
 }
 
 #-------------------------------------------------------------------------------
+# misc
 
-# replaces functionality of tf_unnest.tf 
-# turn a tf object into a data.frame evaluated on arg with cols id-arg-value
-tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
-  stopifnot(inherits(tf, "tf"))
-  if (missing(arg)) {
-    arg <- tf_arg(tf)
-  }
-  arg <- ensure_list(arg)
-  assert_arg(arg, tf)
-  
-  tmp <- do.call(rbind, 
-                 args = tf[, arg, matrix = FALSE, interpolate = interpolate])
-  n_evals <- vapply(arg, length, numeric(1))
-  tmp$id <-
-    if (length(n_evals) == 1) {
-      rep(unique_id(names(tf)) %||% seq_along(tf), each = n_evals)
-    } else {
-      rep(unique_id(names(tf)) %||% seq_along(tf), times = n_evals)
-    }  
-  tmp[, c("id", "arg", "value")]
+#' @description `in_range` and its infix-equivalent `%inr%` return `TRUE` for all
+#'    values in the numeric vector `f` that are within the range of values in `r`.
+#' @param r numeric vector used to specify a range, only the minimum and maximum of `r` are used.
+#' @rdname tf_where
+#' @export
+in_range <- function(f, r) {
+  assert_numeric(f)
+  assert_numeric(r)
+  r <- range(r, na.rm = TRUE)
+  f >= r[1] & f <= r[2]
+}
+#' @rdname tf_where
+#' @export
+`%inr%` <- function(f, r) in_range(f, r)
+
+
+get_args <- function(args, f) {
+  args[names(args) %in% names(formals(f))]
 }
 
+ensure_list <- function(x) if (!is.list(x)) list(x) else x
 
-# from refund
-#' @importFrom stats complete.cases
-df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
-  data <- data[complete.cases(data), ]
-  nobs <- length(unique(data$id))
-  newid <- as.numeric(as.factor(data$id))
-  bins <- sort(unique(data$arg))
-  if (binning && (length(bins) > maxbins)) {
-    binvalues <- seq((1 - 0.001 * sign(bins[1])) * bins[1],
-      (1 + 0.001 * sign(bins[length(bins)])) * bins[length(bins)],
-      l = maxbins + 1
-    )
-    bins <- binvalues
-    binvalues <- head(filter(binvalues, c(0.5, 0.5)), -1)
-  } else {
-    binvalues <- bins
-    bins <- c(
-      (1 - 0.001 * sign(bins[1])) * bins[1], bins[-length(bins)],
-      (1 + 0.001 * sign(bins[length(bins)])) * bins[length(bins)]
-    )
-    if (bins[1] == 0) {
-      bins[1] <- -0.001
-    }
-    if (bins[length(bins)] == 0) {
-      bins[length(bins)] <- 0.001
-    }
-  }
-  newindex <- cut(data$arg, breaks = bins, include.lowest = TRUE)
-  data_mat <- matrix(NA, nrow = nobs, ncol = nlevels(newindex))
-  colnames(data_mat) <- binvalues
-  attr(data_mat, "arg") <- binvalues
-  data_mat[cbind(newid, as.numeric(newindex))] <- data$value
-  return(data_mat)
+unique_id <- function(x) {
+  if (!any(duplicated(x))) return(x)
+  if (is.character(x)) x <- sub("$^", "?", x)
+  x <- make.unique(make.names(as.character(x)))
+  # TODO: make sure this has the correct order (here or in converters?)
+  x
 }
+
+na_to_0 <- function(x) {
+  x[is.na(x)] <- 0
+  x
+}
+
+n_distinct <- function(x) length(unique(x))

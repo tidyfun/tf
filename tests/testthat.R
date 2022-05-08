@@ -1,4 +1,4 @@
 library(testthat)
-library(tidyfun)
+library(tf)
 
-test_check("tidyfun")
+test_check("tf")
