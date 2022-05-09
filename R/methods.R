@@ -85,7 +85,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
   stopifnot(inherits(f, "tfb"))
   basis <- attr(f, "basis")
   if (!as_tfd) return(basis)
-  basis(tf_arg(f)) %>% t() %>% tfd(arg = tf_arg(f))
+  basis(tf_arg(f)) |> t() |> tfd(arg = tf_arg(f))
 }
 
 #' @rdname tfmethods

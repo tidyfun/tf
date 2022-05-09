@@ -99,7 +99,7 @@ fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
     pilot_id <- levels(data$id)[unique(pilot_id)]
     arg_u_pilot <- arg_u
     attr(arg_u_pilot, "index") <- attr(arg_u_pilot, "index")[data$id %in% pilot_id]
-    data_pilot <- subset(data, data$id %in% pilot_id)  %>% droplevels
+    data_pilot <- subset(data, data$id %in% pilot_id)  |> droplevels()
     if (!ls_fit) {
       pilot_sp <- 
         fit_ml(

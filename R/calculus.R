@@ -183,7 +183,7 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   limits <- cbind(lower, upper)
   if (nrow(limits) > 1) {
     if (!definite) .NotYetImplemented() # needs vd-data
-    limits <- limits %>% split(seq_len(nrow(limits)))
+    limits <- limits |> split(seq_len(nrow(limits)))
   }
   arg <- map2(
     arg, ensure_list(limits),
@@ -192,7 +192,7 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   evaluations <- tf_evaluate(f, arg)
   quads <- map2(arg, evaluations, ~ quad_trapez(arg = .x, evaluations = .y))
   if (definite) {
-    ret <- map(quads, sum) %>% unlist()
+    ret <- map(quads, sum) |> unlist()
     names(ret) <- names(f)
     ret
   } else {
@@ -205,7 +205,7 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   # turn into functions, return definite integrals
   # (Why the hell does this not work without vectorize....?)
   # map(f, ~ possibly(stats::tf_integrate, list(value = NA))(
-  #  Vectorize(as.function(.x)), lower = lower, upper = upper, ...)) %>%
+  #  Vectorize(as.function(.x)), lower = lower, upper = upper, ...)) |>
   # map("value")
 }
 #' @describeIn tf_integrate integrating [tfd()] objects

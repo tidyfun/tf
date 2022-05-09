@@ -12,10 +12,10 @@
 #' @export
 #' @examples 
 #' f <- tf_rgp(3, arg = seq(0, 1, l = 11))
-#' tf_evaluate(f) %>% str()
-#' tf_evaluate(f, arg = .5) %>% str()
+#' tf_evaluate(f) |> str()
+#' tf_evaluate(f, arg = .5) |> str()
 #' new_grid <- seq(0, 1, l = 6)
-#' tf_evaluate(d, arg = grid) %>% str()
+#' tf_evaluate(d, arg = grid) |> str()
 tf_evaluate <- function(object, arg, ...) UseMethod("tf_evaluate")
 
 #' @export

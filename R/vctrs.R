@@ -8,7 +8,7 @@ c_names <- function(funs) {
     if (.x == "") return(.y)
     if (all(.y == "") | length(.y) == 1) return(rep(.x, length(.y)))
     paste(.x, .y, sep = ".")
-  }) %>% unlist()
+  }) |> unlist()
   if (all(names == "")) NULL else names
 }
 

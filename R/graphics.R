@@ -2,12 +2,12 @@ prep_plotting_arg <- function(f, n_grid) {
   if (!isTRUE(n_grid > 1)) {
     tf_arg(f)
   } else {
-    seq(tf_domain(f)[1], tf_domain(f)[2], length = n_grid) %>%
-      round_resolution(attr(f, "resolution")) %>%
+    seq(tf_domain(f)[1], tf_domain(f)[2], length = n_grid) |>
+      round_resolution(attr(f, "resolution")) |>
       setdiff(
         round_resolution(unlist(tf_arg(f)), attr(f, "resolution"))
-      ) %>%
-      union(unlist(tf_arg(f))) %>%
+      ) |>
+      union(unlist(tf_arg(f))) |>
       sort()
   }
 }

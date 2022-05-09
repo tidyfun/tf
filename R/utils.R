@@ -53,7 +53,7 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
 }
 
 get_resolution <- function(arg) {
-  min_diff <- map(ensure_list(arg), ~min(diff(.x))) %>% unlist() %>% min()
+  min_diff <- map(ensure_list(arg), ~min(diff(.x))) |> unlist() |> min()
   if (min_diff < .Machine$double.eps * 10) {
     stop("(Almost) non-unique arg values detected.")
   }
@@ -88,10 +88,10 @@ is_equidist <- function(f) {
   if (is_irreg(f)) return(FALSE)
   unique_diffs <- map_lgl(
     ensure_list(tf_arg(f)),
-    ~round_resolution(.x, attr(f, "resolution")) %>%
-      diff() %>%
-      duplicated() %>%
-      tail(-1) %>%
+    ~round_resolution(.x, attr(f, "resolution")) |>
+      diff() |>
+      duplicated() |>
+      tail(-1) |>
       all()
   )
   all(unique_diffs)
