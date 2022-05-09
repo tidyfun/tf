@@ -67,7 +67,7 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 }
 
 .adjust_resolution <- function(arg, resolution, unique = TRUE) {
-  u <- if (unique) base::unique else function(x) tf
+  u <- if (unique) base::unique else function(x) x
   if (is.list(arg)) {
     map(arg, ~u(round_resolution(., resolution)))
   } else {

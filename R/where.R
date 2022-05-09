@@ -52,7 +52,7 @@
 #'   tf_where(f, arg > .5 & value > 0)
 #'   # does the function ever exceed 1:
 #'   tf_anywhere(f, value > 1)
-#' @importFrom rlang enquo   
+#' @importFrom stats setNames
 #' @export
 tf_where <- function(f, cond, 
                      return = c("all", "first", "last", "range", "any"), arg) {
@@ -77,9 +77,9 @@ tf_where <- function(f, cond,
            ~ length(.x) == 0, 
            ~{   NA  })
   if (return == "range") {
-    where_at <- map(where_at, range) %>%
-      do.call(what = rbind, args = .) |>
-      as.data.frame() %>%
+    where_at <- map(where_at, range)
+    where_at <- do.call(what = rbind, args = where_at) |>
+      as.data.frame() |>
       setNames(c("begin", "end"))
     return(where_at)
   }

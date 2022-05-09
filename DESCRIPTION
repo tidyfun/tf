@@ -5,14 +5,14 @@ Authors@R: c(person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com"
 Description: Provides S3 classes and methods for representing, visualizing and wrangling tidy functional data.
 Depends: R (>= 4.1)
 Imports:
-  checkmate, digest, GGally, ggplot2, grid, methods, mvtnorm, mgcv, 
-  pracma, purrr, refund, rlang, stats, vctrs (>= 0.2.4), zoo
+  checkmate, methods, mgcv, mvtnorm, pracma, purrr, refund, rlang, stats, vctrs (>= 0.2.4), zoo
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
 Suggests: 
     data.table,
+    dplyr,
     fda,
     janitor,
     gridExtra,

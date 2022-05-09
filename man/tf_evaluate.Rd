@@ -18,6 +18,8 @@ tf_evaluate(object, arg, ...)
 \item{arg}{optional evaluation grid (vector or list of vectors).
 Defaults to \code{tf_arg(object)}, implicitly.}
 
+\item{...}{not used}
+
 \item{evaluator}{optional. The function to use for inter/extrapolating the \code{tfd}.
 Defaults to \code{tf_evaluator(object)}. See e.g. \code{\link[=tf_approx_linear]{tf_approx_linear()}} for details.}
 }
@@ -36,5 +38,5 @@ new_grid <- seq(0, 1, l = 6)
 tf_evaluate(d, arg = grid) \%>\% str()
 }
 \seealso{
-This is used internally by \code{\link[=tfbrackets]{[.tf}} to evaluate \code{object}.
+This is used internally by the \code{[}-operator for \code{tf} data (see \code{?tfbrackets}) to evaluate \code{object}.
 }

@@ -17,6 +17,7 @@ fpc_wsvd <- function(data, arg, pve = .995) {
   UseMethod("fpc_wsvd")
 }
 #' @rdname fpc_wsvd
+#' @importFrom utils head tail
 #' @export  
 fpc_wsvd.matrix <- function(data, arg, pve = .995) {  
   assert_matrix(data, mode = "numeric", any.missing = FALSE, 

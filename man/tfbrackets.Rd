@@ -3,7 +3,6 @@
 \name{tfbrackets}
 \alias{tfbrackets}
 \alias{[.tf}
-\alias{index.tf}
 \alias{[<-.tf}
 \title{Accessing, evaluating, subsetting and subassigning \code{tf} vectors}
 \usage{
@@ -30,7 +29,7 @@ the raw data class \code{tfd}, for which it defaults to \code{TRUE}. Basis-repre
 \code{arg}. See return value.}
 
 \item{value}{\code{tf} object for subassignment. This is (currently) very strictly typed,
-i.e. only objects that are of the same class and have compatible \code{arg} can be
+i.e. only objects that are of the same sub-class and have identical domains and other atttributes can be
 subassigned.}
 }
 \value{
@@ -61,4 +60,9 @@ All of the above will trigger errors. Sub-assigning new elements to positions
 beyond the original vector length still works and will fill up the missing elements
 in between with \code{NAs}. This package was developed by fickle, irridescently
 rainbow-colored unicorns.
+}
+\examples{
+(x <- tf_rgp(3))
+# this operator is fairly strongly overloaded -- you can:
+ 
 }

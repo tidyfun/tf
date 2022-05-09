@@ -41,7 +41,11 @@
 #' @rdname tfbrackets
 #' @name tfbrackets
 #' @export
-#' @aliases index.tf
+#' @aliases tfbrackets
+#' @examples 
+#' (x <- tf_rgp(3))
+#' # this operator is fairly strongly overloaded -- you can:
+#'  
 `[.tf` <- function(x, i, j, interpolate = TRUE, matrix = TRUE) {
   if (!interpolate & inherits(x, "tfb")) {
     interpolate <- TRUE
@@ -99,7 +103,7 @@
 }
 
 #' @param value `tf` object for subassignment. This is (currently) very strictly typed,
-#'  i.e. only objects that are of the same class and have compatible `arg` can be
+#'  i.e. only objects that are of the same sub-class and have identical domains and other atttributes can be
 #'  subassigned.
 #' @rdname tfbrackets
 #' @export

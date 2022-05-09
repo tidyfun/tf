@@ -5,19 +5,20 @@
 \alias{tf}
 \title{tf}
 \description{
-\code{tf} is the basic package prviding the infrastructure for \code{tidyfun} -- a
-colleciton of packages that make data wrangling and exploratory analysis for
-functional data in \code{R} easier.\cr\cr
-\code{tf} provides:
+\code{tf} provides the class definitions and methods infrastructure for \code{tidyfun} --
+\code{tf} gives you:
 }
 \details{
 \itemize{
-\item new data types for representing functional data: \code{\link[=tfd]{tfd()}} & \code{\link[=tfb]{tfb()}}
-\item arithmetic operators (\code{\link[=Ops.tf]{Ops.tf()}}),
-\item descriptive statistics: e.g. \code{\link[=mean.tf]{mean.tf()}}, \code{\link[=median.tf]{median.tf()}}
+\item new S3 data types for representing (vectors of) functional data: \code{\link[=tfd]{tfd()}} & \code{\link[=tfb]{tfb()}}
+\item arithmetic operators for such data (\code{\link[=Ops.tf]{Ops.tf()}}),
+\item simple descriptive statistics: e.g. \code{\link[=mean.tf]{mean.tf()}}, \code{\link[=median.tf]{median.tf()}}
 \item base graphics functions for such data: \code{\link[=plot.tf]{plot.tf()}}
 \item functions to do smoothing (\code{\link[=tf_smooth.tfd]{tf_smooth.tfd()}}), differentiation and integration (\code{\link[=tf_derive.tfd]{tf_derive.tfd()}})
 \cr\cr
-\cr
+\code{tidyfun}itself is collection of packages that make data wrangling and
+exploratory analysis for functional data in \code{R} easy and fun.\cr\cr
+Please install \code{tidyfun} to access the full documentation including a number
+of vignettes and case studies, or visit our \href{https://tidyfun.github.io/tidyfun/}{package website}.
 }
 }

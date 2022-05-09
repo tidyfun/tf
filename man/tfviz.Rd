@@ -45,6 +45,8 @@ Defaults to 2/(no. of observations). Lower is more transparent.}
 
 \item{...}{additional arguments for \code{\link[=matplot]{matplot()}} ("spaghetti") or \code{\link[=image]{image()}} ("lasagna")}
 
+\item{arg}{evaluation grid (vector)}
+
 \item{interpolate}{should functions be evaluated (i.e., inter-/extrapolated)
 for arg for which no original data is available? Only relevant for
 tfd, defaults to FALSE}
@@ -57,7 +59,7 @@ Some \code{base} functions for displaying functional data in
 spaghetti- (i.e., line plots) and lasagna- (i.e., heat map) flavors.
 }
 \details{
-If no \code{arg} are provided, evaluation points (\code{arg}) for the functions
+If no second argument \code{y} is given, evaluation points (\code{arg}) for the functions
 are given by the union of the \code{tf}'s \code{arg} and an equidistant grid
 over its domain with \code{n_grid} points. If you want to only see the original
 data for \code{tfd}-objects without inter-/extrapolation, use \code{n_grid < 1} or

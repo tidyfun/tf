@@ -17,7 +17,7 @@ prep_plotting_arg <- function(f, n_grid) {
 #' Some `base` functions for displaying functional data in
 #' spaghetti- (i.e., line plots) and lasagna- (i.e., heat map) flavors.
 #'
-#' If no `arg` are provided, evaluation points (`arg`) for the functions
+#' If no second argument `y` is given, evaluation points (`arg`) for the functions
 #' are given by the union of the `tf`'s `arg` and an equidistant grid
 #' over its domain with `n_grid` points. If you want to only see the original
 #' data for `tfd`-objects without inter-/extrapolation, use `n_grid < 1` or
@@ -139,6 +139,7 @@ lines.tf <- function(x, arg, n_grid = 50,
 }
 #' @export
 #' @rdname tfviz
+#' @param arg evaluation grid (vector)
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for arg for which no original data is available? Only relevant for
 #'   tfd, defaults to FALSE

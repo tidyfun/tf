@@ -5,9 +5,10 @@
 #'   Defaults to `tf_arg(object)`, implicitly.
 #' @param evaluator optional. The function to use for inter/extrapolating the `tfd`.
 #'   Defaults to `tf_evaluator(object)`. See e.g. [tf_approx_linear()] for details.
+#' @param ... not used
 #' @return A list of numeric vectors containing the function
 #'   evaluations on `arg`.
-#' @seealso This is used internally by [`[.tf`][tf::tfbrackets] to evaluate `object`.
+#' @seealso This is used internally by the `[`-operator for `tf` data (see `?tfbrackets`) to evaluate `object`.
 #' @export
 #' @examples 
 #' f <- tf_rgp(3, arg = seq(0, 1, l = 11))

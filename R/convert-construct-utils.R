@@ -24,7 +24,7 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
 
 
 # from refund
-#' @importFrom stats complete.cases
+#' @importFrom stats complete.cases filter
 df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]
   nobs <- length(unique(data$id))
@@ -36,7 +36,7 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
                      l = maxbins + 1
     )
     bins <- binvalues
-    binvalues <- head(filter(binvalues, c(0.5, 0.5)), -1)
+    binvalues <- head(stats::filter(binvalues, c(0.5, 0.5)), -1)
   } else {
     binvalues <- bins
     bins <- c(
