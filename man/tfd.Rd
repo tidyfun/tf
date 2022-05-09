@@ -144,7 +144,8 @@ In code: \verb{resolution = 10^(floor(log10(min(diff(<arg>))) - 1)}
 (f <- c(tf_rgp(1, arg = seq(0,1,l=11)), tf_rgp(1, arg = seq(0,1,l=21))))
 tfd(f, arg = seq(0, 1, l = 21))
 
-(f <- c(dti_df$cca[1], dti_df$rcst[2]))
+set.seed(1213)
+(f <- tf_rgp(3, arg = seq(0, 1, l= 51)) |> tf_sparsify(.9))
 #does not yield regular data because linear extrapolation yields NAs outside observed range:
 tfd(f, arg = seq(0, 1, l = 101)) 
 # this "works" (but may not yield sensible values..!!) for e.g. constant extrapolation:

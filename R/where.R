@@ -39,18 +39,19 @@
 #'   tf_anywhere(lin, value > 2)
 #'
 #'   set.seed(4353)
-#'   plot(f <- tf_rgp(5, 11L), pch = as.character(1:5), points = TRUE)
+#'   f <- tf_rgp(5, 11L)
+#'   plot(f, pch = as.character(1:5), points = TRUE)
 #'   tf_where(f, value == max(value))
-#'   # where is the function increasing/decreasing:
+#'   # where is the function increasing/decreasing?
 #'   tf_where(f, value > dplyr::lag(value, 1, value[1]))
 #'   tf_where(f, value < dplyr::lead(value, 1, tail(value, 1)))
-#'   # where are the (interior) extreme points (sign changes of `diff(value)`):
+#'   # where are the (interior) extreme points (sign changes of `diff(value)`)?
 #'   tf_where(f, 
 #'     sign(c(diff(value)[1], diff(value))) !=
 #'       sign(c(diff(value), tail(diff(value), 1))))
-#'   # where for arg > .5 is the function positive:
+#'   # where in its second half is the function positive?
 #'   tf_where(f, arg > .5 & value > 0)
-#'   # does the function ever exceed 1:
+#'   # does the function ever exceed?
 #'   tf_anywhere(f, value > 1)
 #' @importFrom stats setNames
 #' @export
@@ -62,9 +63,10 @@ tf_where <- function(f, cond,
   assert_arg(arg, f)
   return <- match.arg(return)
   cond_call <- substitute(cond)
+  parent <- parent.frame()
   where_at <- map(
     f[, arg, matrix = FALSE],
-    ~ subset(.x, with(.x, eval(cond_call)))[["arg"]]
+    ~ subset(.x, eval(cond_call, envir = .x, enclos = parent))[["arg"]]
   )
   where_at[is.na(f)] <- NA
   

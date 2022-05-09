@@ -51,20 +51,20 @@ tf_smooth.tfb <- function(x, ...) {
 #' f_median <- tf_smooth(f, "rollmean", k = 31)
 #' f_sg <- tf_smooth(f, "savgol", fl = 31)
 #' layout(t(1:4))
-#' plot(f, points = FALSE)
-#' plot(f_lowess, points = FALSE)
-#' lines(tf_smooth(f, "lowess", f = .9), col = 2, alpha= .2)
-#' plot(f_mean, points = FALSE)
-#' lines(f_median, col = 2, alpha= .2) # note constant extrapolation
-#' plot(f, points = FALSE)
-#' lines(f_sg, col = 2)
+#' plot(f, points = FALSE, main = "original")
+#' plot(f_lowess, points = FALSE, col = "blue", main = "lowess (default,\n span .9 in red)")
+#' lines(tf_smooth(f, "lowess", f = .9), col = "red", alpha= .2)
+#' plot(f_mean, points = FALSE, col = "blue", main = "rolling means &\n medians (red)")
+#' lines(f_median, col = "red", alpha= .2) # note constant extrapolation at both ends!
+#' plot(f, points = FALSE, main = "orginal and\n savgol (red)")
+#' lines(f_sg, col = "red")
 tf_smooth.tfd <- 
   function(x, method = c("lowess", "rollmean", "rollmedian", "savgol"), 
            ...) {
   method <- match.arg(method)
   smoother <- get(method, mode = "function")
   dots <- list(...)
-  if (any(grepl(c("savgol", "rollm"), method))) {
+  if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (!is_equidist(x)) {
       warning(
         "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
@@ -82,17 +82,19 @@ tf_smooth.tfd <-
         dots$fill <- "extend"
       }
     }
-    if (grepl("savgol", method)) {
+    if (method == "savgol") {
       if (is.null(dots$fl)) {
         dots$fl <- ceiling(.15 * min(tf_count(x)))
         dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
         message("using fl = ", dots$fl, " observations for rolling data window.")
       }
     }
+    
     smoothed <- map(tf_evaluations(x), 
                     ~do.call(smoother, append(list(.x), dots)))
   }
-  if (grepl("lowess", method)) {
+  
+  if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- .15
       message("using f = ", dots$f, " as smoother span for lowess")
@@ -100,6 +102,7 @@ tf_smooth.tfd <-
     smoothed <- map(tf_evaluations(x), 
                     ~do.call(smoother, append(list(.x), dots))$y)
   }
+  
   tfd(smoothed, tf_arg(x),
     evaluator = !!attr(x, "evaluator_name"),
     resolution = attr(x, "resolution"), domain = tf_domain(x)
