@@ -1,3 +1,10 @@
+#' Preprocess evaluation grid for plotting 
+#' 
+#' (internal function exported for re-use in upstream packages)
+#' @param f a `tf`-object
+#' @param n_grid length of evaluation grid
+#' @return a semi-regular grid rounded down to appropriate resolution
+#' @export
 prep_plotting_arg <- function(f, n_grid) {
   if (!isTRUE(n_grid > 1)) {
     tf_arg(f)
