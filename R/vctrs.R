@@ -170,11 +170,6 @@ vec_ptype2_tfd_tfd = function(x, y, ...) {
 
 #----------------- s3 generics for tfb casting -----------------#
 
-#' vctrs methods for \code{tf} objects
-#' 
-#' These functions are the extensions that allow \code{tidyfun} vectors 
-#' to work with \code{vctrs}.
-#' 
 #' @rdname vctrs
 #' @import vctrs
 #' @method vec_cast tfb_spline
@@ -219,24 +214,27 @@ vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) { x }
 
 #----------------- s3 generics for tfb coercion -----------------#
 
-#' @name vctrs
+#' @rdname vctrs
 #' @method vec_ptype2 tfb_spline
 #' @export
+#' @param y Vectors to cast.
 #' @export vec_ptype2.tfb_spline
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline <- function(x, y, ...) UseMethod("vec_ptype2.tfb_spline")
 
-#' @name vctrs
+#' @rdname vctrs
 #' @method vec_ptype2.tfb_spline tfb_spline
 #' @export
+#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)}
 
-#' @name vctrs
+#' @rdname vctrs
 #' @method vec_ptype2.tfb_spline tfb_fpc
 #' @export
+#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
 
-#' @name vctrs
+#' @rdname vctrs
 #' @method vec_ptype2 tfb_fpc
 #' @export
 #' @export vec_ptype2.tfb_fpc
@@ -246,12 +244,14 @@ vec_ptype2.tfb_fpc <- function(x, y, ...) UseMethod("vec_ptype2.tfb_fpc")
 #' @name vctrs
 #' @method vec_ptype2.tfb_fpc tfb_spline
 #' @export
+#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
 
 
 #' @name vctrs
 #' @method vec_ptype2.tfb_fpc tfb_fpc
 #' @export
+#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)}
 
 

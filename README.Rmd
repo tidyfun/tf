@@ -17,7 +17,7 @@ license](http://img.shields.io/badge/license-MIT-brightgreen.svg)]( https://open
 
 
 The goal of **`tidyfun`** is to provide accessible and well-documented software that **makes functional data analysis in `R` easy** -- specifically data wrangling and exploratory analysis. 
-This package **`tf`** provides the infrastructure for **`tidyfun`**  with minimal dependencies -- specifically, no `tidyverse`-dependencies.  
+This package **`tf`** provides the infrastructure for **`tidyfun`**  with minimal dependencies -- specifically: no `tidyverse`-dependencies.  
 
 `tf` includes definitions of the necessary new data types (`tf`) and associated methods. Vectors of class `tf` can be operated on using many standard functions (`+`, `mean`, etc.) as well as several new functions in `tf` (`tf_smooth`, `tf_where`). 
 

@@ -13,3 +13,4 @@ attic
 ^codecov\.yml$
 ^\.github$
 ^pkgdown$
+CONTRIBUTING.md
