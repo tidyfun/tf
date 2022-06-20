@@ -154,7 +154,16 @@ get_args <- function(args, f) {
   args[names(args) %in% names(formals(f))]
 }
 
-ensure_list <- function(x) if (!is.list(x)) list(x) else x
+#' Turns any object into a list
+#' 
+#' See above.
+#' @param x any input 
+#' @return `x` turned into a list.
+#' @export
+# export for tidyfun...
+ensure_list <- function(x) {
+  if (!is.list(x)) list(x) else x
+}  
 
 unique_id <- function(x) {
   if (!any(duplicated(x))) return(x)
