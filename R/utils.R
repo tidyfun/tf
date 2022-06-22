@@ -165,11 +165,17 @@ ensure_list <- function(x) {
   if (!is.list(x)) list(x) else x
 }  
 
+#' Make syntactically valid unique names 
+#' 
+#' See above.
+#' @param x any input 
+#' @return `x` turned into a list.
+#' @export
+# export for tidyfun...
 unique_id <- function(x) {
   if (!any(duplicated(x))) return(x)
-  if (is.character(x)) x <- sub("$^", "?", x)
-  x <- make.unique(make.names(as.character(x)))
-  # TODO: make sure this has the correct order (here or in converters?)
+  if (is.character(x)) x <- sub("$^", "NA", x)
+  x <- make.names(as.character(x), unique = TRUE)
   x
 }
 
