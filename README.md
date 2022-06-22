@@ -8,29 +8,33 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![R build
-status](https://github.com/tidyfun/tf/workflows/R-CMD-check/badge.svg)](https://github.com/tidyfun/tf/actions)
+status](https://github.com/tidyfun/tf/workflows/R-CMD-check-full/badge.svg)](https://github.com/tidyfun/tf/actions)
 [![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://codecov.io/github/tidyfun/tf/branch/main)
 [![MIT
 license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
+The **`tf`** package provides necessary infrastructure for **`tidyfun`**
+with minimal dependencies – specifically: no `tidyverse`-dependencies.
+
 The goal of **`tidyfun`** is to provide accessible and well-documented
 software that **makes functional data analysis in `R` easy** –
-specifically data wrangling and exploratory analysis. This package
-**`tf`** provides the infrastructure for **`tidyfun`** with minimal
-dependencies – specifically, no `tidyverse`-dependencies.
+specifically data wrangling and exploratory analysis.
 
-`tf` includes definitions of the necessary new data types (`tf`) and
-associated methods. Vectors of class `tf` can be operated on using many
-standard functions (`+`, `mean`, etc.) as well as several new functions
-in `tf` (`tf_smooth`, `tf_where`).
+**`tf`** includes definitions of new `S3` data types for vectors of
+functional data and associated methods. These `tf`-vectors, with
+subclasses `tfd` and `tfb`, use the
+[**`vctrs`**](https://vctrs.r-lib.org/)-framework, can be operated on
+using most standard functions (`+`, `mean()`, `c()`, etc.) as well as
+several new functions in `tf` that implement operations specific for
+*functional* data (`tf_smooth`, `tf_derive`, `tf_integrate`).
 
 **Crucially**, vectors of class `tf` can be included in data frames
-containing other variables, enabling simple data manipulation. This
-approach is connected to the conceptual framework in functional data
-analysis which assumes that *complete functions* are the unit of
-observation. With `tidyfun` and `tf`, full curves sit alongside numeric,
-factor, and other observations on the same subject.
+containing other variables, for simple and reliable data manipulation.
+This approach is connected to the conceptual framework in functional
+data analysis which assumes that *complete functions* are the unit of
+observation. With `tidyfun` and `tf`, full curves are kept alongside
+numeric, factor, and other observations on the same subject.
 
 ## Installation
 
@@ -42,14 +46,16 @@ devtools::install_github("tidyfun/tf")
 
 **`tidyfun`** provides:
 
--   new **data types** for representing functional data: **`tfd`** &
-    **`tfb`**
+-   new **data types** for representing functional data: `tfd` & `tfb`
 -   arithmetic **operators** and descriptive **statistics** for such
     data
 -   basic **graphics** functions for `tf` vectors
+-   data **wrangling** for functional data: reshaping from list columns
+    to wide to long and back, interpolating on different grids,
+    filtering and zooming, etc.
 
 Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun)
-for the full documentation.
+for full documentation.
 
 ## What does it do?
 
