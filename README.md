@@ -18,9 +18,9 @@ license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opens
 The **`tf`** package provides necessary infrastructure for **`tidyfun`**
 with minimal dependencies – specifically: no `tidyverse`-dependencies.
 
-The goal of **`tidyfun`** is to provide accessible and well-documented
-software that **makes functional data analysis in `R` easy** –
-specifically data wrangling and exploratory analysis.
+The goal of **`tidyfun`**, in turn, is to provide accessible and
+well-documented software that **makes functional data analysis in `R`
+easy** – specifically data wrangling and exploratory analysis.
 
 **`tf`** includes definitions of new `S3` data types for vectors of
 functional data and associated methods. These `tf`-vectors, with
@@ -56,7 +56,7 @@ devtools::install_github("tidyfun/tf")
     filtering and zooming, etc.
 
 Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun)
-for full documentation.
+for the full documentation including vignettes etc.
 
 ## What does it do?
 

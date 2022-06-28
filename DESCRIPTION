@@ -1,6 +1,6 @@
 Package: tf
 Title: S3 classes and methods for tidy functional data 
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: c(person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com", role = c("aut", "cre")), person("Jeff", "Goldsmith", role = c("aut")), person("Julia", "Wrobel", role = c("aut")))
 Description: Provides S3 classes and methods for representing, visualizing and wrangling tidy functional data.
 Depends: R (>= 4.1)
@@ -57,3 +57,4 @@ Collate:
     'where.R'
     'zoom.R'
 VignetteBuilder: knitr
+URL: https://tidyfun.github.io/tf/
