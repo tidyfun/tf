@@ -2,12 +2,15 @@
 % Please edit documentation in R/calculus.R
 \name{tf_integrate}
 \alias{tf_integrate}
+\alias{tf_integrate.default}
 \alias{tf_integrate.function}
 \alias{tf_integrate.tfd}
 \alias{tf_integrate.tfb}
 \title{Integrals and anti-derivatives of functional data}
 \usage{
 tf_integrate(f, arg, lower, upper, ...)
+
+\method{tf_integrate}{default}(f, arg, lower, upper, ...)
 
 \method{tf_integrate}{`function`}(f, arg, lower, upper, ...)
 
@@ -58,13 +61,6 @@ By default the scalar definite integral
 alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 \verb{[lower, upper]}, e.g. a \code{tfd} or \code{tfb} object representing \eqn{F(t) \approx
 \int^{t}_{lower}f(s)ds}, for \eqn{t \in}\verb{[lower, upper]}, is returned.
+
+\code{tf_integrate.function} integrates R-functions (a wrapper for \code{\link[stats:integrate]{stats::integrate()}})
 }
-\section{Methods (by class)}{
-\itemize{
-\item \code{function}: integrating R-functions (a wrapper for \code{\link[stats:integrate]{stats::integrate()}})
-
-\item \code{tfd}: integrating \code{\link[=tfd]{tfd()}} objects
-
-\item \code{tfb}: integrating \code{\link[=tfd]{tfd()}} objects
-}}
-

@@ -8,13 +8,14 @@ reference:
   - as.tfd
   - tfb
   - as.tfb
+  - as.data.frame.tf
   - tfb_spline
   - tfb_fpc
   - fpc_wsvd
 - title: Evaluation and indexing
   desc: Accessing, appending, evaluating and overwriting functional data objects
   contents:
-  - index.tf
+  - tfbrackets
   - tf_approx_linear
   - tf_evaluate
   - tf_interpolate
@@ -33,7 +34,7 @@ reference:
   contents:
   - plot.tf
   - print.tf
-  - type_sum.tf
+  - prep_plotting_arg
 - title: Utilities
   desc: Utility functions
   contents:
@@ -43,8 +44,10 @@ reference:
   - tf_arg
   - tf_rgp
   - tf_jiggle
-  - tidyfun
   - vctrs 
+  - ensure_list
+  - unique_id
+  - tf
 navbar:
   type: default
   left:

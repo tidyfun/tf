@@ -45,14 +45,14 @@ devtools::install_github("tidyfun/tf")
 
 ## Overview
 
-**`tidyfun`** provides:
+**`tf`** provides:
 
 -   new **data types** for representing functional data: `tfd` & `tfb`
 -   arithmetic **operators** and descriptive **statistics** for such
     data
 -   basic **graphics** functions for `tf` vectors
--   data **wrangling** for functional data: reshaping from list columns
-    to wide to long and back, interpolating on different grids,
+-   basic data **wrangling** for functional data: reshaping from list
+    columns to wide to long and back, interpolating on different grids,
     filtering and zooming, etc.
 
 Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun)
@@ -94,8 +94,9 @@ for more information on the operations defined for `tf` vectors.
 #### Methods for converting existing data to `tf` and back
 
 **`tf`** includes functions `tfd` and `tfb` for converting matrices,
-data frames, etc. to `tf` vectors and back. More data wrangling
-functionality in a `tidyverse`-inspired way is available from `tidyfun`.
+data frames, etc. to `tf` vectors and back. Much more data wrangling
+functionality in a `tidyverse`-inspired way is available in
+[`tidyfun`](https://tidyfun.github.io/tidyfun).
 
 [See
 here](https://tidyfun.github.io/tidyfun/articles/x02_Conversion.html)

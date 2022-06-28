@@ -152,14 +152,16 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 tf_integrate <- function(f, arg, lower, upper, ...) {
   UseMethod("tf_integrate")
 }
+#' @rdname tf_integrate
 #' @export
 tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
-#' @describeIn tf_integrate integrating R-functions (a wrapper for [stats::integrate()]) 
+#' @rdname tf_integrate 
+#' @description `tf_integrate.function` integrates R-functions (a wrapper for [stats::integrate()]) 
 #' @export
 tf_integrate.function <- function(f, arg, lower, upper, ...) {
   stats::integrate(f, lower, upper, ...)
 }  
-#' @describeIn tf_integrate integrating [tfd()] objects
+#' @rdname tf_integrate 
 #' @export
 tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(f)[2],
                              definite = TRUE, ...) {
@@ -208,7 +210,7 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   #  Vectorize(as.function(.x)), lower = lower, upper = upper, ...)) |>
   # map("value")
 }
-#' @describeIn tf_integrate integrating [tfd()] objects
+#' @rdname tf_integrate 
 #' @export
 tf_integrate.tfb <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(f)[2],
                              definite = TRUE, ...) {
