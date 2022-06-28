@@ -115,6 +115,8 @@ tfd <- function(data, ...) UseMethod("tfd")
 
 #' @export
 #' @rdname tfd
+#' @description `tfd.matrix` accepts a numeric matrix with one function per *row* (!). If
+#'   `arg` is not provided, it tries to guess `arg` from the column names and falls back on `1:ncol(data)` if that fails.
 #' @param arg `numeric`, or list of `numeric`s. The evaluation grid. See Details on its 
 #' interplay with `resolution`. 
 #'  For the `data.frame`-method: the name/number of the column defining the
@@ -288,15 +290,11 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
 }
 
 #' @rdname tfd
-#' @description return class prototype when argument to tfd() is NULL or not a recognised class
+#' @description `tfd.default` returns class prototype when argument to tfd() is NULL or not a recognised class
 #' @export
 tfd.default = function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, resolution = NULL, ...) {
-  
-  if (!missing(data)) {
-    message("input `data` not recognized class; returning prototype of length 0")
-  }
-  
+  message("input `data` not recognized class; returning prototype of length 0")
   datalist = list()
   new_tfd(arg, datalist, domain, evaluator, resolution)
   

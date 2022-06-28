@@ -97,6 +97,9 @@ an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion fu
 \description{
 Various constructor methods for \code{tfd}-objects.
 
+\code{tfd.matrix} accepts a numeric matrix with one function per \emph{row} (!). If
+\code{arg} is not provided, it tries to guess \code{arg} from the column names and falls back on \code{1:ncol(data)} if that fails.
+
 \code{tfd.data.frame} uses the first 3 columns of \code{data} for function information by default:
 (\code{id}, \code{arg}, \code{value})
 
@@ -104,7 +107,7 @@ Various constructor methods for \code{tfd}-objects.
 containing evaluations or a list of 2-column matrices/data.frames with
 \code{arg} in the first and evaluations in the second column
 
-return class prototype when argument to tfd() is NULL or not a recognised class
+\code{tfd.default} returns class prototype when argument to tfd() is NULL or not a recognised class
 }
 \details{
 \strong{\code{evaluator}}: must be the (quoted or bare) name of a
