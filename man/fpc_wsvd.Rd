@@ -36,6 +36,17 @@ for data potentially on a non-equidistant grid.
 code adapted from / inspired by \code{wsvd()} function of Bioconductor
 package \code{mogsa} by Cheng Meng.
 }
+\seealso{
+Other \code{tfb}-class: 
+\code{\link{tfb_fpc}()},
+\code{\link{tfb_spline}()},
+\code{\link{tfb}}
+
+Other \code{tfb_fpc}-class: 
+\code{\link{tfb_fpc}()}
+}
 \author{
 Cheng Meng, Fabian Scheipl
 }
+\concept{\code{tfb_fpc}-class}
+\concept{\code{tfb}-class}

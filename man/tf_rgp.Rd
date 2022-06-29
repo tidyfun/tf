@@ -39,3 +39,8 @@ or Wiener process covariance \eqn{Cov(x(t), x(t')) =
 \min(t',t)/s + n \delta_{t}(t')}
 with \code{scale} parameter s and \code{nugget} effect n.
 }
+\seealso{
+Other tidyfun RNG functions: 
+\code{\link{tf_jiggle}()}
+}
+\concept{tidyfun RNG functions}

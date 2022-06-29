@@ -50,6 +50,7 @@ fun_op <- function(x, y, op, numeric = NA) {
 }
 
 #' @rdname tfgroupgenerics
+#' @family tidyfun compute functions
 #' @export
 Ops.tf <- function(e1, e2) {
   not_defined <- switch(.Generic,
@@ -83,13 +84,16 @@ Ops.tf <- function(e1, e2) {
   if (!same) return(rep(FALSE, max(length(e1), length(e2))))
   unlist(map2(e1, e2, ~isTRUE(all.equal(.x, .y))))
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 `!=.tfd` <- function(e1, e2) !(e1 == e2)
+
 # need to copy instead of defining tf-method s.t. dispatch in Ops works
 #' @rdname tfgroupgenerics
 #' @export
 `==.tfb` <- eval(`==.tfd`)
+
 #' @rdname tfgroupgenerics
 #' @export
 `!=.tfb` <- eval(`!=.tfd`)
@@ -121,6 +125,7 @@ Ops.tfd <- function(e1, e2) {
   }
   ret
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 Ops.tfb <- function(e1, e2) {

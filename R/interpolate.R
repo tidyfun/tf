@@ -9,9 +9,9 @@
 #' - making irregular functional data into (more) regular data. 
 #'
 #' This is really just syntactic sugar for `tf<d|b>(object, arg = arg)`.
-#' To reliably impute very irregular data on a regular, common grid, 
+#' **To reliably impute very irregular data on a regular, common grid, 
 #' you'll be better off doing FPCA-based imputation or other model-based
-#' approaches in most cases.
+#' approaches in most cases.**
 #'
 #' @param object an object inheriting from `tf`
 #' @param arg a vector of argument values on which to evaluate the functions in
@@ -19,7 +19,7 @@
 #' @param ...  additional arguments handed over to `tfd` or `tfb`, for the
 #'   construction of the returned object
 #' @return a `tfd` or `tfb` object on the new grid given by `arg`
-#'
+#' @family tidyfun setters
 #' @export
 #' @examples
 #' # thinning out a densely observed tfd
@@ -41,6 +41,7 @@ tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 
 #' @export
 #' @rdname tf_interpolate
+#' @family tidyfun setters
 tf_interpolate.tfb <- function(object, arg, ...) {
   stopifnot(!missing(arg))
   tfb(object, arg = arg, ...)
@@ -48,6 +49,7 @@ tf_interpolate.tfb <- function(object, arg, ...) {
 
 #' @export
 #' @rdname tf_interpolate
+#' @family tidyfun setters
 tf_interpolate.tfd <- function(object, arg, ...) {
   stopifnot(!missing(arg))
   tfd(object, arg = arg, ...)

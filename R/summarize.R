@@ -1,12 +1,14 @@
 #' Functions that summarize `tf` objects
 #'
-#' These will return a `tf` object containing the respective functional statistic.
-#' `summary` returns a vector with the mean function, the variance function, and the
+#' These will return a `tf` object containing the respective *functional* statistic.
+#' `summary` returns a `tf`-vector with the mean function, the variance function, and the
 #' functional range of the central half of the functions, as defined by the functional
 #'
 #' @param x a `tf` object
 #'   functions, see source code.
+#' @param ... optional additional arguments. 
 #' @name tfsummaries
+#' @family tidyfun summary functions
 NULL
 
 #' @export
@@ -45,23 +47,6 @@ median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
   }
 }
 
-#' @importFrom stats quantile
-#' @inheritParams stats::quantile
-#' @export
-#' @rdname tfsummaries
-quantile.tf <- function(x, probs = seq(0, 1, 0.25), na.rm = FALSE,
-                        names = TRUE, type = 7, ...) {
-  # TODO: functional quantiles will need (a lot) more thought,
-  # cf. Serfling, R., & Wijesuriya, U. (2017).
-  # Depth-based nonparametric description of functional data, 
-  #   with emphasis on use of spatial depth.
-  warning("only pointwise, non-functional quantiles implemented for tfs.")
-  summarize_tf(x,
-    probs = probs, na.rm = na.rm,
-    names = names, type = type, op = "quantile", eval = is_tfd(x), ...
-  )
-}
-
 #' @inheritParams stats::sd
 #' @export
 #' @rdname tfsummaries
@@ -70,7 +55,6 @@ sd <- function(x, na.rm = FALSE) UseMethod("sd")
 #' @importFrom stats sd
 #' @export
 #' @rdname tfsummaries
-#' @export
 sd.default <- stats::sd
 
 #' @export
@@ -96,7 +80,6 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 }
 
 # cov / cor # needs image class/fpca methods
-
 #' @param object a `tfd` object
 #' @export
 #' @rdname tfsummaries

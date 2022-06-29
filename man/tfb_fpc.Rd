@@ -119,5 +119,15 @@ fpca_sc_wrapper <- function(data, arg, pve = .995, ...) {
 tfb_fpc(data, method = fpca_sc_wrapper)
 }
 \seealso{
-\code{\link[=tfb]{tfb()}},  \code{\link[=fpc_wsvd]{fpc_wsvd()}} for FPCA options.
+\code{\link[=fpc_wsvd]{fpc_wsvd()}} for FPCA options.
+
+Other \code{tfb}-class: 
+\code{\link{fpc_wsvd}()},
+\code{\link{tfb_spline}()},
+\code{\link{tfb}}
+
+Other \code{tfb_fpc}-class: 
+\code{\link{fpc_wsvd}()}
 }
+\concept{\code{tfb_fpc}-class}
+\concept{\code{tfb}-class}

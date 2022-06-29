@@ -17,6 +17,7 @@
 #'   *Journal of the American Statistical Association*, **104**, 718-734.
 #' @export
 #' @rdname tf_depth
+#' @family tidyfun ordering and ranking functions
 tf_depth <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
   UseMethod("tf_depth")
 }
@@ -63,4 +64,23 @@ mbd <- function(x, arg = seq_len(ncol(x)), ...) {
   n <- nrow(ranks)
   tmp <- colSums( t( (n - ranks) * (ranks - 1)) * weights, na.rm = TRUE)
   (tmp + n - 1) / choose(n, 2)
+}
+
+#------------------------------------------------------------------------------
+
+#' @importFrom stats quantile
+#' @inheritParams stats::quantile
+#' @family tidyfun ordering and ranking functions
+#' @export
+quantile.tf <- function(x, probs = seq(0, 1, 0.25), na.rm = FALSE,
+                        names = TRUE, type = 7, ...) {
+  # TODO: functional quantiles will need (a lot) more thought,
+  # cf. Serfling, R., & Wijesuriya, U. (2017).
+  # Depth-based nonparametric description of functional data, 
+  #   with emphasis on use of spatial depth.
+  warning("only pointwise, non-functional quantiles implemented for tfs.")
+  summarize_tf(x,
+               probs = probs, na.rm = na.rm,
+               names = names, type = type, op = "quantile", eval = is_tfd(x), ...
+  )
 }

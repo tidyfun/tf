@@ -56,3 +56,4 @@
 \description{
 Print/format \code{tf}-objects.
 }
+\concept{tidyfun disply functions}

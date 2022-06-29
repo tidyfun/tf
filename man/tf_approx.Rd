@@ -55,3 +55,4 @@ For implementing your own, see source code of \code{tf:::zoo_wrapper}.
 \seealso{
 tfd
 }
+\concept{tidyfun inter/extrapolation functions}

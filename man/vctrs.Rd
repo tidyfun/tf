@@ -97,3 +97,4 @@ dots are only for future extensions and should be empty.}
 These functions are the extensions that allow \code{tf} vectors
 to work with \code{vctrs}.
 }
+\concept{tidyfun vctrs}

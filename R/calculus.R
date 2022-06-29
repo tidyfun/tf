@@ -42,6 +42,7 @@ quad_trapez <- function(arg, evaluations) {
 #' @param ... not used
 #' @return a `tf` (with slightly different `arg` or `basis` for the derivatives, see Details)
 #' @export
+#' @family tidyfun calculus functions 
 tf_derive <- function(f, arg, order = 1, ...) UseMethod("tf_derive")
 
 #' @export
@@ -111,6 +112,7 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
 }
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing.
+
 tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
   efunctions <- environment(attr(f, "basis"))$efunctions
   environment(attr(f, "basis")) <- new.env()
@@ -149,6 +151,7 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives
 #' @export
+#' @family tidyfun calculus functions
 tf_integrate <- function(f, arg, lower, upper, ...) {
   UseMethod("tf_integrate")
 }

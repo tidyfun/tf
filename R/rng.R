@@ -20,6 +20,7 @@
 #' @return an `tfd`-vector of length `n`
 #' @importFrom mvtnorm rmvnorm
 #' @export
+#' @family tidyfun RNG functions
 tf_rgp <- function(n, arg = 51L, scale = diff(range(arg)) / 10,
                    cor = c("squareexp", "wiener"), nugget = scale / 200) {
   cor <- match.arg(cor)
@@ -53,6 +54,7 @@ tf_rgp <- function(n, arg = 51L, scale = diff(range(arg)) / 10,
 #' @importFrom stats runif
 #' @export
 #' @rdname tf_jiggle
+#' @family tidyfun RNG functions
 tf_jiggle <- function(f, amount = .4, ...) {
   stopifnot(is_tfd(f))
   assert_number(amount, lower = 0, upper = .5)
@@ -80,6 +82,7 @@ tf_jiggle_args <- function(arg, amount) {
 #' @param dropout how many values of `f` to drop, defaults to 50%.
 #' @param ... not used currently
 #' @export
+#' @family tidyfun RNG functions
 tf_sparsify <- function(f, dropout = .5, ...) {
   stopifnot(is_tf(f))
   nas <- map(

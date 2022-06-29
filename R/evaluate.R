@@ -10,6 +10,7 @@
 #'   evaluations on `arg`.
 #' @seealso This is used internally by the `[`-operator for `tf` data (see `?tfbrackets`) to evaluate `object`.
 #' @export
+#' @family tidyfun getters
 #' @examples 
 #' f <- tf_rgp(3, arg = seq(0, 1, l = 11))
 #' tf_evaluate(f) |> str()
@@ -18,9 +19,11 @@
 #' tf_evaluate(f, arg = new_grid) |> str()
 tf_evaluate <- function(object, arg, ...) UseMethod("tf_evaluate")
 
+#' @family tidyfun getters
 #' @export
 tf_evaluate.default <- function(object, arg, ...) .NotYetImplemented()
 
+#' @family tidyfun getters
 #' @export
 #' @rdname tf_evaluate
 tf_evaluate.tfd <- function(object, arg, evaluator = tf_evaluator(object), ...) {
@@ -56,6 +59,7 @@ evaluate_tfd_once <- function(new_arg, arg, evaluations, evaluator, resolution) 
   ret
 }
 
+#' @family tidyfun getters
 #' @export
 #' @rdname tf_evaluate
 tf_evaluate.tfb <- function(object, arg, ...) {

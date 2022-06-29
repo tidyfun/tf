@@ -61,3 +61,4 @@ lines(f_median, col = "red", alpha= .2) # note constant extrapolation at both en
 plot(f, points = FALSE, main = "orginal and\n savgol (red)")
 lines(f_sg, col = "red")
 }
+\concept{tidyfun nonparametric smoothers}

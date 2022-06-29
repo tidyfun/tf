@@ -61,3 +61,8 @@ yield slightly less stable fits.
 \item \code{tfb_fpc}: derivatives by finite differencing.
 }}
 
+\seealso{
+Other tidyfun calculus functions: 
+\code{\link{tf_integrate}()}
+}
+\concept{tidyfun calculus functions}

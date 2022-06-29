@@ -40,3 +40,4 @@ tf_evaluate(f, arg = new_grid) |> str()
 \seealso{
 This is used internally by the \code{[}-operator for \code{tf} data (see \code{?tfbrackets}) to evaluate \code{object}.
 }
+\concept{tidyfun getters}

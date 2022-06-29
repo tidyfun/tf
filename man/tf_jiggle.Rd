@@ -25,3 +25,11 @@ Randomly create some irregular functional data from regular ones.
 \strong{jiggle} it by randomly moving around its \code{arg}-values. Only for \code{tfd}.
 \strong{sparsify} it by setting (100*\code{dropout})\% of its values to \code{NA}.
 }
+\seealso{
+Other tidyfun RNG functions: 
+\code{\link{tf_rgp}()}
+
+Other tidyfun RNG functions: 
+\code{\link{tf_rgp}()}
+}
+\concept{tidyfun RNG functions}

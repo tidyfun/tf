@@ -24,7 +24,7 @@
 #' @return a `tfb`-object (or a `data.frame`/`matrix` for the conversion
 #'   functions, obviously.)
 #' @rdname tfb
-#' @seealso [tfb_fpc()], [tfb_spline()]
+#' @family `tfb`-class
 #' @export
 tfb <- function(data, basis = c("spline", "fpc", "wavelet"), ...) {
   basis <- match.arg(basis)
@@ -44,4 +44,5 @@ tfb_wavelet <- function(data, ...) .NotYetImplemented()
 
 #' @rdname tfb
 #' @export
+#' @family tfb-class
 as.tfb <- function(data, basis = c("spline", "fpc"), ...) tfb(data, basis, ...)

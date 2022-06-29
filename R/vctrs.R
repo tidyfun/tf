@@ -20,7 +20,8 @@ c_names <- function(funs) {
 #' These functions are the extensions that allow \code{tf} vectors 
 #' to work with \code{vctrs}.
 #' 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @import vctrs
 #' @method vec_cast tfd_reg
 #' @export
@@ -28,19 +29,22 @@ c_names <- function(funs) {
 #' @inheritParams vctrs::vec_cast
 vec_cast.tfd_reg <- function(x, to, ...) UseMethod("vec_cast.tfd_reg")
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast tfd_irreg
 #' @export
 #' @export vec_cast.tfd_irreg
 vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
 #' @export
 vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) { x } 
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_irreg
 #' @export
 vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
@@ -50,7 +54,8 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
   ) 
 }
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_reg
 #' @export
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) { 
@@ -61,7 +66,8 @@ vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
   
 }
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_irreg
 #' @export
 vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) { x }
@@ -72,6 +78,7 @@ vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) { x }
 
 #' coercion methods for tfd objects
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2 tfd_reg
 #' @export
 #' @export vec_ptype2.tfd_reg
@@ -79,16 +86,19 @@ vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) { x }
 vec_ptype2.tfd_reg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_reg")
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_reg tfd_reg 
 #' @export
 vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) { vec_ptype2_tfd_tfd(x, y, ...) }
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_reg tfd_irreg
 #' @export
 vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) { vec_ptype2_tfd_tfd(x, y, ...) }
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2 tfd_irreg
 #' @export
 #' @export vec_ptype2.tfd_irreg
@@ -96,11 +106,13 @@ vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) { vec_ptype2_tfd_tfd(x, y, .
 vec_ptype2.tfd_irreg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_irreg")
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_irreg tfd_reg
 #' @export
 vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, ...)}
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_irreg tfd_irreg
 #' @export
 vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, ...)}
@@ -109,6 +121,7 @@ vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, 
 #----------------- main function for coercion of tfd -----------------#
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @export
 vec_ptype2_tfd_tfd = function(x, y, ...) {
   
@@ -170,7 +183,8 @@ vec_ptype2_tfd_tfd = function(x, y, ...) {
 
 #----------------- s3 generics for tfb casting -----------------#
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @import vctrs
 #' @method vec_cast tfb_spline
 #' @export
@@ -178,14 +192,16 @@ vec_ptype2_tfd_tfd = function(x, y, ...) {
 #' @inheritParams vctrs::vec_cast
 vec_cast.tfb_spline <- function(x, to, ...) UseMethod("vec_cast.tfb_spline")
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast tfb_fpc
 #' @export
 #' @export vec_cast.tfd_irreg
 vec_cast.tfb_fpc <- function(x, to, ...) UseMethod("vec_cast.tfb_fpc")
 
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfb_spline
 #' @export
 vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) { 
@@ -196,17 +212,20 @@ vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) {
 
 } 
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfb_fpc
 #' @export
 vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) { stop("casting tfb_fpc to tfb_spline is not allowed") }
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_spline
 #' @export
 vec_cast.tfb_fpc.tfb_spline <- function(x, to, ...) { stop("casting tfb_spline to tfb_fpc is not allowed")}
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_fpc
 #' @export
 vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) { x }
@@ -214,7 +233,8 @@ vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) { x }
 
 #----------------- s3 generics for tfb coercion -----------------#
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_ptype2 tfb_spline
 #' @export
 #' @param y Vectors to cast.
@@ -222,19 +242,22 @@ vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) { x }
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline <- function(x, y, ...) UseMethod("vec_ptype2.tfb_spline")
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_spline tfb_spline
 #' @export
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)}
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_spline tfb_fpc
 #' @export
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
 
-#' @rdname vctrs
+#' @rdname vctrs 
+#' @family tidyfun vctrs
 #' @method vec_ptype2 tfb_fpc
 #' @export
 #' @export vec_ptype2.tfb_fpc
@@ -242,6 +265,7 @@ vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) stop("concatenating tfb_spl
 vec_ptype2.tfb_fpc <- function(x, y, ...) UseMethod("vec_ptype2.tfb_fpc")
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_fpc tfb_spline
 #' @export
 #' @inheritParams vctrs::vec_ptype2
@@ -249,6 +273,7 @@ vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) stop("concatenating tfb_spl
 
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_fpc tfb_fpc
 #' @export
 #' @inheritParams vctrs::vec_ptype2
@@ -259,6 +284,7 @@ vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)
 #----------------- main function for coercion of tfb -----------------#
 
 #' @name vctrs
+#' @family tidyfun vctrs
 #' @export
 vec_ptype2_tfb_tfb = function(x, y, ...) {
   funs <- list(x, y)

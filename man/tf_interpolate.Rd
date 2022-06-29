@@ -35,9 +35,9 @@ accurate (... \emph{if} the interpolation works well ...)
 }
 
 This is really just syntactic sugar for \verb{tf<d|b>(object, arg = arg)}.
-To reliably impute very irregular data on a regular, common grid,
+\strong{To reliably impute very irregular data on a regular, common grid,
 you'll be better off doing FPCA-based imputation or other model-based
-approaches in most cases.
+approaches in most cases.}
 }
 \examples{
 # thinning out a densely observed tfd
@@ -56,3 +56,4 @@ set.seed(1860)
 tf_interpolate(sparse_irregular, arg = seq(0, 1, l = 51))
 
 }
+\concept{tidyfun setters}

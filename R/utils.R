@@ -134,10 +134,14 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
 #-------------------------------------------------------------------------------
 # misc
 
-#' @description `in_range` and its infix-equivalent `%inr%` return `TRUE` for all
+#' Find out if values are inside given bounds
+#'
+#' `in_range` and its infix-equivalent `%inr%` return `TRUE` for all
 #'    values in the numeric vector `f` that are within the range of values in `r`.
+#' @param f a numeric vector
 #' @param r numeric vector used to specify a range, only the minimum and maximum of `r` are used.
-#' @rdname tf_where
+#' @return a `logical` vector of the same length as `f`
+#' @family tidyfun utility functions
 #' @export
 in_range <- function(f, r) {
   assert_numeric(f)
@@ -145,7 +149,8 @@ in_range <- function(f, r) {
   r <- range(r, na.rm = TRUE)
   f >= r[1] & f <= r[2]
 }
-#' @rdname tf_where
+
+#' @rdname in_range
 #' @export
 `%inr%` <- function(f, r) in_range(f, r)
 
@@ -160,7 +165,7 @@ get_args <- function(args, f) {
 #' @param x any input 
 #' @return `x` turned into a list.
 #' @export
-# export for tidyfun...
+#' @family tidyfun developer tools
 ensure_list <- function(x) {
   if (!is.list(x)) list(x) else x
 }  
@@ -171,6 +176,7 @@ ensure_list <- function(x) {
 #' @param x any input 
 #' @return `x` turned into a list.
 #' @export
+#' @family tidyfun developer tools
 # export for tidyfun...
 unique_id <- function(x) {
   if (!any(duplicated(x))) return(x)

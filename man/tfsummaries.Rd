@@ -4,7 +4,6 @@
 \alias{tfsummaries}
 \alias{mean.tf}
 \alias{median.tf}
-\alias{quantile.tf}
 \alias{sd}
 \alias{sd.default}
 \alias{sd.tf}
@@ -17,15 +16,6 @@
 \method{mean}{tf}(x, ...)
 
 \method{median}{tf}(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...)
-
-\method{quantile}{tf}(
-  x,
-  probs = seq(0, 1, 0.25),
-  na.rm = FALSE,
-  names = TRUE,
-  type = 7,
-  ...
-)
 
 sd(x, na.rm = FALSE)
 
@@ -45,24 +35,13 @@ var(x, y = NULL, na.rm = FALSE, use)
 \item{x}{a \code{tf} object
 functions, see source code.}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{...}{optional additional arguments.}
 
-\item{na.rm}{logical; if true, any \code{\link{NA}} and \code{NaN}'s
-    are removed from \code{x} before the quantiles are computed.}
+\item{na.rm}{logical.  Should missing values be removed?}
 
 \item{depth}{method used to determine the most central element in \code{x}, i.e., the median.
 One of the functional data depths available via \code{\link[=depth]{depth()}} or \code{"pointwise"} for
 a pointwise median function.}
-
-\item{probs}{numeric vector of probabilities with values in
-    \eqn{[0,1]}.  (Values up to \samp{2e-14} outside that
-    range are accepted and moved to the nearby endpoint.)}
-
-\item{names}{logical; if true, the result has a \code{\link{names}}
-    attribute.  Set to \code{FALSE} for speedup with many \code{probs}.}
-
-\item{type}{an integer between 1 and 9 selecting one of the
-    nine quantile algorithms detailed below to be used.}
 
 \item{y}{\code{NULL} (default) or a vector, matrix or data frame with
     compatible dimensions to \code{x}.   The default is equivalent to
@@ -77,7 +56,8 @@ a pointwise median function.}
 \item{object}{a \code{tfd} object}
 }
 \description{
-These will return a \code{tf} object containing the respective functional statistic.
-\code{summary} returns a vector with the mean function, the variance function, and the
+These will return a \code{tf} object containing the respective \emph{functional} statistic.
+\code{summary} returns a \code{tf}-vector with the mean function, the variance function, and the
 functional range of the central half of the functions, as defined by the functional
 }
+\concept{tidyfun summary functions}
