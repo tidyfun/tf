@@ -44,24 +44,30 @@ zoo_wrapper <- function(f, ...) {
 #' @param x new arg values to tf_approximate the function for
 #' @param arg the `arg` values of the `evaluations`
 #' @param evaluations the function's values at `arg`
+#' @family tidyfun inter/extrapolation functions
 tf_approx_linear <- zoo_wrapper(na.approx, na.rm = FALSE)
 
 #' @rdname tf_approx
 #' @export
+#' @family tidyfun inter/extrapolation functions
 tf_approx_spline <- zoo_wrapper(na.spline, na.rm = FALSE)
 
 #' @rdname tf_approx
 #' @export
+#' @family tidyfun inter/extrapolation functions
 tf_approx_none <- zoo_wrapper(na.fill, fill = NA)
 
 #' @rdname tf_approx
 #' @export
+#' @family tidyfun inter/extrapolation functions
 tf_approx_fill_extend <- zoo_wrapper(na.fill, fill = "extend")
 
 #' @rdname tf_approx
 #' @export
+#' @family tidyfun inter/extrapolation functions
 tf_approx_locf <- zoo_wrapper(na.locf, na.rm = FALSE)
 
 #' @rdname tf_approx
 #' @export
+#' @family tidyfun inter/extrapolation functions
 tf_approx_nocb <- zoo_wrapper(na.locf, na.rm = FALSE, fromLast = TRUE)

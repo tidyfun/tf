@@ -17,3 +17,9 @@ a semi-regular grid rounded down to appropriate resolution
 \description{
 (internal function exported for re-use in upstream packages)
 }
+\seealso{
+Other tidyfun developer tools: 
+\code{\link{ensure_list}()},
+\code{\link{unique_id}()}
+}
+\concept{tidyfun developer tools}

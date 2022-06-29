@@ -15,3 +15,9 @@ ensure_list(x)
 \description{
 See above.
 }
+\seealso{
+Other tidyfun developer tools: 
+\code{\link{prep_plotting_arg}()},
+\code{\link{unique_id}()}
+}
+\concept{tidyfun developer tools}

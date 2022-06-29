@@ -78,3 +78,4 @@ x[-3 , seq(1, 9, by = 2), matrix = FALSE] #list of data.frames for each function
 # save them as a functional data vector again, use `tfd` or `tfb` instead:
 tfd(x, arg = seq(0, 10, by = .01), resolution = 1e-3)
 }
+\concept{tidyfun bracket-operator}

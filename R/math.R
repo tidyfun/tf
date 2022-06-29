@@ -81,6 +81,7 @@ NULL
 #' plot(cumsum(f2), col = 1:5)
 #' # use ?tf_integrate for "function-wise" integrals i.e., weighted cumulative sums...
 #' @export
+#' @family tidyfun compute functions
 Math.tfd <- function(x, ...) {
   fun_math(x, .Generic)
 }
@@ -112,6 +113,7 @@ cumsum.tfd <- function(...) {
 }
 #' @rdname tfgroupgenerics
 #' @export
+#' @family tidyfun compute
 cumprod.tfd <- function(...) {
   summarize_tf(..., op = "cumprod", eval = TRUE)
 }

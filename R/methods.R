@@ -1,26 +1,35 @@
 #' Utility functions for `tf`-objects
 #'
-#' A bunch of methods & utilities that do what they say: extract or set the
+#' A bunch of methods & utilities that do what they say: get or set the
 #' respective attributes of a `tf`-object.
 #' @param f an `tf` object
 #' @param x an `tf` object
 #' @rdname tfmethods
+#' @family tidyfun utility functions
 #' @export
 tf_arg <- function(f) UseMethod("tf_arg")
+
 #' @export
 tf_arg.default <- function(f) .NotYetImplemented()
+
 #' @export
 tf_arg.tfd_irreg <- function(f) map(f, "arg")
+
 #' @export
 tf_arg.tfd_reg <- function(f) attr(f, "arg")[[1]]
+
 #' @export
 tf_arg.tfb <- function(f) attr(f, "arg")
+
+#-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
 #' @export
 tf_evaluations <- function(f) UseMethod("tf_evaluations")
+
 #' @export
 tf_evaluations.default <- function(f) .NotYetImplemented()
+
 #' @export
 tf_evaluations.tfd_reg <- function(f) {
   f_names <- names(f)
@@ -28,10 +37,12 @@ tf_evaluations.tfd_reg <- function(f) {
   names(f) <- f_names
   f
 }
+
 #' @export
 tf_evaluations.tfd_irreg <- function(f) {
   map(f, "value")
 }
+
 #' @export
 tf_evaluations.tfb <- function(f) {
   evals <- map(f, ~ drop(attr(f, "basis_matrix") %*% .))
@@ -41,20 +52,26 @@ tf_evaluations.tfb <- function(f) {
   evals
 }
 
+#-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
 #' @export
 tf_count <- function(f) UseMethod("tf_count")
+
 #' @export
 tf_count.default <- function(f) .NotYetImplemented()
+
 #' @export
 tf_count.tfd_irreg <- function(f) {
   ret <- map_int(tf_evaluations(f), length)
   ret[is.na(f)] <- 0
   ret
 }
+
 #' @export
 tf_count.tfd_reg <- function(f) length(tf_arg(f))
+
+#-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
 #' @export
@@ -62,6 +79,7 @@ tf_domain <- function(f) {
   stopifnot(inherits(f, "tf"))
   attr(f, "domain")
 }
+
 #' @rdname tfmethods
 #' @export
 `tf_domain<-` <- function(x, value) {
@@ -70,22 +88,13 @@ tf_domain <- function(f) {
   tf_zoom(f = x, begin = value[1], end = value[2])
 }
 
+#-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
 #' @export
 tf_evaluator <- function(f) {
   stopifnot(inherits(f, "tfd"))
   attr(f, "evaluator")
-}
-
-#' @rdname tfmethods
-#' @param as_tfd should the basis be returned as a `tfd` evaluated on `tf_arg(f)`? Defaults to FALSE.
-#' @export
-tf_basis <- function(f, as_tfd = FALSE) {
-  stopifnot(inherits(f, "tfb"))
-  basis <- attr(f, "basis")
-  if (!as_tfd) return(basis)
-  basis(tf_arg(f)) |> t() |> tfd(arg = tf_arg(f))
 }
 
 #' @rdname tfmethods
@@ -115,9 +124,27 @@ tf_basis <- function(f, as_tfd = FALSE) {
   x
 }
 
+#-------------------------------------------------------------------------------
+
+#' @rdname tfmethods
+#' @param as_tfd should the basis be returned as a `tfd` evaluated on `tf_arg(f)`? Defaults to FALSE.
+#' @export
+tf_basis <- function(f, as_tfd = FALSE) {
+  stopifnot(inherits(f, "tfb"))
+  basis <- attr(f, "basis")
+  if (!as_tfd) return(basis)
+  basis(tf_arg(f)) |> t() |> tfd(arg = tf_arg(f))
+}
+
+#-------------------------------------------------------------------------------
+
 #' @rdname tfmethods
 #' @export
-`tf_arg<-` <- function(x, value) UseMethod("tf_arg<-")
+`tf_arg<-` <- function(x, value) {
+  warning(c("this changes arg without changing the corresponding function values!\n", 
+          "use tf_interpolate to re-evaluate functions on a new grid."))
+  UseMethod("tf_arg<-")
+}
 
 #' @rdname tfmethods
 #' @export
@@ -135,6 +162,8 @@ tf_basis <- function(f, as_tfd = FALSE) {
   attr(x, "arg") <- ensure_list(value)
   x
 }
+
+#-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
 #' @export
@@ -185,9 +214,11 @@ is_tf <- function(x) inherits(x, "tf")
 #' @rdname tfmethods
 #' @export
 is_tfd <- function(x)  inherits(x, "tfd")
+
 #' @rdname tfmethods
 #' @export
 is_reg <- function(x)  inherits(x, "tfd_reg")
+
 #' @rdname tfmethods
 #' @export
 is_tfd_reg <- is_reg
@@ -195,6 +226,7 @@ is_tfd_reg <- is_reg
 #' @rdname tfmethods
 #' @export
 is_irreg <- function(x) inherits(x,"tfd_irreg")
+
 #' @rdname tfmethods
 #' @export
 is_tfd_irreg <- is_irreg

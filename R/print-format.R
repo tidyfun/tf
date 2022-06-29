@@ -44,6 +44,7 @@ string_rep_tf <- function(f, signif_arg = NULL,
 #' @rdname tfdisplay
 #' @param n how many elements of `x` to print out
 #' @export
+#' @family tidyfun disply functions
 print.tf <- function(x, n = 10, ...) {
   cat(paste0(
     class(x)[2], "[", length(x), "] on (", tf_domain(x)[1], ",",

@@ -95,3 +95,5 @@ plot(f2, col = 1:5)
 plot(cumsum(f2), col = 1:5)
 # use ?tf_integrate for "function-wise" integrals i.e., weighted cumulative sums...
 }
+\concept{tidyfun compute}
+\concept{tidyfun compute functions}

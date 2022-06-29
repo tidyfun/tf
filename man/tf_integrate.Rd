@@ -64,3 +64,8 @@ alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 
 \code{tf_integrate.function} integrates R-functions (a wrapper for \code{\link[stats:integrate]{stats::integrate()}})
 }
+\seealso{
+Other tidyfun calculus functions: 
+\code{\link{tf_derive}()}
+}
+\concept{tidyfun calculus functions}

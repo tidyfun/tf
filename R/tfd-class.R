@@ -110,6 +110,7 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
 #' @param ... not used in `tfd`, except for `tfd.tf` -- specify `arg` and `ìnterpolate = TRUE` to
 #'   turn an irregular `tfd` into a regular one, see examples.
 #' @return an `tfd`-object (or a `data.frame`/`matrix` for the conversion functions, obviously.)
+#' @family `tfd`-class
 #' @export
 tfd <- function(data, ...) UseMethod("tfd")
 

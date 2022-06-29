@@ -74,3 +74,4 @@ Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
   # does the function ever exceed?
   tf_anywhere(f, value > 1)
 }
+\concept{tidyfun query-functions}

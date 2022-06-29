@@ -81,9 +81,11 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #' @return an object of class `tfb_fpc`, inheriting from `tfb`. 
 #'    The basis used by `tfb_fpc` is a `tfd`-vector containing the estimated
 #'    mean and eigenfunctions.
-#' @seealso [tfb()],  [fpc_wsvd()] for FPCA options. 
+#' @seealso [fpc_wsvd()] for FPCA options. 
 #' @rdname tfb_fpc
 #' @export
+#' @family `tfb`-class 
+#' @family `tfb_fpc`-class
 tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 
 #' @rdname tfb_fpc

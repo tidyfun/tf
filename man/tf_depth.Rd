@@ -38,3 +38,4 @@ Lopez-Pintado, S. and Romo, J. (2009).
 On the Concept of Depth for Functional Data.
 \emph{Journal of the American Statistical Association}, \strong{104}, 718-734.
 }
+\concept{tidyfun ordering and ranking functions}

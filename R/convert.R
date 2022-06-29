@@ -14,6 +14,7 @@
 #'   `x` or a numeric identifier, `arg` and `value`, with each row containing
 #'   one function evaluation at the original `arg`-values.
 #' @export
+#' @family tidyfun converters
 as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, unnest = FALSE, ...) {
   if (unnest) return(tf_2_df(x))
   colname <- deparse(substitute(x))
@@ -32,6 +33,7 @@ as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, unnest = FAL
 #' @return **for `as.matrix.tf`:** a matrix with one row per function and one
 #'   column per `arg`.
 #' @export
+#' @family tidyfun converters
 as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(x) |> unlist() |>  unique() |> sort()
@@ -46,6 +48,7 @@ as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
 #' @return **for `as.function.tf`:** an R function with argument `arg` that 
 #'   evaluates `x` on `arg` and returns the list of function values
 #' @export
+#' @family tidyfun converters
 as.function.tf <- function(x, ...) {
   function(arg) tf_evaluate(object = x, arg = arg)
 }

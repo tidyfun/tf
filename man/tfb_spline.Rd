@@ -183,4 +183,10 @@ directly for all curves, this is \emph{not} what's implemented here.
 
 \seealso{
 \code{\link[mgcv:smooth.terms]{mgcv::smooth.terms()}} for spline basis options.
+
+Other \code{tfb}-class: 
+\code{\link{fpc_wsvd}()},
+\code{\link{tfb_fpc}()},
+\code{\link{tfb}}
 }
+\concept{\code{tfb}-class}

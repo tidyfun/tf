@@ -5,6 +5,7 @@
 #' @param n_grid length of evaluation grid
 #' @return a semi-regular grid rounded down to appropriate resolution
 #' @export
+#' @family tidyfun developer tools
 prep_plotting_arg <- function(f, n_grid) {
   if (!isTRUE(n_grid > 1)) {
     tf_arg(f)
@@ -45,6 +46,7 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @importFrom graphics matplot image axis
 #' @importFrom grDevices heat.colors rgb
 #' @rdname tfviz
+#' @family tidyfun visualisation
 #' @export
 #' @references Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B. S., & Punjabi, N. M. (2010).
 #' Lasagna plots: a saucy alternative to spaghetti plots. *Epidemiology (Cambridge, Mass.)*, **21**(5), 621-625.
@@ -133,6 +135,7 @@ linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
 
 #' @export
 #' @rdname tfviz
+#' @family tidyfun visualisation
 lines.tf <- function(x, arg, n_grid = 50,
                      alpha = min(1, max(.05, 2 / length(x))), ...) {
   args <- c(modifyList(
@@ -146,6 +149,7 @@ lines.tf <- function(x, arg, n_grid = 50,
 }
 #' @export
 #' @rdname tfviz
+#' @family tidyfun visualisation
 #' @param arg evaluation grid (vector)
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for arg for which no original data is available? Only relevant for

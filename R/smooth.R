@@ -24,9 +24,11 @@
 #' @return a smoothed version of the input. For some methods/options, the
 #'   smoothed functions may be shorter than the original ones (at both ends).
 #' @export
+#' @family tidyfun nonparametric smoothers
 tf_smooth <- function(x, ...) {
   UseMethod("tf_smooth")
 }
+
 #' @export
 #' @rdname tf_smooth
 tf_smooth.tfb <- function(x, ...) {
@@ -35,6 +37,7 @@ tf_smooth.tfb <- function(x, ...) {
           "Returning unchanged tfb object.")
   x
 }
+
 #' @importFrom stats lowess
 #' @importFrom zoo rollmean rollmedian
 #' @importFrom pracma savgol
@@ -107,6 +110,7 @@ tf_smooth.tfd <-
     evaluator = !!attr(x, "evaluator_name"),
     resolution = attr(x, "resolution"), domain = tf_domain(x)
   )
-}
+  }
+
 #' @export
 tf_smooth.default <- function(x, ...) .NotYetImplemented()

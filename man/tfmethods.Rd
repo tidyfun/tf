@@ -7,8 +7,8 @@
 \alias{tf_domain}
 \alias{tf_domain<-}
 \alias{tf_evaluator}
-\alias{tf_basis}
 \alias{tf_evaluator<-}
+\alias{tf_basis}
 \alias{tf_arg<-}
 \alias{tf_arg<-.tfd_irreg}
 \alias{tf_arg<-.tfd_reg}
@@ -40,9 +40,9 @@ tf_domain(x) <- value
 
 tf_evaluator(f)
 
-tf_basis(f, as_tfd = FALSE)
-
 tf_evaluator(x) <- value
+
+tf_basis(f, as_tfd = FALSE)
 
 tf_arg(x) <- value
 
@@ -98,6 +98,12 @@ the domain.}
 \item{...}{dots}
 }
 \description{
-A bunch of methods & utilities that do what they say: extract or set the
+A bunch of methods & utilities that do what they say: get or set the
 respective attributes of a \code{tf}-object.
 }
+\seealso{
+Other tidyfun utility functions: 
+\code{\link{in_range}()},
+\code{\link{tf_zoom}()}
+}
+\concept{tidyfun utility functions}

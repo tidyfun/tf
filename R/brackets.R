@@ -43,6 +43,7 @@
 #' @name tfbrackets
 #' @export
 #' @aliases tfbrackets
+#' @family tidyfun bracket-operator
 #' @examples 
 #' (x <- 1:3 * tfd(data = 0:10, arg = 0:10)); plot(x)
 #' # this operator's 2nd argument is quite overloaded -- you can:
@@ -118,6 +119,7 @@
 #'  i.e. only objects that are of the same sub-class and have identical domains and other atttributes can be
 #'  subassigned.
 #' @rdname tfbrackets
+#' @family tidyfun bracket-operator
 #' @export
 `[<-.tf` <- function(x, i, value) {
   if (missing(i)) {

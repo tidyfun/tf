@@ -49,3 +49,4 @@ evaluates \code{x} on \code{arg} and returns the list of function values
 Various converters to turn \code{tfb}- or \code{tfd}-vectors into data.frames or
 matrices, or even an actual R function.
 }
+\concept{tidyfun converters}

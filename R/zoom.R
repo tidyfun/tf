@@ -11,6 +11,7 @@
 #' @return an object like `f` on a new domain (potentially).
 #' Note that regular functional data and functions in basis representation will
 #'   be turned into irregular `tfd`-objects iff `begin` or `end` are not scalar.
+#' @family tidyfun utility functions
 #' @export
 #' @examples
 #'   (x <- tf_rgp(10))
@@ -65,6 +66,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   ret
 }
+
 #' @rdname tf_zoom
 #' @export
 tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], 

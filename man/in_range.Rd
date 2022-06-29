@@ -21,3 +21,9 @@ a \code{logical} vector of the same length as \code{f}
 \code{in_range} and its infix-equivalent \verb{\%inr\%} return \code{TRUE} for all
 values in the numeric vector \code{f} that are within the range of values in \code{r}.
 }
+\seealso{
+Other tidyfun utility functions: 
+\code{\link{tf_arg}()},
+\code{\link{tf_zoom}()}
+}
+\concept{tidyfun utility functions}
