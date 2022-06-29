@@ -51,6 +51,8 @@ reference:
 navbar:
   type: default
   left:
+  - icon: fa-github
+    href: https://github.com/tidyfun/tf
   - text: Reference
     href: reference/index.html
 development:
