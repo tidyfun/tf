@@ -62,52 +62,52 @@ Details / Example for possible alternatives and extensions. <br></p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tfb_fpc</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for data.frame</span>
-<span class="fu">tfb_fpc</span><span class="op">(</span>
-  <span class="va">data</span>,
-  id <span class="op">=</span> <span class="fl">1</span>,
-  arg <span class="op">=</span> <span class="fl">2</span>,
-  value <span class="op">=</span> <span class="fl">3</span>,
-  domain <span class="op">=</span> <span class="cn">NULL</span>,
-  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,
-  resolution <span class="op">=</span> <span class="cn">NULL</span>,
-  <span class="va">...</span>
-<span class="op">)</span>
-
-<span class="co"># S3 method for matrix</span>
-<span class="fu">tfb_fpc</span><span class="op">(</span>
-  <span class="va">data</span>,
-  arg <span class="op">=</span> <span class="cn">NULL</span>,
-  domain <span class="op">=</span> <span class="cn">NULL</span>,
-  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,
-  resolution <span class="op">=</span> <span class="cn">NULL</span>,
-  <span class="va">...</span>
-<span class="op">)</span>
-
-<span class="co"># S3 method for numeric</span>
-<span class="fu">tfb_fpc</span><span class="op">(</span>
-  <span class="va">data</span>,
-  arg <span class="op">=</span> <span class="cn">NULL</span>,
-  domain <span class="op">=</span> <span class="cn">NULL</span>,
-  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,
-  resolution <span class="op">=</span> <span class="cn">NULL</span>,
-  <span class="va">...</span>
-<span class="op">)</span>
-
-<span class="co"># S3 method for tf</span>
-<span class="fu">tfb_fpc</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, method <span class="op">=</span> <span class="va">fpc_wsvd</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for default</span>
-<span class="fu">tfb_fpc</span><span class="op">(</span>
-  <span class="va">data</span>,
-  arg <span class="op">=</span> <span class="cn">NULL</span>,
-  domain <span class="op">=</span> <span class="cn">NULL</span>,
-  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,
-  resolution <span class="op">=</span> <span class="cn">NULL</span>,
-  <span class="va">...</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tfb_fpc</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for data.frame</span></span>
+<span><span class="fu">tfb_fpc</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  id <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  arg <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  value <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,</span>
+<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for matrix</span></span>
+<span><span class="fu">tfb_fpc</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,</span>
+<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for numeric</span></span>
+<span><span class="fu">tfb_fpc</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,</span>
+<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tf</span></span>
+<span><span class="fu">tfb_fpc</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, method <span class="op">=</span> <span class="va">fpc_wsvd</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for default</span></span>
+<span><span class="fu">tfb_fpc</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  method <span class="op">=</span> <span class="va">fpc_wsvd</span>,</span>
+<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -115,13 +115,19 @@ Details / Example for possible alternatives and extensions. <br></p>
     <dl><dt>data</dt>
 <dd><p>a <code>matrix</code>, <code>data.frame</code> or <code>list</code> of suitable shape, or another
 <code>tf</code>-object containing functional data.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>arguments to the <code>method</code> which computes the
 (regularized/smoothed) FPCA.
 Unless set by the user, uses proportion of variance explained
 <code>pve = .995</code> to determine the truncation levels.</p></dd>
+
+
 <dt>id</dt>
 <dd><p>The name or number of the column defining which data belong to which function.</p></dd>
+
+
 <dt>arg</dt>
 <dd><p><code>numeric</code>, or list of <code>numeric</code>s. The evaluation grid. See Details on its
 interplay with <code>resolution</code>.
@@ -129,19 +135,30 @@ For the <code>data.frame</code>-method: the name/number of the column defining t
 evaluation grid. The <code>matrix</code> method will try to guess suitable <code>arg</code>-values
 from the column names of <code>data</code> if <code>arg</code> is not supplied. Other methods fall back on
 integer sequences (<code>1:&lt;length of data&gt;</code>) as the default if not provided.</p></dd>
+
+
 <dt>value</dt>
 <dd><p>The name or number of the column containing the function evaluations.</p></dd>
+
+
 <dt>domain</dt>
 <dd><p>range of the <code>arg</code>.</p></dd>
+
+
 <dt>method</dt>
 <dd><p>the function to use that computes eigenfunctions and scores.
 Defaults to <code><a href="fpc_wsvd.html">fpc_wsvd()</a></code>, which gives unsmoothed eigenfunctions.</p></dd>
+
+
 <dt>resolution</dt>
 <dd><p>resolution of the evaluation grid. See details for <code><a href="tfd.html">tfd()</a></code>.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>an object of class <code>tfb_fpc</code>, inheriting from <code>tfb</code>.
+    
+
+<p>an object of class <code>tfb_fpc</code>, inheriting from <code>tfb</code>.
 The basis used by <code>tfb_fpc</code> is a <code>tfd</code>-vector containing the estimated
 mean and eigenfunctions.</p>
     </div>
@@ -159,24 +176,30 @@ of <code><a href="fpc_wsvd.html">fpc_wsvd()</a></code> can be used for the `meth
 </ul></div>
     <div id="see-also">
     <h2>See also</h2>
-    <div class="dont-index"><p><code><a href="tfb.html">tfb()</a></code>,  <code><a href="fpc_wsvd.html">fpc_wsvd()</a></code> for FPCA options.</p></div>
+    <div class="dont-index"><p><code><a href="fpc_wsvd.html">fpc_wsvd()</a></code> for FPCA options.</p>
+<p>Other <code>tfb</code>-class: 
+<code><a href="fpc_wsvd.html">fpc_wsvd</a>()</code>,
+<code><a href="tfb_spline.html">tfb_spline</a>()</code>,
+<code><a href="tfb.html">tfb</a></code></p>
+<p>Other <code>tfb_fpc</code>-class: 
+<code><a href="fpc_wsvd.html">fpc_wsvd</a>()</code></p></div>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="co"># Apply FPCA for sparse data using refund::fpca.sc:</span></span>
-<span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">99290</span><span class="op">)</span></span>
-<span class="r-in"><span class="co"># create sparse data:</span></span>
-<span class="r-in"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">15</span><span class="op">)</span> |&gt; <span class="fu"><a href="tf_jiggle.html">tf_sparsify</a></span><span class="op">(</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span>unnest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-in"><span class="co"># wrap refund::fpca_sc for use as FPCA method in tfb_fpc:</span></span>
-<span class="r-in"><span class="va">fpca_sc_wrapper</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, <span class="va">pve</span> <span class="op">=</span> <span class="fl">.995</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in">  <span class="va">data_mat</span> <span class="op">&lt;-</span> <span class="fu">tf</span><span class="fu">:::</span><span class="fu">df_2_mat</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
-<span class="r-in">  <span class="va">fpca</span> <span class="op">&lt;-</span> <span class="fu">refund</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/refund/man/fpca.sc.html" class="external-link">fpca.sc</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">data_mat</span>, </span>
-<span class="r-in">                          argvals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data_mat</span>, <span class="st">"arg"</span><span class="op">)</span>, </span>
-<span class="r-in">                          pve <span class="op">=</span> <span class="va">pve</span>, <span class="va">...</span><span class="op">)</span></span>
-<span class="r-in">  <span class="va">fpca</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"efunctions"</span>, <span class="st">"scores"</span>, <span class="st">"npc"</span><span class="op">)</span><span class="op">]</span></span>
-<span class="r-in"><span class="op">}</span></span>
-<span class="r-in"><span class="fu">tfb_fpc</span><span class="op">(</span><span class="va">data</span>, method <span class="op">=</span> <span class="va">fpca_sc_wrapper</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Apply FPCA for sparse data using refund::fpca.sc:</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">99290</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># create sparse data:</span></span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">15</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="tf_jiggle.html">tf_sparsify</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span>unnest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># wrap refund::fpca_sc for use as FPCA method in tfb_fpc:</span></span></span>
+<span class="r-in"><span><span class="va">fpca_sc_wrapper</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, <span class="va">pve</span> <span class="op">=</span> <span class="fl">.995</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">data_mat</span> <span class="op">&lt;-</span> <span class="fu">tf</span><span class="fu">:::</span><span class="fu">df_2_mat</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">fpca</span> <span class="op">&lt;-</span> <span class="fu">refund</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/refund/man/fpca.sc.html" class="external-link">fpca.sc</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">data_mat</span>, </span></span>
+<span class="r-in"><span>                          argvals <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data_mat</span>, <span class="st">"arg"</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>                          pve <span class="op">=</span> <span class="va">pve</span>, <span class="va">...</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">fpca</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mu"</span>, <span class="st">"efunctions"</span>, <span class="st">"scores"</span>, <span class="st">"npc"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="fu">tfb_fpc</span><span class="op">(</span><span class="va">data</span>, method <span class="op">=</span> <span class="va">fpca_sc_wrapper</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> tfb[15] on (0,1) in basis representation:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  using  5 FPCs </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1: (0.00,  -1.2);(0.02,  -1.2);(0.04,  -1.2); ...</span>
@@ -204,8 +227,7 @@ of <code><a href="fpc_wsvd.html">fpc_wsvd()</a></code> can be used for the `meth
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

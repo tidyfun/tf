@@ -57,31 +57,40 @@ see below.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">cond</span>, return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>, <span class="st">"first"</span>, <span class="st">"last"</span>, <span class="st">"range"</span>, <span class="st">"any"</span><span class="op">)</span>, <span class="va">arg</span><span class="op">)</span>
-
-<span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">f</span>, <span class="va">cond</span>, <span class="va">arg</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">cond</span>, return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"all"</span>, <span class="st">"first"</span>, <span class="st">"last"</span>, <span class="st">"range"</span>, <span class="st">"any"</span><span class="op">)</span>, <span class="va">arg</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">f</span>, <span class="va">cond</span>, <span class="va">arg</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>f</dt>
 <dd><p>a <code>tf</code> object</p></dd>
+
+
 <dt>cond</dt>
 <dd><p>a logical expression about <code>value</code> (and/or <code>arg</code>) that defines a condition about
 the functions, see examples and details.</p></dd>
+
+
 <dt>return</dt>
 <dd><p>for each entry in <code>f</code>, <code>tf_where</code> either returns <em>all</em> <code>arg</code> for
 which <code>cond</code> is true, the <em>first</em>, the <em>last</em> or their <em>range</em> or logical
 flags whether the functions fullfill the condition <em>any</em>where. For
 <code>"range"</code>, note that <code>cond</code> may not be true for all <code>arg</code> values in this
 range, though, this is not checked.</p></dd>
+
+
 <dt>arg</dt>
 <dd><p>optional <code>arg</code>-values on which to evaluate <code>f</code> and check <code>cond</code>,
 defaults to <code>tf_arg(f)</code>.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>depends on  <code>return</code>:</p><ul><li><p><code>return = "any"</code>, i.e, <code>anywhere</code>: a logical vector of the same length as <code>f</code>.</p></li>
+    
+
+<p>depends on  <code>return</code>:</p><ul><li><p><code>return = "any"</code>, i.e, <code>anywhere</code>: a logical vector of the same length as <code>f</code>.</p></li>
 <li><p><code>return = "all"</code>: a list of vectors of the same length as <code>f</code>, with
 empty vectors for the functions that  never fulfill the <code>cond</code>ition.</p></li>
 <li><p><code>return = "range"</code>: a data frame with columns "begin" and "end".</p></li>
@@ -97,8 +106,8 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in">  <span class="va">lin</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span> <span class="op">*</span> <span class="fu"><a href="tfd.html">tfd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>,l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op"><a href="in_range.html">%inr%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">.5</span><span class="op">)</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span>  <span class="va">lin</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span> <span class="op">*</span> <span class="fu"><a href="tfd.html">tfd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>,l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op"><a href="in_range.html">%inr%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">.5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -1.0 -0.8 -0.6 -0.4 -0.2  0.0  0.2  0.4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -111,27 +120,27 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.2  0.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op"><a href="in_range.html">%inr%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">.5</span><span class="op">)</span>, <span class="st">"range"</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op"><a href="in_range.html">%inr%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">.5</span><span class="op">)</span>, <span class="st">"range"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   begin end</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  -1.0 0.4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2  -0.4 0.2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3  -0.2 0.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4  -0.2 0.0</span>
-<span class="r-in">  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="va">a</span>, <span class="st">"first"</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="va">a</span>, <span class="st">"first"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  NA 0.6 0.4 0.4</span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&lt;</span> <span class="va">a</span>, <span class="st">"last"</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&lt;</span> <span class="va">a</span>, <span class="st">"last"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.8 0.4 0.2 0.2</span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">2</span>, <span class="st">"any"</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">2</span>, <span class="st">"any"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE FALSE  TRUE  TRUE</span>
-<span class="r-in">  <span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">2</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">lin</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE FALSE  TRUE  TRUE</span>
-<span class="r-in"></span>
-<span class="r-in">  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4353</span><span class="op">)</span></span>
-<span class="r-in">  <span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">11L</span><span class="op">)</span></span>
-<span class="r-in">  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f</span>, pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span>, points <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4353</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">11L</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f</span>, pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span>, points <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="tf_where-1.png" alt="" width="700" height="433"></span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -147,8 +156,8 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in">  <span class="co"># where is the function increasing/decreasing?</span></span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">1</span>, <span class="va">value</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="co"># where is the function increasing/decreasing?</span></span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu">lag</span><span class="op">(</span><span class="va">value</span>, <span class="fl">1</span>, <span class="va">value</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.4 0.5 0.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -164,7 +173,7 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.1 0.7 0.8 0.9 1.0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&lt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lead</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&lt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lead</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">value</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.3 0.4 0.5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -180,10 +189,10 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.0 0.6 0.7 0.8 0.9</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in">  <span class="co"># where are the (interior) extreme points (sign changes of `diff(value)`)?</span></span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, </span>
-<span class="r-in">    <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">!=</span></span>
-<span class="r-in">      <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="co"># where are the (interior) extreme points (sign changes of `diff(value)`)?</span></span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, </span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">!=</span></span></span>
+<span class="r-in"><span>      <span class="fu"><a href="https://rdrr.io/r/base/sign.html" class="external-link">sign</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.3 0.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -199,8 +208,8 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.1 0.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in">  <span class="co"># where in its second half is the function positive?</span></span>
-<span class="r-in">  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span> <span class="op">&gt;</span> <span class="fl">.5</span> <span class="op">&amp;</span> <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="co"># where in its second half is the function positive?</span></span></span>
+<span class="r-in"><span>  <span class="fu">tf_where</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span> <span class="op">&gt;</span> <span class="fl">.5</span> <span class="op">&amp;</span> <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> numeric(0)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -216,8 +225,8 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[5]]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in">  <span class="co"># does the function ever exceed?</span></span>
-<span class="r-in">  <span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span></span>
+<span class="r-in"><span>  <span class="co"># does the function ever exceed?</span></span></span>
+<span class="r-in"><span>  <span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE  TRUE FALSE  TRUE FALSE</span>
 </code></pre></div>
     </div>
@@ -233,8 +242,7 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>
