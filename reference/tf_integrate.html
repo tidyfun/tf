@@ -4,7 +4,8 @@ By default the scalar definite integral
 \(\int^{upper}_{lower}f(s)ds\) is returned (option definite = TRUE),
 alternatively for definite = FALSE the anti-derivative on
 [lower, upper], e.g. a tfd or tfb object representing \(F(t) \approx
-\int^{t}_{lower}f(s)ds\), for \(t \in\)[lower, upper], is returned."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+\int^{t}_{lower}f(s)ds\), for \(t \in\)[lower, upper], is returned.
+tf_integrate.function integrates R-functions (a wrapper for stats::integrate())"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
@@ -22,12 +23,18 @@ alternatively for definite = FALSE the anti-derivative on
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">tf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav"><li>
+  <a href="https://github.com/tidyfun/tf" class="external-link">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
       </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
@@ -51,10 +58,14 @@ By default the scalar definite integral
 alternatively for <code>definite = FALSE</code> the <em>anti-derivative</em> on
 <code>[lower, upper]</code>, e.g. a <code>tfd</code> or <code>tfb</code> object representing \(F(t) \approx
 \int^{t}_{lower}f(s)ds\), for \(t \in\)<code>[lower, upper]</code>, is returned.</p>
+<p><code>tf_integrate.function</code> integrates R-functions (a wrapper for <code><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">stats::integrate()</a></code>)</p>
     </div>
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span>
+
+<span class="co"># S3 method for default</span>
+<span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span>
 
 <span class="co"># S3 method for `function`</span>
 <span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span>
@@ -105,13 +116,6 @@ antiderivative. See Description.</p></dd>
 <code>f</code>. For <code>definite = FALSE</code> and <code>tf</code>-inputs, a <code>tf</code> object containing their
 anti-derivatives</p>
     </div>
-    <div id="methods-by-class-">
-    <h2>Methods (by class)</h2>
-    
-<ul><li><p><code>function</code>: integrating R-functions (a wrapper for <code><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">stats::integrate()</a></code>)</p></li>
-<li><p><code>tfd</code>: integrating <code><a href="tfd.html">tfd()</a></code> objects</p></li>
-<li><p><code>tfb</code>: integrating <code><a href="tfd.html">tfd()</a></code> objects</p></li>
-</ul></div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -125,7 +129,8 @@ anti-derivatives</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer></div>

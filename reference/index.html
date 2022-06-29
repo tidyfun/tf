@@ -17,12 +17,18 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">tf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav"><li>
+  <a href="https://github.com/tidyfun/tf" class="external-link">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
       </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
@@ -38,59 +44,108 @@
     </div>
 
     <table class="ref-index"><colgroup><col class="alias"><col class="title"></colgroup><tbody><tr><th colspan="2">
-          <h2 id="all-functions">All functions <a href="#all-functions" class="anchor" aria-hidden="true"></a></h2>
-          <p class="section-desc"></p>
+          <h2 id="tf-sub-classes-constructors-converters">tf - (Sub)classes: Constructors &amp; converters <a href="#tf-sub-classes-constructors-converters" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Defining, evaluating and converting functional data objects</p>
         </th>
       </tr></tbody><tbody><tr><td>
+          <p><code><a href="tfd.html">tfd()</a></code> <code><a href="tfd.html">as.tfd()</a></code> <code><a href="tfd.html">as.tfd_irreg()</a></code> </p>
+        </td>
+        <td><p>Constructors for vectors of "raw" functional data</p></td>
+      </tr><tr><td>
+          <p><code><a href="tfb.html">tfb()</a></code> <code><a href="tfb.html">tfb_wavelet()</a></code> <code><a href="tfb.html">as.tfb()</a></code> </p>
+        </td>
+        <td><p>Constructors for functional data in basis representation</p></td>
+      </tr><tr><td>
           <p><code><a href="converters.html">as.data.frame(<i>&lt;tf&gt;</i>)</a></code> <code><a href="converters.html">as.matrix(<i>&lt;tf&gt;</i>)</a></code> <code><a href="converters.html">as.function(<i>&lt;tf&gt;</i>)</a></code> </p>
         </td>
         <td><p>Convert functional data back to tabular data formats</p></td>
       </tr><tr><td>
+          <p><code><a href="tfb_spline.html">tfb_spline()</a></code> </p>
+        </td>
+        <td><p>Spline-based representation of functional data</p></td>
+      </tr><tr><td>
+          <p><code><a href="tfb_fpc.html">tfb_fpc()</a></code> </p>
+        </td>
+        <td><p>Functional data in FPC-basis representation</p></td>
+      </tr><tr><td>
           <p><code><a href="fpc_wsvd.html">fpc_wsvd()</a></code> </p>
         </td>
         <td><p>Eigenfunctions via weighted SVD</p></td>
-      </tr><tr><td>
-          <p><code><a href="tf.html">tf</a></code> </p>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="evaluation-and-indexing">Evaluation and indexing <a href="#evaluation-and-indexing" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Accessing, appending, evaluating and overwriting functional data
+objects</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="tfbrackets.html">`[`(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfbrackets.html">`[&lt;-`(<i>&lt;tf&gt;</i>)</a></code> </p>
         </td>
-        <td><p>tf</p></td>
+        <td><p>Accessing, evaluating, subsetting and subassigning <code>tf</code> vectors</p></td>
       </tr><tr><td>
           <p><code><a href="tf_approx.html">tf_approx_linear()</a></code> <code><a href="tf_approx.html">tf_approx_spline()</a></code> <code><a href="tf_approx.html">tf_approx_none()</a></code> <code><a href="tf_approx.html">tf_approx_fill_extend()</a></code> <code><a href="tf_approx.html">tf_approx_locf()</a></code> <code><a href="tf_approx.html">tf_approx_nocb()</a></code> </p>
         </td>
         <td><p>Inter- and extrapolation functions for <code>tfd</code>-objects</p></td>
       </tr><tr><td>
-          <p><code><a href="tf_depth.html">tf_depth()</a></code> </p>
-        </td>
-        <td><p>Functional Data Depth</p></td>
-      </tr><tr><td>
-          <p><code><a href="tf_derive.html">tf_derive()</a></code> </p>
-        </td>
-        <td><p>Differentiating functional data: approximating derivative functions</p></td>
-      </tr><tr><td>
           <p><code><a href="tf_evaluate.html">tf_evaluate()</a></code> </p>
         </td>
         <td><p>Evaluate <code>tf</code>-vectors for given argument values</p></td>
+      </tr><tr><td>
+          <p><code><a href="tf_interpolate.html">tf_interpolate()</a></code> </p>
+        </td>
+        <td><p>Re-evaluate <code>tf</code>-objects on new evaluation grid.</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="arithmetic-logical-and-summary-functions">Arithmetic, logical and summary functions <a href="#arithmetic-logical-and-summary-functions" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Functionality for computing with and comparing functional data</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="tfgroupgenerics.html">Ops(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Summary(<i>&lt;tf&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>Math, Summary and Ops Methods for <code>tf</code></p></td>
+      </tr><tr><td>
+          <p><code><a href="tfsummaries.html">mean(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfsummaries.html">median(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfsummaries.html">quantile(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfsummaries.html">sd()</a></code> <code><a href="tfsummaries.html">var()</a></code> <code><a href="tfsummaries.html">summary(<i>&lt;tf&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>Functions that summarize <code>tf</code> objects</p></td>
+      </tr><tr><td>
+          <p><code><a href="tf_depth.html">tf_depth()</a></code> </p>
+        </td>
+        <td><p>Functional Data Depth</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="differentiation-integration-and-simple-smoothing">Differentiation, integration and simple smoothing <a href="#differentiation-integration-and-simple-smoothing" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="tf_derive.html">tf_derive()</a></code> </p>
+        </td>
+        <td><p>Differentiating functional data: approximating derivative functions</p></td>
       </tr><tr><td>
           <p><code><a href="tf_integrate.html">tf_integrate</a></code> </p>
         </td>
         <td><p>Integrals and anti-derivatives of functional data</p></td>
       </tr><tr><td>
-          <p><code><a href="tf_interpolate.html">tf_interpolate()</a></code> </p>
-        </td>
-        <td><p>Re-evaluate <code>tf</code>-objects on new evaluation grid.</p></td>
-      </tr><tr><td>
-          <p><code><a href="tf_jiggle.html">tf_jiggle()</a></code> <code><a href="tf_jiggle.html">tf_sparsify()</a></code> </p>
-        </td>
-        <td><p>Make a <code>tf</code> (more) irregular</p></td>
-      </tr><tr><td>
-          <p><code><a href="tf_rgp.html">tf_rgp()</a></code> </p>
-        </td>
-        <td><p>Gaussian Process random generator</p></td>
-      </tr><tr><td>
           <p><code><a href="tf_smooth.html">tf_smooth()</a></code> </p>
         </td>
         <td><p>Simple smoothing of <code>tf</code> objects</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="visualization-display">Visualization &amp; Display <a href="#visualization-display" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Graphics functions and print formats</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="tfviz.html">plot(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfviz.html">lines(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfviz.html">points(<i>&lt;tf&gt;</i>)</a></code> </p>
+        </td>
+        <td><p><code>base</code> plots for <code>tf</code>s</p></td>
       </tr><tr><td>
-          <p><code><a href="tf_where.html">in_range()</a></code> <code><a href="tf_where.html">`%inr%`</a></code> <code><a href="tf_where.html">tf_where()</a></code> <code><a href="tf_where.html">tf_anywhere()</a></code> </p>
+          <p><code><a href="tfdisplay.html">print(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfdisplay.html">print(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="tfdisplay.html">print(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="tfdisplay.html">print(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfdisplay.html">format(<i>&lt;tf&gt;</i>)</a></code> </p>
+        </td>
+        <td><p>Pretty printing and formatting for functional data</p></td>
+      </tr><tr><td>
+          <p><code><a href="prep_plotting_arg.html">prep_plotting_arg()</a></code> </p>
+        </td>
+        <td><p>Preprocess evaluation grid for plotting</p></td>
+      </tr></tbody><tbody><tr><th colspan="2">
+          <h2 id="utilities">Utilities <a href="#utilities" class="anchor" aria-hidden="true"></a></h2>
+          <p class="section-desc"></p><p>Utility functions</p>
+        </th>
+      </tr></tbody><tbody><tr><td>
+          <p><code><a href="tf_where.html">tf_where()</a></code> <code><a href="tf_where.html">tf_anywhere()</a></code> </p>
         </td>
         <td><p>Find out where functional data fulfills certain conditions.</p></td>
       </tr><tr><td>
@@ -98,49 +153,37 @@
         </td>
         <td><p>Functions to zoom in/out on functions</p></td>
       </tr><tr><td>
-          <p><code><a href="tfb.html">tfb()</a></code> <code><a href="tfb.html">tfb_wavelet()</a></code> <code><a href="tfb.html">as.tfb()</a></code> </p>
-        </td>
-        <td><p>Constructors for functional data in basis representation</p></td>
-      </tr><tr><td>
-          <p><code><a href="tfb_fpc.html">tfb_fpc()</a></code> </p>
-        </td>
-        <td><p>Functional data in FPC-basis representation</p></td>
-      </tr><tr><td>
-          <p><code><a href="tfb_spline.html">tfb_spline()</a></code> </p>
-        </td>
-        <td><p>Spline-based representation of functional data</p></td>
-      </tr><tr><td>
-          <p><code><a href="tfbrackets.html">`[`(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfbrackets.html">`[&lt;-`(<i>&lt;tf&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Accessing, evaluating, subsetting and subassigning <code>tf</code> vectors</p></td>
-      </tr><tr><td>
-          <p><code><a href="tfd.html">tfd()</a></code> <code><a href="tfd.html">as.tfd()</a></code> <code><a href="tfd.html">as.tfd_irreg()</a></code> </p>
-        </td>
-        <td><p>Constructors for vectors of "raw" functional data</p></td>
-      </tr><tr><td>
-          <p><code><a href="tfdisplay.html">print(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfdisplay.html">print(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="tfdisplay.html">print(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="tfdisplay.html">print(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfdisplay.html">format(<i>&lt;tf&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Pretty printing and formatting for functional data</p></td>
-      </tr><tr><td>
-          <p><code><a href="tfgroupgenerics.html">Ops(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Summary(<i>&lt;tf&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Math, Summary and Ops Methods for <code>tf</code></p></td>
-      </tr><tr><td>
           <p><code><a href="tfmethods.html">tf_arg()</a></code> <code><a href="tfmethods.html">tf_evaluations()</a></code> <code><a href="tfmethods.html">tf_count()</a></code> <code><a href="tfmethods.html">tf_domain()</a></code> <code><a href="tfmethods.html">`tf_domain&lt;-`()</a></code> <code><a href="tfmethods.html">tf_evaluator()</a></code> <code><a href="tfmethods.html">tf_basis()</a></code> <code><a href="tfmethods.html">`tf_evaluator&lt;-`()</a></code> <code><a href="tfmethods.html">`tf_arg&lt;-`()</a></code> <code><a href="tfmethods.html">tf_resolution()</a></code> <code><a href="tfmethods.html">coef(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfmethods.html">rev(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfmethods.html">is.na(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfmethods.html">is.na(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="tfmethods.html">is_tf()</a></code> <code><a href="tfmethods.html">is_tfd()</a></code> <code><a href="tfmethods.html">is_reg()</a></code> <code><a href="tfmethods.html">is_tfd_reg()</a></code> <code><a href="tfmethods.html">is_irreg()</a></code> <code><a href="tfmethods.html">is_tfd_irreg()</a></code> <code><a href="tfmethods.html">is_tfb()</a></code> <code><a href="tfmethods.html">is_tfb_spline()</a></code> <code><a href="tfmethods.html">is_tfb_fpc()</a></code> </p>
         </td>
         <td><p>Utility functions for <code>tf</code>-objects</p></td>
       </tr><tr><td>
-          <p><code><a href="tfsummaries.html">mean(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfsummaries.html">median(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfsummaries.html">quantile(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfsummaries.html">sd()</a></code> <code><a href="tfsummaries.html">var()</a></code> <code><a href="tfsummaries.html">summary(<i>&lt;tf&gt;</i>)</a></code> </p>
+          <p><code><a href="tf_rgp.html">tf_rgp()</a></code> </p>
         </td>
-        <td><p>Functions that summarize <code>tf</code> objects</p></td>
+        <td><p>Gaussian Process random generator</p></td>
       </tr><tr><td>
-          <p><code><a href="tfviz.html">plot(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfviz.html">lines(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfviz.html">points(<i>&lt;tf&gt;</i>)</a></code> </p>
+          <p><code><a href="tf_jiggle.html">tf_jiggle()</a></code> <code><a href="tf_jiggle.html">tf_sparsify()</a></code> </p>
         </td>
-        <td><p><code>base</code> plots for <code>tf</code>s</p></td>
+        <td><p>Make a <code>tf</code> (more) irregular</p></td>
+      </tr><tr><td>
+          <p><code><a href="in_range.html">in_range()</a></code> <code><a href="in_range.html">`%inr%`</a></code> </p>
+        </td>
+        <td><p>Find out if values are inside given bounds</p></td>
       </tr><tr><td>
           <p><code><a href="vctrs.html">vec_cast(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2_tfd_tfd()</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2_tfb_tfb()</a></code> </p>
         </td>
         <td><p>vctrs methods for <code>tf</code> objects</p></td>
+      </tr><tr><td>
+          <p><code><a href="ensure_list.html">ensure_list()</a></code> </p>
+        </td>
+        <td><p>Turns any object into a list</p></td>
+      </tr><tr><td>
+          <p><code><a href="unique_id.html">unique_id()</a></code> </p>
+        </td>
+        <td><p>Make syntactically valid unique names</p></td>
+      </tr><tr><td>
+          <p><code><a href="tf.html">tf</a></code> </p>
+        </td>
+        <td><p>tf</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -154,7 +197,8 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer></div>

@@ -17,12 +17,18 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">tf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav"><li>
+  <a href="https://github.com/tidyfun/tf" class="external-link">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+<li>
   <a href="../reference/index.html">Reference</a>
 </li>
       </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
@@ -81,20 +87,20 @@ evaluations on <code>arg</code>.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">3</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.0121 -0.0355 0.1595 0.3347 0.3989 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] -1.2738 -0.7542 -0.0491 0.4363 0.8337 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 1.644 1.574 1.025 0.275 -0.215 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.6093 0.2579 -0.0274 -0.2532 -0.0202 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 1.969 1.522 1.016 0.692 0.446 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 1.513 1.501 1.031 0.7 0.598 ...</span>
 <span class="r-in"><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 0.458</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 1.23</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num -0.386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 0.243</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 0.218</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 0.798</span>
 <span class="r-in"><span class="va">new_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="va">new_grid</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.0121 0.1595 0.3989 0.3011 -0.0504 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] -1.2738 -0.0491 0.8337 1.3217 0.2882 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 1.644 1.025 -0.215 -0.436 -0.791 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.6093 -0.0274 -0.0202 0.4518 -0.2606 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 1.969 1.016 0.446 -0.104 -0.396 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 1.513 1.031 0.598 0.944 1.188 ...</span>
 </code></pre></div>
     </div>
   </div>
@@ -109,7 +115,8 @@ evaluations on <code>arg</code>.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer></div>

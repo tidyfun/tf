@@ -1,96 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://tidyfun.github.io/tf/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE-text.html</loc>
+    <loc>https://tidyfun.github.io/tf/CONTRIBUTING.html</loc>
   </url>
   <url>
-    <loc>/LICENSE.html</loc>
+    <loc>https://tidyfun.github.io/tf/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://tidyfun.github.io/tf/LICENSE.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://tidyfun.github.io/tf/authors.html</loc>
   </url>
   <url>
-    <loc>/reference/converters.html</loc>
+    <loc>https://tidyfun.github.io/tf/index.html</loc>
   </url>
   <url>
-    <loc>/reference/fpc_wsvd.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/converters.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/ensure_list.html</loc>
   </url>
   <url>
-    <loc>/reference/tf.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/fpc_wsvd.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_approx.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/in_range.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_depth.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_derive.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/prep_plotting_arg.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_evaluate.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_integrate.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_approx.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_interpolate.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_depth.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_jiggle.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_derive.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_rgp.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_evaluate.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_smooth.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_integrate.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_where.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_interpolate.html</loc>
   </url>
   <url>
-    <loc>/reference/tf_zoom.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_jiggle.html</loc>
   </url>
   <url>
-    <loc>/reference/tfb.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_rgp.html</loc>
   </url>
   <url>
-    <loc>/reference/tfb_fpc.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_smooth.html</loc>
   </url>
   <url>
-    <loc>/reference/tfb_spline.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_where.html</loc>
   </url>
   <url>
-    <loc>/reference/tfbrackets.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf_zoom.html</loc>
   </url>
   <url>
-    <loc>/reference/tfd.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfb.html</loc>
   </url>
   <url>
-    <loc>/reference/tfdisplay.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfb_fpc.html</loc>
   </url>
   <url>
-    <loc>/reference/tfgroupgenerics.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfb_spline.html</loc>
   </url>
   <url>
-    <loc>/reference/tfmethods.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfbrackets.html</loc>
   </url>
   <url>
-    <loc>/reference/tfsummaries.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfd.html</loc>
   </url>
   <url>
-    <loc>/reference/tfviz.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfdisplay.html</loc>
   </url>
   <url>
-    <loc>/reference/vctrs.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tfgroupgenerics.html</loc>
+  </url>
+  <url>
+    <loc>https://tidyfun.github.io/tf/reference/tfmethods.html</loc>
+  </url>
+  <url>
+    <loc>https://tidyfun.github.io/tf/reference/tfsummaries.html</loc>
+  </url>
+  <url>
+    <loc>https://tidyfun.github.io/tf/reference/tfviz.html</loc>
+  </url>
+  <url>
+    <loc>https://tidyfun.github.io/tf/reference/unique_id.html</loc>
+  </url>
+  <url>
+    <loc>https://tidyfun.github.io/tf/reference/vctrs.html</loc>
   </url>
 </urlset>
