@@ -25,10 +25,11 @@ reference:
   - Ops.tf
   - tfsummaries
   - tf_depth
-- title: Differentiation & integration
+- title: Differentiation, integration and simple smoothing
   contents:
   - tf_derive
   - tf_integrate
+  - tf_smooth
 - title: Visualization & Display
   desc: Graphics functions and print formats
   contents:
@@ -40,10 +41,10 @@ reference:
   contents:
   - tf_where
   - tf_zoom
-  - tf_smooth
   - tf_arg
   - tf_rgp
   - tf_jiggle
+  - in_range
   - vctrs 
   - ensure_list
   - unique_id
