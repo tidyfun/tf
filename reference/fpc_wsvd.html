@@ -52,34 +52,27 @@ for data potentially on a non-equidistant grid.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.995</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for matrix</span></span>
-<span><span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.995</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for data.frame</span></span>
-<span><span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.995</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.995</span><span class="op">)</span>
+
+<span class="co"># S3 method for matrix</span>
+<span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.995</span><span class="op">)</span>
+
+<span class="co"># S3 method for data.frame</span>
+<span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.995</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>data</dt>
 <dd><p>numeric matrix of function evaluations (each row is one curve, no NAs)</p></dd>
-
-
 <dt>arg</dt>
 <dd><p>numeric vector of argument values</p></dd>
-
-
 <dt>pve</dt>
 <dd><p>percentage of variance explained</p></dd>
-
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    
-
-<p>a list with entries</p><ul><li><p>`mu`` estimated mean function (numeric vector)</p></li>
+    <p>a list with entries</p><ul><li><p>`mu`` estimated mean function (numeric vector)</p></li>
 <li><p>`efunctions`` estimated FPCs (numeric matrix, columns represent FPCs)</p></li>
 <li><p><code>scores</code> estimated FPC scores (one row per observed curve)</p></li>
 <li><p><code>npc</code> how many FPCs were returned for the given <code>pve</code> (integer)</p></li>
@@ -91,11 +84,11 @@ package <code>mogsa</code> by Cheng Meng.</p>
     </div>
     <div id="see-also">
     <h2>See also</h2>
-    <div class="dont-index"><p>Other <code>tfb</code>-class: 
+    <div class="dont-index"><p>Other tfb-class: 
 <code><a href="tfb_fpc.html">tfb_fpc</a>()</code>,
 <code><a href="tfb_spline.html">tfb_spline</a>()</code>,
 <code><a href="tfb.html">tfb</a></code></p>
-<p>Other <code>tfb_fpc</code>-class: 
+<p>Other tfb_fpc-class: 
 <code><a href="tfb_fpc.html">tfb_fpc</a>()</code></p></div>
     </div>
     <div id="author">
@@ -115,7 +108,8 @@ package <code>mogsa</code> by Cheng Meng.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer></div>

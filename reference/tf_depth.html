@@ -52,42 +52,31 @@ Currently implemented: Modified Band-2 Depth, see reference.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for matrix</span></span>
-<span><span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for tf</span></span>
-<span><span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span>
+
+<span class="co"># S3 method for matrix</span>
+<span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span>
+
+<span class="co"># S3 method for tf</span>
+<span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>x</dt>
 <dd><p><code>tf</code> (or a matrix of evaluations)</p></dd>
-
-
 <dt>arg</dt>
 <dd><p>grid of evaluation points</p></dd>
-
-
 <dt>depth</dt>
 <dd><p>currently available: "MBD", i.e. modified band depth</p></dd>
-
-
 <dt>na.rm</dt>
 <dd><p>TRUE remove missing observations?</p></dd>
-
-
 <dt>...</dt>
 <dd><p>further arguments handed to the function computing the respective tf_depth.</p></dd>
-
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    
-
-<p>vector of tf_depth values</p>
+    <p>vector of tf_depth values</p>
     </div>
     <div id="references">
     <h2>References</h2>
@@ -111,7 +100,8 @@ On the Concept of Depth for Functional Data.
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer></div>
