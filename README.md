@@ -15,8 +15,9 @@ license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opens
 [![R-CMD-check](https://github.com/tidyfun/tf/workflows/R-CMD-check/badge.svg)](https://github.com/tidyfun/tf/actions)
 <!-- badges: end -->
 
-The **`tf`** package provides necessary infrastructure for **`tidyfun`**
-with minimal dependencies – specifically: no `tidyverse`-dependencies.
+The **`tf`** package provides necessary infrastructure for
+[**`tidyfun`**](https://tidyfun.github.io/tidyfun) with minimal
+dependencies – specifically: no `tidyverse`-dependencies.
 
 The goal of **`tidyfun`**, in turn, is to provide accessible and
 well-documented software that **makes functional data analysis in `R`
@@ -96,7 +97,7 @@ for more information on the operations defined for `tf` vectors.
 **`tf`** includes functions `tfd` and `tfb` for converting matrices,
 data frames, etc. to `tf` vectors and back. Much more data wrangling
 functionality in a `tidyverse`-inspired way is available in
-[`tidyfun`](https://tidyfun.github.io/tidyfun).
+[**`tidyfun`**](https://tidyfun.github.io/tidyfun).
 
 [See
 here](https://tidyfun.github.io/tidyfun/articles/x02_Conversion.html)
