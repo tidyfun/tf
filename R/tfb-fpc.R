@@ -84,8 +84,8 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #' @seealso [fpc_wsvd()] for FPCA options. 
 #' @rdname tfb_fpc
 #' @export
-#' @family `tfb`-class 
-#' @family `tfb_fpc`-class
+#' @family tfb-class 
+#' @family tfb_fpc-class
 tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 
 #' @rdname tfb_fpc

@@ -19,7 +19,7 @@
 #' @param ...  additional arguments handed over to `tfd` or `tfb`, for the
 #'   construction of the returned object
 #' @return a `tfd` or `tfb` object on the new grid given by `arg`
-#' @family tidyfun setters
+#' @family tidyfun inter/extrapolation functions
 #' @export
 #' @examples
 #' # thinning out a densely observed tfd

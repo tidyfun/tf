@@ -121,13 +121,13 @@ tfb_fpc(data, method = fpca_sc_wrapper)
 \seealso{
 \code{\link[=fpc_wsvd]{fpc_wsvd()}} for FPCA options.
 
-Other \code{tfb}-class: 
+Other tfb-class: 
 \code{\link{fpc_wsvd}()},
 \code{\link{tfb_spline}()},
 \code{\link{tfb}}
 
-Other \code{tfb_fpc}-class: 
+Other tfb_fpc-class: 
 \code{\link{fpc_wsvd}()}
 }
-\concept{\code{tfb_fpc}-class}
-\concept{\code{tfb}-class}
+\concept{tfb-class}
+\concept{tfb_fpc-class}

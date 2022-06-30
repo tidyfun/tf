@@ -56,4 +56,10 @@ set.seed(1860)
 tf_interpolate(sparse_irregular, arg = seq(0, 1, l = 51))
 
 }
+\seealso{
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_approx_linear}()},
+\code{\link{tf_evaluate}()}
+}
+\concept{tidyfun inter/extrapolation functions}
 \concept{tidyfun setters}

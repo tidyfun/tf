@@ -156,4 +156,4 @@ tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, l = 101))
 plot(f, col = 2)
 lines(tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, l = 151)))
 }
-\concept{\code{tfd}-class}
+\concept{tfd-class}

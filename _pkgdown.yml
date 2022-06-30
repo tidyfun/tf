@@ -36,18 +36,27 @@ reference:
   - plot.tf
   - print.tf
   - prep_plotting_arg
-- title: Utilities
-  desc: Utility functions
+- title: Querying functional data
+  desc: Locating functional features like peaks or zero-crossings
   contents:
   - tf_where
   - tf_zoom
+- title: Utilities
+  desc: Utility functions
+  contents:
   - tf_arg
+- title: Generating random functional data
+  desc: RNGs for curves
+  contents:
   - tf_rgp
   - tf_jiggle
+- title: Utilities
+  desc: Utility functions
+  contents:
   - in_range
-  - vctrs 
   - ensure_list
   - unique_id
+  - vctrs 
   - tf
 navbar:
   type: default

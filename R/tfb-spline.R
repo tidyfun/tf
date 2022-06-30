@@ -170,7 +170,8 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 #' @inheritParams tfb
 #' @return a `tfb`-object
 #' @seealso [mgcv::smooth.terms()] for spline basis options. 
-#' @family `tfb`-class
+#' @family tfb-class
+#' @family tfb_spline-class
 tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 
 #' @export

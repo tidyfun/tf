@@ -24,7 +24,7 @@
 #' @return a `tfb`-object (or a `data.frame`/`matrix` for the conversion
 #'   functions, obviously.)
 #' @rdname tfb
-#' @family `tfb`-class
+#' @family tfb-class
 #' @export
 tfb <- function(data, basis = c("spline", "fpc", "wavelet"), ...) {
   basis <- match.arg(basis)

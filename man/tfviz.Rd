@@ -69,4 +69,4 @@ data for \code{tfd}-objects without inter-/extrapolation, use \code{n_grid < 1} 
 Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B. S., & Punjabi, N. M. (2010).
 Lasagna plots: a saucy alternative to spaghetti plots. \emph{Epidemiology (Cambridge, Mass.)}, \strong{21}(5), 621-625.
 }
-\concept{tidyfun visualisation}
+\concept{tidyfun visualization}

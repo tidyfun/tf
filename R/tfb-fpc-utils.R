@@ -13,8 +13,8 @@
 #' @references code adapted from / inspired by `wsvd()` function of Bioconductor
 #'   package `mogsa` by Cheng Meng. 
 #' @author Cheng Meng, Fabian Scheipl   
-#' @family `tfb`-class
-#' @family `tfb_fpc`-class
+#' @family tfb-class
+#' @family tfb_fpc-class
 fpc_wsvd <- function(data, arg, pve = .995) {
   UseMethod("fpc_wsvd")
 }

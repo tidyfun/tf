@@ -2,11 +2,14 @@
 % Please edit documentation in R/evaluate.R
 \name{tf_evaluate}
 \alias{tf_evaluate}
+\alias{tf_evaluate.default}
 \alias{tf_evaluate.tfd}
 \alias{tf_evaluate.tfb}
 \title{Evaluate \code{tf}-vectors for given argument values}
 \usage{
 tf_evaluate(object, arg, ...)
+
+\method{tf_evaluate}{default}(object, arg, ...)
 
 \method{tf_evaluate}{tfd}(object, arg, evaluator = tf_evaluator(object), ...)
 
@@ -28,16 +31,23 @@ A list of numeric vectors containing the function
 evaluations on \code{arg}.
 }
 \description{
-Evaluate \code{tf}-vectors for given argument values
+Also used internally by the \code{[}-operator for \code{tf} data (see \code{?tfbrackets}) to
+evaluate \code{object}, see examples.
 }
 \examples{
 f <- tf_rgp(3, arg = seq(0, 1, l = 11))
 tf_evaluate(f) |> str()
 tf_evaluate(f, arg = .5) |> str()
+# equivalent, as matrix:
+f[, .5]
 new_grid <- seq(0, 1, l = 6)
 tf_evaluate(f, arg = new_grid) |> str()
+# equivalent, as matrix:
+f[, new_grid]
 }
 \seealso{
-This is used internally by the \code{[}-operator for \code{tf} data (see \code{?tfbrackets}) to evaluate \code{object}.
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_approx_linear}()},
+\code{\link{tf_interpolate}()}
 }
-\concept{tidyfun getters}
+\concept{tidyfun inter/extrapolation functions}

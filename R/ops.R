@@ -49,9 +49,43 @@ fun_op <- function(x, y, op, numeric = NA) {
   ret
 }
 
+#' Math, Summary and Ops Methods for `tf`
+#'
+#' These methods and operators mostly work `arg`-value-wise on `tf` objects, see
+#' `?groupGeneric` for implementation details.
+#'
+#' See examples below. Equality checks of functional objects are even more iffy
+#' than usual for computer math and not very reliable. Note that `max` and `min`
+#' are not guaranteed to be maximal/minimal over the entire domain, only on the
+#' evaluation grid used for computation. With the exception of addition and
+#' multiplication, operations on `tfb`-objects first evaluate the data on their
+#' `arg`, perform computations on these evaluations and then convert back to an
+#' `tfb`- object, so a loss of precision should be expected -- especially so for
+#' small spline bases and/or very wiggly data.
+#'
+#'
+#' @param x an `tf`
+#' @param ... `tf`-objects (not used for `Math` group generic)
+#' @param e1 an `tf` or a numeric vector
+#' @param e2 an `tf` or a numeric vector
+#'
+#' @examples
+#' set.seed(1859)
+#' f <- tf_rgp(4)
+#' 2 * f == f + f
+#' sum(f) == f[1] + f[2] + f[3] + f[4]
+#' log(exp(f)) == f
+#' plot(f, points = FALSE)
+#' lines(range(f), col = 2, lty = 2)
+#'
+#' f2 <- tfb(tf_rgp(5), k = 50)
+#' layout(t(1:2))
+#' plot(f2, col = 1:5)
+#' plot(cumsum(f2), col = 1:5)
+#' # use ?tf_integrate for "function-wise" integrals i.e., weighted cumulative sums...
 #' @rdname tfgroupgenerics
-#' @family tidyfun compute functions
 #' @export
+#' @family tidyfun compute functions
 Ops.tf <- function(e1, e2) {
   not_defined <- switch(.Generic,
     `%%` = , 

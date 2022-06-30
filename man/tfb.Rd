@@ -44,10 +44,14 @@ See \strong{\code{\link[=tfb_fpc]{tfb_fpc()}}} for using an functional principal
 representation with an orthonormal basis estimated from the data instead.
 }
 \seealso{
-Other \code{tfb}-class: 
+Other tfb-class: 
+\code{\link{fpc_wsvd}()},
+\code{\link{tfb_fpc}()},
+\code{\link{tfb_spline}()}
+
+Other tfb-class: 
 \code{\link{fpc_wsvd}()},
 \code{\link{tfb_fpc}()},
 \code{\link{tfb_spline}()}
 }
-\concept{\code{tfb}-class}
 \concept{tfb-class}

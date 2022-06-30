@@ -54,5 +54,29 @@ For implementing your own, see source code of \code{tf:::zoo_wrapper}.
 }
 \seealso{
 tfd
+
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_evaluate}()},
+\code{\link{tf_interpolate}()}
+
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_evaluate}()},
+\code{\link{tf_interpolate}()}
+
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_evaluate}()},
+\code{\link{tf_interpolate}()}
+
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_evaluate}()},
+\code{\link{tf_interpolate}()}
+
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_evaluate}()},
+\code{\link{tf_interpolate}()}
+
+Other tidyfun inter/extrapolation functions: 
+\code{\link{tf_evaluate}()},
+\code{\link{tf_interpolate}()}
 }
 \concept{tidyfun inter/extrapolation functions}
