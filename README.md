@@ -7,12 +7,10 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![R build
-status](https://github.com/tidyfun/tf/workflows/R-CMD-check-full/badge.svg)](https://github.com/tidyfun/tf/actions)
+[![R-CMD-check](https://github.com/tidyfun/tf/workflows/R-CMD-check/badge.svg)](https://github.com/tidyfun/tf/actions)
 [![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://codecov.io/github/tidyfun/tf/branch/main)
 [![MIT
 license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
-[![R-CMD-check](https://github.com/tidyfun/tf/workflows/R-CMD-check/badge.svg)](https://github.com/tidyfun/tf/actions)
 <!-- badges: end -->
 
 The **`tf`** package provides necessary infrastructure for
