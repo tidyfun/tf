@@ -6,7 +6,7 @@
 #'
 #' @param x a `tf` object
 #'   functions, see source code.
-#' @param ... optional additional arguments. 
+#' @param ... optional additional arguments.
 #' @name tfsummaries
 #' @family tidyfun summary functions
 NULL
@@ -76,7 +76,7 @@ var.default <- stats::var
 #' @export
 #' @rdname tfsummaries
 var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
-  summarize_tf(x, na.rm = na.rm, op = "sd", eval = is_tfd(x))
+  summarize_tf(x, na.rm = na.rm, op = "var", eval = is_tfd(x))
 }
 
 # cov / cor # needs image class/fpca methods
