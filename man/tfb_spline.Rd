@@ -161,8 +161,8 @@ curves sampled deterministically, at most 100, at least 5) on which smoothing
 parameters per curve are estimated and then uses the mean of the log
 smoothing parameter of those for all curves. This can be much faster than
 optimizing the smoothing parameter for each curve on large datasets. For very
-sparse data, it would be preferable to estimate a joint smoothing parameter
-directly for all curves, this is \emph{not} what's implemented here.
+sparse data, estimating a common smoothing parameter directly for all curves
+at once might yield better results, this is \emph{not} what's implemented here.
 }
 \section{Methods (by class)}{
 \itemize{
