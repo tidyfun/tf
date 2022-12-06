@@ -166,21 +166,21 @@ at once might yield better results, this is \emph{not} what's implemented here.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{data.frame}: convert data frames
+\item \code{tfb_spline(data.frame)}: convert data frames
 
-\item \code{matrix}: convert matrices
+\item \code{tfb_spline(matrix)}: convert matrices
 
-\item \code{numeric}: convert matrices
+\item \code{tfb_spline(numeric)}: convert matrices
 
-\item \code{list}: convert lists
+\item \code{tfb_spline(list)}: convert lists
 
-\item \code{tfd}: convert \code{tfd} (raw functional data)
+\item \code{tfb_spline(tfd)}: convert \code{tfd} (raw functional data)
 
-\item \code{tfb}: convert \code{tfb}: modify basis representation, smoothing.
+\item \code{tfb_spline(tfb)}: convert \code{tfb}: modify basis representation, smoothing.
 
-\item \code{default}: convert \code{tfb}: default method, returning prototype when data is missing
+\item \code{tfb_spline(default)}: convert \code{tfb}: default method, returning prototype when data is missing
+
 }}
-
 \seealso{
 \code{\link[mgcv:smooth.terms]{mgcv::smooth.terms()}} for spline basis options.
 

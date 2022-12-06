@@ -52,15 +52,15 @@ yield slightly less stable fits.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{matrix}: row-wise finite differences
+\item \code{tf_derive(matrix)}: row-wise finite differences
 
-\item \code{tfd}: derivatives by finite differencing.
+\item \code{tf_derive(tfd)}: derivatives by finite differencing.
 
-\item \code{tfb_spline}: derivatives by finite differencing.
+\item \code{tf_derive(tfb_spline)}: derivatives by finite differencing.
 
-\item \code{tfb_fpc}: derivatives by finite differencing.
+\item \code{tf_derive(tfb_fpc)}: derivatives by finite differencing.
+
 }}
-
 \seealso{
 Other tidyfun calculus functions: 
 \code{\link{tf_integrate}()}

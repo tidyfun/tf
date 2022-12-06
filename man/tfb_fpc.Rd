@@ -100,9 +100,9 @@ of \code{\link[=fpc_wsvd]{fpc_wsvd()}} can be used for the `method`` argument, s
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: convert \code{tfb}: default method, returning prototype when data is NULL
-}}
+\item \code{tfb_fpc(default)}: convert \code{tfb}: default method, returning prototype when data is NULL
 
+}}
 \examples{
 # Apply FPCA for sparse data using refund::fpca.sc:
 set.seed(99290)
