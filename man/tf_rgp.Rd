@@ -7,9 +7,10 @@
 tf_rgp(
   n,
   arg = 51L,
+  cov = c("squareexp", "wiener", "matern"),
   scale = diff(range(arg))/10,
-  cor = c("squareexp", "wiener"),
-  nugget = scale/200
+  nugget = scale/200,
+  order = 1.5
 )
 }
 \arguments{
@@ -17,27 +18,39 @@ tf_rgp(
 
 \item{arg}{vector of evaluation points (\code{arg} of the return object). Defaults
 to (0, 0.02, 0.04, ..., 1). If given as a single \strong{integer} (don't forget
-the \code{L}...), creates a  regular grid of that length over (0,1).}
+the \verb{*L*}...), creates a  regular grid of that length over (0,1).}
+
+\item{cov}{type of covariance function to use. Implemented defaults are
+\code{"squareexp"}, \code{"wiener"}, \code{"matern"}, see Description. Can also be any
+vectorized function returning \eqn{Cov(x(t), x(t'))} \emph{without nugget effect}
+for pairs of inputs t and t'.}
 
 \item{scale}{scale parameter (see Description). Defaults to the width of the
 domain divided by 10.}
 
-\item{cor}{type of correlation structure to use. Currently available:
-\code{"squareexp"} or \code{"wiener"}, see Description.}
-
 \item{nugget}{nugget effect for additional white noise / unstructured variability.
-Defaults to \code{scale/200} (so: very little noise).}
+Defaults to \code{scale/200} (so: very little white noise).}
+
+\item{order}{order of the Matèrn covariance (if used, must be >0), defaults to 1.5.
+The higher, the smoother the process. Evaluation of the covariance function
+becomes numerically unstable for large (>20) \code{order}, use "squareexp".}
 }
 \value{
 an \code{tfd}-vector of length \code{n}
 }
 \description{
-The function generates \code{n} realizations of a Gaussian process, either with
-squared exponential covariance \eqn{Cov(x(t), x(t')) = \exp(-(t'-t)^2)/s) + n
-\delta_{t}(t')}
-or Wiener process covariance \eqn{Cov(x(t), x(t')) =
-\min(t',t)/s + n \delta_{t}(t')}
-with \code{scale} parameter s and \code{nugget} effect n.
+Generates \code{n} realizations of a zero-mean Gaussian process.
+The function accepts user-defined covariance functions (without nugget effect),
+the implemented defaults are:
+\itemize{
+\item \emph{squared exponential} covariance \eqn{Cov(x(t), x(s)) = \exp(-(t-t')^2)/s) + n
+\delta_{t}(s)}
+\item \emph{Wiener process} covariance \eqn{Cov(x(t), x(t')) =
+\min(t',t)/s + n \delta_{t}(t')},
+\item \emph{Matèrn} covariance \eqn{Cov(x(t), x(t')) =
+\tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{s})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + n \delta_{t}(t')}
+with \code{scale} parameter s, \code{order} o and \code{nugget} effect n.
+}
 }
 \seealso{
 Other tidyfun RNG functions: 

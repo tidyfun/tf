@@ -1,41 +1,63 @@
 #' Gaussian Process random generator
 #'
-#' The function generates `n` realizations of a Gaussian process, either with
-#' squared exponential covariance \eqn{Cov(x(t), x(t')) = \exp(-(t'-t)^2)/s) + n
-#' \delta_{t}(t')}
-#' or Wiener process covariance \eqn{Cov(x(t), x(t')) =
-#' \min(t',t)/s + n \delta_{t}(t')}
-#' with `scale` parameter s and `nugget` effect n.
+#' Generates `n` realizations of a zero-mean Gaussian process. 
+#' The function accepts user-defined covariance functions (without nugget effect), 
+#' the implemented defaults are:  
+#' - *squared exponential* covariance \eqn{Cov(x(t), x(s)) = \exp(-(t-t')^2)/s) + n
+#' \delta_{t}(s)}
+#' - *Wiener process* covariance \eqn{Cov(x(t), x(t')) =
+#' \min(t',t)/s + n \delta_{t}(t')}, 
+#' -  *Matèrn* covariance \eqn{Cov(x(t), x(t')) =
+#' \tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{s})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + n \delta_{t}(t')}
+#' with `scale` parameter s, `order` o and `nugget` effect n.  
 #'
 #' @param n how many realizations to draw
 #' @param arg vector of evaluation points (`arg` of the return object). Defaults
 #'   to (0, 0.02, 0.04, ..., 1). If given as a single **integer** (don't forget
-#'   the `L`...), creates a  regular grid of that length over (0,1).
+#'   the `*L*`...), creates a  regular grid of that length over (0,1).
 #' @param scale scale parameter (see Description). Defaults to the width of the
 #'   domain divided by 10.
-#' @param cor type of correlation structure to use. Currently available:
-#'   `"squareexp"` or `"wiener"`, see Description.
+#' @param cov type of covariance function to use. Implemented defaults are
+#'   `"squareexp"`, `"wiener"`, `"matern"`, see Description. Can also be any 
+#'     vectorized function returning \eqn{Cov(x(t), x(t'))} *without nugget effect* 
+#'     for pairs of inputs t and t'.
 #' @param nugget nugget effect for additional white noise / unstructured variability.
-#'  Defaults to `scale/200` (so: very little noise).
+#'  Defaults to `scale/200` (so: very little white noise).
+#' @param order order of the Matèrn covariance (if used, must be >0), defaults to 1.5.
+#'     The higher, the smoother the process. Evaluation of the covariance function
+#'     becomes numerically unstable for large (>20) `order`, use "squareexp".
 #' @return an `tfd`-vector of length `n`
 #' @importFrom mvtnorm rmvnorm
 #' @export
 #' @family tidyfun RNG functions
-tf_rgp <- function(n, arg = 51L, scale = diff(range(arg)) / 10,
-                   cor = c("squareexp", "wiener"), nugget = scale / 200) {
-  cor <- match.arg(cor)
+tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"), 
+                   scale = diff(range(arg)) / 10, nugget = scale / 200, order = 1.5) {
+  if (!is.function(cov)) {
+    cov <- match.arg(cov)
+    f_cov <- switch(
+      cov, 
+      "wiener" = function(s, t) pmin(s, t) / scale,
+      "squareexp" = function(s, t) exp( -(s - t)^2 / scale), 
+      "matern" = function(s, t) {
+        r <- sqrt(2 * order) * abs(s - t) / scale
+        cov <- 2^(1 - order) / gamma(order) * r^order  * base::besselK(r, nu = order)
+        cov[s == t] <- 1
+        cov
+      })
+  } else {
+    assert_function(cov, nargs = 2)
+    f_cov <- cov
+  }
+  
   if (length(arg) == 1) {
-    check_integerish(arg, lower = 1)
+    assert_integerish(arg, lower = 1)
     arg <- seq(0, 1, length = arg)
   } 
-  check_numeric(arg, any.missing = FALSE, unique = TRUE)
-  check_number(n, lower = 1)
-  check_number(scale, lower = 0)
-  check_number(nugget, lower = 0)
-
-  f_cov <- switch(cor, "wiener" = function(s, t) pmin(s, t) / scale,
-    "squareexp" = function(s, t) exp( -(s - t)^2 / scale)
-  )
+  assert_numeric(arg, any.missing = FALSE, unique = TRUE)
+  assert_number(n, lower = 1)
+  assert_number(scale, lower = 0)
+  assert_number(nugget, lower = 0)
+  
   cov <- outer(arg, arg, f_cov) + diag(0 * arg + nugget)
   y <- rmvnorm(n, mean = 0 * arg, sigma = cov)
   tfd(y, arg = arg)
@@ -66,12 +88,14 @@ tf_jiggle_args <- function(arg, amount) {
   diffs <- diff(arg)
   n <- length(arg)
   
+  #push left/right at most (amount*100)% of distance to adjacent gridpoint
   push_left_right <- sample(c(-1, 1), n - 2, replace = TRUE)
   use_diffs <- ifelse(push_left_right == -1, 
-                      diffs[1:(n - 2)], #push left at most 40% of distance to left
-                      diffs[2:(n - 1)]) #push right at most 40% of distance to left
+                      diffs[1:(n - 2)],
+                      diffs[2:(n - 1)]) 
   tf_jiggle <- runif(n - 2, 0, amount) * use_diffs * push_left_right
   new_args <- arg[2:(n - 1)] + tf_jiggle
+  
   c(
     runif(1, arg[1], new_args[1]), new_args,
     runif(1, new_args[n - 2], arg[n])
