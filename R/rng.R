@@ -1,20 +1,19 @@
 #' Gaussian Process random generator
 #'
 #' Generates `n` realizations of a zero-mean Gaussian process. 
-#' The function accepts user-defined covariance functions (without nugget effect), 
-#' the implemented defaults are:  
-#' - *squared exponential* covariance \eqn{Cov(x(t), x(s)) = \exp(-(t-t')^2)/s) + n
-#' \delta_{t}(s)}
-#' - *Wiener process* covariance \eqn{Cov(x(t), x(t')) =
-#' \min(t',t)/s + n \delta_{t}(t')}, 
-#' -  *Matèrn* covariance \eqn{Cov(x(t), x(t')) =
-#' \tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{s})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + n \delta_{t}(t')}
-#' with `scale` parameter s, `order` o and `nugget` effect n.  
+#' The function also accepts user-defined covariance functions (without "nugget" effect, see `cov`), 
+#' The implemented defaults with `scale` parameter \eqn{\phi}, `order` \eqn{o} and `nugget` effect variance \eqn{\sigma^2} are:  
+#' - *squared exponential* covariance \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
+#' \delta_{t}(t')}.
+#' - *Wiener* process covariance \eqn{Cov(x(t), x(t')) =
+#' \min(t',t)/\phi + \sigma^2 \delta_{t}(t')}, 
+#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition) covariance \eqn{Cov(x(t), x(t')) =
+#' \tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{\phi})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + \sigma^2 \delta_{t}(t')}  
 #'
 #' @param n how many realizations to draw
 #' @param arg vector of evaluation points (`arg` of the return object). Defaults
 #'   to (0, 0.02, 0.04, ..., 1). If given as a single **integer** (don't forget
-#'   the `*L*`...), creates a  regular grid of that length over (0,1).
+#'   the **`L`**...), creates a  regular grid of that length over (0,1).
 #' @param scale scale parameter (see Description). Defaults to the width of the
 #'   domain divided by 10.
 #' @param cov type of covariance function to use. Implemented defaults are
@@ -73,6 +72,7 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
 #' @param amount how far away from original grid points can the new
 #' grid points lie, at most (relative to original distance to neighboring grid points).
 #' Defaults to at most 40% (0.4) of the original grid distances. Must be lower than 0.5
+#' @return an (irregular) `tfd` object
 #' @importFrom stats runif
 #' @export
 #' @rdname tf_jiggle

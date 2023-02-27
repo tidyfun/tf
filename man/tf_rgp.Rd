@@ -18,7 +18,7 @@ tf_rgp(
 
 \item{arg}{vector of evaluation points (\code{arg} of the return object). Defaults
 to (0, 0.02, 0.04, ..., 1). If given as a single \strong{integer} (don't forget
-the \verb{*L*}...), creates a  regular grid of that length over (0,1).}
+the \strong{\code{L}}...), creates a  regular grid of that length over (0,1).}
 
 \item{cov}{type of covariance function to use. Implemented defaults are
 \code{"squareexp"}, \code{"wiener"}, \code{"matern"}, see Description. Can also be any
@@ -40,16 +40,15 @@ an \code{tfd}-vector of length \code{n}
 }
 \description{
 Generates \code{n} realizations of a zero-mean Gaussian process.
-The function accepts user-defined covariance functions (without nugget effect),
-the implemented defaults are:
+The function also accepts user-defined covariance functions (without "nugget" effect, see \code{cov}),
+The implemented defaults with \code{scale} parameter \eqn{\phi}, \code{order} \eqn{o} and \code{nugget} effect variance \eqn{\sigma^2} are:
 \itemize{
-\item \emph{squared exponential} covariance \eqn{Cov(x(t), x(s)) = \exp(-(t-t')^2)/s) + n
-\delta_{t}(s)}
-\item \emph{Wiener process} covariance \eqn{Cov(x(t), x(t')) =
-\min(t',t)/s + n \delta_{t}(t')},
-\item \emph{Matèrn} covariance \eqn{Cov(x(t), x(t')) =
-\tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{s})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + n \delta_{t}(t')}
-with \code{scale} parameter s, \code{order} o and \code{nugget} effect n.
+\item \emph{squared exponential} covariance \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
+\delta_{t}(t')}.
+\item \emph{Wiener} process covariance \eqn{Cov(x(t), x(t')) =
+\min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
+\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matèrn} process} covariance \eqn{Cov(x(t), x(t')) =
+\tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{\phi})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + \sigma^2 \delta_{t}(t')}
 }
 }
 \seealso{
