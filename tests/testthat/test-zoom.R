@@ -1,7 +1,7 @@
 context("tf_zoom")
 
 set.seed(123)
-x <- tf_rgp(4, arg = seq(0, 1, l = 51), nugget = .1)
+x <- tf_rgp(4, arg = seq(0, 1, length.out = 51), nugget = .1)
 xi <- tf_sparsify(tf_jiggle(x), .2)
 xb <- tfb(x, verbose = FALSE)
 xbi <- tfb(xi, verbose = FALSE)
@@ -22,7 +22,7 @@ test_that("tf_zoom for tfd works", {
   expect_error(tf_zoom(x, .11, .111), "no data")
   expect_error(tf_zoom(xi, 0.051, 0.0511), "no data")
 
-  expect_true(is_irreg(tf_zoom(x, .2, seq(.3, 1, l = length(x)))))
+  expect_true(is_irreg(tf_zoom(x, .2, seq(.3, 1, length.out = length(x)))))
 })
 
 
@@ -41,8 +41,8 @@ test_that("tf_zoom for tfb_spline works", {
   expect_error(tf_zoom(xb, c(.8, .1)))
   expect_error(tf_zoom(xb, .11, .111), "no data")
 
-  expect_message(tf_zoom(xb, .2, seq(.3, 1, l = length(x))), "converting to tfd")
-  expect_true(is_irreg(tf_zoom(xb, .2, seq(.3, 1, l = length(x)))))
+  expect_message(tf_zoom(xb, .2, seq(.3, 1, length.out = length(x))), "converting to tfd")
+  expect_true(is_irreg(tf_zoom(xb, .2, seq(.3, 1, length.out = length(x)))))
 })
 
 test_that("tf_zoom for tfb_fpc works", {
@@ -64,6 +64,6 @@ test_that("tf_zoom for tfb_fpc works", {
   expect_error(suppressWarnings(tf_zoom(xfpc, .8, .1)))
   expect_error(suppressWarnings(tf_zoom(xfpc, .11, .111)), "no data")
   expect_true(suppressWarnings(
-    is_irreg(tf_zoom(xfpc, .2, seq(.3, 1, l = length(x))))))
+    is_irreg(tf_zoom(xfpc, .2, seq(.3, 1, length.out = length(x))))))
 })
 

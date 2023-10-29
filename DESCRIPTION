@@ -1,21 +1,36 @@
 Package: tf
-Title: S3 classes and methods for tidy functional data 
+Title: S3 classes and methods for tidy functional data
 Version: 0.1.0
-Authors@R: c(person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com", role = c("aut", "cre")), person("Jeff", "Goldsmith", role = c("aut")), person("Julia", "Wrobel", role = c("aut")))
-Description: Provides S3 classes and methods for representing, visualizing and wrangling tidy functional data.
-Depends: R (>= 4.1)
-Imports:
-  checkmate, methods, mgcv, mvtnorm, pracma, purrr, refund, rlang, stats, vctrs (>= 0.2.4), zoo
+Authors@R: c(
+    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre")),
+    person("Jeff", "Goldsmith", role = "aut"),
+    person("Julia", "Wrobel", role = "aut")
+  )
+Description: Provides S3 classes and methods for representing, visualizing
+    and wrangling tidy functional data.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-RoxygenNote: 7.2.2
+URL: https://tidyfun.github.io/tf/
+Depends: 
+    R (>= 4.1)
+Imports:
+    checkmate,
+    methods,
+    mgcv,
+    mvtnorm,
+    pracma,
+    purrr,
+    refund,
+    rlang,
+    stats,
+    vctrs (>= 0.2.4),
+    zoo
 Suggests: 
+    covr,
     data.table,
     dplyr,
     fda,
-    janitor,
     gridExtra,
+    janitor,
     knitr,
     maps,
     rmarkdown,
@@ -23,9 +38,13 @@ Suggests:
     SemiPar,
     testthat,
     tidyverse,
-    viridisLite,
-    covr
+    viridisLite
+VignetteBuilder: 
+    knitr
+Encoding: UTF-8
+LazyData: true
 Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
 Collate:
     'approx.R'
     'brackets.R'
@@ -56,5 +75,3 @@ Collate:
     'vctrs.R'
     'where.R'
     'zoom.R'
-VignetteBuilder: knitr
-URL: https://tidyfun.github.io/tf/

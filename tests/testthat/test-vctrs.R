@@ -1,7 +1,7 @@
 context("vctrs")
 
-x <- tf_rgp(2, arg = seq(0, 1, l = 11))
-y <- tf_rgp(2, arg = seq(0, 1, l = 21))
+x <- tf_rgp(2, arg = seq(0, 1, length.out = 11))
+y <- tf_rgp(2, arg = seq(0, 1, length.out = 21))
 x_irr <- tf_jiggle(x) 
 
 test_that("concatenation behaves for tfd", {
@@ -16,7 +16,7 @@ test_that("concatenation behaves for tfd", {
 
 tfb_k10 = x %>% tfb(k = 10)
 tfb_k20 = x_irr %>% tfb(k = 20)
-z = tf_rgp(10, arg = seq(0, 1, l = 11)) %>% tfb_fpc()
+z = tf_rgp(10, arg = seq(0, 1, length.out = 11)) %>% tfb_fpc()
 z2 = z %>% tfb_fpc(npc = 10)
 
 test_that("concatenation behaves for tfb", {

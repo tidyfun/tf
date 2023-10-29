@@ -49,7 +49,7 @@ of the usual \code{dplyr} tricks are available as well, see examples.\cr
 Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
 }
 \examples{
-  lin <- 1:4 * tfd(seq(-1, 1,l = 11), seq(-1, 1, l = 11))
+  lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
   tf_where(lin, value \%inr\% c(-1, .5))
   tf_where(lin, value \%inr\% c(-1, .5), "range")
   a <- 1
