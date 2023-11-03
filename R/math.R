@@ -30,8 +30,8 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
   )
   if (eval) {
     ret <- do.call(tfd, c(args, evaluator = attr(funs, "evaluator_name")))
-    if (is_irreg(funs) & !is_irreg(ret)) ret <- as.tfd_irreg(ret)
-    if (!is_irreg(funs) & is_irreg(ret)) ret <- as.tfd(ret)
+    if (is_irreg(funs) && !is_irreg(ret)) ret <- as.tfd_irreg(ret)
+    if (!is_irreg(funs) && is_irreg(ret)) ret <- as.tfd(ret)
     return(ret)
   } else {
     return(do.call(tfb, c(args,

@@ -60,7 +60,7 @@
 #' # save them as a functional data vector again, use `tfd` or `tfb` instead:
 #' tfd(x, arg = seq(0, 10, by = .01), resolution = 1e-3)
 `[.tf` <- function(x, i, j, interpolate = TRUE, matrix = TRUE) {
-  if (!interpolate & inherits(x, "tfb")) {
+  if (!interpolate && inherits(x, "tfb")) {
     interpolate <- TRUE
     message("interpolate argument ignored for data in basis representation")
   }
@@ -88,7 +88,7 @@
   if (missing(j)) {
     return(x)
   }
-  if (matrix & is.list(j)) {
+  if (matrix && is.list(j)) {
     stop("need a single vector-valued <j> if matrix = TRUE")
   }
   j <- ensure_list(j)
@@ -148,7 +148,7 @@
     all(tf_domain(x) == tf_domain(value)),
     length(value) %in% c(1, length(i))
   )
-  if (inherits(x, "tfd_reg") | inherits(x, "tfb")) {
+  if (inherits(x, "tfd_reg") || inherits(x, "tfb")) {
     assert_true(identical(tf_arg(x), tf_arg(value)))
   }
   if (is_tfd(x)) {

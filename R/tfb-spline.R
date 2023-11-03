@@ -78,7 +78,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
       fit_penalized(data = data, spec_object = spec_object, arg_u = arg_u,
                     gam_args = gam_args, regular = regular, global = global,
                     ls_fit = ls_fit)
-    if (global & verbose) {
+    if (global && verbose) {
       message(
         sprintf(
           c("Using global smoothing parameter sp = %.3g,",

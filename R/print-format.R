@@ -60,7 +60,7 @@ print.tfd_reg <- function(x, n = 10, ...) {
   cat(" based on", length(tf_arg(x)), "evaluations each\n")
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   if (length(x)) {
-    cat(format(x[1:min(n, length(x))], ...), sep = "\n")
+    cat(format(x[seq_along(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {
       cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
     }
@@ -80,7 +80,7 @@ print.tfd_irreg <- function(x, n = 10, ...) {
   ))
   cat("inter-/extrapolation by", attr(x, "evaluator_name"), "\n")
   if (length(x)) {
-    cat(format(x[1:min(n, length(x))], ...), sep = "\n")
+    cat(format(x[seq_along(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {
       cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
     }
@@ -94,7 +94,7 @@ print.tfb <- function(x, n = 10, ...) {
   NextMethod()
   cat(" in basis representation:\n using ", attr(x, "basis_label"), "\n")
   if (length(x)) {
-    cat(format(x[1:min(n, length(x))], ...), sep = "\n")
+    cat(format(x[seq_along(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {
       cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
     }
