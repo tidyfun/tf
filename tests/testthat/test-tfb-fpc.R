@@ -17,7 +17,7 @@ test_that("fpc_wsvd works for smooth equidistant data", {
   # check orthonormality for equidistant:
   fpc_smoo <- tfd(t(fpc_smoo$efunctions), arg = attr(smoo_matrix, "arg"))
   expect_true(
-    cross2(1:length(fpc_smoo),1:length(fpc_smoo)) %>% 
+    cross2(seq_along(fpc_smoo),seq_along(fpc_smoo)) %>% 
     map_lgl(~ 
           tf_integrate(fpc_smoo[.x[[1]]] * fpc_smoo[.x[[2]]]) %>% 
           round(digits = 4) %>% 
@@ -34,7 +34,7 @@ test_that("fpc_wsvd works for smooth non-equidistant data", {
   # check orthonormality for non-equidistant:
   fpc_smoo <- tfd(t(fpc_smoo$efunctions), arg = smoo_arg)
   expect_true(
-    cross2(1:length(fpc_smoo),1:length(fpc_smoo)) %>% 
+    cross2(seq_along(fpc_smoo), seq_along(fpc_smoo)) %>% 
       map_lgl(~ 
                 tf_integrate(fpc_smoo[.x[[1]]] * fpc_smoo[.x[[2]]]) %>% 
                 round(digits = 4) %>% 

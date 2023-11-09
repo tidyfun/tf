@@ -52,7 +52,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
     list(f[, tf_arg(f), matrix = FALSE], args$begin, args$end),
     ~ subset(..1, arg >= ..2 & arg <= ..3)
   )
-  if (is_irreg(f) | !args$regular) {
+  if (is_irreg(f) || !args$regular) {
     nas <- map_lgl(ret, ~length(.x$arg) == 0)
     if (all(nas)) stop("no data in zoom region.")
     if (any(nas)) warning("NAs created by tf_zoom.")
