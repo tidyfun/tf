@@ -6,7 +6,7 @@ Authors@R: c(
     person("Jeff", "Goldsmith", role = "aut"),
     person("Julia", "Wrobel", role = "aut"),
     person("Maximilian", "Mücke", role = "ctb"), 
-    person("Sebastian", "Fischer", role = "ctb"), 
+    person("Sebastian", "Fischer", role = "ctb")
   )
 Description: Provides S3 classes and methods for representing, visualizing
     and wrangling tidy functional data.
