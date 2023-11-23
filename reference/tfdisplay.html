@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">tf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.1</span>
       </span>
     </div>
 
@@ -89,12 +89,14 @@
 
 
 <dt>digits</dt>
-<dd><p>how many significant digits are to be used for
+<dd><p>a positive integer indicating how many significant digits
+    are to be used for
     numeric and complex <code>x</code>.  The default, <code>NULL</code>, uses
     <code><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a>("digits")</code>.  This is a suggestion: enough decimal
     places will be used so that the smallest (in magnitude) number has
     this many significant digits, and also to satisfy <code>nsmall</code>.
-    (For the interpretation for complex numbers see <code><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></code>.)</p></dd>
+    (For more, notably the interpretation for complex numbers see
+    <code><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></code>.)</p></dd>
 
 
 <dt>nsmall</dt>

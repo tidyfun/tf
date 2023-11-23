@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">tf</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.1</span>
       </span>
     </div>
 
@@ -218,19 +218,19 @@ curves sampled deterministically, at most 100, at least 5) on which smoothing
 parameters per curve are estimated and then uses the mean of the log
 smoothing parameter of those for all curves. This can be much faster than
 optimizing the smoothing parameter for each curve on large datasets. For very
-sparse data, it would be preferable to estimate a joint smoothing parameter
-directly for all curves, this is <em>not</em> what's implemented here.</p>
+sparse data, estimating a common smoothing parameter directly for all curves
+at once might yield better results, this is <em>not</em> what's implemented here.</p>
     </div>
     <div id="methods-by-class-">
     <h2>Methods (by class)</h2>
     
-<ul><li><p><code>data.frame</code>: convert data frames</p></li>
-<li><p><code>matrix</code>: convert matrices</p></li>
-<li><p><code>numeric</code>: convert matrices</p></li>
-<li><p><code>list</code>: convert lists</p></li>
-<li><p><code>tfd</code>: convert <code>tfd</code> (raw functional data)</p></li>
-<li><p><code>tfb</code>: convert <code>tfb</code>: modify basis representation, smoothing.</p></li>
-<li><p><code>default</code>: convert <code>tfb</code>: default method, returning prototype when data is missing</p></li>
+<ul><li><p><code>tfb_spline(data.frame)</code>: convert data frames</p></li>
+<li><p><code>tfb_spline(matrix)</code>: convert matrices</p></li>
+<li><p><code>tfb_spline(numeric)</code>: convert matrices</p></li>
+<li><p><code>tfb_spline(list)</code>: convert lists</p></li>
+<li><p><code>tfb_spline(tfd)</code>: convert <code>tfd</code> (raw functional data)</p></li>
+<li><p><code>tfb_spline(tfb)</code>: convert <code>tfb</code>: modify basis representation, smoothing.</p></li>
+<li><p><code>tfb_spline(default)</code>: convert <code>tfb</code>: default method, returning prototype when data is missing</p></li>
 </ul></div>
     <div id="see-also">
     <h2>See also</h2>
