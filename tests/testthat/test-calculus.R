@@ -5,8 +5,8 @@ g <- 201
 from <- -3.5
 to <- 3.5
 domain <- c(from, to)
-grid <- seq(from, to, l = g)
-dgrid <- seq(from + 0.5, to - 0.5, l = 50)
+grid <- seq(from, to, length.out = g)
+dgrid <- seq(from + 0.5, to - 0.5, length.out = 50)
 
 eval_irreg <- function(expression, g, domain) {
   args <- unique(round(sort(runif(g, domain[1], domain[2])), 3))
@@ -23,7 +23,7 @@ square_irreg <- eval_irreg(expression(3 * x^2), g, domain)
 square_b <- tfb(square, k = 45, bs = "tp", verbose = FALSE)
 
 test_that("basic derivatives work", {
-  dgrid <- seq(from + 0.5, to - 0.5, l = 50)
+  dgrid <- seq(from + 0.5, to - 0.5, length.out = 50)
 
   expect_equivalent(tf_derive(cubic)[, dgrid], square[, dgrid], tolerance = .1)
   expect_equivalent(tf_derive(cubic_irreg)[, dgrid], square[, dgrid], tolerance = .1)
@@ -68,7 +68,7 @@ test_that("deriv & tf_integrate are reversible (approximately)", {
     "previously"
   )
 
-  f_pc <- tfb_fpc(f[1:3, seq(tf_domain(f)[1], tf_domain(f)[2], l = 101)],
+  f_pc <- tfb_fpc(f[1:3, seq(tf_domain(f)[1], tf_domain(f)[2], length.out = 101)],
     smooth = FALSE, verbose = FALSE
   )
   f_pc2 <- tf_integrate(tf_derive(f_pc), definite = FALSE)

@@ -39,7 +39,7 @@ These are used to redefine or restrict the \code{domain} of \code{tf} objects.
   plot(x)
   tf_zoom(x, .5, .9)
   lines(tf_zoom(x, .5, .9), col = "red")
-  points(tf_zoom(x, seq(0, .5, l = 10), seq(.5, 1, l = 10)), col = "blue")
+  points(tf_zoom(x, seq(0, .5, length.out = 10), seq(.5, 1, length.out = 10)), col = "blue")
 }
 \seealso{
 Other tidyfun utility functions: 

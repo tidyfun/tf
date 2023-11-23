@@ -60,8 +60,8 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 #' @export
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) { 
   
-  args = attr(x, "arg")
-  cast_x = tfd(map(.x = vctrs::vec_data(x), ~data.frame(arg = args, value = .x)))
+  args <- attr(x, "arg")
+  cast_x <- tfd(map(.x = vctrs::vec_data(x), ~data.frame(arg = args, value = .x)))
   as.tfd_irreg.tfd_reg(cast_x)
   
 }
@@ -123,7 +123,7 @@ vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, 
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @export
-vec_ptype2_tfd_tfd = function(x, y, ...) {
+vec_ptype2_tfd_tfd <- function(x, y, ...) {
   
   funs <- list(x, y)
   compatible <- do.call(rbind, map(
@@ -134,11 +134,11 @@ vec_ptype2_tfd_tfd = function(x, y, ...) {
   stopifnot(all(compatible[, "domain"]))
   make_irreg <- rep(FALSE, length(funs))
   irreg <- map_lgl(funs, is_irreg)
-  if (!any(irreg) & !all(compatible[, "arg"])) {
+  if (!any(irreg) && !all(compatible[, "arg"])) {
     warning("concatenating functions on different grids.")
     make_irreg <- rep(TRUE, length(funs))
   }
-  if (any(irreg) & !all(irreg)) {
+  if (any(irreg) && !all(irreg)) {
     warning("concatenating functions on different grids.")
     make_irreg[!irreg] <- TRUE
   }
@@ -205,7 +205,7 @@ vec_cast.tfb_fpc <- function(x, to, ...) UseMethod("vec_cast.tfb_fpc")
 #' @method vec_cast.tfb_spline tfb_spline
 #' @export
 vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) { 
-  attributes_to = flatten(list(list(x), 
+  attributes_to <- flatten(list(list(x), 
                         arg = list(tf_arg(to)),
                         attr(to, "basis_args")))
   do.call(tfb, attributes_to)
@@ -286,7 +286,7 @@ vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @export
-vec_ptype2_tfb_tfb = function(x, y, ...) {
+vec_ptype2_tfb_tfb <- function(x, y, ...) {
   funs <- list(x, y)
   compatible <- do.call(rbind, map(
     funs,

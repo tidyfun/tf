@@ -20,6 +20,9 @@ Defaults to at most 40\% (0.4) of the original grid distances. Must be lower tha
 
 \item{dropout}{how many values of \code{f} to drop, defaults to 50\%.}
 }
+\value{
+an (irregular) \code{tfd} object
+}
 \description{
 Randomly create some irregular functional data from regular ones.
 \strong{jiggle} it by randomly moving around its \code{arg}-values. Only for \code{tfd}.

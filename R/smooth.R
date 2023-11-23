@@ -94,7 +94,7 @@ tf_smooth.tfd <-
     }
     
     smoothed <- map(tf_evaluations(x), 
-                    ~do.call(smoother, append(list(.x), dots)))
+                    ~ do.call(smoother, append(list(.x), dots)))
   }
   
   if (method == "lowess") {

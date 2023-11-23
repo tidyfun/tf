@@ -18,7 +18,7 @@
 as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, unnest = FALSE, ...) {
   if (unnest) return(tf_2_df(x))
   colname <- deparse(substitute(x))
-  ret <- data.frame(tmp = 1:length(x), row.names = row.names)
+  ret <- data.frame(tmp = seq_along(x), row.names = row.names)
   ret[[colname]] <- x
   ret[, colname, drop = FALSE]
 }

@@ -78,7 +78,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
       fit_penalized(data = data, spec_object = spec_object, arg_u = arg_u,
                     gam_args = gam_args, regular = regular, global = global,
                     ls_fit = ls_fit)
-    if (global & verbose) {
+    if (global && verbose) {
       message(
         sprintf(
           c("Using global smoothing parameter sp = %.3g,",
@@ -157,8 +157,8 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 #' parameters per curve are estimated and then uses the mean of the log
 #' smoothing parameter of those for all curves. This can be much faster than
 #' optimizing the smoothing parameter for each curve on large datasets. For very
-#' sparse data, it would be preferable to estimate a joint smoothing parameter
-#' directly for all curves, this is *not* what's implemented here.
+#' sparse data, estimating a common smoothing parameter directly for all curves
+#' at once might yield better results, this is *not* what's implemented here.
 #' 
 #' @param global Defaults to `FALSE`. 
 #' If `TRUE` and `penalized = TRUE`, all functions share the same smoothing

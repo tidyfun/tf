@@ -28,13 +28,10 @@
 #' @export
 tfb <- function(data, basis = c("spline", "fpc", "wavelet"), ...) {
   basis <- match.arg(basis)
-  ret <- switch(basis,
+  switch(basis,
          spline  = tfb_spline(data, ...),
          fpc     = tfb_fpc(data, ...),
          wavelet = tfb_wavelet(data, ...))
-  # ensure "minimal" names (principles.tidyverse.org/names-attribute.html)
-  names(ret) <- names(ret) # %||% rep("", length(ret))
-  ret
 }  
 
 #' @rdname tfb

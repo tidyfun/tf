@@ -29,7 +29,7 @@
 #'  - `return = "range"`: a data frame with columns "begin" and "end".
 #'  - else, a numeric vector of the same length as `f` with `NA` for entries of `f` that nowhere fulfill the `cond`ition.
 #' @examples
-#'   lin <- 1:4 * tfd(seq(-1, 1,l = 11), seq(-1, 1, l = 11))
+#'   lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
 #'   tf_where(lin, value %inr% c(-1, .5))
 #'   tf_where(lin, value %inr% c(-1, .5), "range")
 #'   a <- 1

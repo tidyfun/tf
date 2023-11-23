@@ -143,11 +143,12 @@ tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
 #' @rdname tfb_fpc
 #' @export
 tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
-  # TODO: major computational shortcuts possible here for tfb: reduced rank,
+  # TODO: major computational shortcuts possible here for tfb-inputs: reduced rank,
   #   direct inner prods of basis functions etc...
   arg <- arg %||% tf_arg(data)
   names_data <- names(data)
-  ret <- tfb_fpc(tf_2_df(data, arg = arg),
+  ret <- tfb_fpc(
+    tf_2_df(data, arg = arg),
     method = method,
     domain = tf_domain(data), resolution = tf_resolution(data), ...
   )

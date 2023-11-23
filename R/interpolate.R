@@ -23,19 +23,19 @@
 #' @export
 #' @examples
 #' # thinning out a densely observed tfd
-#' (dense <- tf_rgp(10, arg = seq(0, 1, l = 1001)))
-#' (less_dense <- tf_interpolate(dense, arg = seq(0, 1, l = 101)))
+#' (dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001)))
+#' (less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101)))
 #'
 #' # filling out sparse data (use a suitable evaluator -function!)
-#' sparse <- tf_rgp(10, arg = seq(0, 5, l = 21))
+#' sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))
 #' plot(sparse)
 #' tfd(sparse, evaluator= tf_approx_spline) |>   #change eval. for better interpolation
-#'   tf_interpolate(arg = seq(0, 5, l = 201)) |>
+#'   tf_interpolate(arg = seq(0, 5, length.out = 201)) |>
 #'   lines(col = 2)
 #'
 #' set.seed(1860)
 #' (sparse_irregular <- tf_rgp(5) |>  tf_sparsify(.5) |> tf_jiggle())
-#' tf_interpolate(sparse_irregular, arg = seq(0, 1, l = 51))
+#' tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
 #' 
 tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 
