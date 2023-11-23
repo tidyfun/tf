@@ -33,7 +33,7 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   if (binning && (length(bins) > maxbins)) {
     binvalues <- seq((1 - 0.001 * sign(bins[1])) * bins[1],
                      (1 + 0.001 * sign(bins[length(bins)])) * bins[length(bins)],
-                     l = maxbins + 1
+                     length.out = maxbins + 1
     )
     bins <- binvalues
     binvalues <- head(stats::filter(binvalues, c(0.5, 0.5)), -1)

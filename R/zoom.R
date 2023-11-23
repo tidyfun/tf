@@ -18,7 +18,7 @@
 #'   plot(x)
 #'   tf_zoom(x, .5, .9)
 #'   lines(tf_zoom(x, .5, .9), col = "red")
-#'   points(tf_zoom(x, seq(0, .5, l = 10), seq(.5, 1, l = 10)), col = "blue")
+#'   points(tf_zoom(x, seq(0, .5, length.out = 10), seq(.5, 1, length.out = 10)), col = "blue")
 tf_zoom <- function(f, begin, end, ...) {
   UseMethod("tf_zoom")
 }
@@ -52,7 +52,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
     list(f[, tf_arg(f), matrix = FALSE], args$begin, args$end),
     ~ subset(..1, arg >= ..2 & arg <= ..3)
   )
-  if (is_irreg(f) | !args$regular) {
+  if (is_irreg(f) || !args$regular) {
     nas <- map_lgl(ret, ~length(.x$arg) == 0)
     if (all(nas)) stop("no data in zoom region.")
     if (any(nas)) warning("NAs created by tf_zoom.")

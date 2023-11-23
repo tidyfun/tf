@@ -35,12 +35,12 @@ Also used internally by the \code{[}-operator for \code{tf} data (see \code{?tfb
 evaluate \code{object}, see examples.
 }
 \examples{
-f <- tf_rgp(3, arg = seq(0, 1, l = 11))
+f <- tf_rgp(3, arg = seq(0, 1, length.out = 11))
 tf_evaluate(f) |> str()
 tf_evaluate(f, arg = .5) |> str()
 # equivalent, as matrix:
 f[, .5]
-new_grid <- seq(0, 1, l = 6)
+new_grid <- seq(0, 1, length.out = 6)
 tf_evaluate(f, arg = new_grid) |> str()
 # equivalent, as matrix:
 f[, new_grid]

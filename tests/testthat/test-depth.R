@@ -1,6 +1,6 @@
 context("depth works")
 
-grid <- round(seq(0, 10, l = 11), 3)
+grid <- round(seq(0, 10, length.out = 11), 3)
 lin <- -3:3 * tfd(.1 * grid, grid)
 parallel <- -3:3 + tfd(0 * grid, grid)
 

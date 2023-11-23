@@ -89,12 +89,12 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
 fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global, 
                           ls_fit) { 
   
-  if (global & gam_args$sp == -1) {
+  if (global && gam_args$sp == -1) {
     # find a suitable global level of smoothing based on a pilot estimate
     # uses 10% of curves, at most 100, at least 5
     # uses median of the smothing parameters on this pilot sample.
     pilot_id <- round(seq(from = 1, to = nlevels(data$id), 
-                    length = max(1, 
+                    length.out = max(1, 
                                  min(max(5, 0.1 * nlevels(data$id)), 100))))
     pilot_id <- levels(data$id)[unique(pilot_id)]
     arg_u_pilot <- arg_u

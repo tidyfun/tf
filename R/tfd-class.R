@@ -231,23 +231,23 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
 #' @examples
 #' #turn irregular to regular tfd by evaluating on a common grid:
 #'
-#' (f <- c(tf_rgp(1, arg = seq(0,1,l=11)), tf_rgp(1, arg = seq(0,1,l=21))))
-#' tfd(f, arg = seq(0, 1, l = 21))
+#' (f <- c(tf_rgp(1, arg = seq(0, 1, length.out = 11)), tf_rgp(1, arg = seq(0, 1, length.out = 21))))
+#' tfd(f, arg = seq(0, 1, length.out = 21))
 #' 
 #' set.seed(1213)
-#' (f <- tf_rgp(3, arg = seq(0, 1, l= 51)) |> tf_sparsify(.9))
+#' (f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(.9))
 #' #does not yield regular data because linear extrapolation yields NAs outside observed range:
-#' tfd(f, arg = seq(0, 1, l = 101)) 
+#' tfd(f, arg = seq(0, 1, length.out = 101)) 
 #' # this "works" (but may not yield sensible values..!!) for e.g. constant extrapolation:
-#' tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, l = 101))
+#' tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 #' plot(f, col = 2)
-#' lines(tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, l = 151)))
+#' lines(tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 151)))
 #' @rdname tfd
 tfd.tf <- function(data, arg = NULL, domain = NULL,
                    evaluator = NULL, resolution = NULL, ...) {
   
   evaluator_name <- enexpr(evaluator)
-  evaluator <- if (is_tfd(data) & is.null(evaluator)) {
+  evaluator <- if (is_tfd(data) && is.null(evaluator)) {
     attr(data, "evaluator_name")
   } else {
     if (is.null(evaluator)) "tf_approx_linear" else quo_name(evaluator_name)
