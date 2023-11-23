@@ -52,48 +52,67 @@ matrices, or even an actual R function.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="co"># S3 method for tf</span>
-<span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">x</span>, row.names <span class="op">=</span> <span class="cn">NULL</span>, optional <span class="op">=</span> <span class="cn">FALSE</span>, unnest <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tf</span>
-<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, interpolate <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tf</span>
-<span class="fu"><a href="https://rdrr.io/r/base/as.function.html" class="external-link">as.function</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for tf</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">x</span>, row.names <span class="op">=</span> <span class="cn">NULL</span>, optional <span class="op">=</span> <span class="cn">FALSE</span>, unnest <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tf</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, interpolate <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tf</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.function.html" class="external-link">as.function</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>x</dt>
 <dd><p>a <code>tf</code> object</p></dd>
+
+
 <dt>row.names</dt>
 <dd><p><code>NULL</code> or a character vector giving the row
     names for the data frame.  Missing values are not allowed.</p></dd>
+
+
 <dt>optional</dt>
 <dd><p>not used</p></dd>
+
+
 <dt>unnest</dt>
 <dd><p>if <code>TRUE</code>, the function will return a data.frame with the evaluated functions.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>additional arguments to be passed to or from methods.</p></dd>
+
+
 <dt>arg</dt>
 <dd><p>a vector of argument values / evaluation points for <code>x</code>. Defaults
 to <code>tf_arg(x)</code>.</p></dd>
+
+
 <dt>interpolate</dt>
 <dd><p>should functions be evaluated (i.e., inter-/extrapolated)
 for values in <code>arg</code> for which no original data is available? Only relevant
 for the raw data class <code>tfd</code>, for which it defaults to <code>FALSE</code>.
 Basis-represented functional data <code>tfb</code> are always "interpolated".</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p><strong>for <code>as.data.frame.tf</code>:</strong> if <code>unnest</code> is <code>FALSE</code> (default), a
+    
+
+<p><strong>for <code>as.data.frame.tf</code>:</strong> if <code>unnest</code> is <code>FALSE</code> (default), a
 one-column <code>data.frame</code> with a <code>tf</code>-column containing <code>x</code>. if <code>unnest</code> is
 <code>TRUE</code>, a 3-column data frame with columns <code>id</code> for the (unique) names of
 <code>x</code> or a numeric identifier, <code>arg</code> and <code>value</code>, with each row containing
-one function evaluation at the original <code>arg</code>-values.
-<strong>for <code>as.matrix.tf</code>:</strong> a matrix with one row per function and one
-column per <code>arg</code>.
-<strong>for <code>as.function.tf</code>:</strong> an R function with argument <code>arg</code> that
+one function evaluation at the original <code>arg</code>-values.</p>
+
+
+<p><strong>for <code>as.matrix.tf</code>:</strong> a matrix with one row per function and one
+column per <code>arg</code>.</p>
+
+
+<p><strong>for <code>as.function.tf</code>:</strong> an R function with argument <code>arg</code> that
 evaluates <code>x</code> on <code>arg</code> and returns the list of function values</p>
     </div>
 
@@ -109,8 +128,7 @@ evaluates <code>x</code> on <code>arg</code> and returns the list of function va
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

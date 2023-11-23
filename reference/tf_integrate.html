@@ -62,57 +62,70 @@ alternatively for <code>definite = FALSE</code> the <em>anti-derivative</em> on
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for default</span>
-<span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for `function`</span>
-<span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tfd</span>
-<span class="fu">tf_integrate</span><span class="op">(</span>
-  <span class="va">f</span>,
-  <span class="va">arg</span>,
-  lower <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,
-  upper <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,
-  definite <span class="op">=</span> <span class="cn">TRUE</span>,
-  <span class="va">...</span>
-<span class="op">)</span>
-
-<span class="co"># S3 method for tfb</span>
-<span class="fu">tf_integrate</span><span class="op">(</span>
-  <span class="va">f</span>,
-  <span class="va">arg</span>,
-  lower <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,
-  upper <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,
-  definite <span class="op">=</span> <span class="cn">TRUE</span>,
-  <span class="va">...</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for default</span></span>
+<span><span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for `function`</span></span>
+<span><span class="fu">tf_integrate</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, <span class="va">lower</span>, <span class="va">upper</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd</span></span>
+<span><span class="fu">tf_integrate</span><span class="op">(</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">arg</span>,</span>
+<span>  lower <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  upper <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>  definite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb</span></span>
+<span><span class="fu">tf_integrate</span><span class="op">(</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">arg</span>,</span>
+<span>  lower <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  upper <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_domain</a></span><span class="op">(</span><span class="va">f</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>  definite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>f</dt>
 <dd><p>a <code>tf</code>-object</p></dd>
+
+
 <dt>arg</dt>
 <dd><p>(optional) grid to use for the quadrature.</p></dd>
+
+
 <dt>lower</dt>
 <dd><p>lower limits of the integration range. For <code>definite=TRUE</code>, this
 can be a vector of the same length as <code>f</code>.</p></dd>
+
+
 <dt>upper</dt>
 <dd><p>upper limits of the integration range (but see <code>definite</code> arg /
 Description). For <code>definite=TRUE</code>, this can be a vector of the same length
 as <code>f</code>.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>not used</p></dd>
+
+
 <dt>definite</dt>
 <dd><p>should the definite integral  be returned (default) or the
 antiderivative. See Description.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>For <code>definite = TRUE</code>, the definite integrals of the functions in
+    
+
+<p>For <code>definite = TRUE</code>, the definite integrals of the functions in
 <code>f</code>. For <code>definite = FALSE</code> and <code>tf</code>-inputs, a <code>tf</code> object containing their
 anti-derivatives</p>
     </div>
@@ -134,8 +147,7 @@ anti-derivatives</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

@@ -52,36 +52,45 @@ tfd and finite differences of the basis functions for tfb."><!-- mathjax --><scr
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for matrix</span>
-<span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tfd</span>
-<span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tfb_spline</span>
-<span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tfb_fpc</span>
-<span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for matrix</span></span>
+<span><span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd</span></span>
+<span><span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_spline</span></span>
+<span><span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_fpc</span></span>
+<span><span class="fu">tf_derive</span><span class="op">(</span><span class="va">f</span>, <span class="va">arg</span>, order <span class="op">=</span> <span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>f</dt>
 <dd><p>a <code>tf</code>-object</p></dd>
+
+
 <dt>arg</dt>
 <dd><p>grid to use for the finite differences.
 Not the <code>arg</code> of the returned object for <code>tfd</code>-inputs, see Details.</p></dd>
+
+
 <dt>order</dt>
 <dd><p>order of differentiation. Maximal value for <code>tfb_spline</code> is 2.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>not used</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>a <code>tf</code> (with slightly different <code>arg</code> or <code>basis</code> for the derivatives, see Details)</p>
+    
+
+<p>a <code>tf</code> (with slightly different <code>arg</code> or <code>basis</code> for the derivatives, see Details)</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -124,8 +133,7 @@ yield slightly less stable fits.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

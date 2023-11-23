@@ -60,36 +60,49 @@ with <code>scale</code> parameter s and <code>nugget</code> effect n.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_rgp</span><span class="op">(</span>
-  <span class="va">n</span>,
-  arg <span class="op">=</span> <span class="fl">51L</span>,
-  scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">arg</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">10</span>,
-  cor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"squareexp"</span>, <span class="st">"wiener"</span><span class="op">)</span>,
-  nugget <span class="op">=</span> <span class="va">scale</span><span class="op">/</span><span class="fl">200</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_rgp</span><span class="op">(</span></span>
+<span>  <span class="va">n</span>,</span>
+<span>  arg <span class="op">=</span> <span class="fl">51L</span>,</span>
+<span>  scale <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">arg</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">10</span>,</span>
+<span>  cor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"squareexp"</span>, <span class="st">"wiener"</span><span class="op">)</span>,</span>
+<span>  nugget <span class="op">=</span> <span class="va">scale</span><span class="op">/</span><span class="fl">200</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>n</dt>
 <dd><p>how many realizations to draw</p></dd>
+
+
 <dt>arg</dt>
 <dd><p>vector of evaluation points (<code>arg</code> of the return object). Defaults
 to (0, 0.02, 0.04, ..., 1). If given as a single <strong>integer</strong> (don't forget
 the <code>L</code>...), creates a  regular grid of that length over (0,1).</p></dd>
+
+
 <dt>scale</dt>
 <dd><p>scale parameter (see Description). Defaults to the width of the
 domain divided by 10.</p></dd>
+
+
 <dt>cor</dt>
 <dd><p>type of correlation structure to use. Currently available:
 <code>"squareexp"</code> or <code>"wiener"</code>, see Description.</p></dd>
+
+
 <dt>nugget</dt>
 <dd><p>nugget effect for additional white noise / unstructured variability.
 Defaults to <code>scale/200</code> (so: very little noise).</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>an <code>tfd</code>-vector of length <code>n</code></p>
+    
+
+<p>an <code>tfd</code>-vector of length <code>n</code></p>
+
+
     </div>
     <div id="see-also">
     <h2>See also</h2>
@@ -109,8 +122,7 @@ Defaults to <code>scale/200</code> (so: very little noise).</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

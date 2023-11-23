@@ -50,11 +50,11 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tfb</span><span class="op">(</span><span class="va">data</span>, basis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spline"</span>, <span class="st">"fpc"</span>, <span class="st">"wavelet"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="fu">tfb_wavelet</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="fu">as.tfb</span><span class="op">(</span><span class="va">data</span>, basis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spline"</span>, <span class="st">"fpc"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tfb</span><span class="op">(</span><span class="va">data</span>, basis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spline"</span>, <span class="st">"fpc"</span>, <span class="st">"wavelet"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tfb_wavelet</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">as.tfb</span><span class="op">(</span><span class="va">data</span>, basis <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"spline"</span>, <span class="st">"fpc"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -62,15 +62,22 @@
     <dl><dt>data</dt>
 <dd><p>a <code>matrix</code>, <code>data.frame</code> or <code>list</code> of suitable shape, or another
 <code>tf</code>-object containing functional data.</p></dd>
+
+
 <dt>basis</dt>
 <dd><p>either "<code>spline</code>" (see <code><a href="tfb_spline.html">tfb_spline()</a></code>, the default) or "<code>fpc</code>" (see <code><a href="tfb_fpc.html">tfb_fpc()</a></code>).
 (<code>wavelet</code> not implemented yet)</p></dd>
+
+
 <dt>...</dt>
 <dd><p>further arguments for <code><a href="tfb_spline.html">tfb_spline()</a></code> or <code><a href="tfb_fpc.html">tfb_fpc()</a></code></p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>a <code>tfb</code>-object (or a <code>data.frame</code>/<code>matrix</code> for the conversion
+    
+
+<p>a <code>tfb</code>-object (or a <code>data.frame</code>/<code>matrix</code> for the conversion
 functions, obviously.)</p>
     </div>
     <div id="details">
@@ -112,8 +119,7 @@ representation with an orthonormal basis estimated from the data instead.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

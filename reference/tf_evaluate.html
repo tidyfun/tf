@@ -52,34 +52,43 @@ evaluate <code>object</code>, see examples.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for default</span>
-<span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tfd</span>
-<span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, evaluator <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_evaluator</a></span><span class="op">(</span><span class="va">object</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="co"># S3 method for tfb</span>
-<span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for default</span></span>
+<span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd</span></span>
+<span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, evaluator <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_evaluator</a></span><span class="op">(</span><span class="va">object</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb</span></span>
+<span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>object</dt>
 <dd><p>a <code>tf</code>, or a <code>data.frame</code>-like object with <code>tf</code> columns.</p></dd>
+
+
 <dt>arg</dt>
 <dd><p>optional evaluation grid (vector or list of vectors).
 Defaults to <code>tf_arg(object)</code>, implicitly.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>not used</p></dd>
+
+
 <dt>evaluator</dt>
 <dd><p>optional. The function to use for inter/extrapolating the <code>tfd</code>.
 Defaults to <code>tf_evaluator(object)</code>. See e.g. <code><a href="tf_approx.html">tf_approx_linear()</a></code> for details.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list of numeric vectors containing the function
+    
+
+<p>A list of numeric vectors containing the function
 evaluations on <code>arg</code>.</p>
     </div>
     <div id="see-also">
@@ -91,37 +100,37 @@ evaluations on <code>arg</code>.</p>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">3</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">3</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.8985 0.3689 0.0715 -0.1786 -0.2694 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.44 -0.17 -0.573 -0.846 -0.791 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.339 0.419 0.526 0.548 0.557 ...</span>
-<span class="r-in"><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.437 0.947 1.223 1.062 0.659 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] -0.265 -0.96 -1.731 -2.182 -1.849 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:11] 0.829 0.804 0.94 1.135 1.476 ...</span>
+<span class="r-in"><span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num -0.338</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num -0.298</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 0.619</span>
-<span class="r-in"><span class="co"># equivalent, as matrix:</span></span>
-<span class="r-in"><span class="va">f</span><span class="op">[</span>, <span class="fl">.5</span><span class="op">]</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 0.431</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num -1.16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num 1.84</span>
+<span class="r-in"><span><span class="co"># equivalent, as matrix:</span></span></span>
+<span class="r-in"><span><span class="va">f</span><span class="op">[</span>, <span class="fl">.5</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] -0.3377728</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.2979718</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.6186082</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.4307779</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -1.1630119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  1.8371582</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"arg")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.5</span>
-<span class="r-in"><span class="va">new_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="va">new_grid</span><span class="op">)</span> |&gt; <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span>
+<span class="r-in"><span><span class="va">new_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, l <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">tf_evaluate</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="va">new_grid</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.8985 0.0715 -0.2694 -0.1633 0.4749 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.44 -0.573 -0.791 0.423 1.564 ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.339 0.526 0.557 0.819 0.685 ...</span>
-<span class="r-in"><span class="co"># equivalent, as matrix:</span></span>
-<span class="r-in"><span class="va">f</span><span class="op">[</span>, <span class="va">new_grid</span><span class="op">]</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              0         0.2        0.4        0.6       0.8         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.8985449  0.07151831 -0.2694341 -0.1633365 0.4749323 0.9209199</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.4403986 -0.57339248 -0.7906633  0.4228379 1.5640663 2.0684802</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.3385615  0.52575905  0.5567580  0.8186516 0.6847313 0.6955844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.437 1.223 0.659 0.49 0.546 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] -0.2648 -1.7311 -1.8495 -0.5715 -0.0791 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ : num [1:6] 0.829 0.94 1.476 2.031 1.708 ...</span>
+<span class="r-in"><span><span class="co"># equivalent, as matrix:</span></span></span>
+<span class="r-in"><span><span class="va">f</span><span class="op">[</span>, <span class="va">new_grid</span><span class="op">]</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               0        0.2        0.4        0.6         0.8         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.4365972  1.2232007  0.6594985  0.4899198  0.54567746 0.6007846</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.2647841 -1.7311042 -1.8494534 -0.5715342 -0.07907296 1.1082701</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.8291483  0.9398491  1.4757406  2.0306532  1.70813044 0.7719699</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"arg")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.0 0.2 0.4 0.6 0.8 1.0</span>
 </code></pre></div>
@@ -138,8 +147,7 @@ evaluations on <code>arg</code>.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

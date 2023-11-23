@@ -54,23 +54,30 @@ sparsify it by setting (100*dropout)% of its values to NA."><!-- mathjax --><scr
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">tf_jiggle</span><span class="op">(</span><span class="va">f</span>, amount <span class="op">=</span> <span class="fl">0.4</span>, <span class="va">...</span><span class="op">)</span>
-
-<span class="fu">tf_sparsify</span><span class="op">(</span><span class="va">f</span>, dropout <span class="op">=</span> <span class="fl">0.5</span>, <span class="va">...</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_jiggle</span><span class="op">(</span><span class="va">f</span>, amount <span class="op">=</span> <span class="fl">0.4</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tf_sparsify</span><span class="op">(</span><span class="va">f</span>, dropout <span class="op">=</span> <span class="fl">0.5</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>f</dt>
 <dd><p>a <code>tfd</code> object</p></dd>
+
+
 <dt>amount</dt>
 <dd><p>how far away from original grid points can the new
 grid points lie, at most (relative to original distance to neighboring grid points).
 Defaults to at most 40% (0.4) of the original grid distances. Must be lower than 0.5</p></dd>
+
+
 <dt>...</dt>
 <dd><p>not used currently</p></dd>
+
+
 <dt>dropout</dt>
 <dd><p>how many values of <code>f</code> to drop, defaults to 50%.</p></dd>
+
 </dl></div>
     <div id="see-also">
     <h2>See also</h2>
@@ -92,8 +99,7 @@ Defaults to at most 40% (0.4) of the original grid distances. Must be lower than
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>
