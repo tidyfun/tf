@@ -18,7 +18,7 @@ tf_smooth(x, ...)
 \item{...}{arguments for the respective \code{method}. See Details.}
 
 \item{method}{one of "lowess" (see \code{\link[stats:lowess]{stats::lowess()}}), "rollmean",
-"rollmedian" (see \code{\link[zoo:rollmean]{zoo::rollmean()}}) or "sgolay" (see \code{\link[pracma:savgol]{pracma::savgol()}})}
+"rollmedian" (see \code{\link[zoo:rollmean]{zoo::rollmean()}}) or "savgol" (see \code{\link[pracma:savgol]{pracma::savgol()}})}
 }
 \value{
 a smoothed version of the input. For some methods/options, the
