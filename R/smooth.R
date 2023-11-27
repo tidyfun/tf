@@ -19,7 +19,7 @@
 #'
 #' @param x a `tf` object containing functional data
 #' @param method one of "lowess" (see [stats::lowess()]), "rollmean",
-#'   "rollmedian" (see [zoo::rollmean()]) or "sgolay" (see [pracma::savgol()])
+#'   "rollmedian" (see [zoo::rollmean()]) or "savgol" (see [pracma::savgol()])
 #' @param ... arguments for the respective `method`. See Details.
 #' @return a smoothed version of the input. For some methods/options, the
 #'   smoothed functions may be shorter than the original ones (at both ends).
@@ -32,7 +32,7 @@ tf_smooth <- function(x, ...) {
 #' @export
 #' @rdname tf_smooth
 tf_smooth.tfb <- function(x, ...) {
-  warning("you called tf_smooth on a tfb object, not on a tfd object -- ", 
+  warning("you called tf_smooth on a tfb object, not on a tfd object -- ",
           "just use a smaller basis or stronger penalization.\n",
           "Returning unchanged tfb object.")
   x
@@ -61,8 +61,8 @@ tf_smooth.tfb <- function(x, ...) {
 #' lines(f_median, col = "red", alpha= .2) # note constant extrapolation at both ends!
 #' plot(f, points = FALSE, main = "orginal and\n savgol (red)")
 #' lines(f_sg, col = "red")
-tf_smooth.tfd <- 
-  function(x, method = c("lowess", "rollmean", "rollmedian", "savgol"), 
+tf_smooth.tfd <-
+  function(x, method = c("lowess", "rollmean", "rollmedian", "savgol"),
            ...) {
   method <- match.arg(method)
   smoother <- get(method, mode = "function")
@@ -92,20 +92,20 @@ tf_smooth.tfd <-
         message("using fl = ", dots$fl, " observations for rolling data window.")
       }
     }
-    
-    smoothed <- map(tf_evaluations(x), 
+
+    smoothed <- map(tf_evaluations(x),
                     ~ do.call(smoother, append(list(.x), dots)))
   }
-  
+
   if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- .15
       message("using f = ", dots$f, " as smoother span for lowess")
     }
-    smoothed <- map(tf_evaluations(x), 
+    smoothed <- map(tf_evaluations(x),
                     ~do.call(smoother, append(list(.x), dots))$y)
   }
-  
+
   tfd(smoothed, tf_arg(x),
     evaluator = !!attr(x, "evaluator_name"),
     resolution = attr(x, "resolution"), domain = tf_domain(x)
