@@ -1,9 +1,9 @@
 #' tf
 #'
-#' `tf` is a light-weight package with few dependencies that provides the class 
+#' `tf` is a light-weight package with few dependencies that provides the class
 #' definitions and methods infrastructure for `tidyfun` -- `tf` gives you:
 #'
-#'   - new S3 data types for representing (vectors of) functional data: [tfd()] & [tfb()] 
+#'   - new S3 data types for representing (vectors of) functional data: [tfd()] & [tfb()]
 #'   - arithmetic operators for such data ([Ops.tf()]),
 #'   - simple descriptive statistics: e.g. [mean.tf()], [median.tf()]
 #'   - base graphics functions for such data: [plot.tf()]
@@ -13,7 +13,6 @@
 #' exploratory analysis for functional data in \code{R} quick and easy, using `tidyverse` syntax and standards. \cr\cr
 #' Please install `tidyfun` for the full functionality to access the full documentation including a number
 #' of vignettes and case studies, or visit the [`tidyfun` website](https://tidyfun.github.io/tidyfun/).
-#' 
-#' @name tf
-#' @docType package
-NULL
+#'
+#' @keywords internal
+"_PACKAGE"
