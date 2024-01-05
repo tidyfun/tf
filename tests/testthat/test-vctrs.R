@@ -14,10 +14,10 @@ test_that("concatenation behaves for tfd", {
 })
 
 
-tfb_k10 <- x %>% tfb(k = 10)
-tfb_k20 <- x_irr %>% tfb(k = 20)
-z <- tf_rgp(10, arg = seq(0, 1, length.out = 11)) %>% tfb_fpc()
-z2 <- z %>% tfb_fpc(npc = 10)
+tfb_k10 <- x |> tfb(k = 10)
+tfb_k20 <- x_irr |> tfb(k = 20)
+z <- tf_rgp(10, arg = seq(0, 1, length.out = 11)) |> tfb_fpc()
+z2 <- z |> tfb_fpc(npc = 10)
 
 test_that("concatenation behaves for tfb", {
   expect_is(c(tfb_k10[1], tfb_k10[2]), "tfb_spline")
