@@ -78,7 +78,7 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #'  Unless set by the user, uses proportion of variance explained 
 #'  `pve = .995` to determine the truncation levels.
 #' @inheritParams tfb
-#' @return an object of class `tfb_fpc`, inheriting from `tfb`. 
+#' @returns an object of class `tfb_fpc`, inheriting from `tfb`. 
 #'    The basis used by `tfb_fpc` is a `tfd`-vector containing the estimated
 #'    mean and eigenfunctions.
 #' @seealso [fpc_wsvd()] for FPCA options. 

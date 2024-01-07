@@ -8,7 +8,7 @@
 #' @param end numeric vector of length 1 or `length(f)`.
 #'  Defaults to the upper limit of the domain of `f`.
 #' @param ... not used
-#' @return an object like `f` on a new domain (potentially).
+#' @returns an object like `f` on a new domain (potentially).
 #' Note that regular functional data and functions in basis representation will
 #'   be turned into irregular `tfd`-objects iff `begin` or `end` are not scalar.
 #' @family tidyfun utility functions

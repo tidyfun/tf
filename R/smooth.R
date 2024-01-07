@@ -21,7 +21,7 @@
 #' @param method one of "lowess" (see [stats::lowess()]), "rollmean",
 #'   "rollmedian" (see [zoo::rollmean()]) or "savgol" (see [pracma::savgol()])
 #' @param ... arguments for the respective `method`. See Details.
-#' @return a smoothed version of the input. For some methods/options, the
+#' @returns a smoothed version of the input. For some methods/options, the
 #'   smoothed functions may be shorter than the original ones (at both ends).
 #' @export
 #' @family tidyfun nonparametric smoothers

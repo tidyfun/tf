@@ -22,7 +22,7 @@
 #'   range, though, this is not checked.
 #' @param arg optional `arg`-values on which to evaluate `f` and check `cond`,
 #'   defaults to `tf_arg(f)`.
-#' @return depends on  `return`:
+#' @returns depends on  `return`:
 #'  - `return = "any"`, i.e, `anywhere`: a logical vector of the same length as `f`.
 #'  - `return = "all"`: a list of vectors of the same length as `f`, with
 #'     empty vectors for the functions that  never fulfill the `cond`ition.

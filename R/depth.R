@@ -8,7 +8,7 @@
 #' @param arg grid of evaluation points
 #' @param na.rm TRUE remove missing observations?
 #' @param ... further arguments handed to the function computing the respective tf_depth.
-#' @return vector of tf_depth values
+#' @returns vector of tf_depth values
 #' @references Sun, Y., Genton, M. G., & Nychka, D. W. (2012).
 #'   Exact fast computation of band tf_depth for large functional datasets:
 #'   How quickly can one million curves be ranked?. *Stat*, **1**(1), 68-74.

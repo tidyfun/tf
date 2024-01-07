@@ -9,7 +9,7 @@
 #' @param evaluator optional. The function to use for inter/extrapolating the `tfd`.
 #'   Defaults to `tf_evaluator(object)`. See e.g. [tf_approx_linear()] for details.
 #' @param ... not used
-#' @return A list of numeric vectors containing the function
+#' @returns A list of numeric vectors containing the function
 #'   evaluations on `arg`.
 #' @export
 #' @family tidyfun inter/extrapolation functions
