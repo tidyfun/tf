@@ -5,7 +5,7 @@
 #' @param data numeric matrix of function evaluations (each row is one curve, no NAs)
 #' @param arg numeric vector of argument values
 #' @param pve percentage of variance explained
-#' @return a list with entries
+#' @returns a list with entries
 #' - `mu`` estimated mean function (numeric vector)
 #' - `efunctions`` estimated FPCs (numeric matrix, columns represent FPCs)
 #' - `scores` estimated FPC scores (one row per observed curve)

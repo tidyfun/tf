@@ -147,9 +147,8 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
 #'  the numeric vector `f` that are within the range of values in `r`.
 #'
 #' @param f a numeric vector
-#' @param r numeric vector used to specify a range, only the minimum and
-#'   maximum of `r` are used.
-#' @return a `logical` vector of the same length as `f`
+#' @param r numeric vector used to specify a range, only the minimum and maximum of `r` are used.
+#' @returns a `logical` vector of the same length as `f`
 #' @family tidyfun utility functions
 #' @export
 in_range <- function(f, r) {
@@ -170,8 +169,8 @@ get_args <- function(args, f) {
 #' Turns any object into a list
 #'
 #' See above.
-#' @param x any input
-#' @return `x` turned into a list.
+#' @param x any input 
+#' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools
 ensure_list <- function(x) {
@@ -181,8 +180,8 @@ ensure_list <- function(x) {
 #' Make syntactically valid unique names
 #'
 #' See above.
-#' @param x any input
-#' @return `x` turned into a list.
+#' @param x any input 
+#' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools
 # export for tidyfun...

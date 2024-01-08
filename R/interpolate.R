@@ -18,7 +18,7 @@
 #'   `object`
 #' @param ...  additional arguments handed over to `tfd` or `tfb`, for the
 #'   construction of the returned object
-#' @return a `tfd` or `tfb` object on the new grid given by `arg`
+#' @returns a `tfd` or `tfb` object on the new grid given by `arg`
 #' @family tidyfun inter/extrapolation functions
 #' @export
 #' @examples

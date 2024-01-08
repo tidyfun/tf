@@ -21,7 +21,7 @@
 #' @param basis either "`spline`" (see [tfb_spline()], the default) or "`fpc`" (see [tfb_fpc()]). 
 #'   (`wavelet` not implemented yet)
 #' @param ... further arguments for [tfb_spline()] or [tfb_fpc()]
-#' @return a `tfb`-object (or a `data.frame`/`matrix` for the conversion
+#' @returns a `tfb`-object (or a `data.frame`/`matrix` for the conversion
 #'   functions, obviously.)
 #' @rdname tfb
 #' @family tfb-class
