@@ -29,8 +29,11 @@ several new functions in `tf` that implement operations specific for
 
 ## Installation
 
-``` r
-devtools::install_github("tidyfun/tf")
+`tf` is currently not on CRAN. You can install the development version from GitHub with:
+
+```{r, eval = FALSE}
+# install.packages("pak")
+pak::pak("tidyfun/tf")
 ```
 
 ## Overview

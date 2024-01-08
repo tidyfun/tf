@@ -7,10 +7,10 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![R-CMD-check](https://github.com/tidyfun/tf/workflows/R-CMD-check/badge.svg)](https://github.com/tidyfun/tf/actions)
 [![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://codecov.io/github/tidyfun/tf/branch/main)
 [![MIT
 license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+[![R-CMD-check](https://github.com/tidyfun/tf/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tidyfun/tf/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The **`tf`** package provides necessary infrastructure for
@@ -38,21 +38,24 @@ numeric, factor, and other observations on the same subject.
 
 ## Installation
 
+`tf` is currently not on CRAN. You can install the development version
+from GitHub with:
+
 ``` r
-devtools::install_github("tidyfun/tf")
+# install.packages("pak")
+pak::pak("tidyfun/tf")
 ```
 
 ## Overview
 
 **`tf`** provides:
 
--   new **data types** for representing functional data: `tfd` & `tfb`
--   arithmetic **operators** and descriptive **statistics** for such
-    data
--   basic **graphics** functions for `tf` vectors
--   basic data **wrangling** for functional data: reshaping from list
-    columns to wide to long and back, interpolating on different grids,
-    filtering and zooming, etc.
+- new **data types** for representing functional data: `tfd` & `tfb`
+- arithmetic **operators** and descriptive **statistics** for such data
+- basic **graphics** functions for `tf` vectors
+- basic data **wrangling** for functional data: reshaping from list
+  columns to wide to long and back, interpolating on different grids,
+  filtering and zooming, etc.
 
 Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun)
 for the full documentation including vignettes etc.
@@ -71,9 +74,9 @@ summarized.
 
 Almost all
 
--   operators like `==`, `+` or `*`
--   math functions like `sum`, `log` or `abs`
--   and statistics functions like `mean` or `sd`
+- operators like `==`, `+` or `*`
+- math functions like `sum`, `log` or `abs`
+- and statistics functions like `mean` or `sd`
 
 are defined for **`tf`**’s data structures
 ([more](https://tidyfun.github.io/tidyfun/reference/index.html#section-arithmetic-logical-and-summary-functions)).
