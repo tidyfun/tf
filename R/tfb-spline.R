@@ -168,7 +168,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 #'   this uses `k = 25` cubic regression spline basis functions 
 #'   (i.e., `bs = "cr"`) by default, but should be set appropriately by the user.
 #' @inheritParams tfb
-#' @return a `tfb`-object
+#' @returns a `tfb`-object
 #' @seealso [mgcv::smooth.terms()] for spline basis options. 
 #' @family tfb-class
 #' @family tfb_spline-class

@@ -40,7 +40,7 @@ quad_trapez <- function(arg, evaluations) {
 #' @param arg grid to use for the finite differences. 
 #'   Not the `arg` of the returned object for `tfd`-inputs, see Details.
 #' @param ... not used
-#' @return a `tf` (with slightly different `arg` or `basis` for the derivatives, see Details)
+#' @returns a `tf` (with slightly different `arg` or `basis` for the derivatives, see Details)
 #' @export
 #' @family tidyfun calculus functions 
 tf_derive <- function(f, arg, order = 1, ...) UseMethod("tf_derive")
@@ -147,7 +147,7 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 #'   as `f`.
 #' @param definite should the definite integral  be returned (default) or the
 #'   antiderivative. See Description.
-#' @return For `definite = TRUE`, the definite integrals of the functions in
+#' @returns For `definite = TRUE`, the definite integrals of the functions in
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives
 #' @export

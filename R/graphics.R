@@ -3,7 +3,7 @@
 #' (internal function exported for re-use in upstream packages)
 #' @param f a `tf`-object
 #' @param n_grid length of evaluation grid
-#' @return a semi-regular grid rounded down to appropriate resolution
+#' @returns a semi-regular grid rounded down to appropriate resolution
 #' @export
 #' @family tidyfun developer tools
 prep_plotting_arg <- function(f, n_grid) {
@@ -41,7 +41,7 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @param alpha alpha-value (see[grDevices::rgb()]) for noodle transparency.
 #'   Defaults to 2/(no. of observations). Lower is more transparent.
 #' @param ... additional arguments for [matplot()] ("spaghetti") or [image()] ("lasagna")
-#' @return the plotted `tf`-object, invisibly.
+#' @returns the plotted `tf`-object, invisibly.
 #' @importFrom utils modifyList
 #' @importFrom graphics matplot image axis
 #' @importFrom grDevices heat.colors rgb

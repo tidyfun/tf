@@ -25,7 +25,7 @@
 #' @param order order of the Matèrn covariance (if used, must be >0), defaults to 1.5.
 #'     The higher, the smoother the process. Evaluation of the covariance function
 #'     becomes numerically unstable for large (>20) `order`, use "squareexp".
-#' @return an `tfd`-vector of length `n`
+#' @returns an `tfd`-vector of length `n`
 #' @importFrom mvtnorm rmvnorm
 #' @export
 #' @family tidyfun RNG functions
@@ -72,7 +72,7 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
 #' @param amount how far away from original grid points can the new
 #' grid points lie, at most (relative to original distance to neighboring grid points).
 #' Defaults to at most 40% (0.4) of the original grid distances. Must be lower than 0.5
-#' @return an (irregular) `tfd` object
+#' @returns an (irregular) `tfd` object
 #' @importFrom stats runif
 #' @export
 #' @rdname tf_jiggle

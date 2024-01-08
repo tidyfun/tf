@@ -30,7 +30,7 @@
 #' @param matrix should the result be returned as a `matrix` or as a list of
 #'   `data.frame`s? If `TRUE`, `j` has to be a (list of a) single vector of
 #'   `arg`. See return value.
-#' @return If `j` is missing, a subset of the functions in `x` as given by
+#' @returns If `j` is missing, a subset of the functions in `x` as given by
 #'   `i`.\cr If `j` is given and `matrix == TRUE`, a numeric matrix of function
 #'   evaluations in which each row represents one function and each column
 #'   represents one `argval` as given in argument `j`, with an attribute
