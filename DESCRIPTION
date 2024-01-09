@@ -38,7 +38,7 @@ Suggests:
     rmarkdown,
     scales,
     SemiPar,
-    testthat,
+    testthat (>= 3.0.0),
     tidyverse,
     viridisLite
 VignetteBuilder: 
@@ -77,3 +77,4 @@ Collate:
     'vctrs.R'
     'where.R'
     'zoom.R'
+Config/testthat/edition: 3

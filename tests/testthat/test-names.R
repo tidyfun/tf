@@ -1,6 +1,3 @@
-context("names and related issues")
-
-
 cca_five <- tf_rgp(5)
 names(cca_five) <- LETTERS[1:5]
 
