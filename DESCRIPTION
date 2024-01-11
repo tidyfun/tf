@@ -14,7 +14,8 @@ Authors@R: c(
 Description: Provides S3 classes and methods for representing, visualizing
     and wrangling tidy functional data.
 License: MIT + file LICENSE
-URL: https://tidyfun.github.io/tf/
+URL: https://tidyfun.github.io/tf, https://github.com/tidyfun/tf
+BugReports: https://github.com/tidyfun/tf/issues
 Depends: 
     R (>= 4.1)
 Imports:

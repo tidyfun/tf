@@ -26,7 +26,9 @@ of vignettes and case studies, or visit the \href{https://tidyfun.github.io/tidy
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://tidyfun.github.io/tf/}
+  \item \url{https://tidyfun.github.io/tf}
+  \item \url{https://github.com/tidyfun/tf}
+  \item Report bugs at \url{https://github.com/tidyfun/tf/issues}
 }
 
 }
