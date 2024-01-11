@@ -31,7 +31,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Fabian Scheipl \email{fabian.scheipl@googlemail.com}
+\strong{Maintainer}: Fabian Scheipl \email{fabian.scheipl@googlemail.com} (\href{https://orcid.org/0000-0001-8172-3603}{ORCID})
 
 Authors:
 \itemize{
@@ -41,8 +41,8 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Maximilian Mücke [contributor]
-  \item Sebastian Fischer [contributor]
+  \item Maximilian Muecke (\href{https://orcid.org/0000-0002-9609-3197}{ORCID}) [contributor]
+  \item Sebastian Fischer (\href{https://orcid.org/0009-0000-9432-9795}{ORCID}) [contributor]
 }
 
 }

@@ -2,11 +2,14 @@ Package: tf
 Title: S3 classes and methods for tidy functional data
 Version: 0.1.1
 Authors@R: c(
-    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre")),
+    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-8172-3603")),
     person("Jeff", "Goldsmith", role = "aut"),
     person("Julia", "Wrobel", role = "aut"),
-    person("Maximilian", "Mücke", role = "ctb"), 
-    person("Sebastian", "Fischer", role = "ctb")
+    person("Maximilian", "Muecke", role = "ctb",
+           comment = c(ORCID = "0000-0002-9609-3197")),
+    person("Sebastian", "Fischer", role = "ctb",
+           comment = c(ORCID = "0009-0000-9432-9795"))
   )
 Description: Provides S3 classes and methods for representing, visualizing
     and wrangling tidy functional data.
