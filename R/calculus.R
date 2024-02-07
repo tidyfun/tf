@@ -202,7 +202,7 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
     ret
   } else {
     tfd(
-      data = map(quads, cumsum), arg = unlist(arg), domain = limits,
+      data = map(quads, cumsum), arg = unlist(arg), domain = as.numeric(limits),
       resolution = tf_resolution(f), evaluator = tf_approx_linear
     )
   }
