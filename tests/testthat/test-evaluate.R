@@ -1,7 +1,5 @@
 source(system.file("testdata", "make-test-data.R", package = "tf"))
 
-context("tf_evaluate for tf")
-
 test_that("tf_evaluate.tfd works for regular", {
   expect_identical(tf_evaluate(smoo),
                    tf_evaluations(smoo))

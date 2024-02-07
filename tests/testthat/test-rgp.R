@@ -1,5 +1,3 @@
-context("tf_rgp works")
-
 test_that("user defined covariance works", {
   my_sqexp <- function(s, t) exp( -(s - t)^2 / 0.1)
   set.seed(1312)
