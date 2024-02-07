@@ -1,5 +1,4 @@
-#' tf
-#'
+#' @description
 #' `tf` is a light-weight package with few dependencies that provides the class
 #' definitions and methods infrastructure for `tidyfun` -- `tf` gives you:
 #'

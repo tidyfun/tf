@@ -4,12 +4,10 @@
 \name{tf-package}
 \alias{tf}
 \alias{tf-package}
-\title{tf}
+\title{tf: S3 classes and methods for tidy functional data}
 \description{
 \code{tf} is a light-weight package with few dependencies that provides the class
 definitions and methods infrastructure for \code{tidyfun} -- \code{tf} gives you:
-}
-\details{
 \itemize{
 \item new S3 data types for representing (vectors of) functional data: \code{\link[=tfd]{tfd()}} & \code{\link[=tfb]{tfb()}}
 \item arithmetic operators for such data (\code{\link[=Ops.tf]{Ops.tf()}}),
