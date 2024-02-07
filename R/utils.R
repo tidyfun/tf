@@ -133,9 +133,10 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
       }
     )
   }
-  ret <- map(attribs, \(x) .compare(a1[[x]], a2[[x]]))
-  names(ret) <- attribs
-  unlist(ret)
+  ret <- map(attribs, \(x) .compare(a1[[x]], a2[[x]])) |>
+    setNames(attribs) |>
+    unlist()
+  ret
 }
 
 #-------------------------------------------------------------------------------

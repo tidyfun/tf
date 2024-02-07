@@ -46,8 +46,7 @@ tf_evaluate.tfd <- function(object, arg, evaluator = tf_evaluator(object), ...) 
     )
   )
   
-  names(ret) <- names(object)
-  ret
+  setNames(ret, names(object))
 }
 
 evaluate_tfd_once <- function(new_arg, arg, evaluations, evaluator, resolution) {
@@ -101,8 +100,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   if (!inherits(object, "tfb_fpc")) {
     ret <- map(ret, attr(object, "family")$linkinv)
   }  
-  names(ret) <- names(object)
-  ret
+  setNames(ret, names(object))
 }
 
 evaluate_tfb_once <- function(x, arg, coefs, basis, X, resolution) {

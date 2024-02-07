@@ -110,8 +110,8 @@
     rownames(ret) <- names(x)
     structure(ret, arg = unlist(j))
   } else {
-    ret <- map2(j, evals, \(x, y) data.frame(arg = x, value = y))
-    names(ret) <- names(x)
+    ret <- map2(j, evals, \(x, y) data.frame(arg = x, value = y)) |>
+      setNames(names(x))
     ret
   }
 }

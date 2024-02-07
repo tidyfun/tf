@@ -253,8 +253,7 @@ tfb_spline.list <- function(data, arg = NULL,
   # dispatch to data.frame method
   ret <- tfb_spline(tmp, domain = domain, penalized = penalized, 
              global = global, resolution = resolution, ...)
-  names(ret) <- names_data
-  ret
+  setNames(ret, names_data)
 }
 
 
@@ -270,8 +269,7 @@ tfb_spline.tfd <- function(data, arg = NULL,
   tmp <- tf_2_df(data, arg)
   ret <- tfb_spline(tmp, domain = domain, 
                     penalized = penalized, global = global, resolution = resolution, ...)
-  names(ret) <- names(data)
-  ret
+  setNames(ret, names(data))
 }
 
 #' @export
@@ -301,8 +299,7 @@ tfb_spline.tfb <- function(data, arg = NULL,
     ))
   }
   
-  names(ret) <- names_data
-  ret
+  setNames(ret, names_data)
 }
 
 #' @export

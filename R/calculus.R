@@ -199,9 +199,9 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   evaluations <- tf_evaluate(f, arg)
   quads <- map2(arg, evaluations, \(x, y) quad_trapez(arg = x, evaluations = y))
   if (definite) {
-    ret <- map(quads, sum) |> unlist()
-    names(ret) <- names(f)
-    ret
+    map(quads, sum) |>
+      unlist() |>
+      setNames(names(f))
   } else {
     tfd(
       data = map(quads, cumsum), arg = unlist(arg), domain = as.numeric(limits),

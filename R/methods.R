@@ -34,8 +34,7 @@ tf_evaluations.default <- function(f) .NotYetImplemented()
 tf_evaluations.tfd_reg <- function(f) {
   f_names <- names(f)
   attributes(f) <- NULL
-  names(f) <- f_names
-  f
+  setNames(f, f_names)
 }
 
 #' @export
@@ -135,7 +134,8 @@ tf_basis <- function(f, as_tfd = FALSE) {
   if (!as_tfd) {
     return(basis)
   }
-  basis(tf_arg(f)) |>
+  tf_arg(f) |>
+    basis() |>
     t() |>
     tfd(arg = tf_arg(f))
 }
