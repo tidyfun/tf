@@ -1,23 +1,21 @@
 #' @import purrr
-new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain = numeric(), 
+new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain = numeric(),
                     evaluator, resolution = numeric()) {
-  
-  if (vctrs::vec_size(datalist) == 0 ) {
-    
-    subclass = ifelse(regular, "tfd_reg", "tfd_irreg")
-    
-    ret = vctrs::new_vctr(
+  if (vctrs::vec_size(datalist) == 0) {
+    subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
+
+    ret <- vctrs::new_vctr(
       datalist,
       arg = numeric(),
       domain = numeric(),
       evaluator = evaluator,
       evaluator_name = evaluator,
-      resolution = numeric(), 
-      class = c(subclass, "tfd", "tf")) 
+      resolution = numeric(),
+      class = c(subclass, "tfd", "tf")
+    )
     return(ret)
-    
   }
-  
+
   assert_string(evaluator)
   evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
   assert_function(evaluator_f)
@@ -25,28 +23,22 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
     names(formals(evaluator_f)),
     c("x", "arg", "evaluations")
   )
-  
+
   arg_o <- map(arg, order)
-  arg <- map2(arg, arg_o, ~.x[.y])
-  datalist <- map2(datalist, arg_o, ~unname(.x[.y]))
+  arg <- map2(arg, arg_o, \(x, y) x[y])
+  datalist <- map2(datalist, arg_o, \(x, y) unname(x[y]))
   domain <- domain %||% range(arg, na.rm = TRUE)
   resolution <- resolution %||% get_resolution(arg)
-  
+
   if (!regular) {
     datalist <- map2(
       datalist, arg,
-      ~list(
-        arg = unname(.y[!is.na(.x)]),
-        value = unname(.x[!is.na(.x)])
-      )
+      \(x, y) list(arg = unname(y[!is.na(x)]), value = unname(x[!is.na(x)]))
     )
-    n_evals <- map(datalist, ~length(.x$value))
+    n_evals <- map(datalist, \(x) length(x$value))
     if (any(n_evals == 0)) warning("NA entries created.")
     datalist <- map_if(
-      datalist, n_evals == 0,
-      ~{
-        list(arg = domain[1], value = NA)
-      }
+      datalist, n_evals == 0, \(x) list(arg = domain[1], value = NA)
     )
     arg <- numeric(0)
     class <- "tfd_irreg"
@@ -56,7 +48,7 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
   }
   # ensure "unique" names (principles.tidyverse.org/names-attribute.html) ...
   names(datalist) <- names(datalist) # %||% rep(".", length(datalist))
-  
+
   ret <- vctrs::new_vctr(
     datalist,
     arg = arg,
@@ -72,10 +64,10 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
 
 #------------------------------------------------------------------------------
 
-#' Constructors for vectors of "raw" functional data 
+#' Constructors for vectors of "raw" functional data
 #'
-#' Various constructor methods for `tfd`-objects. 
-#' 
+#' Various constructor methods for `tfd`-objects.
+#'
 #' **`evaluator`**: must be the (quoted or bare) name of a
 #' function with signature `function(x, arg, evaluations)` that returns
 #' the functions' (approximated/interpolated) values at locations `x` based on
@@ -118,11 +110,11 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @rdname tfd
 #' @description `tfd.matrix` accepts a numeric matrix with one function per *row* (!). If
 #'   `arg` is not provided, it tries to guess `arg` from the column names and falls back on `1:ncol(data)` if that fails.
-#' @param arg `numeric`, or list of `numeric`s. The evaluation grid. See Details on its 
-#' interplay with `resolution`. 
+#' @param arg `numeric`, or list of `numeric`s. The evaluation grid. See Details on its
+#' interplay with `resolution`.
 #'  For the `data.frame`-method: the name/number of the column defining the
 #'  evaluation grid. The `matrix` method will try to guess suitable `arg`-values
-#'  from the column names of `data` if `arg` is not supplied. Other methods fall back on 
+#'  from the column names of `data` if `arg` is not supplied. Other methods fall back on
 #'  integer sequences (`1:<length of data>`) as the default if not provided.
 #' @param domain range of the `arg`.
 #' @param evaluator a function accepting arguments `x, arg, evaluations`. See details for [tfd()].
@@ -143,14 +135,14 @@ tfd.matrix <- function(data, arg = NULL, domain = NULL,
 #' @rdname tfd
 #' @export
 tfd.numeric <- function(data, arg = NULL,
-                        domain = NULL, evaluator = tf_approx_linear, 
+                        domain = NULL, evaluator = tf_approx_linear,
                         resolution = NULL, ...) {
   evaluator <- quo_name(enexpr(evaluator))
   data <- t(as.matrix(data))
   # dispatch to matrix method
   args <- list(data,
-               arg = arg, domain = domain,
-               evaluator = evaluator, resolution = resolution
+    arg = arg, domain = domain,
+    evaluator = evaluator, resolution = resolution
   )
   return(do.call(tfd, args))
 }
@@ -162,7 +154,7 @@ tfd.numeric <- function(data, arg = NULL,
 #' @param id The name or number of the column defining which data belong to which function.
 #' @param value The name or number of the column containing the function evaluations.
 tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
-                           evaluator = tf_approx_linear, 
+                           evaluator = tf_approx_linear,
                            resolution = NULL, ...) {
   stopifnot(
     is.numeric(data[[arg]]),
@@ -170,7 +162,7 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
   )
   evaluator <- quo_name(enexpr(evaluator))
   data <- na.omit(data[, c(id, arg, value)])
-  
+
   # make factor conversion explicit to avoid reordering
   id <- factor(data[[1]], levels = as.factor(unique(data[[1]])))
   datalist <- split(data[[3]], id)
@@ -188,56 +180,58 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
 tfd.list <- function(data, arg = NULL, domain = NULL,
                      evaluator = tf_approx_linear, resolution = NULL, ...) {
   evaluator <- quo_name(enexpr(evaluator))
-  vectors <- map_lgl(data, ~ is.numeric(.) & !is.array(.))
+  vectors <- map_lgl(data, \(x) is.numeric(x) & !is.array(x))
   if (all(vectors)) {
     where_na <- map(data, is.na)
-    data <- map2(data, where_na, ~ .x[!.y])
-    lengths <- vapply(data, length, numeric(1))
-    regular <- all(lengths == lengths[1]) &
+    data <- map2(data, where_na, \(x, y) x[!y])
+    lens <- lengths(data)
+    regular <- all(lens == lens[1]) &
       (is.numeric(arg) || all(duplicated(arg)[-1])) # duplicated(NULL) == TRUE!
     if (!regular) {
-      stopifnot(!is.null(arg), length(arg) == length(data), 
-                all(vapply(arg, length, numeric(1)) == 
-                      vapply(where_na, length, numeric(1))))
-      arg <- map2(arg, where_na, ~ .x[!.y])
+      stopifnot(
+        !is.null(arg), length(arg) == length(data),
+        all(lengths(arg) == lengths(where_na))
+      )
+      arg <- map2(arg, where_na, \(x, y) x[!y])
     } else {
       if (is.null(arg)) {
         warning("No argument values supplied, using index positions.")
         arg <- map(data, seq_along)
       }
       arg <- ensure_list(arg)
-      assert_numeric(arg[[1]], finite = TRUE, any.missing = FALSE, 
-                     sorted = TRUE)
+      assert_numeric(arg[[1]],
+        finite = TRUE, any.missing = FALSE,
+        sorted = TRUE
+      )
     }
-    
   }
   if (!any(vectors)) {
     dims <- map(data, dim)
     stopifnot(
-      all(vapply(dims, length, numeric(1)) == 2), all(map(dims, ~.x[2]) == 2),
+      all(lengths(dims) == 2), all(map(dims, \(x) x[2]) == 2),
       all(rapply(data, is.numeric))
     )
-    arg <- map(data, ~unlist(.x[, 1]))
-    data <- map(data, ~unlist(.x[, 2]))
+    arg <- map(data, \(x) unlist(x[, 1]))
+    data <- map(data, \(x) unlist(x[, 2]))
     regular <- (length(data) == 1 | all(duplicated(arg)[-1]))
   }
   new_tfd(arg, data,
-          regular = regular, domain = domain,
-          evaluator = evaluator, resolution = resolution
+    regular = regular, domain = domain,
+    evaluator = evaluator, resolution = resolution
   )
 }
 
 #' @export
 #' @examples
-#' #turn irregular to regular tfd by evaluating on a common grid:
+#' # turn irregular to regular tfd by evaluating on a common grid:
 #'
 #' (f <- c(tf_rgp(1, arg = seq(0, 1, length.out = 11)), tf_rgp(1, arg = seq(0, 1, length.out = 21))))
 #' tfd(f, arg = seq(0, 1, length.out = 21))
-#' 
+#'
 #' set.seed(1213)
 #' (f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(.9))
-#' #does not yield regular data because linear extrapolation yields NAs outside observed range:
-#' tfd(f, arg = seq(0, 1, length.out = 101)) 
+#' # does not yield regular data because linear extrapolation yields NAs outside observed range:
+#' tfd(f, arg = seq(0, 1, length.out = 101))
 #' # this "works" (but may not yield sensible values..!!) for e.g. constant extrapolation:
 #' tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 #' plot(f, col = 2)
@@ -245,7 +239,6 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
 #' @rdname tfd
 tfd.tf <- function(data, arg = NULL, domain = NULL,
                    evaluator = NULL, resolution = NULL, ...) {
-  
   evaluator_name <- enexpr(evaluator)
   evaluator <- if (is_tfd(data) && is.null(evaluator)) {
     attr(data, "evaluator_name")
@@ -258,47 +251,36 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   arg <- ensure_list(arg %||% tf_arg(data))
   evaluations <- if (re_eval) {
     evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
-    tf_evaluate(data, arg = arg, evaluator = evaluator_f) 
+    tf_evaluate(data, arg = arg, evaluator = evaluator_f)
   } else {
     tf_evaluations(data)
   }
   if (re_eval) {
-    nas <- purrr::map(evaluations, ~which(is.na(.x)))
+    nas <- map(evaluations, \(x) which(is.na(x)))
     if (length(unlist(nas))) {
-      warning(length(unlist(nas)), 
-              " evaluations were NA, returning irregular tfd.")
-      evaluations <- purrr::map2(evaluations, nas, ~{
-        if (length(.y)) {
-          .x[-.y]
-        } else {
-          .x
-        }
-      })
-      arg <- purrr::map2(arg, nas, ~{
-        if (length(.y)) {
-          .x[-.y]
-        } else {
-          .x
-        }
-      })
+      warning(
+        length(unlist(nas)),
+        " evaluations were NA, returning irregular tfd."
+      )
+      evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
+      arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
     }
   }
   names(evaluations) <- names(data)
   new_tfd(arg, evaluations,
-          regular = (length(arg) == 1),
-          domain = domain, evaluator = evaluator, resolution = resolution
+    regular = (length(arg) == 1),
+    domain = domain, evaluator = evaluator, resolution = resolution
   )
 }
 
 #' @rdname tfd
 #' @description `tfd.default` returns class prototype when argument to tfd() is NULL or not a recognised class
 #' @export
-tfd.default = function(data, arg = NULL, domain = NULL,
-                       evaluator = tf_approx_linear, resolution = NULL, ...) {
+tfd.default <- function(data, arg = NULL, domain = NULL,
+                        evaluator = tf_approx_linear, resolution = NULL, ...) {
   message("input `data` not recognized class; returning prototype of length 0")
-  datalist = list()
+  datalist <- list()
   new_tfd(arg, datalist, domain, evaluator, resolution)
-  
 }
 
 #-------------------------------------------------------------------------------
@@ -319,7 +301,7 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
-  ret <- map2(tf_evaluations(data), arg, ~list(arg = .y, value = .x))
+  ret <- map2(tf_evaluations(data), arg, \(x, y) list(arg = y, value = x))
   attributes(ret) <- attributes(data)
   attr(ret, "arg") <- numeric(0)
   class(ret)[1] <- "tfd_irreg"

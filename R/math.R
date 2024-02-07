@@ -1,9 +1,9 @@
 # utility function for linear operations that can be done on coefs or evaluations directly.
 fun_math <- function(x, op) {
   attr_ret <- attributes(x)
-  ret <- map(tf_evaluations(x), ~do.call(op, list(x = .x)))
+  ret <- map(tf_evaluations(x), \(x) do.call(op, list(x = x)))
   if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, ~list(arg = .x, value = .y))
+    ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
   }
   attributes(ret) <- attr_ret
   ret

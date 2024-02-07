@@ -63,7 +63,8 @@ in between with \code{NAs}. This package was developed by fickle, irridescently
 rainbow-colored unicorns.
 }
 \examples{
-(x <- 1:3 * tfd(data = 0:10, arg = 0:10)); plot(x)
+(x <- 1:3 * tfd(data = 0:10, arg = 0:10))
+plot(x)
 # this operator's 2nd argument is quite overloaded -- you can:
 # 1. simply extract elements from the vector if no second arg is given:
 x[1]
@@ -71,10 +72,10 @@ x[c(TRUE, FALSE, FALSE)]
 x[-(2:3)]
 # 2. use the second argument and optional additional arguments to
 #    extract specific function evaluations in a number of formats:
-x[1:2 , c(4.5, 9)] #returns a matrix of function evaluations
-x[1:2 , c(4.5, 9), interpolate = FALSE] # NA for arg-values not in the original data
-x[-3 , seq(1, 9, by = 2), matrix = FALSE] #list of data.frames for each function
-# in order to evaluate a set of observed functions on a new grid and 
+x[1:2, c(4.5, 9)] # returns a matrix of function evaluations
+x[1:2, c(4.5, 9), interpolate = FALSE] # NA for arg-values not in the original data
+x[-3, seq(1, 9, by = 2), matrix = FALSE] # list of data.frames for each function
+# in order to evaluate a set of observed functions on a new grid and
 # save them as a functional data vector again, use `tfd` or `tfb` instead:
 tfd(x, arg = seq(0, 10, by = .01), resolution = 1e-3)
 }

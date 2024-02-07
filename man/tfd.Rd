@@ -142,15 +142,15 @@ of 10: e.g., if the smallest difference between consecutive
 In code: \verb{resolution = 10^(floor(log10(min(diff(<arg>))) - 1)}
 }
 \examples{
-#turn irregular to regular tfd by evaluating on a common grid:
+# turn irregular to regular tfd by evaluating on a common grid:
 
 (f <- c(tf_rgp(1, arg = seq(0, 1, length.out = 11)), tf_rgp(1, arg = seq(0, 1, length.out = 21))))
 tfd(f, arg = seq(0, 1, length.out = 21))
 
 set.seed(1213)
 (f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(.9))
-#does not yield regular data because linear extrapolation yields NAs outside observed range:
-tfd(f, arg = seq(0, 1, length.out = 101)) 
+# does not yield regular data because linear extrapolation yields NAs outside observed range:
+tfd(f, arg = seq(0, 1, length.out = 101))
 # this "works" (but may not yield sensible values..!!) for e.g. constant extrapolation:
 tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 plot(f, col = 2)

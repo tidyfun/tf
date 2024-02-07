@@ -20,7 +20,7 @@ quad_trapez <- function(arg, evaluations) {
 #' Differentiating functional data: approximating derivative functions
 #'
 #' Derivatives of `tf`-objects use finite differences of the evaluations for
-#' `tfd` and finite differences of the basis functions for `tfb`. 
+#' `tfd` and finite differences of the basis functions for `tfb`.
 #'
 #' The derivatives of `tfd` objects use centered finite differences, e.g. for
 #' first derivatives \eqn{f'((t_i + t_{i+1})/2) \approx \frac{f(t_i) +
@@ -29,7 +29,7 @@ quad_trapez <- function(arg, evaluations) {
 #' regular grid, representing the data in a suitable basis representation with
 #' [tfb()] and then computing the derivatives or integrals of those is usually
 #' preferable.
-#' 
+#'
 #' Note that, for some spline bases like `"cr"` or `"tp"` which always begin/end
 #' linearly, computing second derivatives will produce artefacts at the outer
 #' limits of the functions' domain due to these boundary constraints. Basis
@@ -37,12 +37,12 @@ quad_trapez <- function(arg, evaluations) {
 #' yield slightly less stable fits.
 #' @param f a `tf`-object
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
-#' @param arg grid to use for the finite differences. 
+#' @param arg grid to use for the finite differences.
 #'   Not the `arg` of the returned object for `tfd`-inputs, see Details.
 #' @param ... not used
 #' @returns a `tf` (with slightly different `arg` or `basis` for the derivatives, see Details)
 #' @export
-#' @family tidyfun calculus functions 
+#' @family tidyfun calculus functions
 tf_derive <- function(f, arg, order = 1, ...) UseMethod("tf_derive")
 
 #' @export
@@ -52,8 +52,10 @@ tf_derive.default <- function(f, arg, order = 1, ...) .NotYetImplemented()
 #' @describeIn tf_derive row-wise finite differences
 tf_derive.matrix <- function(f, arg, order = 1, ...) {
   if (missing(arg)) arg <- unlist(find_arg(f))
-  assert_numeric(arg, any.missing = FALSE, finite = TRUE, len = ncol(f), 
-                 sorted = TRUE, unique = TRUE)
+  assert_numeric(arg,
+    any.missing = FALSE, finite = TRUE, len = ncol(f),
+    sorted = TRUE, unique = TRUE
+  )
   ret <- derive_matrix(data = f, order = order, arg = arg)
   structure(ret[[1]], arg = ret[[2]])
 }
@@ -67,7 +69,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
   # their default domain etc.
   if (is_irreg(f)) {
     warning("Differentiating over irregular grids can be unstable.")
-  }  
+  }
   assert_count(order)
   data <- as.matrix(f, arg, interpolate = TRUE)
   arg <- as.numeric(colnames(data))
@@ -88,17 +90,17 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
   }
   if (attr(f, "family")$link != "identity") {
     stop("Can't integrate or derive tfb_spline with non-identity link function.")
-  }  
+  }
   if (missing(arg)) {
     arg <- tf_arg(f)
-  } 
+  }
   assert_arg(arg, f)
   assert_choice(order, choices = c(-1, 1, 2))
   s_args <- attr(f, "basis_args")
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
   spec_object <- smooth.construct(s_spec,
-                                  data = data.frame(arg = arg), knots = NULL
+    data = data.frame(arg = arg), knots = NULL
   )
   eps <- min(diff(arg)) / 1000
   basis_constructor <- smooth_spec_wrapper(spec_object, deriv = order, eps = eps)
@@ -139,7 +141,7 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 #' `[lower, upper]`, e.g. a `tfd` or `tfb` object representing \eqn{F(t) \approx
 #' \int^{t}_{lower}f(s)ds}, for \eqn{t \in}`[lower, upper]`, is returned.
 #' @inheritParams tf_derive
-#' @param arg (optional) grid to use for the quadrature. 
+#' @param arg (optional) grid to use for the quadrature.
 #' @param lower lower limits of the integration range. For `definite=TRUE`, this
 #'   can be a vector of the same length as `f`.
 #' @param upper upper limits of the integration range (but see `definite` arg /
@@ -158,19 +160,19 @@ tf_integrate <- function(f, arg, lower, upper, ...) {
 #' @rdname tf_integrate
 #' @export
 tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
-#' @rdname tf_integrate 
-#' @description `tf_integrate.function` integrates R-functions (a wrapper for [stats::integrate()]) 
+#' @rdname tf_integrate
+#' @description `tf_integrate.function` integrates R-functions (a wrapper for [stats::integrate()])
 #' @export
 tf_integrate.function <- function(f, arg, lower, upper, ...) {
   stats::integrate(f, lower, upper, ...)
-}  
-#' @rdname tf_integrate 
+}
+#' @rdname tf_integrate
 #' @export
 tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(f)[2],
                              definite = TRUE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(f)
-  } 
+  }
   assert_arg(arg, f)
   arg <- ensure_list(arg)
   assert_numeric(lower,
@@ -192,10 +194,10 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   }
   arg <- map2(
     arg, ensure_list(limits),
-    ~c(.y[1], .x[.x > .y[1] & .x < .y[2]], .y[2])
+    \(x, y) c(y[1], x[x > y[1] & x < y[2]], y[2])
   )
   evaluations <- tf_evaluate(f, arg)
-  quads <- map2(arg, evaluations, ~ quad_trapez(arg = .x, evaluations = .y))
+  quads <- map2(arg, evaluations, \(x, y) quad_trapez(arg = x, evaluations = y))
   if (definite) {
     ret <- map(quads, sum) |> unlist()
     names(ret) <- names(f)
@@ -213,13 +215,13 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
   #  Vectorize(as.function(.x)), lower = lower, upper = upper, ...)) |>
   # map("value")
 }
-#' @rdname tf_integrate 
+#' @rdname tf_integrate
 #' @export
 tf_integrate.tfb <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(f)[2],
                              definite = TRUE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(f)
-  } 
+  }
   assert_arg(arg, f)
   assert_numeric(lower,
     lower = tf_domain(f)[1], upper = tf_domain(f)[2],

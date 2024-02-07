@@ -12,7 +12,7 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   
   tmp <- do.call(rbind, 
                  args = tf[, arg, matrix = FALSE, interpolate = interpolate])
-  n_evals <- vapply(arg, length, numeric(1))
+  n_evals <- map_dbl(arg, length)
   tmp$id <-
     if (length(n_evals) == 1) {
       rep(unique_id(names(tf)) %||% seq_along(tf), each = n_evals)

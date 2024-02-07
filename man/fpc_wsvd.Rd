@@ -38,9 +38,9 @@ package \code{mogsa} by Cheng Meng.
 }
 \seealso{
 Other tfb-class: 
+\code{\link{tfb}},
 \code{\link{tfb_fpc}()},
-\code{\link{tfb_spline}()},
-\code{\link{tfb}}
+\code{\link{tfb_spline}()}
 
 Other tfb_fpc-class: 
 \code{\link{tfb_fpc}()}
