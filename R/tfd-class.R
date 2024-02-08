@@ -1,13 +1,13 @@
 #' @import purrr
-new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE,
-                    domain = numeric(), evaluator, resolution = numeric()) {
+new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
+                    domain = NULL, evaluator, resolution = NULL) {
   if (vctrs::vec_size(datalist) == 0) {
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
 
     ret <- vctrs::new_vctr(
       datalist,
       arg = numeric(),
-      domain = numeric(),
+      domain = numeric(2),
       evaluator = evaluator,
       evaluator_name = evaluator,
       resolution = numeric(),
@@ -24,16 +24,29 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE,
     c("x", "arg", "evaluations")
   )
 
+  # sort args and values by arg:
   arg_o <- map(arg, order)
   arg <- map2(arg, arg_o, \(x, y) x[y])
   datalist <- map2(datalist, arg_o, \(x, y) unname(x[y]))
+
   domain <- domain %||% range(arg, na.rm = TRUE)
   resolution <- resolution %||% get_resolution(arg)
+
+  assert_number(resolution, lower = .Machine$double.eps, finite = TRUE)
+  assert_numeric(domain, finite = TRUE, any.missing = FALSE,
+                 sorted = TRUE, len = 2, unique = TRUE)
+  stopifnot(
+    domain[1] <= min(unlist(arg)),
+    domain[2] >= max(unlist(arg))
+  )
 
   if (!regular) {
     datalist <- map2(
       datalist, arg,
-      \(x, y) list(arg = unname(y[!is.na(x)]), value = unname(x[!is.na(x)]))
+      \(x, y) {
+        this_arg <- unname(y[!is.na(x)])
+        list(arg = this_arg, value = unname(x[!is.na(x)]))
+      }
     )
     n_evals <- map(datalist, \(x) length(x$value))
     if (any(n_evals == 0)) warning("NA entries created.")
@@ -46,8 +59,11 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE,
     arg <- list(arg[[1]])
     class <- "tfd_reg"
   }
-  # ensure "unique" names (principles.tidyverse.org/names-attribute.html) ...
-  names(datalist) <- names(datalist) # %||% rep(".", length(datalist))
+
+  if (!is.null(names(datalist))) {
+    # ensure "unique" names
+    names(datalist) <- vctrs::vec_as_names(names(datalist), repair = "unique")
+  }
 
   ret <- vctrs::new_vctr(
     datalist,

@@ -37,22 +37,30 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
   }
 }
 
-assert_arg_vector <- function(arg, x, check_unique = TRUE) {
+.assert_arg_vector <- function(arg, domain_x,  resolution_x,  check_unique) {
   if (check_unique) {
-    round_arg <- round_resolution(arg, tf_resolution(x))
+    round_arg <- round_resolution(arg, resolution_x)
     if (any(duplicated(round_arg))) {
       stop("Non-unique arg-values (for resolution).")
     }
   }
   assert_numeric(arg,
-    any.missing = FALSE, unique = FALSE,
-    lower = tf_domain(x)[1], upper = tf_domain(x)[2]
+                 any.missing = FALSE, unique = FALSE,
+                 lower = domain_x[1], upper = domain_x[2]
   )
 }
 
+assert_arg_vector <- function(arg, x, check_unique = TRUE) {
+  resolution_x <- tf_resolution(x)
+  domain_x <- tf_domain(x)
+  .assert_arg_vector(arg, domain_x, resolution_x, check_unique)
+}
+
+# default resolution is ~ smallest observed interval/10
+# rounded down to the nearest decimal
 get_resolution <- function(arg) {
-  min_diff <- map(ensure_list(arg), \(x) min(diff(x))) |>
-    unlist() |>
+  min_diff <-
+    map_dbl(ensure_list(arg), \(x) min(diff(x))) |>
     min()
   if (min_diff < .Machine$double.eps * 10) {
     stop("(Almost) non-unique arg values detected.")
