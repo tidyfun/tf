@@ -17,8 +17,9 @@
 #' (x <- tf_rgp(10))
 #' plot(x)
 #' tf_zoom(x, .5, .9)
-#' lines(tf_zoom(x, .5, .9), col = "red")
-#' points(tf_zoom(x, seq(0, .5, length.out = 10), seq(.5, 1, length.out = 10)), col = "blue")
+#' tf_zoom(x, .5, .9) |> lines(col = "red")
+#' tf_zoom(x, seq(0, .5, length.out = 10),
+#'   seq(.5, 1, length.out = 10)) |> lines(col = "blue", lty = 3)
 tf_zoom <- function(f, begin, end, ...) {
   UseMethod("tf_zoom")
 }
@@ -48,6 +49,7 @@ prep_tf_zoom_args <- function(f, begin, end) {
 tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                         ...) {
   args <- prep_tf_zoom_args(f, begin, end)
+  arg <- NULL
   ret <- pmap(
     list(f[, tf_arg(f), matrix = FALSE], args$begin, args$end),
     \(x, y, z) subset(x, arg >= y & arg <= z)
@@ -56,7 +58,9 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
     nas <- map_lgl(ret, \(x) length(x$arg) == 0)
     if (all(nas)) stop("no data in zoom region.")
     if (any(nas)) warning("NAs created by tf_zoom.")
-    for (n in which(nas)) ret[[n]] <- data.frame(arg = unname(args$dom[1]), value = NA_real_)
+    for (n in which(nas)) {
+      ret[[n]] <- data.frame(arg = unname(args$dom[1]), value = NA_real_)
+    }
   } else {
     if (any(map_lgl(ret, \(x) length(x$arg) == 0))) {
       stop("no data in zoom region.")
@@ -89,6 +93,6 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
 #' @export
 tf_zoom.tfb_fpc <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                             ...) {
-  warning("zoomed-in FPC representation likely to lose orthogonality of FPC basis.")
+  warning("zoomed-in FPC representation loses orthogonality of FPC basis.")
   NextMethod()
 }

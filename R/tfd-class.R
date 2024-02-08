@@ -1,6 +1,6 @@
 #' @import purrr
-new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain = numeric(),
-                    evaluator, resolution = numeric()) {
+new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE,
+                    domain = numeric(), evaluator, resolution = numeric()) {
   if (vctrs::vec_size(datalist) == 0) {
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
 
@@ -84,40 +84,45 @@ new_tfd <- function(arg = numeric(), datalist = list(), regular = TRUE, domain =
 #' - `tf_approx_nocb` for "next observation carried backward" (i.e.,
 #' [zoo::na.locf()] with `na.rm = FALSE, fromLast = TRUE`).
 #' See `tf:::zoo_wrapper` and `tf:::tf_approx_linear`, which is simply
-#' `zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)`, for examples of implementations of
-#' this.
+#' `zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)`, for examples of
+#' implementations of this.
 #'
 #' **`resolution`**: `arg`-values that are equivalent up to this difference are
-#' treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at \eqn{t=1}
-#' and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)} will be returned if
-#' `resolution` < .01. By default, resolution will be set to an integer-valued power
-#' of 10 one smaller than the smallest difference between adjacent
-#' `arg`-values rounded down to an integer-valued power
-#' of 10: e.g., if the smallest difference between consecutive
-#' `arg`-values is between 0.1 and 0.9999, the resolution will be 0.01, etc.
-#' In code: `resolution = 10^(floor(log10(min(diff(<arg>))) - 1)`
+#' treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at
+#' \eqn{t=1} and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)}
+#' will be returned if `resolution` < .01. By default, resolution will be set to
+#' an integer-valued power of 10 one smaller than the smallest difference
+#' between adjacent `arg`-values rounded down to an integer-valued power of 10:
+#' e.g., if the smallest difference between consecutive `arg`-values is between
+#' 0.1 and 0.9999, the resolution will be 0.01, etc. In code: `resolution =
+#' 10^(floor(log10(min(diff(<arg>))) - 1)`
 #'
-#' @param data a `matrix`, `data.frame` or `list` of suitable shape, or another `tf`-object. when
-#' this argument is `NULL` (i.e. when calling `tfd()`) this returns a prototype of class `tfd`
-#' @param ... not used in `tfd`, except for `tfd.tf` -- specify `arg` and `ìnterpolate = TRUE` to
-#'   turn an irregular `tfd` into a regular one, see examples.
-#' @returns an `tfd`-object (or a `data.frame`/`matrix` for the conversion functions, obviously.)
+#' @param data a `matrix`, `data.frame` or `list` of suitable shape, or another
+#'   `tf`-object. when this argument is `NULL` (i.e. when calling `tfd()`) this
+#'   returns a prototype of class `tfd`
+#' @param ... not used in `tfd`, except for `tfd.tf` -- specify `arg` and
+#'   `ìnterpolate = TRUE` to turn an irregular `tfd` into a regular one, see
+#'   examples.
+#' @returns an `tfd`-object (or a `data.frame`/`matrix` for the conversion
+#'   functions, obviously.)
 #' @family tfd-class
 #' @export
 tfd <- function(data, ...) UseMethod("tfd")
 
 #' @export
 #' @rdname tfd
-#' @description `tfd.matrix` accepts a numeric matrix with one function per *row* (!). If
-#'   `arg` is not provided, it tries to guess `arg` from the column names and falls back on `1:ncol(data)` if that fails.
-#' @param arg `numeric`, or list of `numeric`s. The evaluation grid. See Details on its
-#' interplay with `resolution`.
-#'  For the `data.frame`-method: the name/number of the column defining the
-#'  evaluation grid. The `matrix` method will try to guess suitable `arg`-values
-#'  from the column names of `data` if `arg` is not supplied. Other methods fall back on
-#'  integer sequences (`1:<length of data>`) as the default if not provided.
+#' @description `tfd.matrix` accepts a numeric matrix with one function per
+#'   *row* (!). If `arg` is not provided, it tries to guess `arg` from the
+#'   column names and falls back on `1:ncol(data)` if that fails.
+#' @param arg `numeric`, or list of `numeric`s. The evaluation grid. See Details
+#'   on its interplay with `resolution`. For the `data.frame`-method: the
+#'   name/number of the column defining the evaluation grid. The `matrix` method
+#'   will try to guess suitable `arg`-values from the column names of `data` if
+#'   `arg` is not supplied. Other methods fall back on integer sequences
+#'   (`1:<length of data>`) as the default if not provided.
 #' @param domain range of the `arg`.
-#' @param evaluator a function accepting arguments `x, arg, evaluations`. See details for [tfd()].
+#' @param evaluator a function accepting arguments `x, arg, evaluations`. See
+#'   details for [tfd()].
 #' @param resolution resolution of the evaluation grid. See details for [tfd()].
 #' @importFrom rlang quo_name enexpr
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
@@ -147,12 +152,14 @@ tfd.numeric <- function(data, arg = NULL,
   return(do.call(tfd, args))
 }
 
-#' @description `tfd.data.frame` uses the first 3 columns of \code{data} for function information by default:
-#' (`id`, `arg`, `value`)
+#' @description `tfd.data.frame` uses the first 3 columns of \code{data} for
+#'   function information by default: (`id`, `arg`, `value`)
 #' @export
 #' @rdname tfd
-#' @param id The name or number of the column defining which data belong to which function.
-#' @param value The name or number of the column containing the function evaluations.
+#' @param id The name or number of the column defining which data belong to
+#'   which function.
+#' @param value The name or number of the column containing the function
+#'   evaluations.
 tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
                            evaluator = tf_approx_linear,
                            resolution = NULL, ...) {
@@ -225,17 +232,24 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
 #' @examples
 #' # turn irregular to regular tfd by evaluating on a common grid:
 #'
-#' (f <- c(tf_rgp(1, arg = seq(0, 1, length.out = 11)), tf_rgp(1, arg = seq(0, 1, length.out = 21))))
+#' (f <- c(
+#'   tf_rgp(1, arg = seq(0, 1, length.out = 11)),
+#'   tf_rgp(1, arg = seq(0, 1, length.out = 21))
+#'   ))
 #' tfd(f, arg = seq(0, 1, length.out = 21))
 #'
 #' set.seed(1213)
-#' (f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(.9))
-#' # does not yield regular data because linear extrapolation yields NAs outside observed range:
+#' (f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |>
+#'   tf_sparsify(.9))
+#' # does not yield regular data because linear extrapolation yields NAs
+#' #   outside observed range:
 #' tfd(f, arg = seq(0, 1, length.out = 101))
-#' # this "works" (but may not yield sensible values..!!) for e.g. constant extrapolation:
+#' # this "works" (but may not yield sensible values..!!) for
+#' #   e.g. constant extrapolation:
 #' tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 #' plot(f, col = 2)
-#' lines(tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 151)))
+#' tfd(f, arg = seq(0, 1, length.out = 151),
+#'     evaluator = tf_approx_fill_extend) |>  lines()
 #' @rdname tfd
 tfd.tf <- function(data, arg = NULL, domain = NULL,
                    evaluator = NULL, resolution = NULL, ...) {
@@ -274,7 +288,8 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
 }
 
 #' @rdname tfd
-#' @description `tfd.default` returns class prototype when argument to tfd() is NULL or not a recognised class
+#' @description `tfd.default` returns class prototype when argument to tfd() is
+#'   NULL or not a recognised class
 #' @export
 tfd.default <- function(data, arg = NULL, domain = NULL,
                         evaluator = tf_approx_linear, resolution = NULL, ...) {

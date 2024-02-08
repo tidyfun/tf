@@ -97,13 +97,13 @@ tf_evaluator <- function(f) {
 }
 
 #' @rdname tfmethods
-#' @param value **for `tf_evaluator<-`:** (bare or quoted) name of a function that
-#'   can be used to interpolate an `tfd`. Needs to accept vector arguments `x`,
-#'   `arg`, `evaluations` and return evaluations of the function defined by
+#' @param value **for `tf_evaluator<-`:** (bare or quoted) name of a function
+#'   that can be used to interpolate an `tfd`. Needs to accept vector arguments
+#'   `x`, `arg`, `evaluations` and return evaluations of the function defined by
 #'   `arg`, `evaluations` at `x`. \cr
 #'   **for `tf_arg<-`:** (list of) new `arg`-values. \cr
 #'   **for `td_domain<-`:** sorted numeric vector with the 2 new endpoints of
-#'     the domain.
+#'   the domain.
 #' @export
 `tf_evaluator<-` <- function(x, value) {
   value <- if (is.function(value)) {
@@ -126,7 +126,8 @@ tf_evaluator <- function(f) {
 #-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
-#' @param as_tfd should the basis be returned as a `tfd` evaluated on `tf_arg(f)`? Defaults to FALSE.
+#' @param as_tfd should the basis be returned as a `tfd` evaluated on
+#'   `tf_arg(f)`? Defaults to FALSE.
 #' @export
 tf_basis <- function(f, as_tfd = FALSE) {
   stopifnot(inherits(f, "tfb"))

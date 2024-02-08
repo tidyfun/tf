@@ -39,9 +39,9 @@ functions, see source code.}
 
 \item{na.rm}{logical.  Should missing values be removed?}
 
-\item{depth}{method used to determine the most central element in \code{x}, i.e., the median.
-One of the functional data depths available via \code{\link[=depth]{depth()}} or \code{"pointwise"} for
-a pointwise median function.}
+\item{depth}{method used to determine the most central element in \code{x}, i.e.,
+the median. One of the functional data depths available via \code{\link[=depth]{depth()}} or
+\code{"pointwise"} for a pointwise median function.}
 
 \item{y}{\code{NULL} (default) or a vector, matrix or data frame with
     compatible dimensions to \code{x}.   The default is equivalent to
@@ -56,8 +56,9 @@ a pointwise median function.}
 \item{object}{a \code{tfd} object}
 }
 \description{
-These will return a \code{tf} object containing the respective \emph{functional} statistic.
-\code{summary} returns a \code{tf}-vector with the mean function, the variance function, and the
-functional range of the central half of the functions, as defined by the functional
+These will return a \code{tf} object containing the respective \emph{functional}
+statistic. \code{summary} returns a \code{tf}-vector with the mean function, the
+variance function, and the functional range of the central half of the
+functions, as defined by the functional
 }
 \concept{tidyfun summary functions}

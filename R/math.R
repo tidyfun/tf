@@ -1,4 +1,5 @@
-# utility function for linear operations that can be done on coefs or evaluations directly.
+# utility function for linear operations that can be done on coefs or
+#   evaluations directly.
 fun_math <- function(x, op) {
   attr_ret <- attributes(x)
   ret <- map(tf_evaluations(x), \(x) do.call(op, list(x = x)))

@@ -6,7 +6,8 @@
 #' @rdname converters
 #' @inheritParams base::as.data.frame
 #' @param optional not used
-#' @param unnest if `TRUE`, the function will return a data.frame with the evaluated functions.
+#' @param unnest if `TRUE`, the function will return a data.frame with the
+#'   evaluated functions.
 #' @param x a `tf` object
 #' @returns **for `as.data.frame.tf`:** if `unnest` is `FALSE` (default), a
 #'   one-column `data.frame` with a `tf`-column containing `x`. if `unnest` is
@@ -15,7 +16,8 @@
 #'   one function evaluation at the original `arg`-values.
 #' @export
 #' @family tidyfun converters
-as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE, unnest = FALSE, ...) {
+as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE,
+                             unnest = FALSE, ...) {
   if (unnest) return(tf_2_df(x))
   colname <- deparse(substitute(x))
   ret <- data.frame(tmp = seq_along(x), row.names = row.names)
@@ -45,7 +47,7 @@ as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
 
 #-------------------------------------------------------------------------------
 #' @rdname converters
-#' @returns **for `as.function.tf`:** an R function with argument `arg` that 
+#' @returns **for `as.function.tf`:** an R function with argument `arg` that
 #'   evaluates `x` on `arg` and returns the list of function values
 #' @export
 #' @family tidyfun converters

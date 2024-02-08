@@ -23,8 +23,9 @@ Defaults to \code{tf_arg(object)}, implicitly.}
 
 \item{...}{not used}
 
-\item{evaluator}{optional. The function to use for inter/extrapolating the \code{tfd}.
-Defaults to \code{tf_evaluator(object)}. See e.g. \code{\link[=tf_approx_linear]{tf_approx_linear()}} for details.}
+\item{evaluator}{optional. The function to use for inter/extrapolating the
+\code{tfd}. Defaults to \code{tf_evaluator(object)}.
+See e.g. \code{\link[=tf_approx_linear]{tf_approx_linear()}} for details.}
 }
 \value{
 A list of numeric vectors containing the function

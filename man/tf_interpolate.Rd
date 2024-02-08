@@ -29,8 +29,8 @@ Change the internal representation of a \code{tf}-object so that it
 uses a different grid of evaluation points (\code{arg}). Useful for
 \itemize{
 \item thinning out dense grids to make data smaller
-\item filling out sparse grids to make derivatives/integrals and locating extrema or zero crossings more
-accurate (... \emph{if} the interpolation works well ...)
+\item filling out sparse grids to make derivatives/integrals and locating extrema
+or zero crossings more accurate (... \emph{if} the interpolation works well ...)
 \item making irregular functional data into (more) regular data.
 }
 

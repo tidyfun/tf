@@ -62,7 +62,8 @@ alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 \verb{[lower, upper]}, e.g. a \code{tfd} or \code{tfb} object representing \eqn{F(t) \approx
 \int^{t}_{lower}f(s)ds}, for \eqn{t \in}\verb{[lower, upper]}, is returned.
 
-\code{tf_integrate.function} integrates R-functions (a wrapper for \code{\link[stats:integrate]{stats::integrate()}})
+\code{tf_integrate.function} integrates R-functions (a wrapper for
+\code{\link[stats:integrate]{stats::integrate()}})
 }
 \seealso{
 Other tidyfun calculus functions: 

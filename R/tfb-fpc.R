@@ -1,37 +1,37 @@
 #' @importFrom refund fpca.sc
-new_tfb_fpc <- function(data, domain = NULL, resolution = NULL, 
+new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
                         method = NULL, ...) {
-  
+
   if (all(dim(data) == 0)) {
-    
-    ret = vctrs::new_vctr(
+
+    ret <- vctrs::new_vctr(
       data,
       domain = numeric(),
-      arg = numeric(), 
+      arg = numeric(),
       resolution = numeric(),
-      score_variance = numeric(), 
-      class = c("tfb_fpc", "tfb", "tf")) 
+      score_variance = numeric(),
+      class = c("tfb_fpc", "tfb", "tf"))
     return(ret)
-    
+
   }
-  
+
   arg <- sort(unique(data$arg))
   resolution <- resolution %||% get_resolution(arg)
   data$arg <- round_resolution(data$arg, resolution)
   arg <- unique(round_resolution(arg, resolution))
-  
+
   domain <- domain %||% range(arg)
   domain <- c(round_resolution(domain[1], resolution, -1),
               round_resolution(domain[2], resolution, 1))
-  if (!isTRUE(all.equal(domain, range(arg), 
+  if (!isTRUE(all.equal(domain, range(arg),
                         tolerance = resolution, scale = 1))) {
     warning("domain for tfb_fpc can't be larger than observed arg-range --",
-            " extrapolating FPCs is a bad idea.\n domain reset to [", min(arg), 
+            " extrapolating FPCs is a bad idea.\n domain reset to [", min(arg),
             ",", max(arg),"]")
     domain <- range(arg)
   }
-  
-  
+
+
   fpc_args <- get_args(list(...), method)
   fpc_args <- c(fpc_args, list(data = data, arg = arg))
   fpc_spec <- do.call(method, fpc_args)
@@ -64,34 +64,34 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #' compute those ("`method = fpc_wsvd`"). Note that this is suitable only for
 #' regular data all observed on the same (not necessarily equidistant) grid. See
 #' Details / Example for possible alternatives and extensions. \cr
-#' 
-#' Any "factorization" method that accepts a `data.frame` with 
-#' columns `id`, `arg`, `value` containing the functional data and returns a 
+#'
+#' Any "factorization" method that accepts a `data.frame` with
+#' columns `id`, `arg`, `value` containing the functional data and returns a
 #' list structured like the return object
 #' of [fpc_wsvd()] can be used for the `method`` argument, see example below.
-#' 
+#'
 #' @export
 #' @param method the function to use that computes eigenfunctions and scores.
-#'   Defaults to [fpc_wsvd()], which gives unsmoothed eigenfunctions. 
+#'   Defaults to [fpc_wsvd()], which gives unsmoothed eigenfunctions.
 #' @param ... arguments to the `method` which computes the
-#'  (regularized/smoothed) FPCA. 
-#'  Unless set by the user, uses proportion of variance explained 
+#'  (regularized/smoothed) FPCA.
+#'  Unless set by the user, uses proportion of variance explained
 #'  `pve = .995` to determine the truncation levels.
 #' @inheritParams tfb
-#' @returns an object of class `tfb_fpc`, inheriting from `tfb`. 
+#' @returns an object of class `tfb_fpc`, inheriting from `tfb`.
 #'    The basis used by `tfb_fpc` is a `tfd`-vector containing the estimated
 #'    mean and eigenfunctions.
-#' @seealso [fpc_wsvd()] for FPCA options. 
+#' @seealso [fpc_wsvd()] for FPCA options.
 #' @rdname tfb_fpc
 #' @export
-#' @family tfb-class 
+#' @family tfb-class
 #' @family tfb_fpc-class
 tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 
 #' @rdname tfb_fpc
 #' @export
 #' @inheritParams tfd.data.frame
-#' @examples 
+#' @examples
 #' # Apply FPCA for sparse data using refund::fpca.sc:
 #' set.seed(99290)
 #' # create sparse data:
@@ -99,23 +99,23 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #' # wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
 #' fpca_sc_wrapper <- function(data, arg, pve = .995, ...) {
 #'   data_mat <- tf:::df_2_mat(data)
-#'   fpca <- refund::fpca.sc(Y = data_mat, 
-#'                           argvals = attr(data_mat, "arg"), 
+#'   fpca <- refund::fpca.sc(Y = data_mat,
+#'                           argvals = attr(data_mat, "arg"),
 #'                           pve = pve, ...)
 #'   fpca[c("mu", "efunctions", "scores", "npc")]
 #' }
 #' tfb_fpc(data, method = fpca_sc_wrapper)
 tfb_fpc.data.frame <- function(data, id = 1, arg = 2, value = 3,
-                               domain = NULL, method = fpc_wsvd, resolution = NULL, 
-                               ...) {
+                               domain = NULL, method = fpc_wsvd,
+                               resolution = NULL, ...) {
   data <- df_2_df(data, id, arg, value)
-  new_tfb_fpc(data, domain = domain, method = method, 
+  new_tfb_fpc(data, domain = domain, method = method,
                resolution = resolution, ...)
 }
 
 #' @rdname tfb_fpc
 #' @export
-tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd, 
+tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
                            resolution = NULL, ...) {
   arg <- unlist(find_arg(data, arg))
   names_data <- rownames(data)
@@ -127,10 +127,10 @@ tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
 
 #' @rdname tfb_fpc
 #' @export
-tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd, 
+tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
                             resolution = NULL, ...) {
   data <- t(as.matrix(data))
-  tfb_fpc(data = data, arg = arg, method = method, domain = domain, 
+  tfb_fpc(data = data, arg = arg, method = method, domain = domain,
           resolution = resolution, ...)
 }
 
@@ -142,8 +142,8 @@ tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
 #' @rdname tfb_fpc
 #' @export
 tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
-  # TODO: major computational shortcuts possible here for tfb-inputs: reduced rank,
-  #   direct inner prods of basis functions etc...
+  # TODO: major computational shortcuts possible here for tfb-inputs:
+  #   reduced rank, direct inner prods of basis functions etc...
   arg <- arg %||% tf_arg(data)
   names_data <- names(data)
   ret <- tfb_fpc(
@@ -155,16 +155,18 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
 }
 
 #' @export
-#' @describeIn tfb_fpc convert `tfb`: default method, returning prototype when data is NULL
-tfb_fpc.default = function(data, arg = NULL, domain = NULL, method = fpc_wsvd, 
+#' @describeIn tfb_fpc convert `tfb`: default method, returning prototype when
+#'   data is NULL
+tfb_fpc.default <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
                            resolution = NULL, ...) {
-  
+
   if (!missing(data)) {
-    message("input `data` not recognized class; returning prototype of length 0")
+    message("input `data` not recognized class;
+            returning prototype of length 0")
   }
-  
-  data = data.frame()
-  new_tfb_spline(data = data, arg = arg, method = method, domain = domain, 
+
+  data <- data.frame()
+  new_tfb_spline(data = data, arg = arg, method = method, domain = domain,
                  resolution = resolution, ...)
-  
+
 }

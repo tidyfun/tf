@@ -42,7 +42,7 @@ vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
 #' @export
-vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) x
+vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) { x }
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
@@ -61,6 +61,7 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 #' @method vec_cast.tfd_irreg tfd_reg
 #' @export
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
+
   args <- attr(x, "arg")
   cast_x <- tfd(map(vctrs::vec_data(x), \(x) data.frame(arg = args, value = x)))
   as.tfd_irreg.tfd_reg(cast_x)
@@ -89,13 +90,17 @@ vec_ptype2.tfd_reg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_reg")
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_reg tfd_reg
 #' @export
-vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
+vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
+  vec_ptype2_tfd_tfd(x, y, ...)
+}
 
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_reg tfd_irreg
 #' @export
-vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
+vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) {
+  vec_ptype2_tfd_tfd(x, y, ...)
+}
 
 #' @name vctrs
 #' @family tidyfun vctrs
@@ -109,13 +114,17 @@ vec_ptype2.tfd_irreg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_irreg")
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_irreg tfd_reg
 #' @export
-vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
+vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) {
+  vec_ptype2_tfd_tfd(x, y, ...)
+}
 
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_irreg tfd_irreg
 #' @export
-vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
+vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {
+  vec_ptype2_tfd_tfd(x, y, ...)
+}
 
 
 #----------------- main function for coercion of tfd -----------------#
@@ -198,9 +207,8 @@ vec_cast.tfb_fpc <- function(x, to, ...) UseMethod("vec_cast.tfb_fpc")
 #' @export
 vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) {
   attributes_to <- flatten(list(list(x),
-    arg = list(tf_arg(to)),
-    attr(to, "basis_args")
-  ))
+                        arg = list(tf_arg(to)),
+                        attr(to, "basis_args")))
   do.call(tfb, attributes_to)
 }
 
@@ -208,13 +216,17 @@ vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) {
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfb_fpc
 #' @export
-vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) stop("casting tfb_fpc to tfb_spline is not allowed")
+vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) {
+  stop("casting tfb_fpc to tfb_spline is not allowed")
+}
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_spline
 #' @export
-vec_cast.tfb_fpc.tfb_spline <- function(x, to, ...) stop("casting tfb_spline to tfb_fpc is not allowed")
+vec_cast.tfb_fpc.tfb_spline <- function(x, to, ...) {
+  stop("casting tfb_spline to tfb_fpc is not allowed")
+}
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
@@ -239,14 +251,18 @@ vec_ptype2.tfb_spline <- function(x, y, ...) UseMethod("vec_ptype2.tfb_spline")
 #' @method vec_ptype2.tfb_spline tfb_spline
 #' @export
 #' @inheritParams vctrs::vec_ptype2
-vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) vec_ptype2_tfb_tfb(x, y, ...)
+vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {
+  vec_ptype2_tfb_tfb(x, y, ...)
+}
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_spline tfb_fpc
 #' @export
 #' @inheritParams vctrs::vec_ptype2
-vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
+vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) {
+  stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
+}
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
@@ -261,7 +277,9 @@ vec_ptype2.tfb_fpc <- function(x, y, ...) UseMethod("vec_ptype2.tfb_fpc")
 #' @method vec_ptype2.tfb_fpc tfb_spline
 #' @export
 #' @inheritParams vctrs::vec_ptype2
-vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
+vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) {
+  stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
+}
 
 
 #' @name vctrs
@@ -269,7 +287,9 @@ vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) stop("concatenating tfb_spl
 #' @method vec_ptype2.tfb_fpc tfb_fpc
 #' @export
 #' @inheritParams vctrs::vec_ptype2
-vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) vec_ptype2_tfb_tfb(x, y, ...)
+vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {
+  vec_ptype2_tfb_tfb(x, y, ...)
+}
 
 
 

@@ -83,15 +83,16 @@ is_tfb_fpc(x)
 
 \item{x}{an \code{tf} object}
 
-\item{value}{\strong{for \verb{tf_evaluator<-}:} (bare or quoted) name of a function that
-can be used to interpolate an \code{tfd}. Needs to accept vector arguments \code{x},
-\code{arg}, \code{evaluations} and return evaluations of the function defined by
+\item{value}{\strong{for \verb{tf_evaluator<-}:} (bare or quoted) name of a function
+that can be used to interpolate an \code{tfd}. Needs to accept vector arguments
+\code{x}, \code{arg}, \code{evaluations} and return evaluations of the function defined by
 \code{arg}, \code{evaluations} at \code{x}. \cr
 \strong{for \verb{tf_arg<-}:} (list of) new \code{arg}-values. \cr
 \strong{for \verb{td_domain<-}:} sorted numeric vector with the 2 new endpoints of
 the domain.}
 
-\item{as_tfd}{should the basis be returned as a \code{tfd} evaluated on \code{tf_arg(f)}? Defaults to FALSE.}
+\item{as_tfd}{should the basis be returned as a \code{tfd} evaluated on
+\code{tf_arg(f)}? Defaults to FALSE.}
 
 \item{object}{as usual}
 

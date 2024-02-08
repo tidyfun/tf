@@ -12,12 +12,12 @@ tf_anywhere(f, cond, arg)
 \arguments{
 \item{f}{a \code{tf} object}
 
-\item{cond}{a logical expression about \code{value} (and/or \code{arg}) that defines a condition about
-the functions, see examples and details.}
+\item{cond}{a logical expression about \code{value} (and/or \code{arg}) that defines a
+condition about the functions, see examples and details.}
 
-\item{return}{for each entry in \code{f}, \code{tf_where} either returns \emph{all} \code{arg} for
-which \code{cond} is true, the \emph{first}, the \emph{last} or their \emph{range} or logical
-flags whether the functions fullfill the condition \emph{any}where. For
+\item{return}{for each entry in \code{f}, \code{tf_where} either returns \emph{all} \code{arg}
+for which \code{cond} is true, the \emph{first}, the \emph{last} or their \emph{range} or
+logical flags whether the functions fullfill the condition \emph{any}where. For
 \code{"range"}, note that \code{cond} may not be true for all \code{arg} values in this
 range, though, this is not checked.}
 
@@ -27,11 +27,13 @@ defaults to \code{tf_arg(f)}.}
 \value{
 depends on  \code{return}:
 \itemize{
-\item \code{return = "any"}, i.e, \code{anywhere}: a logical vector of the same length as \code{f}.
+\item \code{return = "any"}, i.e, \code{anywhere}:
+a logical vector of the same length as \code{f}.
 \item \code{return = "all"}: a list of vectors of the same length as \code{f}, with
 empty vectors for the functions that  never fulfill the \code{cond}ition.
 \item \code{return = "range"}: a data frame with columns "begin" and "end".
-\item else, a numeric vector of the same length as \code{f} with \code{NA} for entries of \code{f} that nowhere fulfill the \code{cond}ition.
+\item else, a numeric vector of the same length as \code{f} with \code{NA} for entries of
+\code{f} that nowhere fulfill the \code{cond}ition.
 }
 }
 \description{

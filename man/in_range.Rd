@@ -12,7 +12,8 @@ f \%inr\% r
 \arguments{
 \item{f}{a numeric vector}
 
-\item{r}{numeric vector used to specify a range, only the minimum and maximum of \code{r} are used.}
+\item{r}{numeric vector used to specify a range, only the minimum and maximum
+of \code{r} are used.}
 }
 \value{
 a \code{logical} vector of the same length as \code{f}

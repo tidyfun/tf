@@ -13,21 +13,23 @@
 #' Any `cond`ition evaluates to `NA` on `NA`-entries in `f`.
 #'
 #' @param f a `tf` object
-#' @param cond a logical expression about `value` (and/or `arg`) that defines a condition about
-#'   the functions, see examples and details.
-#' @param return for each entry in `f`, `tf_where` either returns *all* `arg` for
-#'   which `cond` is true, the *first*, the *last* or their *range* or logical
-#'   flags whether the functions fullfill the condition *any*where. For
+#' @param cond a logical expression about `value` (and/or `arg`) that defines a
+#'   condition about the functions, see examples and details.
+#' @param return for each entry in `f`, `tf_where` either returns *all* `arg`
+#'   for which `cond` is true, the *first*, the *last* or their *range* or
+#'   logical flags whether the functions fullfill the condition *any*where. For
 #'   `"range"`, note that `cond` may not be true for all `arg` values in this
 #'   range, though, this is not checked.
 #' @param arg optional `arg`-values on which to evaluate `f` and check `cond`,
 #'   defaults to `tf_arg(f)`.
 #' @returns depends on  `return`:
-#'  - `return = "any"`, i.e, `anywhere`: a logical vector of the same length as `f`.
+#'  - `return = "any"`, i.e, `anywhere`:
+#'   a logical vector of the same length as `f`.
 #'  - `return = "all"`: a list of vectors of the same length as `f`, with
-#'     empty vectors for the functions that  never fulfill the `cond`ition.
+#'   empty vectors for the functions that  never fulfill the `cond`ition.
 #'  - `return = "range"`: a data frame with columns "begin" and "end".
-#'  - else, a numeric vector of the same length as `f` with `NA` for entries of `f` that nowhere fulfill the `cond`ition.
+#'  - else, a numeric vector of the same length as `f` with `NA` for entries of
+#'   `f` that nowhere fulfill the `cond`ition.
 #' @examples
 #' lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
 #' tf_where(lin, value %inr% c(-1, .5))

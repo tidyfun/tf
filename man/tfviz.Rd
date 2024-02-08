@@ -30,7 +30,8 @@
 \arguments{
 \item{x}{an \code{tf} object}
 
-\item{y}{(optional) numeric vector to be used as \code{arg} (i.e., for the \strong{x}-axis...!)}
+\item{y}{(optional) numeric vector to be used as \code{arg}
+(i.e., for the \strong{x}-axis...!)}
 
 \item{n_grid}{minimal size of equidistant grid used for plotting,
 defaults to 50. See details.}
@@ -43,7 +44,8 @@ Defaults to \code{TRUE} for irregular \code{tfd} and FALSE for all others}
 \item{alpha}{alpha-value (see\code{\link[grDevices:rgb]{grDevices::rgb()}}) for noodle transparency.
 Defaults to 2/(no. of observations). Lower is more transparent.}
 
-\item{...}{additional arguments for \code{\link[=matplot]{matplot()}} ("spaghetti") or \code{\link[=image]{image()}} ("lasagna")}
+\item{...}{additional arguments for \code{\link[=matplot]{matplot()}} ("spaghetti") or
+\code{\link[=image]{image()}} ("lasagna")}
 
 \item{arg}{evaluation grid (vector)}
 
@@ -66,7 +68,8 @@ data for \code{tfd}-objects without inter-/extrapolation, use \code{n_grid < 1} 
 \code{n_grid = NA}.
 }
 \references{
-Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B. S., & Punjabi, N. M. (2010).
-Lasagna plots: a saucy alternative to spaghetti plots. \emph{Epidemiology (Cambridge, Mass.)}, \strong{21}(5), 621-625.
+Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B.
+S., & Punjabi, N. M. (2010). Lasagna plots: a saucy alternative to
+spaghetti plots. \emph{Epidemiology (Cambridge, Mass.)}, \strong{21}(5), 621-625.
 }
 \concept{tidyfun visualization}

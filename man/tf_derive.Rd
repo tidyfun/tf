@@ -29,7 +29,8 @@ Not the \code{arg} of the returned object for \code{tfd}-inputs, see Details.}
 \item{...}{not used}
 }
 \value{
-a \code{tf} (with slightly different \code{arg} or \code{basis} for the derivatives, see Details)
+a \code{tf} (with slightly different \code{arg} or \code{basis} for the
+derivatives, see Details)
 }
 \description{
 Derivatives of \code{tf}-objects use finite differences of the evaluations for
