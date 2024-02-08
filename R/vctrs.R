@@ -8,7 +8,8 @@ c_names <- function(funs) {
     if (x == "") return(y)
     if (all(y == "") || length(y) == 1) return(rep(x, length(y)))
     paste(x, y, sep = ".")
-  }) |> unlist()
+  }) |>
+    unlist()
   if (all(names == "")) NULL else names
 }
 
@@ -16,11 +17,11 @@ c_names <- function(funs) {
 #----------------- s3 generics for tfd casting -----------------#
 
 #' vctrs methods for \code{tf} objects
-#' 
-#' These functions are the extensions that allow \code{tf} vectors 
+#'
+#' These functions are the extensions that allow \code{tf} vectors
 #' to work with \code{vctrs}.
-#' 
-#' @rdname vctrs 
+#'
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @import vctrs
 #' @method vec_cast tfd_reg
@@ -29,7 +30,7 @@ c_names <- function(funs) {
 #' @inheritParams vctrs::vec_cast
 vec_cast.tfd_reg <- function(x, to, ...) UseMethod("vec_cast.tfd_reg")
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast tfd_irreg
 #' @export
@@ -37,36 +38,35 @@ vec_cast.tfd_reg <- function(x, to, ...) UseMethod("vec_cast.tfd_reg")
 vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
 #' @export
-vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) { x } 
+vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) x
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_irreg
 #' @export
 vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
-  stop("casting tfd_irreg to tfd_reg not possible -- use \n",
+  stop(
+    "casting tfd_irreg to tfd_reg not possible -- use \n",
     "  # tfd(<some tfd_irreg>, arg = <some vector>) \n",
     "  to force irregular data onto a common grid. "
-  ) 
+  )
 }
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_reg
 #' @export
-vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) { 
-  
+vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
   args <- attr(x, "arg")
   cast_x <- tfd(map(vctrs::vec_data(x), \(x) data.frame(arg = args, value = x)))
   as.tfd_irreg.tfd_reg(cast_x)
-  
 }
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_irreg
 #' @export
@@ -87,15 +87,15 @@ vec_ptype2.tfd_reg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_reg")
 
 #' @name vctrs
 #' @family tidyfun vctrs
-#' @method vec_ptype2.tfd_reg tfd_reg 
+#' @method vec_ptype2.tfd_reg tfd_reg
 #' @export
-vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) { vec_ptype2_tfd_tfd(x, y, ...) }
+vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
 
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_reg tfd_irreg
 #' @export
-vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) { vec_ptype2_tfd_tfd(x, y, ...) }
+vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
 
 #' @name vctrs
 #' @family tidyfun vctrs
@@ -109,13 +109,13 @@ vec_ptype2.tfd_irreg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_irreg")
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_irreg tfd_reg
 #' @export
-vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, ...)}
+vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
 
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfd_irreg tfd_irreg
 #' @export
-vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, ...)}
+vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) vec_ptype2_tfd_tfd(x, y, ...)
 
 
 #----------------- main function for coercion of tfd -----------------#
@@ -124,7 +124,6 @@ vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, 
 #' @family tidyfun vctrs
 #' @export
 vec_ptype2_tfd_tfd <- function(x, y, ...) {
-
   funs <- list(x, y)
   compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
 
@@ -176,7 +175,7 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
 
 #----------------- s3 generics for tfb casting -----------------#
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @import vctrs
 #' @method vec_cast tfb_spline
@@ -185,7 +184,7 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
 #' @inheritParams vctrs::vec_cast
 vec_cast.tfb_spline <- function(x, to, ...) UseMethod("vec_cast.tfb_spline")
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast tfb_fpc
 #' @export
@@ -193,40 +192,40 @@ vec_cast.tfb_spline <- function(x, to, ...) UseMethod("vec_cast.tfb_spline")
 vec_cast.tfb_fpc <- function(x, to, ...) UseMethod("vec_cast.tfb_fpc")
 
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfb_spline
 #' @export
-vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) { 
-  attributes_to <- flatten(list(list(x), 
-                        arg = list(tf_arg(to)),
-                        attr(to, "basis_args")))
+vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) {
+  attributes_to <- flatten(list(list(x),
+    arg = list(tf_arg(to)),
+    attr(to, "basis_args")
+  ))
   do.call(tfb, attributes_to)
+}
 
-} 
-
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfb_fpc
 #' @export
-vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) { stop("casting tfb_fpc to tfb_spline is not allowed") }
+vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) stop("casting tfb_fpc to tfb_spline is not allowed")
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_spline
 #' @export
-vec_cast.tfb_fpc.tfb_spline <- function(x, to, ...) { stop("casting tfb_spline to tfb_fpc is not allowed")}
+vec_cast.tfb_fpc.tfb_spline <- function(x, to, ...) stop("casting tfb_spline to tfb_fpc is not allowed")
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_fpc
 #' @export
-vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) { x }
+vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) x
 
 
 #----------------- s3 generics for tfb coercion -----------------#
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2 tfb_spline
 #' @export
@@ -235,21 +234,21 @@ vec_cast.tfb_fpc.tfb_fpc <- function(x, to, ...) { x }
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline <- function(x, y, ...) UseMethod("vec_ptype2.tfb_spline")
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_spline tfb_spline
 #' @export
 #' @inheritParams vctrs::vec_ptype2
-vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)}
+vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) vec_ptype2_tfb_tfb(x, y, ...)
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_spline tfb_fpc
 #' @export
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
 
-#' @rdname vctrs 
+#' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2 tfb_fpc
 #' @export
@@ -270,7 +269,7 @@ vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) stop("concatenating tfb_spl
 #' @method vec_ptype2.tfb_fpc tfb_fpc
 #' @export
 #' @inheritParams vctrs::vec_ptype2
-vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)}
+vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) vec_ptype2_tfb_tfb(x, y, ...)
 
 
 
@@ -283,37 +282,39 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
   funs <- list(x, y)
   compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
   stopifnot(all(compatible[, "domain"]))
-  
-  if(inherits(funs[[1]], "tfb_spline")) {
-    re_evals <- which(!compatible[, "arg"] |
-                        !compatible[, "basis_args"])
+
+  if (inherits(funs[[1]], "tfb_spline")) {
+    re_evals <- which(
+      !compatible[, "arg"] | !compatible[, "basis_args"]
+    )
     if (length(re_evals)) {
       fun_names <- map(as.list(match.call())[-1], \(x) deparse(x)[1])
       warning(
         "re-evaluating ", paste(fun_names[re_evals], collapse = ", "),
         " using basis and arg of ", fun_names[1]
       )
-      
+
       funs <- map_at(
         funs, re_evals,
         \(x) do.call(
           tfb,
           flatten(list(list(x), # converts to tfb then back to tfd
-                       arg = list(tf_arg(funs[[1]])),
-                       attr(funs[[1]], "basis_args")
+            arg = list(tf_arg(funs[[1]])),
+            attr(funs[[1]], "basis_args")
           ))
         )
       )
     }
-  }else{
-    re_evals <- which(!compatible[, "arg"] |
-                        !compatible[, "basis_matrix"])
-    
-    if (length(re_evals)){
+  } else {
+    re_evals <- which(
+      !compatible[, "arg"] | !compatible[, "basis_matrix"]
+    )
+
+    if (length(re_evals)) {
       stop("concatenation not yet implemented for tfb_fpc vectors with different bases")
     }
   }
-    
+
   if (!all(compatible[, "resolution"])) {
     warning(
       "inputs have different resolutions, result has ",
@@ -330,7 +331,5 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
   }
   ret <- flatten(funs)
   attributes(ret) <- attr_ret
-  names(ret) <- c_names(funs)
-  ret
+  setNames(ret, c_names(funs))
 }
-

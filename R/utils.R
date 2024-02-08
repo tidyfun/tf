@@ -31,7 +31,7 @@ find_arg <- function(data, arg) {
 assert_arg <- function(arg, x, check_unique = TRUE) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
-    map(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
+    walk(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
   } else {
     assert_arg_vector(arg, x, check_unique = check_unique)
   }
@@ -40,7 +40,7 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 assert_arg_vector <- function(arg, x, check_unique = TRUE) {
   if (check_unique) {
     round_arg <- round_resolution(arg, tf_resolution(x))
-    if (any(duplicated(round_arg))) {
+    if (anyDuplicated(round_arg)) {
       stop("Non-unique arg-values (for resolution).")
     }
   }
@@ -51,9 +51,7 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
 }
 
 get_resolution <- function(arg) {
-  min_diff <- map(ensure_list(arg), \(x) min(diff(x))) |>
-    unlist() |>
-    min()
+  min_diff <- map_dbl(ensure_list(arg), \(x) min(diff(x))) |> min()
   if (min_diff < .Machine$double.eps * 10) {
     stop("(Almost) non-unique arg values detected.")
   }
@@ -133,9 +131,7 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
       }
     )
   }
-  ret <- map(attribs, \(x) .compare(a1[[x]], a2[[x]])) |>
-    setNames(attribs) |>
-    unlist()
+  ret <- map_lgl(attribs, \(x) .compare(a1[[x]], a2[[x]])) |> setNames(attribs)
   ret
 }
 
@@ -187,7 +183,7 @@ ensure_list <- function(x) {
 #' @family tidyfun developer tools
 # export for tidyfun...
 unique_id <- function(x) {
-  if (!any(duplicated(x))) {
+  if (!anyDuplicated(x)) {
     return(x)
   }
   if (is.character(x)) x <- sub("$^", "NA", x)
