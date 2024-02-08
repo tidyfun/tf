@@ -6,7 +6,6 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
                            verbose = TRUE, ...) {
 
   if (vctrs::vec_size(data) == 0) {
-
     ret <- vctrs::new_vctr(
       data,
       domain = domain,
@@ -15,7 +14,6 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
       family = character(),
       class = c("tfb_spline", "tfb", "tf"))
     return(ret)
-
   }
 
   domain <- domain %||% range(data$arg)

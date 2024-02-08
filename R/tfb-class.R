@@ -27,8 +27,16 @@
 #' @rdname tfb
 #' @family tfb-class
 #' @export
-tfb <- function(data, basis = c("spline", "fpc", "wavelet"), ...) {
+tfb <- function(data = data.frame(), basis = c("spline", "fpc", "wavelet"), ...) {
   basis <- match.arg(basis)
+  if (vctrs::vec_size(data) == 0) {
+    message("no/empty input `data`; returning prototype of length 0")
+    ret <-
+      switch(basis,
+           spline  = new_tfb_spline(numeric(0), ...),
+           fpc     = new_tfb_fpc(numeric(0), ...)) #TODO: wavelet?
+    return(ret)
+  }
   switch(basis,
          spline  = tfb_spline(data, ...),
          fpc     = tfb_fpc(data, ...),
