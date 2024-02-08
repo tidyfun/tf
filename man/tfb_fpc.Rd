@@ -123,8 +123,8 @@ tfb_fpc(data, method = fpca_sc_wrapper)
 
 Other tfb-class: 
 \code{\link{fpc_wsvd}()},
-\code{\link{tfb_spline}()},
-\code{\link{tfb}}
+\code{\link{tfb}},
+\code{\link{tfb_spline}()}
 
 Other tfb_fpc-class: 
 \code{\link{fpc_wsvd}()}

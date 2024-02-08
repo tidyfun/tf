@@ -122,8 +122,7 @@ tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
   data <- mat_2_df(data, arg)
   ret <- new_tfb_fpc(data, domain = domain, method = method,
                       resolution = resolution, ...)
-  names(ret) <- names_data
-  ret
+  setNames(ret, names_data)
 }
 
 #' @rdname tfb_fpc
@@ -152,8 +151,7 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
     method = method,
     domain = tf_domain(data), resolution = tf_resolution(data), ...
   )
-  names(ret) <- names_data
-  ret
+  setNames(ret, names_data)
 }
 
 #' @export

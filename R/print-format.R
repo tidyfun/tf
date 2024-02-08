@@ -11,28 +11,28 @@ string_rep_tf <- function(f, signif_arg = NULL,
   )
   arg_ch <- map2(
     ensure_list(tf_arg(f)), show,
-    ~do.call(format, c(format_args, list(x = .x[1:.y])))
+    \(x, y) do.call(format, c(format_args, list(x = x[1:y])))
   )
   value_ch <- map2(
     tf_evaluations(f), show,
-    ~do.call(format, c(format_args, list(x = .x[1:.y])))
+    \(x, y) do.call(format, c(format_args, list(x = x[1:y])))
   )
-  arg_nchar <- map(arg_ch, ~nchar(.x)) |> unlist() |> max()
-  value_nchar <- map(value_ch, ~nchar(.x)) |> unlist() |> max()
-  #left-pad with spaces:
-  arg_ch <- map(arg_ch, ~ sprintf(paste0("%", arg_nchar, "s"), .)) 
-  value_ch <- map(value_ch, ~ sprintf(paste0("%", value_nchar, "s"), .))
+  arg_nchar <- map(arg_ch, \(x) nchar(x)) |>
+    unlist() |>
+    max()
+  value_nchar <- map(value_ch, \(x) nchar(x)) |>
+    unlist() |>
+    max()
+  # left-pad with spaces:
+  arg_ch <- map(arg_ch, \(x) sprintf(paste0("%", arg_nchar, "s"), x))
+  value_ch <- map(value_ch, \(x) sprintf(paste0("%", value_nchar, "s"), x))
   str <- map2(
-    arg_ch, value_ch,
-    ~paste(paste0("(", .x, ",", .y, ")"), collapse = ";")
+    arg_ch, value_ch, \(x, y) paste(paste0("(", x, ",", y, ")"), collapse = ";")
   )
   str <- pmap(
-    list(str, arg_len, show),
-    ~ifelse(..2 > ..3, paste0(..1, "; ..."), ..1)
+    list(str, arg_len, show), \(x, y, z) ifelse(y > z, paste0(x, "; ..."), x)
   )
-  map_if(str, grepl("NA\\)", str), ~{
-    "NA"
-  })
+  map_if(str, grepl("NA\\)", str), \(x) "NA")
 }
 
 #-------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ print.tfd_reg <- function(x, n = 10, ...) {
 #' @export
 print.tfd_irreg <- function(x, n = 10, ...) {
   NextMethod()
-  nas <- map_lgl(tf_evaluations(x), ~length(.) == 1 && all(is.na(.)))
+  nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
   n_evals <- tf_count(x[!nas])
   cat(paste0(
     " based on ", min(n_evals), " to ", max(n_evals), " (mean: ",
@@ -122,10 +122,9 @@ format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
     } else {
       paste0("[", seq_along(str), "]")
     }
-    str <- map2(prefix, str, ~paste0(.x, ": ", .y))
+    str <- map2(prefix, str, \(x, y) paste0(x, ": ", y))
   }
   unlist(map_if(
-    str, ~nchar(.x) > width,
-    ~paste0(substr(.x, 1, width - 3), "...")
+    str, \(x) nchar(x) > width, \(x) paste0(substr(x, 1, width - 3), "...")
   ))
 }

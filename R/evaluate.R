@@ -39,15 +39,14 @@ tf_evaluate.tfd <- function(object, arg, evaluator = tf_evaluator(object), ...) 
   assert_arg(arg, object, check_unique = FALSE)
   ret <- pmap(
     list(arg, ensure_list(tf_arg(object)), tf_evaluations(object)),
-    ~evaluate_tfd_once(
-      new_arg = ..1, arg = ..2, evaluations = ..3,
+    \(x, y, z) evaluate_tfd_once(
+      new_arg = x, arg = y, evaluations = z,
       evaluator = evaluator,
       resolution = tf_resolution(object)
     )
   )
   
-  names(ret) <- names(object)
-  ret
+  setNames(ret, names(object))
 }
 
 evaluate_tfd_once <- function(new_arg, arg, evaluations, evaluator, resolution) {
@@ -91,8 +90,8 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   } else {
     ret <- pmap(
       list(arg, ensure_list(tf_arg(object)), coef(object)),
-      ~evaluate_tfb_once(
-        x = ..1, arg = ..2, coefs = ..3,
+      \(x, y, z) evaluate_tfb_once(
+        x = x, arg = y, coefs = z,
         basis = attr(object, "basis"), X = attr(object, "basis_matrix"),
         resolution = tf_resolution(object)
       )
@@ -101,8 +100,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   if (!inherits(object, "tfb_fpc")) {
     ret <- map(ret, attr(object, "family")$linkinv)
   }  
-  names(ret) <- names(object)
-  ret
+  setNames(ret, names(object))
 }
 
 evaluate_tfb_once <- function(x, arg, coefs, basis, X, resolution) {

@@ -36,7 +36,7 @@ Useful links:
 Authors:
 \itemize{
   \item Jeff Goldsmith
-  \item Julia Wrobel
+  \item Julia Wrobel (\href{https://orcid.org/0000-0001-6783-1421}{ORCID})
 }
 
 Other contributors:

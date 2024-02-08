@@ -186,8 +186,8 @@ at once might yield better results, this is \emph{not} what's implemented here.
 
 Other tfb-class: 
 \code{\link{fpc_wsvd}()},
-\code{\link{tfb_fpc}()},
-\code{\link{tfb}}
+\code{\link{tfb}},
+\code{\link{tfb_fpc}()}
 }
 \concept{tfb-class}
 \concept{tfb_spline-class}

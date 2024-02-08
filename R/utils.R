@@ -31,7 +31,7 @@ find_arg <- function(data, arg) {
 assert_arg <- function(arg, x, check_unique = TRUE) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
-    map(arg, ~ assert_arg_vector(., x = x, check_unique = check_unique))
+    map(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
   } else {
     assert_arg_vector(arg, x, check_unique = check_unique)
   }
@@ -51,7 +51,7 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
 }
 
 get_resolution <- function(arg) {
-  min_diff <- map(ensure_list(arg), ~ min(diff(.x))) |>
+  min_diff <- map(ensure_list(arg), \(x) min(diff(x))) |>
     unlist() |>
     min()
   if (min_diff < .Machine$double.eps * 10) {
@@ -68,7 +68,7 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 .adjust_resolution <- function(arg, resolution, unique = TRUE) {
   u <- if (unique) base::unique else function(x) x
   if (is.list(arg)) {
-    map(arg, ~ u(round_resolution(., resolution)))
+    map(arg, \(x) u(round_resolution(x, resolution)))
   } else {
     u(round_resolution(arg, resolution))
   }
@@ -93,7 +93,7 @@ is_equidist <- function(f) {
   }
   unique_diffs <- map_lgl(
     ensure_list(tf_arg(f)),
-    ~ round_resolution(.x, attr(f, "resolution")) |>
+    \(x) round_resolution(x, attr(f, "resolution")) |>
       diff() |>
       duplicated() |>
       tail(-1) |>
@@ -126,16 +126,17 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
         identical(a, b, ignore.environment = TRUE)
       } else {
         if (is.list(a)) {
-          all(unlist(map2(a, ensure_list(b), .compare)))
+          all(map2_lgl(a, ensure_list(b), .compare))
         } else {
           isTRUE(all.equal(a, b))
         }
       }
     )
   }
-  ret <- map(attribs, ~ .compare(a1[[.]], a2[[.]]))
-  names(ret) <- attribs
-  unlist(ret)
+  ret <- map(attribs, \(x) .compare(a1[[x]], a2[[x]])) |>
+    setNames(attribs) |>
+    unlist()
+  ret
 }
 
 #-------------------------------------------------------------------------------
@@ -169,7 +170,7 @@ get_args <- function(args, f) {
 #' Turns any object into a list
 #'
 #' See above.
-#' @param x any input 
+#' @param x any input
 #' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools
@@ -180,7 +181,7 @@ ensure_list <- function(x) {
 #' Make syntactically valid unique names
 #'
 #' See above.
-#' @param x any input 
+#' @param x any input
 #' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools

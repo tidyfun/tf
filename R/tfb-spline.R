@@ -7,7 +7,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
   
   if (vctrs::vec_size(data) == 0) {
     
-    ret = vctrs::new_vctr(
+    ret <- vctrs::new_vctr(
       data,
       domain = domain,
       arg = arg, 
@@ -222,14 +222,14 @@ tfb_spline.numeric <- function(data, arg = NULL,
 tfb_spline.list <- function(data, arg = NULL, 
                             domain = NULL, penalized = TRUE, 
                             global = FALSE, resolution = NULL, ...) {
-  vectors <- vapply(data, is.numeric, logical(1))
+  vectors <- map_lgl(data, is.numeric)
   stopifnot(all(vectors) | !any(vectors))
   
   names_data <- names(data) 
   
   if (all(vectors)) {
-    lengths <- vapply(data, length, numeric(1))
-    if (all(lengths == lengths[1])) {
+    lens <- lengths(data)
+    if (all(lens == lens[1])) {
       data <- do.call(rbind, data)
       # dispatch to matrix method
       return(tfb_spline(data, arg, domain = domain, penalized = penalized, 
@@ -237,24 +237,23 @@ tfb_spline.list <- function(data, arg = NULL,
     } 
     stopifnot(
       !is.null(arg), length(arg) == length(data),
-      all(vapply(arg, length, numeric(1)) == lengths)
+      all(map_dbl(arg, length) == lens)
     )
-    data <- map2(arg, data, ~as.data.frame(cbind(arg = .x, value = .y)))
+    data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
   }
   dims <- map(data, dim)
   stopifnot(
-    all(vapply(dims, length, numeric(1)) == 2), all(map(dims, ~.x[2]) == 2),
+    all(lengths(dims) == 2), all(map(dims, \(x) x[2]) == 2),
     all(rapply(data, is.numeric))
   )
-  n_evals <- map(dims, ~.x[1]) 
+  n_evals <- map(dims, 1) 
   tmp <- do.call(rbind, data)
   tmp <- cbind(rep(unique_id(names(data)) %||% seq_along(data), times = n_evals), 
                tmp)  
   # dispatch to data.frame method
   ret <- tfb_spline(tmp, domain = domain, penalized = penalized, 
              global = global, resolution = resolution, ...)
-  names(ret) <- names_data
-  ret
+  setNames(ret, names_data)
 }
 
 
@@ -270,8 +269,7 @@ tfb_spline.tfd <- function(data, arg = NULL,
   tmp <- tf_2_df(data, arg)
   ret <- tfb_spline(tmp, domain = domain, 
                     penalized = penalized, global = global, resolution = resolution, ...)
-  names(ret) <- names(data)
-  ret
+  setNames(ret, names(data))
 }
 
 #' @export
@@ -301,21 +299,20 @@ tfb_spline.tfb <- function(data, arg = NULL,
     ))
   }
   
-  names(ret) <- names_data
-  ret
+  setNames(ret, names_data)
 }
 
 #' @export
 #' @describeIn tfb_spline convert `tfb`: default method, returning prototype when data is missing
-tfb_spline.default = function(data, arg = NULL,
-                              domain = NULL, penalized = TRUE, 
-                              global = FALSE, resolution = NULL, ...) {
+tfb_spline.default <- function(data, arg = NULL,
+                               domain = NULL, penalized = TRUE, 
+                               global = FALSE, resolution = NULL, ...) {
   
   if (!missing(data)) {
     message("input `data` not from a recognized class; returning prototype of length 0")
   }
   
-  data = data.frame()
+  data <- data.frame()
   new_tfb_spline(data, domain = domain, penalized = penalized,
                  global = global, resolution = resolution, ...)
   

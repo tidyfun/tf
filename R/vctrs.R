@@ -1,13 +1,13 @@
 c_names <- function(funs) {
   fnames <- as.list(names(funs) %||% rep("", length(funs)))
-  elnames <- map(funs, ~names(.x) %||% rep("", length(.x)))
+  elnames <- map(funs, \(x) names(x) %||% rep("", length(x)))
   # always use argnames
   # argnames replace elementnames if elments have length 1
   # else paste with "."
-  names <- map2(fnames, elnames, function(.x, .y) {
-    if (.x == "") return(.y)
-    if (all(.y == "") | length(.y) == 1) return(rep(.x, length(.y)))
-    paste(.x, .y, sep = ".")
+  names <- map2(fnames, elnames, \(x, y) {
+    if (x == "") return(y)
+    if (all(y == "") || length(y) == 1) return(rep(x, length(y)))
+    paste(x, y, sep = ".")
   }) |> unlist()
   if (all(names == "")) NULL else names
 }
@@ -61,7 +61,7 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) { 
   
   args <- attr(x, "arg")
-  cast_x <- tfd(map(.x = vctrs::vec_data(x), ~data.frame(arg = args, value = .x)))
+  cast_x <- tfd(map(vctrs::vec_data(x), \(x) data.frame(arg = args, value = x)))
   as.tfd_irreg.tfd_reg(cast_x)
   
 }
@@ -70,7 +70,7 @@ vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_irreg
 #' @export
-vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) { x }
+vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) x
 
 
 
@@ -124,13 +124,10 @@ vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {vec_ptype2_tfd_tfd(x, y, 
 #' @family tidyfun vctrs
 #' @export
 vec_ptype2_tfd_tfd <- function(x, y, ...) {
-  
+
   funs <- list(x, y)
-  compatible <- do.call(rbind, map(
-    funs,
-    ~compare_tf_attribs(funs[[1]], .)
-  ))
-  
+  compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
+
   stopifnot(all(compatible[, "domain"]))
   make_irreg <- rep(FALSE, length(funs))
   irreg <- map_lgl(funs, is_irreg)
@@ -152,10 +149,7 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
     make_irreg[!compatible[, "resolution"]] <- TRUE
   }
   if (any(make_irreg)) {
-    funs <- map_at(
-      funs, which(make_irreg),
-      ~as.tfd_irreg(.)
-    )
+    funs <- map_at(funs, which(make_irreg), as.tfd_irreg)
   }
   if (!all(compatible[, "evaluator_name"])) {
     warning(
@@ -176,8 +170,7 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
   }
   ret <- flatten(funs)
   attributes(ret) <- attr_ret
-  names(ret) <- c_names(funs)
-  ret
+  setNames(ret, c_names(funs))
 }
 
 
@@ -288,17 +281,14 @@ vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {vec_ptype2_tfb_tfb(x, y, ...)
 #' @export
 vec_ptype2_tfb_tfb <- function(x, y, ...) {
   funs <- list(x, y)
-  compatible <- do.call(rbind, map(
-    funs,
-    ~compare_tf_attribs(funs[[1]], .)
-  ))
+  compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
   stopifnot(all(compatible[, "domain"]))
   
   if(inherits(funs[[1]], "tfb_spline")) {
     re_evals <- which(!compatible[, "arg"] |
                         !compatible[, "basis_args"])
     if (length(re_evals)) {
-      fun_names <- map(as.list(match.call())[-1], ~deparse(.)[1])
+      fun_names <- map(as.list(match.call())[-1], \(x) deparse(x)[1])
       warning(
         "re-evaluating ", paste(fun_names[re_evals], collapse = ", "),
         " using basis and arg of ", fun_names[1]
@@ -306,9 +296,9 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
       
       funs <- map_at(
         funs, re_evals,
-        ~do.call(
+        \(x) do.call(
           tfb,
-          flatten(list(list(.), # converts to tfb then back to tfd
+          flatten(list(list(x), # converts to tfb then back to tfd
                        arg = list(tf_arg(funs[[1]])),
                        attr(funs[[1]], "basis_args")
           ))

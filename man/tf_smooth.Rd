@@ -55,9 +55,9 @@ f_sg <- tf_smooth(f, "savgol", fl = 31)
 layout(t(1:4))
 plot(f, points = FALSE, main = "original")
 plot(f_lowess, points = FALSE, col = "blue", main = "lowess (default,\n span .9 in red)")
-lines(tf_smooth(f, "lowess", f = .9), col = "red", alpha= .2)
+lines(tf_smooth(f, "lowess", f = .9), col = "red", alpha = .2)
 plot(f_mean, points = FALSE, col = "blue", main = "rolling means &\n medians (red)")
-lines(f_median, col = "red", alpha= .2) # note constant extrapolation at both ends!
+lines(f_median, col = "red", alpha = .2) # note constant extrapolation at both ends!
 plot(f, points = FALSE, main = "orginal and\n savgol (red)")
 lines(f_sg, col = "red")
 }
