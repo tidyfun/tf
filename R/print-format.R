@@ -2,8 +2,8 @@ string_rep_tf <- function(f, signif_arg = NULL,
                           show = 3, digits = NULL, ...) {
   digits_eval <- digits %||% options()$digits
   digits_arg <- min(digits_eval, signif_arg %||% digits_eval)
-  arg_len <- map(ensure_list(tf_arg(f)), length)
-  show <- as.list(pmin(show, unlist(arg_len)))
+  arg_len <- lengths(ensure_list(tf_arg(f)))
+  show <- as.list(pmin(show, arg_len))
   # fix weird dots handling by map/format:
   format_args <- modifyList(
     tail(head(formals(format.default), -1), -1),
@@ -17,8 +17,12 @@ string_rep_tf <- function(f, signif_arg = NULL,
     tf_evaluations(f), show,
     \(x, y) do.call(format, c(format_args, list(x = x[1:y])))
   )
-  arg_nchar <- map_int(arg_ch, nchar) |> max()
-  value_nchar <- map_int(value_ch, nchar) |> max()
+  arg_nchar <- map(arg_ch, nchar) |>
+    unlist() |>
+    max()
+  value_nchar <- map(value_ch, nchar) |>
+    unlist() |>
+    max()
   # left-pad with spaces:
   arg_ch <- map(arg_ch, \(x) sprintf(paste0("%", arg_nchar, "s"), x))
   value_ch <- map(value_ch, \(x) sprintf(paste0("%", value_nchar, "s"), x))

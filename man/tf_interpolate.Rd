@@ -41,8 +41,8 @@ approaches in most cases.}
 }
 \examples{
 # thinning out a densely observed tfd
-(dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001)))
-(less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101)))
+dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001))
+less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))
 
 # filling out sparse data (use a suitable evaluator -function!)
 sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))

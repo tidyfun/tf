@@ -237,7 +237,7 @@ tfb_spline.list <- function(data, arg = NULL,
     } 
     stopifnot(
       !is.null(arg), length(arg) == length(data),
-      all(map_dbl(arg, length) == lens)
+      all(lengths(arg) == lens)
     )
     data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
   }
