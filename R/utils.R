@@ -37,16 +37,16 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
   }
 }
 
-.assert_arg_vector <- function(arg, domain_x,  resolution_x,  check_unique) {
+.assert_arg_vector <- function(arg, domain_x, resolution_x, check_unique) {
   if (check_unique) {
-    round_arg <- round_resolution(arg, tf_resolution(x))
+    round_arg <- round_resolution(arg, resolution_x)
     if (anyDuplicated(round_arg)) {
       stop("Non-unique arg-values (for resolution).")
     }
   }
   assert_numeric(arg,
-                 any.missing = FALSE, unique = FALSE,
-                 lower = domain_x[1], upper = domain_x[2]
+    any.missing = FALSE, unique = FALSE,
+    lower = domain_x[1], upper = domain_x[2]
   )
 }
 
