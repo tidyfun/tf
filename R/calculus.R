@@ -79,7 +79,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
     resolution = tf_resolution(f)
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
-  ret
+  setNames(ret, names(f))
 }
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing.
@@ -203,8 +203,10 @@ tf_integrate.tfd <- function(f, arg,
   if (definite) {
     map_dbl(quads, sum) |> setNames(names(f))
   } else {
+    data_list <- map(quads, cumsum)
+    names(data_list) <- names(f)
     tfd(
-      data = map(quads, cumsum), arg = unlist(arg), domain = as.numeric(limits),
+      data = data_list, arg = unlist(arg), domain = as.numeric(limits),
       resolution = tf_resolution(f), evaluator = tf_approx_linear
     )
   }
