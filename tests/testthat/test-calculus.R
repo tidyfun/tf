@@ -25,16 +25,19 @@ test_that("basic derivatives work", {
 
   expect_equal(tf_derive(cubic)[, dgrid], square[, dgrid], tolerance = .1)
   expect_equal(tf_derive(cubic_irreg)[, dgrid], square[, dgrid], tolerance = .1)
-  expect_equal(tf_derive(cubic_b)[, dgrid], square[, dgrid], tolerance = .1)
+  expect_equal(tf_derive(cubic_b)[, dgrid], square[, dgrid], tolerance = .1,
+               ignore_attr = TRUE)
   expect_equal(tf_derive(cubic, order = 2)[, dgrid], lin[, dgrid], tolerance = .1)
   expect_equal(tf_derive(cubic_irreg, order = 2)[, dgrid], lin[, dgrid], tolerance = .1)
-  expect_equal(tf_derive(cubic_b, order = 2)[, dgrid], lin[, dgrid], tolerance = .1)
+  expect_equal(tf_derive(cubic_b, order = 2)[, dgrid], lin[, dgrid], tolerance = .1,
+               ignore_attr = TRUE)
 })
 
 test_that("basic definite integration works", {
   expect_equal(tf_integrate(square), to^3 - from^3, tolerance = .1)
   expect_equal(tf_integrate(square_irreg), to^3 - from^3, tolerance = .1)
-  expect_equal(tf_integrate(square_b), to^3 - from^3, tolerance = .1)
+  expect_equal(tf_integrate(square_b), to^3 - from^3, tolerance = .1,
+               ignore_attr = TRUE)
 })
 
 test_that("basic antiderivatives work", {
@@ -48,7 +51,7 @@ test_that("basic antiderivatives work", {
   )
   expect_equal(tf_integrate(square_b, definite = FALSE)[, dgrid],
     cubic[, dgrid] - from^3,
-    tolerance = .1
+    tolerance = .1, ignore_attr = TRUE
   )
 })
 

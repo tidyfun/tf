@@ -19,6 +19,8 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
     } else {
       rep(unique_id(names(tf)) %||% seq_along(tf), times = n_evals)
     }
+  # factor id avoids reordering of rows in tfb_fpc constructor and elsewhere..
+  tmp$id <- factor(tmp$id, unique(tmp$id))
   tmp[, c("id", "arg", "value")]
 }
 

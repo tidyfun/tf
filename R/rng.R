@@ -64,6 +64,7 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
 
   cov <- outer(arg, arg, f_cov) + diag(0 * arg + nugget)
   y <- rmvnorm(n, mean = 0 * arg, sigma = cov)
+  rownames(y) <- 1:n
   tfd(y, arg = arg)
 }
 

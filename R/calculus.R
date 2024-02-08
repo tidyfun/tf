@@ -205,8 +205,10 @@ tf_integrate.tfd <- function(f, arg,
       unlist() |>
       setNames(names(f))
   } else {
+    data_list <- map(quads, cumsum)
+    names(data_list) <- names(f)
     tfd(
-      data = map(quads, cumsum), arg = unlist(arg), domain = as.numeric(limits),
+      data = data_list, arg = unlist(arg), domain = as.numeric(limits),
       resolution = tf_resolution(f), evaluator = tf_approx_linear
     )
   }

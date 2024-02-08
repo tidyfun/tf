@@ -1,6 +1,9 @@
 #' @import purrr
 new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
                     domain = NULL, evaluator, resolution = NULL) {
+  #FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
+  #created from an (intermediate) data.frame, but may be unnamed for different
+  #provenance....
   if (vctrs::vec_size(datalist) == 0) {
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
 
