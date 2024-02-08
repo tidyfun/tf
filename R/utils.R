@@ -126,7 +126,7 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
         identical(a, b, ignore.environment = TRUE)
       } else {
         if (is.list(a)) {
-          all(unlist(map2(a, ensure_list(b), .compare)))
+          all(map2_lgl(a, ensure_list(b), .compare))
         } else {
           isTRUE(all.equal(a, b))
         }

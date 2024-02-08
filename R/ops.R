@@ -116,7 +116,7 @@ Ops.tf <- function(e1, e2) {
   # not comparing names, as per convention...
   same <- all(compare_tf_attribs(e1, e2))
   if (!same) return(rep(FALSE, max(length(e1), length(e2))))
-  unlist(map2(e1, e2, \(x, y) isTRUE(all.equal(x, y))))
+  map2_lgl(e1, e2, \(x, y) isTRUE(all.equal(x, y)))
 }
 
 #' @rdname tfgroupgenerics

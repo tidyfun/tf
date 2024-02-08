@@ -72,10 +72,10 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
       index_list, eval_list,
       \(x, y) qr.coef(qr = qr(spec_object$X[x, ]), y = y)
     )
-    pve <- unlist(map2(
+    pve <- map2_dbl(
       index_list, eval_list,
       \(x, y) 1 - var(qr.resid(qr = qr(spec_object$X[x, ]), y = y)) / var(y)
-    ))
+    )
   }
   names(coef_list) <- levels(data$id)
   return(list(coef = coef_list, pve = pve))
@@ -142,8 +142,8 @@ fit_penalized_ls <- function(data, spec_object, arg_u, gam_args, regular) {
     )
     (y, x, spec_object, gam_args)
   )
-  sp <- unlist(map(ret, "sp"))
-  pve <- unlist(map(ret, "pve"))
+  sp <- map_dbl(ret, "sp")
+  pve <- map_dbl(ret, "pve")
   coef_list <- map(ret, "coef")
   names(coef_list) <- levels(data$id)
   return(list(coef = coef_list, pve = pve, sp = sp))
@@ -211,7 +211,7 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   )
   names(ret) <- levels(data$id)
   coef <- map(ret, "coef")
-  failed <- which(map_lgl(coef, \(x) any(is.na(x))))
+  failed <- keep(coef, \(x) any(is.na(x)))
   if (length(failed) > 0) {
     stop(
       "Basis representation failed for entries:\n ",
