@@ -1,7 +1,7 @@
 #' @importFrom stats var na.omit median gaussian
 #' @importFrom utils capture.output
-new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
-                           resolution = numeric(),
+new_tfb_spline <- function(data, domain = NULL, arg = NULL,
+                           resolution = NULL,
                            penalized = TRUE, global = FALSE,
                            verbose = TRUE, ...) {
 
@@ -9,9 +9,9 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 
     ret <- vctrs::new_vctr(
       data,
-      domain = domain,
-      arg = arg,
-      resolution = resolution,
+      domain = numeric(2),
+      arg = numeric(),
+      resolution = numeric(),
       family = character(),
       class = c("tfb_spline", "tfb", "tf"))
     return(ret)
