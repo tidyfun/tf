@@ -79,7 +79,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
     resolution = tf_resolution(f)
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
-  ret
+  setNames(ret, names(f))
 }
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing.
@@ -201,8 +201,7 @@ tf_integrate.tfd <- function(f, arg,
   evaluations <- tf_evaluate(f, arg)
   quads <- map2(arg, evaluations, \(x, y) quad_trapez(arg = x, evaluations = y))
   if (definite) {
-    map(quads, sum) |>
-      unlist() |>
+    map_dbl(quads, sum) |>
       setNames(names(f))
   } else {
     data_list <- map(quads, cumsum)
