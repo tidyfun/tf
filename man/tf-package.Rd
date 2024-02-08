@@ -6,20 +6,25 @@
 \alias{tf-package}
 \title{tf: S3 classes and methods for tidy functional data}
 \description{
-\code{tf} is a light-weight package with few dependencies that provides the class
-definitions and methods infrastructure for \code{tidyfun} -- \code{tf} gives you:
+\code{tf} is a light-weight package with few dependencies that
+provides the class definitions and methods infrastructure for \code{tidyfun} --
+\code{tf} gives you:
 \itemize{
-\item new S3 data types for representing (vectors of) functional data: \code{\link[=tfd]{tfd()}} & \code{\link[=tfb]{tfb()}}
+\item new S3 data types for representing (vectors of) functional data:
+\code{\link[=tfd]{tfd()}} & \code{\link[=tfb]{tfb()}}
 \item arithmetic operators for such data (\code{\link[=Ops.tf]{Ops.tf()}}),
 \item simple descriptive statistics: e.g. \code{\link[=mean.tf]{mean.tf()}}, \code{\link[=median.tf]{median.tf()}}
 \item base graphics functions for such data: \code{\link[=plot.tf]{plot.tf()}}
-\item functions to do smoothing (\code{\link[=tf_smooth.tfd]{tf_smooth.tfd()}}), differentiation \code{\link[=tf_derive.tfd]{tf_derive.tfd()}}) and integration (\code{\link[=tf_derive.tfd]{tf_derive.tfd()}})
-\cr\cr
-\code{tidyfun}'s goal is to make data wrangling and
-exploratory analysis for functional data in \code{R} quick and easy, using \code{tidyverse} syntax and standards. \cr\cr
-Please install \code{tidyfun} for the full functionality to access the full documentation including a number
-of vignettes and case studies, or visit the \href{https://tidyfun.github.io/tidyfun/}{\code{tidyfun} website}.
+\item functions to do smoothing (\code{\link[=tf_smooth.tfd]{tf_smooth.tfd()}}),
+differentiation \code{\link[=tf_derive.tfd]{tf_derive.tfd()}}) and integration (\code{\link[=tf_derive.tfd]{tf_derive.tfd()}})
 }
+
+The goal of the add-on package \code{tidyfun} is to make data wrangling and
+exploratory analysis for functional data in \code{R} quick and easy, using
+\code{tidyverse} syntax and standards. \cr\cr
+Please also install \code{tidyfun} for the full functionality to
+access the full documentation including a number of vignettes and case
+studies, or visit the \href{https://tidyfun.github.io/tidyfun/}{\code{tidyfun} website}.
 }
 \seealso{
 Useful links:

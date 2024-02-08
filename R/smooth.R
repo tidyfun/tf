@@ -4,8 +4,8 @@
 #'   filtering to smooth functional data. This does nothing for `tfb`-objects,
 #'   which should be smoothed by using a smaller basis / stronger penalty.
 #'
-#' @details `tf_smooth.tfd` overrides/automatically sets some defaults of the used
-#'   methods:
+#' @details `tf_smooth.tfd` overrides/automatically sets some defaults of the
+#'   used methods:
 #'
 #'   - **`lowess`** uses a span parameter of `f` = .15 (instead of .75)
 #'   by default.

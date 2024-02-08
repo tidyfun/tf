@@ -22,33 +22,37 @@ the \strong{\code{L}}...), creates a  regular grid of that length over (0,1).}
 
 \item{cov}{type of covariance function to use. Implemented defaults are
 \code{"squareexp"}, \code{"wiener"}, \code{"matern"}, see Description. Can also be any
-vectorized function returning \eqn{Cov(x(t), x(t'))} \emph{without nugget effect}
-for pairs of inputs t and t'.}
+vectorized function returning \eqn{Cov(x(t), x(t'))} \emph{without nugget
+effect} for pairs of inputs t and t'.}
 
 \item{scale}{scale parameter (see Description). Defaults to the width of the
 domain divided by 10.}
 
-\item{nugget}{nugget effect for additional white noise / unstructured variability.
-Defaults to \code{scale/200} (so: very little white noise).}
+\item{nugget}{nugget effect for additional white noise / unstructured
+variability. Defaults to \code{scale/200} (so: very little white noise).}
 
-\item{order}{order of the Matèrn covariance (if used, must be >0), defaults to 1.5.
-The higher, the smoother the process. Evaluation of the covariance function
-becomes numerically unstable for large (>20) \code{order}, use "squareexp".}
+\item{order}{order of the Matèrn covariance (if used, must be >0), defaults
+to 1.5. The higher, the smoother the process. Evaluation of the covariance
+function becomes numerically unstable for large (>20) \code{order}, use
+"squareexp".}
 }
 \value{
 an \code{tfd}-vector of length \code{n}
 }
 \description{
-Generates \code{n} realizations of a zero-mean Gaussian process.
-The function also accepts user-defined covariance functions (without "nugget" effect, see \code{cov}),
-The implemented defaults with \code{scale} parameter \eqn{\phi}, \code{order} \eqn{o} and \code{nugget} effect variance \eqn{\sigma^2} are:
+Generates \code{n} realizations of a zero-mean Gaussian process. The function also
+accepts user-defined covariance functions (without "nugget" effect, see
+\code{cov}), The implemented defaults with \code{scale} parameter \eqn{\phi}, \code{order}
+\eqn{o} and \code{nugget} effect variance \eqn{\sigma^2} are:
 \itemize{
 \item \emph{squared exponential} covariance \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
 \delta_{t}(t')}.
 \item \emph{Wiener} process covariance \eqn{Cov(x(t), x(t')) =
 \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matèrn} process} covariance \eqn{Cov(x(t), x(t')) =
-\tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{\phi})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + \sigma^2 \delta_{t}(t')}
+\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matèrn} process}
+covariance \eqn{Cov(x(t), x(t')) =
+\tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
++ \sigma^2 \delta_{t}(t')}
 }
 }
 \seealso{

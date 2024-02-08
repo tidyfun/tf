@@ -90,29 +90,31 @@ tfb_spline(data, ...)
 \code{tf}-object containing functional data.}
 
 \item{...}{arguments to the calls to \code{\link[mgcv:s]{mgcv::s()}} setting up the basis and
-\code{\link[mgcv:magic]{mgcv::magic()}} or \code{\link[mgcv:gam.fit]{mgcv::gam.fit()}} (if \code{penalized} is TRUE). If not user-specified here,
-this uses \code{k = 25} cubic regression spline basis functions
-(i.e., \code{bs = "cr"}) by default, but should be set appropriately by the user.}
+\code{\link[mgcv:magic]{mgcv::magic()}} or \code{\link[mgcv:gam.fit]{mgcv::gam.fit()}} (if \code{penalized} is TRUE). If not
+user-specified here, this uses \code{k = 25} cubic regression spline basis
+functions (i.e., \code{bs = "cr"}) by default, but should be set appropriately
+by the user.}
 
-\item{id}{The name or number of the column defining which data belong to which function.}
+\item{id}{The name or number of the column defining which data belong to
+which function.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details on its
-interplay with \code{resolution}.
-For the \code{data.frame}-method: the name/number of the column defining the
-evaluation grid. The \code{matrix} method will try to guess suitable \code{arg}-values
-from the column names of \code{data} if \code{arg} is not supplied. Other methods fall back on
-integer sequences (\verb{1:<length of data>}) as the default if not provided.}
+\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details
+on its interplay with \code{resolution}. For the \code{data.frame}-method: the
+name/number of the column defining the evaluation grid. The \code{matrix} method
+will try to guess suitable \code{arg}-values from the column names of \code{data} if
+\code{arg} is not supplied. Other methods fall back on integer sequences
+(\verb{1:<length of data>}) as the default if not provided.}
 
-\item{value}{The name or number of the column containing the function evaluations.}
+\item{value}{The name or number of the column containing the function
+evaluations.}
 
 \item{domain}{range of the \code{arg}.}
 
 \item{penalized}{should the coefficients of the basis representation be estimated
 via \code{\link[mgcv:magic]{mgcv::magic()}} (default) or ordinary least squares.}
 
-\item{global}{Defaults to \code{FALSE}.
-If \code{TRUE} and \code{penalized = TRUE}, all functions share the same smoothing
-parameter (see Details).}
+\item{global}{Defaults to \code{FALSE}. If \code{TRUE} and \code{penalized = TRUE}, all
+functions share the same smoothing parameter (see Details).}
 
 \item{resolution}{resolution of the evaluation grid. See details for \code{\link[=tfd]{tfd()}}.}
 }
@@ -123,20 +125,20 @@ a \code{tfb}-object
 Represent curves as a weighted sum of spline basis functions.
 }
 \details{
-The basis to be used is set up via a call to \code{\link[mgcv:s]{mgcv::s()}} and all the spline bases
-discussed in \code{\link[mgcv:smooth.terms]{mgcv::smooth.terms()}} are available, in principle. Depending on
-the value of the \code{penalized}- and \code{global}-flags, the coefficient vectors for each
-observation are then estimated via fitting a GAM
-(separately for each observation, if \code{!global})
-via \code{\link[mgcv:magic]{mgcv::magic()}} (least square error, the default)
-or \code{\link[mgcv:gam]{mgcv::gam()}} (if a \code{family} argument was supplied) or
-unpenalized least squares / maximum likelihood.
+The basis to be used is set up via a call to \code{\link[mgcv:s]{mgcv::s()}} and all the spline
+bases discussed in \code{\link[mgcv:smooth.terms]{mgcv::smooth.terms()}} are available, in principle.
+Depending on the value of the \code{penalized}- and \code{global}-flags, the
+coefficient vectors for each observation are then estimated via fitting a GAM
+(separately for each observation, if \code{!global}) via \code{\link[mgcv:magic]{mgcv::magic()}} (least
+square error, the default) or \code{\link[mgcv:gam]{mgcv::gam()}} (if a \code{family} argument was
+supplied) or unpenalized least squares / maximum likelihood.
 
 After the "smoothed" representation is computed, the amount of smoothing that
-was performed is reported in terms of the "percentage of variability preserved",
-which is the variance (explained deviance, in the general case) of the smoothed function values divided by the variance
-of the original values (null deviance, in the general case).
-Reporting can be switched off with \code{verbose = FALSE}.
+was performed is reported in terms of the "percentage of variability
+preserved", which is the variance (i.e, explained deviance, in the general
+case) of the smoothed function values divided by the variance of the original
+values (null deviance, in the general case). Reporting can be switched off
+with \code{verbose = FALSE}.
 
 The \code{...} arguments supplies arguments to both the
 spline basis (via \code{\link[mgcv:s]{mgcv::s()}}) and the estimation (via
@@ -178,7 +180,8 @@ at once might yield better results, this is \emph{not} what's implemented here.
 
 \item \code{tfb_spline(tfb)}: convert \code{tfb}: modify basis representation, smoothing.
 
-\item \code{tfb_spline(default)}: convert \code{tfb}: default method, returning prototype when data is missing
+\item \code{tfb_spline(default)}: convert \code{tfb}: default method, returning prototype
+when data is missing
 
 }}
 \seealso{

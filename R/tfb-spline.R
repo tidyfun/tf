@@ -1,23 +1,23 @@
 #' @importFrom stats var na.omit median gaussian
 #' @importFrom utils capture.output
-new_tfb_spline <- function(data, domain = numeric(), arg = numeric(), 
+new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
                            resolution = numeric(),
                            penalized = TRUE, global = FALSE,
                            verbose = TRUE, ...) {
-  
+
   if (vctrs::vec_size(data) == 0) {
-    
+
     ret <- vctrs::new_vctr(
       data,
       domain = domain,
-      arg = arg, 
+      arg = arg,
       resolution = resolution,
-      family = character(), 
-      class = c("tfb_spline", "tfb", "tf"))  
+      family = character(),
+      class = c("tfb_spline", "tfb", "tf"))
     return(ret)
-    
+
   }
-  
+
   domain <- domain %||% range(data$arg)
   arg_u <- mgcv::uniquecombs(data$arg, ordered = TRUE)
   resolution <- resolution %||% get_resolution(arg_u)
@@ -25,7 +25,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
               round_resolution(domain[2], resolution, 1))
   # explicit factor-conversion to avoid reordering:
   data$id <- factor(data$id, levels = unique(as.character(data$id)))
-  
+
   s_args <- list(...)[names(list(...)) %in% names(formals(mgcv::s))]
   if (!("bs" %in% names(s_args))) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
@@ -34,35 +34,35 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
     s_args$bs <- "cr"
   }
   if (!("k" %in% names(s_args))) s_args$k <- min(25, nrow(arg_u))
-  gam_args <- list(...)[names(list(...)) %in% 
-                          c(names(formals(mgcv::gam)), 
+  gam_args <- list(...)[names(list(...)) %in%
+                          c(names(formals(mgcv::gam)),
                             names(formals(mgcv::bam)))]
   if (!("sp" %in% names(gam_args))) gam_args$sp <- -1
-  
+
   n_evaluations <- table(data$id)
   arg_list <- split(data$arg, data$id)
   regular <- all(duplicated(arg_list)[-1])
 
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
-  spec_object <- smooth.construct(s_spec, data = data.frame(arg = arg_u$x), 
+  spec_object <- smooth.construct(s_spec, data = data.frame(arg = arg_u$x),
                                   knots = NULL)
   spec_object$call <- s_call
-  
+
   if (is.null(gam_args$family)) {
     gam_args$family <- gaussian()
-  } 
+  }
   if (is.character(gam_args$family)) {
-    gam_args$family <- get(gam_args$family, mode = "function", 
+    gam_args$family <- get(gam_args$family, mode = "function",
                            envir = parent.frame())
   }
   if (is.function(gam_args$family)) {
     gam_args$family <- gam_args$family()
   }
 
-  ls_fit <- gam_args$family$family == "gaussian" & 
+  ls_fit <- gam_args$family$family == "gaussian" &
     gam_args$family$link == "identity"
-  
+
   if (!penalized) {
     underdetermined <- n_evaluations <= spec_object$bs.dim
     if (any(underdetermined)) {
@@ -70,11 +70,11 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
            sum(underdetermined), " functions.",
            " Use penalized = TRUE or reduce k for spline interpolation.")
     }
-    fit <- 
-      fit_unpenalized(data = data, spec_object = spec_object, arg_u = arg_u, 
+    fit <-
+      fit_unpenalized(data = data, spec_object = spec_object, arg_u = arg_u,
                       gam_args = gam_args, regular = regular, ls_fit = ls_fit)
   } else {
-    fit <- 
+    fit <-
       fit_penalized(data = data, spec_object = spec_object, arg_u = arg_u,
                     gam_args = gam_args, regular = regular, global = global,
                     ls_fit = ls_fit)
@@ -101,7 +101,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
       pve_summary[2]
     )
   }
-  
+
   basis_constructor <- smooth_spec_wrapper(spec_object)
   ret <- vctrs::new_vctr(fit[["coef"]],
                    domain = domain,
@@ -121,28 +121,28 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 #-------------------------------------------------------------------------------
 
 #' Spline-based representation of functional data
-#' 
+#'
 #' Represent curves as a weighted sum of spline basis functions.
-#' 
-#' The basis to be used is set up via a call to [mgcv::s()] and all the spline bases
-#' discussed in [mgcv::smooth.terms()] are available, in principle. Depending on
-#' the value of the `penalized`- and `global`-flags, the coefficient vectors for each
-#' observation are then estimated via fitting a GAM 
-#' (separately for each observation, if `!global`)
-#' via [mgcv::magic()] (least square error, the default) 
-#' or [mgcv::gam()] (if a `family` argument was supplied) or 
-#' unpenalized least squares / maximum likelihood. 
+#'
+#' The basis to be used is set up via a call to [mgcv::s()] and all the spline
+#' bases discussed in [mgcv::smooth.terms()] are available, in principle.
+#' Depending on the value of the `penalized`- and `global`-flags, the
+#' coefficient vectors for each observation are then estimated via fitting a GAM
+#' (separately for each observation, if `!global`) via [mgcv::magic()] (least
+#' square error, the default) or [mgcv::gam()] (if a `family` argument was
+#' supplied) or unpenalized least squares / maximum likelihood.
 #'
 #' After the "smoothed" representation is computed, the amount of smoothing that
-#' was performed is reported in terms of the "percentage of variability preserved",
-#' which is the variance (explained deviance, in the general case) of the smoothed function values divided by the variance
-#' of the original values (null deviance, in the general case). 
-#' Reporting can be switched off with `verbose = FALSE`.
-#' 
+#' was performed is reported in terms of the "percentage of variability
+#' preserved", which is the variance (i.e, explained deviance, in the general
+#' case) of the smoothed function values divided by the variance of the original
+#' values (null deviance, in the general case). Reporting can be switched off
+#' with `verbose = FALSE`.
+#'
 #' The `...` arguments supplies arguments to both the
 #' spline basis (via [mgcv::s()]) and the estimation (via
-#' [mgcv::magic()] or [mgcv::gam()]), most important:  
-#' 
+#' [mgcv::magic()] or [mgcv::gam()]), most important:
+#'
 #' - how many basis functions `k` the spline basis should have, the default is
 #' 25.
 #' - which type of spline basis `bs` should be used, the default is cubic
@@ -150,8 +150,8 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 #' which squared errors are not a reasonable criterion for the representation
 #' accuracy (see [mgcv::family.mgcv()] for what's available).
 #' - an `sp`-argument for manually fixing the amount of smoothing (see
-#' [mgcv::s()]), which (drastically) reduces the computation time. 
-#' 
+#' [mgcv::s()]), which (drastically) reduces the computation time.
+#'
 #' If **`global == TRUE`**, the routine first takes a subset of curves (10\% of
 #' curves sampled deterministically, at most 100, at least 5) on which smoothing
 #' parameters per curve are estimated and then uses the mean of the log
@@ -159,17 +159,17 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
 #' optimizing the smoothing parameter for each curve on large datasets. For very
 #' sparse data, estimating a common smoothing parameter directly for all curves
 #' at once might yield better results, this is *not* what's implemented here.
-#' 
-#' @param global Defaults to `FALSE`. 
-#' If `TRUE` and `penalized = TRUE`, all functions share the same smoothing
-#'   parameter (see Details).
+#'
+#' @param global Defaults to `FALSE`. If `TRUE` and `penalized = TRUE`, all
+#'   functions share the same smoothing parameter (see Details).
 #' @param ...  arguments to the calls to [mgcv::s()] setting up the basis and
-#'   [mgcv::magic()] or [mgcv::gam.fit()] (if `penalized` is TRUE). If not user-specified here,
-#'   this uses `k = 25` cubic regression spline basis functions 
-#'   (i.e., `bs = "cr"`) by default, but should be set appropriately by the user.
+#'   [mgcv::magic()] or [mgcv::gam.fit()] (if `penalized` is TRUE). If not
+#'   user-specified here, this uses `k = 25` cubic regression spline basis
+#'   functions (i.e., `bs = "cr"`) by default, but should be set appropriately
+#'   by the user.
 #' @inheritParams tfb
 #' @returns a `tfb`-object
-#' @seealso [mgcv::smooth.terms()] for spline basis options. 
+#' @seealso [mgcv::smooth.terms()] for spline basis options.
 #' @family tfb-class
 #' @family tfb_spline-class
 tfb_spline <- function(data, ...) UseMethod("tfb_spline")
@@ -180,7 +180,7 @@ tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 #' @inheritParams tfd.data.frame
 #' @describeIn tfb_spline convert data frames
 tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
-                                  domain = NULL, penalized = TRUE, 
+                                  domain = NULL, penalized = TRUE,
                                   global = FALSE, resolution = NULL, ...) {
   data <- df_2_df(data, id = id, arg = arg, value = value)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
@@ -193,11 +193,11 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
 #' @export
 #' @describeIn tfb_spline convert matrices
 tfb_spline.matrix <- function(data, arg = NULL,
-                              domain = NULL, penalized = TRUE, 
+                              domain = NULL, penalized = TRUE,
                               global = FALSE, resolution = NULL, ...) {
   if (is.null(arg)) arg <- unlist(find_arg(data, arg))
-  names_data <- rownames(data) 
-  
+  names_data <- rownames(data)
+
   data <- mat_2_df(data, arg)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
                         global = global, resolution = resolution, ...)
@@ -209,7 +209,7 @@ tfb_spline.matrix <- function(data, arg = NULL,
 #' @export
 #' @describeIn tfb_spline convert matrices
 tfb_spline.numeric <- function(data, arg = NULL,
-                               domain = NULL, penalized = TRUE, 
+                               domain = NULL, penalized = TRUE,
                                global = FALSE, resolution = NULL, ...) {
   data <- t(as.matrix(data))
   tfb_spline(data = data, arg = arg, domain = domain, penalized = penalized,
@@ -219,22 +219,22 @@ tfb_spline.numeric <- function(data, arg = NULL,
 
 #' @export
 #' @describeIn tfb_spline convert lists
-tfb_spline.list <- function(data, arg = NULL, 
-                            domain = NULL, penalized = TRUE, 
+tfb_spline.list <- function(data, arg = NULL,
+                            domain = NULL, penalized = TRUE,
                             global = FALSE, resolution = NULL, ...) {
   vectors <- map_lgl(data, is.numeric)
   stopifnot(all(vectors) | !any(vectors))
-  
-  names_data <- names(data) 
-  
+
+  names_data <- names(data)
+
   if (all(vectors)) {
     lens <- lengths(data)
     if (all(lens == lens[1])) {
       data <- do.call(rbind, data)
       # dispatch to matrix method
-      return(tfb_spline(data, arg, domain = domain, penalized = penalized, 
+      return(tfb_spline(data, arg, domain = domain, penalized = penalized,
                  global = global, resolution = resolution, ...))
-    } 
+    }
     stopifnot(
       !is.null(arg), length(arg) == length(data),
       all(map_dbl(arg, length) == lens)
@@ -246,12 +246,13 @@ tfb_spline.list <- function(data, arg = NULL,
     all(lengths(dims) == 2), all(map(dims, \(x) x[2]) == 2),
     all(rapply(data, is.numeric))
   )
-  n_evals <- map(dims, 1) 
+  n_evals <- map(dims, 1)
   tmp <- do.call(rbind, data)
-  tmp <- cbind(rep(unique_id(names(data)) %||% seq_along(data), times = n_evals), 
-               tmp)  
+  tmp <- cbind(
+    rep(unique_id(names(data)) %||% seq_along(data), times = n_evals),
+    tmp)
   # dispatch to data.frame method
-  ret <- tfb_spline(tmp, domain = domain, penalized = penalized, 
+  ret <- tfb_spline(tmp, domain = domain, penalized = penalized,
              global = global, resolution = resolution, ...)
   setNames(ret, names_data)
 }
@@ -260,22 +261,23 @@ tfb_spline.list <- function(data, arg = NULL,
 #' @export
 #' @describeIn tfb_spline convert `tfd` (raw functional data)
 tfb_spline.tfd <- function(data, arg = NULL,
-                           domain = NULL, penalized = TRUE, 
+                           domain = NULL, penalized = TRUE,
                            global = FALSE, resolution = NULL, ...) {
   arg <- arg %||% tf_arg(data)
   domain <- domain %||% tf_domain(data)
   resolution <- resolution %||% tf_resolution(data)
 
   tmp <- tf_2_df(data, arg)
-  ret <- tfb_spline(tmp, domain = domain, 
-                    penalized = penalized, global = global, resolution = resolution, ...)
+  ret <- tfb_spline(tmp, domain = domain,
+                    penalized = penalized, global = global,
+                    resolution = resolution, ...)
   setNames(ret, names(data))
 }
 
 #' @export
 #' @describeIn tfb_spline convert `tfb`: modify basis representation, smoothing.
 tfb_spline.tfb <- function(data, arg = NULL,
-                           domain = NULL, penalized = TRUE, 
+                           domain = NULL, penalized = TRUE,
                            global = FALSE, resolution = NULL, ...) {
   arg <- arg %||% tf_arg(data)
   resolution <- resolution %||% tf_resolution(data)
@@ -288,32 +290,36 @@ tfb_spline.tfb <- function(data, arg = NULL,
   if (vctrs::vec_size(data) == 0){
     #data = rep(0, )
     # maybe try to make an empty vector that won't break anything like matrix algebra?
-    
-    ret <- new_tfb_spline(data, arg = arg, domain = domain, penalized = penalized,
-                          global = global, resolution = resolution, s_args)
+
+    ret <- new_tfb_spline(data, arg = arg, domain = domain,
+                          penalized = penalized, global = global,
+                          resolution = resolution, s_args)
   } else {
     data <- tf_2_df(data, arg = arg)
     ret <- do.call("tfb_spline", c(list(data),
                                    domain = domain, global = global,
-                                   penalized = penalized, resolution = resolution, s_args
+                                   penalized = penalized,
+                                   resolution = resolution, s_args
     ))
   }
-  
+
   setNames(ret, names_data)
 }
 
 #' @export
-#' @describeIn tfb_spline convert `tfb`: default method, returning prototype when data is missing
+#' @describeIn tfb_spline convert `tfb`: default method, returning prototype
+#'   when data is missing
 tfb_spline.default <- function(data, arg = NULL,
-                               domain = NULL, penalized = TRUE, 
+                               domain = NULL, penalized = TRUE,
                                global = FALSE, resolution = NULL, ...) {
-  
+
   if (!missing(data)) {
-    message("input `data` not from a recognized class; returning prototype of length 0")
+    message("input `data` not from a recognized class;
+            returning prototype of length 0")
   }
-  
+
   data <- data.frame()
   new_tfb_spline(data, domain = domain, penalized = penalized,
                  global = global, resolution = resolution, ...)
-  
+
 }

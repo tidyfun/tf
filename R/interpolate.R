@@ -3,13 +3,13 @@
 #' @description Change the internal representation of a `tf`-object so that it
 #' uses a different grid of evaluation points (`arg`). Useful for
 #'
-#' - thinning out dense grids to make data smaller 
-#' - filling out sparse grids to make derivatives/integrals and locating extrema or zero crossings more
-#' accurate (... *if* the interpolation works well ...) 
-#' - making irregular functional data into (more) regular data. 
+#' - thinning out dense grids to make data smaller
+#' - filling out sparse grids to make derivatives/integrals and locating extrema
+#'  or zero crossings more accurate (... *if* the interpolation works well ...)
+#' - making irregular functional data into (more) regular data.
 #'
 #' This is really just syntactic sugar for `tf<d|b>(object, arg = arg)`.
-#' **To reliably impute very irregular data on a regular, common grid, 
+#' **To reliably impute very irregular data on a regular, common grid,
 #' you'll be better off doing FPCA-based imputation or other model-based
 #' approaches in most cases.**
 #'
@@ -36,7 +36,7 @@
 #' set.seed(1860)
 #' (sparse_irregular <- tf_rgp(5) |>  tf_sparsify(.5) |> tf_jiggle())
 #' tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
-#' 
+#'
 tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 
 #' @export

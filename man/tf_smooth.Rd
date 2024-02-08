@@ -30,8 +30,8 @@ filtering to smooth functional data. This does nothing for \code{tfb}-objects,
 which should be smoothed by using a smaller basis / stronger penalty.
 }
 \details{
-\code{tf_smooth.tfd} overrides/automatically sets some defaults of the used
-methods:
+\code{tf_smooth.tfd} overrides/automatically sets some defaults of the
+used methods:
 \itemize{
 \item \strong{\code{lowess}} uses a span parameter of \code{f} = .15 (instead of .75)
 by default.

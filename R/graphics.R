@@ -1,5 +1,5 @@
-#' Preprocess evaluation grid for plotting 
-#' 
+#' Preprocess evaluation grid for plotting
+#'
 #' (internal function exported for re-use in upstream packages)
 #' @param f a `tf`-object
 #' @param n_grid length of evaluation grid
@@ -32,7 +32,8 @@ prep_plotting_arg <- function(f, n_grid) {
 #' `n_grid = NA`.
 #'
 #' @param x an `tf` object
-#' @param y (optional) numeric vector to be used as `arg` (i.e., for the **x**-axis...!)
+#' @param y (optional) numeric vector to be used as `arg`
+#'   (i.e., for the **x**-axis...!)
 #' @param n_grid minimal size of equidistant grid used for plotting,
 #'   defaults to 50. See details.
 #' @param points should the original evaluation points be marked by points?
@@ -40,7 +41,8 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @param type "spaghetti": line plots, "lasagna": heat maps.
 #' @param alpha alpha-value (see[grDevices::rgb()]) for noodle transparency.
 #'   Defaults to 2/(no. of observations). Lower is more transparent.
-#' @param ... additional arguments for [matplot()] ("spaghetti") or [image()] ("lasagna")
+#' @param ... additional arguments for [matplot()] ("spaghetti") or
+#'   [image()] ("lasagna")
 #' @returns the plotted `tf`-object, invisibly.
 #' @importFrom utils modifyList
 #' @importFrom graphics matplot image axis
@@ -48,10 +50,11 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @rdname tfviz
 #' @family tidyfun visualization
 #' @export
-#' @references Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B. S., & Punjabi, N. M. (2010).
-#' Lasagna plots: a saucy alternative to spaghetti plots. *Epidemiology (Cambridge, Mass.)*, **21**(5), 621-625.
+#' @references Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B.
+#'   S., & Punjabi, N. M. (2010). Lasagna plots: a saucy alternative to
+#'   spaghetti plots. *Epidemiology (Cambridge, Mass.)*, **21**(5), 621-625.
 plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
-                    type = c("spaghetti", "lasagna"), 
+                    type = c("spaghetti", "lasagna"),
                     alpha = min(1, max(.05, 2 / length(x))), ...) {
   type <- match.arg(type)
   assert_logical(points)
@@ -81,7 +84,7 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
     if (points) {
       pointsargs <- modifyList(
         list(
-          x = x, 
+          x = x,
           n_grid = NA, points = TRUE, interpolate = FALSE,
           pch = 19, ol = rgb(0, 0, 0, alpha)
         ),
@@ -108,7 +111,7 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
 
 #' @importFrom graphics matlines
 linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
-                           alpha = min(1, max(.05, 2 / length(x))), 
+                           alpha = min(1, max(.05, 2 / length(x))),
                            interpolate = TRUE, ...) {
   assert_number(n_grid, na.ok = TRUE)
   if (missing(arg)) {
@@ -155,7 +158,7 @@ lines.tf <- function(x, arg, n_grid = 50,
 #'   for arg for which no original data is available? Only relevant for
 #'   tfd, defaults to FALSE
 points.tf <- function(x, arg, n_grid = NA,
-                      alpha = min(1, max(.05, 2 / length(x))), 
+                      alpha = min(1, max(.05, 2 / length(x))),
                       interpolate = FALSE, ...) {
   args <- c(modifyList(
     head(formals(points.tf), -1),

@@ -1,8 +1,9 @@
 #' Eigenfunctions via weighted SVD
-#' 
+#'
 #' Compute (truncated) orthonormal eigenfunctions and scores
 #' for data potentially on a non-equidistant grid.
-#' @param data numeric matrix of function evaluations (each row is one curve, no NAs)
+#' @param data numeric matrix of function evaluations
+#'   (each row is one curve, no NAs)
 #' @param arg numeric vector of argument values
 #' @param pve percentage of variance explained
 #' @returns a list with entries
@@ -11,8 +12,8 @@
 #' - `scores` estimated FPC scores (one row per observed curve)
 #' - `npc` how many FPCs were returned for the given `pve` (integer)
 #' @references code adapted from / inspired by `wsvd()` function of Bioconductor
-#'   package `mogsa` by Cheng Meng. 
-#' @author Cheng Meng, Fabian Scheipl   
+#'   package `mogsa` by Cheng Meng.
+#' @author Cheng Meng, Fabian Scheipl
 #' @family tfb-class
 #' @family tfb_fpc-class
 fpc_wsvd <- function(data, arg, pve = .995) {
@@ -20,9 +21,9 @@ fpc_wsvd <- function(data, arg, pve = .995) {
 }
 #' @rdname fpc_wsvd
 #' @importFrom utils head tail
-#' @export  
-fpc_wsvd.matrix <- function(data, arg, pve = .995) {  
-  assert_matrix(data, mode = "numeric", any.missing = FALSE, 
+#' @export
+fpc_wsvd.matrix <- function(data, arg, pve = .995) {
+  assert_matrix(data, mode = "numeric", any.missing = FALSE,
                 min.cols = 2, min.rows = 1)
   assert_numeric(arg, any.missing = FALSE, sorted = TRUE, len = ncol(data))
   assert_number(pve, lower = 0, upper = 1)
@@ -45,7 +46,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = .995) {
 }
 #' @rdname fpc_wsvd
 #' @export
-fpc_wsvd.data.frame <- function(data, arg, pve = .995) { 
+fpc_wsvd.data.frame <- function(data, arg, pve = .995) {
   data_mat <- df_2_mat(data)
   fpc_wsvd.matrix(data_mat, arg = attr(data_mat, "arg"), pve = pve)
 }

@@ -40,7 +40,8 @@ quad_trapez <- function(arg, evaluations) {
 #' @param arg grid to use for the finite differences.
 #'   Not the `arg` of the returned object for `tfd`-inputs, see Details.
 #' @param ... not used
-#' @returns a `tf` (with slightly different `arg` or `basis` for the derivatives, see Details)
+#' @returns a `tf` (with slightly different `arg` or `basis` for the
+#'   derivatives, see Details)
 #' @export
 #' @family tidyfun calculus functions
 tf_derive <- function(f, arg, order = 1, ...) UseMethod("tf_derive")
@@ -63,10 +64,9 @@ tf_derive.matrix <- function(f, arg, order = 1, ...) {
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing.
 tf_derive.tfd <- function(f, arg, order = 1, ...) {
-  # TODO: should this interpolate back to the original grid?
-  # shortens the domain (slightly), for now.
-  # this is necessary so that we don't get NAs when trying to evaluate derivs over
-  # their default domain etc.
+  # TODO: should this interpolate back to the original grid? shortens the domain
+  # (slightly), for now. this is necessary so that we don't get NAs when trying
+  # to evaluate derivs over their default domain etc.
   if (is_irreg(f)) {
     warning("Differentiating over irregular grids can be unstable.")
   }
@@ -161,14 +161,16 @@ tf_integrate <- function(f, arg, lower, upper, ...) {
 #' @export
 tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
 #' @rdname tf_integrate
-#' @description `tf_integrate.function` integrates R-functions (a wrapper for [stats::integrate()])
+#' @description `tf_integrate.function` integrates R-functions (a wrapper for
+#'   [stats::integrate()])
 #' @export
 tf_integrate.function <- function(f, arg, lower, upper, ...) {
   stats::integrate(f, lower, upper, ...)
 }
 #' @rdname tf_integrate
 #' @export
-tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(f)[2],
+tf_integrate.tfd <- function(f, arg,
+                             lower = tf_domain(f)[1], upper = tf_domain(f)[2],
                              definite = TRUE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(f)
@@ -217,7 +219,8 @@ tf_integrate.tfd <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(
 }
 #' @rdname tf_integrate
 #' @export
-tf_integrate.tfb <- function(f, arg, lower = tf_domain(f)[1], upper = tf_domain(f)[2],
+tf_integrate.tfb <- function(f, arg,
+                             lower = tf_domain(f)[1], upper = tf_domain(f)[2],
                              definite = TRUE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(f)

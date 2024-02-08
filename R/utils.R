@@ -148,7 +148,8 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
 #'  the numeric vector `f` that are within the range of values in `r`.
 #'
 #' @param f a numeric vector
-#' @param r numeric vector used to specify a range, only the minimum and maximum of `r` are used.
+#' @param r numeric vector used to specify a range, only the minimum and maximum
+#'   of `r` are used.
 #' @returns a `logical` vector of the same length as `f`
 #' @family tidyfun utility functions
 #' @export

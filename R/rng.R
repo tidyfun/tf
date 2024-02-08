@@ -1,14 +1,17 @@
 #' Gaussian Process random generator
 #'
-#' Generates `n` realizations of a zero-mean Gaussian process.
-#' The function also accepts user-defined covariance functions (without "nugget" effect, see `cov`),
-#' The implemented defaults with `scale` parameter \eqn{\phi}, `order` \eqn{o} and `nugget` effect variance \eqn{\sigma^2} are:
+#' Generates `n` realizations of a zero-mean Gaussian process. The function also
+#' accepts user-defined covariance functions (without "nugget" effect, see
+#' `cov`), The implemented defaults with `scale` parameter \eqn{\phi}, `order`
+#' \eqn{o} and `nugget` effect variance \eqn{\sigma^2} are:
 #' - *squared exponential* covariance \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
 #' \delta_{t}(t')}.
 #' - *Wiener* process covariance \eqn{Cov(x(t), x(t')) =
 #' \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition) covariance \eqn{Cov(x(t), x(t')) =
-#' \tfrac{2^{1-o}}{\Gamma(o)}(\tfrac{\sqrt{2o}|t-t'|}{\phi})^o\text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s}) + \sigma^2 \delta_{t}(t')}
+#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition)
+#' covariance \eqn{Cov(x(t), x(t')) =
+#' \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
+#' + \sigma^2 \delta_{t}(t')}
 #'
 #' @param n how many realizations to draw
 #' @param arg vector of evaluation points (`arg` of the return object). Defaults
@@ -18,13 +21,14 @@
 #'   domain divided by 10.
 #' @param cov type of covariance function to use. Implemented defaults are
 #'   `"squareexp"`, `"wiener"`, `"matern"`, see Description. Can also be any
-#'     vectorized function returning \eqn{Cov(x(t), x(t'))} *without nugget effect*
-#'     for pairs of inputs t and t'.
-#' @param nugget nugget effect for additional white noise / unstructured variability.
-#'  Defaults to `scale/200` (so: very little white noise).
-#' @param order order of the Matèrn covariance (if used, must be >0), defaults to 1.5.
-#'     The higher, the smoother the process. Evaluation of the covariance function
-#'     becomes numerically unstable for large (>20) `order`, use "squareexp".
+#'   vectorized function returning \eqn{Cov(x(t), x(t'))} *without nugget
+#'   effect* for pairs of inputs t and t'.
+#' @param nugget nugget effect for additional white noise / unstructured
+#'   variability. Defaults to `scale/200` (so: very little white noise).
+#' @param order order of the Matèrn covariance (if used, must be >0), defaults
+#'   to 1.5. The higher, the smoother the process. Evaluation of the covariance
+#'   function becomes numerically unstable for large (>20) `order`, use
+#'   "squareexp".
 #' @returns an `tfd`-vector of length `n`
 #' @importFrom mvtnorm rmvnorm
 #' @export
@@ -38,7 +42,8 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
       "squareexp" = function(s, t) exp(-(s - t)^2 / scale),
       "matern" = function(s, t) {
         r <- sqrt(2 * order) * abs(s - t) / scale
-        cov <- 2^(1 - order) / gamma(order) * r^order * base::besselK(r, nu = order)
+        cov <- 2^(1 - order) / gamma(order) * r^order *
+          base::besselK(r, nu = order)
         cov[s == t] <- 1
         cov
       }
@@ -69,9 +74,10 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
 #' **sparsify** it by setting (100*`dropout`)% of its values to `NA`.
 #'
 #' @param f a `tfd` object
-#' @param amount how far away from original grid points can the new
-#' grid points lie, at most (relative to original distance to neighboring grid points).
-#' Defaults to at most 40% (0.4) of the original grid distances. Must be lower than 0.5
+#' @param amount how far away from original grid points can the new grid points
+#'   lie, at most (relative to original distance to neighboring grid points).
+#'   Defaults to at most 40% (0.4) of the original grid distances. Must be lower
+#'   than 0.5
 #' @returns an (irregular) `tfd` object
 #' @importFrom stats runif
 #' @export

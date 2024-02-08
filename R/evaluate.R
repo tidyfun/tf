@@ -1,19 +1,20 @@
 #' Evaluate `tf`-vectors for given argument values
-#' 
+#'
 #' Also used internally by the `[`-operator for `tf` data (see `?tfbrackets`) to
-#' evaluate `object`, see examples. 
+#' evaluate `object`, see examples.
 #'
 #' @param object a `tf`, or a `data.frame`-like object with `tf` columns.
 #' @param arg optional evaluation grid (vector or list of vectors).
 #'   Defaults to `tf_arg(object)`, implicitly.
-#' @param evaluator optional. The function to use for inter/extrapolating the `tfd`.
-#'   Defaults to `tf_evaluator(object)`. See e.g. [tf_approx_linear()] for details.
+#' @param evaluator optional. The function to use for inter/extrapolating the
+#'  `tfd`. Defaults to `tf_evaluator(object)`.
+#'  See e.g. [tf_approx_linear()] for details.
 #' @param ... not used
 #' @returns A list of numeric vectors containing the function
 #'   evaluations on `arg`.
 #' @export
 #' @family tidyfun inter/extrapolation functions
-#' @examples 
+#' @examples
 #' f <- tf_rgp(3, arg = seq(0, 1, length.out = 11))
 #' tf_evaluate(f) |> str()
 #' tf_evaluate(f, arg = .5) |> str()
@@ -31,7 +32,8 @@ tf_evaluate.default <- function(object, arg, ...) .NotYetImplemented()
 
 #' @export
 #' @rdname tf_evaluate
-tf_evaluate.tfd <- function(object, arg, evaluator = tf_evaluator(object), ...) {
+tf_evaluate.tfd <- function(object, arg,
+                            evaluator = tf_evaluator(object), ...) {
   if (missing(arg) || is.null(arg)) {
     return(tf_evaluations(object))
   }
@@ -45,11 +47,12 @@ tf_evaluate.tfd <- function(object, arg, evaluator = tf_evaluator(object), ...) 
       resolution = tf_resolution(object)
     )
   )
-  
+
   setNames(ret, names(object))
 }
 
-evaluate_tfd_once <- function(new_arg, arg, evaluations, evaluator, resolution) {
+evaluate_tfd_once <- function(new_arg, arg,
+                              evaluations, evaluator, resolution) {
   new_arg_round <- round_resolution(new_arg, resolution)
   arg_round <- round_resolution(arg, resolution)
   if (isTRUE(all.equal(new_arg_round, arg_round))) return(evaluations)
@@ -86,7 +89,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       split(evals, seq_along(evals))
     } else {
       split(evals, col(as.matrix(evals)))
-    }  
+    }
   } else {
     ret <- pmap(
       list(arg, ensure_list(tf_arg(object)), coef(object)),
@@ -99,7 +102,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   }
   if (!inherits(object, "tfb_fpc")) {
     ret <- map(ret, attr(object, "family")$linkinv)
-  }  
+  }
   setNames(ret, names(object))
 }
 

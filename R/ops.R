@@ -22,7 +22,7 @@ fun_op <- function(x, y, op, numeric = NA) {
       attributes(x)
     } else {
       attributes(y)
-    }  
+    }
     arg_ret <- tf_arg(y)
   }
   if (is_tfb(x)) x_ <- coef(x)
@@ -45,7 +45,9 @@ fun_op <- function(x, y, op, numeric = NA) {
     }
   }
   attributes(ret) <- attr_ret
-  if (any(is.na(names(ret)))) {names(ret) = NULL}
+  if (any(is.na(names(ret)))) {
+    names(ret) <- NULL
+  }
   ret
 }
 
@@ -88,15 +90,15 @@ fun_op <- function(x, y, op, numeric = NA) {
 #' @family tidyfun compute functions
 Ops.tf <- function(e1, e2) {
   not_defined <- switch(.Generic,
-    `%%` = , 
+    `%%` = ,
     `%/%` = ,
-    `&` = , 
-    `|` = , 
+    `&` = ,
+    `|` = ,
     `!` = ,
-    `<` = , 
-    `<=` = , 
-    `>=` = , 
-    `>` = TRUE, 
+    `<` = ,
+    `<=` = ,
+    `>=` = ,
+    `>` = TRUE,
     FALSE
   )
   if (not_defined) {

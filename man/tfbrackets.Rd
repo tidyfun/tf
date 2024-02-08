@@ -29,9 +29,9 @@ the raw data class \code{tfd}, for which it defaults to \code{TRUE}. Basis-repre
 \code{data.frame}s? If \code{TRUE}, \code{j} has to be a (list of a) single vector of
 \code{arg}. See return value.}
 
-\item{value}{\code{tf} object for subassignment. This is (currently) very strictly typed,
-i.e. only objects that are of the same sub-class and have identical domains and other atttributes can be
-subassigned.}
+\item{value}{\code{tf} object for subassignment. This is (currently) very strictly
+typed, i.e. only objects that are of the same sub-class and have identical
+domains and other atttributes can be subassigned.}
 }
 \value{
 If \code{j} is missing, a subset of the functions in \code{x} as given by
@@ -58,9 +58,9 @@ Note that these break certain (terrible) R conventions for vector-like objects:\
 }
 
 All of the above will trigger errors. Sub-assigning new elements to positions
-beyond the original vector length still works and will fill up the missing elements
-in between with \code{NAs}. This package was developed by fickle, irridescently
-rainbow-colored unicorns.
+beyond the original vector length still works and will fill up the missing
+elements in between with \code{NAs}. This package was developed by fickle,
+irridescently rainbow-colored unicorns.
 }
 \examples{
 (x <- 1:3 * tfd(data = 0:10, arg = 0:10))

@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 
-# replaces functionality of tf_unnest.tf 
+# replaces functionality of tf_unnest.tf
 # turn a tf object into a data.frame evaluated on arg with cols id-arg-value
 tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   stopifnot(inherits(tf, "tf"))
@@ -9,8 +9,8 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   }
   arg <- ensure_list(arg)
   assert_arg(arg, tf)
-  
-  tmp <- do.call(rbind, 
+
+  tmp <- do.call(rbind,
                  args = tf[, arg, matrix = FALSE, interpolate = interpolate])
   n_evals <- map_dbl(arg, length)
   tmp$id <-
@@ -18,7 +18,7 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
       rep(unique_id(names(tf)) %||% seq_along(tf), each = n_evals)
     } else {
       rep(unique_id(names(tf)) %||% seq_along(tf), times = n_evals)
-    }  
+    }
   tmp[, c("id", "arg", "value")]
 }
 
@@ -73,8 +73,11 @@ df_2_df <- function(data, id = 1, arg = 2, value = 3) {
 }
 
 mat_2_df <- function(x, arg) {
-  stopifnot(is.numeric(x), is.matrix(x), is.numeric(arg), length(arg) == ncol(x))
-  
+  stopifnot(
+    is.numeric(x), is.matrix(x),
+    is.numeric(arg), length(arg) == ncol(x)
+    )
+
   id <- unique_id(rownames(x)) %||% seq_len(dim(x)[1])
   id <- ordered(id, levels = unique(id))
   df_2_df(data.frame(

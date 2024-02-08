@@ -20,7 +20,8 @@
 
 \item{optional}{not used}
 
-\item{unnest}{if \code{TRUE}, the function will return a data.frame with the evaluated functions.}
+\item{unnest}{if \code{TRUE}, the function will return a data.frame with the
+evaluated functions.}
 
 \item{...}{additional arguments to be passed to or from methods.}
 
