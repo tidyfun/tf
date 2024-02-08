@@ -33,19 +33,10 @@ Imports:
     zoo
 Suggests: 
     covr,
-    data.table,
     dplyr,
     fda,
-    gridExtra,
-    janitor,
     knitr,
-    maps,
-    rmarkdown,
-    scales,
-    SemiPar,
-    testthat (>= 3.0.0),
-    tidyverse,
-    viridisLite
+    testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
