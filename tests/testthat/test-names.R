@@ -12,7 +12,6 @@ test_that("names work", {
   expect_named((3 + cca_five[1]), "A")
 })
 
-
 test_that("fun_op keeps names", {
   x <- tf_rgp(3)
   xn <- x
