@@ -201,8 +201,7 @@ tf_integrate.tfd <- function(f, arg,
   evaluations <- tf_evaluate(f, arg)
   quads <- map2(arg, evaluations, \(x, y) quad_trapez(arg = x, evaluations = y))
   if (definite) {
-    map_dbl(quads, sum) |>
-      setNames(names(f))
+    map_dbl(quads, sum) |> setNames(names(f))
   } else {
     data_list <- map(quads, cumsum)
     names(data_list) <- names(f)

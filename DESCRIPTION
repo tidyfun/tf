@@ -34,7 +34,6 @@ Imports:
 Suggests: 
     covr,
     dplyr,
-    fda,
     knitr,
     testthat (>= 3.0.0)
 VignetteBuilder: 
