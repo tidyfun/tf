@@ -1,16 +1,16 @@
 #' @importFrom stats var na.omit median gaussian
 #' @importFrom utils capture.output
-new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
-                           resolution = numeric(),
+new_tfb_spline <- function(data, domain = NULL, arg = NULL,
+                           resolution = NULL,
                            penalized = TRUE, global = FALSE,
                            verbose = TRUE, ...) {
 
   if (vctrs::vec_size(data) == 0) {
     ret <- vctrs::new_vctr(
       data,
-      domain = domain,
-      arg = arg,
-      resolution = resolution,
+      domain = numeric(2),
+      arg = numeric(),
+      resolution = numeric(),
       family = character(),
       class = c("tfb_spline", "tfb", "tf"))
     return(ret)
@@ -21,8 +21,17 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
   resolution <- resolution %||% get_resolution(arg_u)
   domain <- c(round_resolution(domain[1], resolution, -1),
               round_resolution(domain[2], resolution, 1))
+
+  assert_number(resolution, lower = .Machine$double.eps, finite = TRUE)
+  assert_numeric(domain, finite = TRUE, any.missing = FALSE,
+                 sorted = TRUE, len = 2, unique = TRUE)
+  stopifnot(
+    domain[1] <= min(unlist(arg_u)),
+    domain[2] >= max(unlist(arg_u))
+  )
+
   # explicit factor-conversion to avoid reordering:
-  data$id <- factor(data$id, levels = unique(as.character(data$id)))
+  data$id <- factor(data$id, unique(as.character(data$id)))
 
   s_args <- list(...)[names(list(...)) %in% names(formals(mgcv::s))]
   if (!("bs" %in% names(s_args))) s_args$bs <- "cr"
@@ -112,6 +121,7 @@ new_tfb_spline <- function(data, domain = numeric(), arg = numeric(),
                    family = eval(gam_args$family),
                    class = c("tfb_spline", "tfb", "tf")
   )
+  assert_arg(tf_arg(ret), ret)
   ret
 }
 
@@ -183,8 +193,9 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
   data <- df_2_df(data, id = id, arg = arg, value = value)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
                         global = global, resolution = resolution, ...)
-  assert_arg(tf_arg(ret), ret)
-  ret
+  names_data <- data[,id] |> unique() |> as.character() |>
+    vctrs::vec_as_names(repair = "unique")
+  setNames(ret, names_data)
 }
 
 
@@ -198,9 +209,12 @@ tfb_spline.matrix <- function(data, arg = NULL,
 
   data <- mat_2_df(data, arg)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
-                        global = global, resolution = resolution, ...)
-  names(ret) <- names_data
-  assert_arg(tf_arg(ret), ret)
+                 global = global, resolution = resolution, ...)
+  if (!is.null(names_data)) {
+    names_data <- names_data |> as.character() |>
+      vctrs::vec_as_names(repair = "unique")
+    setNames(ret, names_data)
+  }
   ret
 }
 
@@ -235,7 +249,7 @@ tfb_spline.list <- function(data, arg = NULL,
     }
     stopifnot(
       !is.null(arg), length(arg) == length(data),
-      all(map_dbl(arg, length) == lens)
+      all(lengths(arg) == lens)
     )
     data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
   }
@@ -250,9 +264,8 @@ tfb_spline.list <- function(data, arg = NULL,
     rep(unique_id(names(data)) %||% seq_along(data), times = n_evals),
     tmp)
   # dispatch to data.frame method
-  ret <- tfb_spline(tmp, domain = domain, penalized = penalized,
+  tfb_spline(tmp, domain = domain, penalized = penalized,
              global = global, resolution = resolution, ...)
-  setNames(ret, names_data)
 }
 
 
@@ -266,10 +279,9 @@ tfb_spline.tfd <- function(data, arg = NULL,
   resolution <- resolution %||% tf_resolution(data)
 
   tmp <- tf_2_df(data, arg)
-  ret <- tfb_spline(tmp, domain = domain,
-                    penalized = penalized, global = global,
-                    resolution = resolution, ...)
-  setNames(ret, names(data))
+  tfb_spline(tmp, domain = domain,
+             penalized = penalized, global = global,
+             resolution = resolution, ...)
 }
 
 #' @export
@@ -289,19 +301,17 @@ tfb_spline.tfb <- function(data, arg = NULL,
     #data = rep(0, )
     # maybe try to make an empty vector that won't break anything like matrix algebra?
 
-    ret <- new_tfb_spline(data, arg = arg, domain = domain,
+   new_tfb_spline(data, arg = arg, domain = domain,
                           penalized = penalized, global = global,
                           resolution = resolution, s_args)
   } else {
     data <- tf_2_df(data, arg = arg)
-    ret <- do.call("tfb_spline", c(list(data),
+    do.call("tfb_spline", c(list(data),
                                    domain = domain, global = global,
                                    penalized = penalized,
                                    resolution = resolution, s_args
     ))
   }
-
-  setNames(ret, names_data)
 }
 
 #' @export
@@ -319,5 +329,4 @@ tfb_spline.default <- function(data, arg = NULL,
   data <- data.frame()
   new_tfb_spline(data, domain = domain, penalized = penalized,
                  global = global, resolution = resolution, ...)
-
 }

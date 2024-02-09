@@ -62,7 +62,7 @@ tf_count.default <- function(f) .NotYetImplemented()
 
 #' @export
 tf_count.tfd_irreg <- function(f) {
-  ret <- map_int(tf_evaluations(f), length)
+  ret <- lengths(tf_evaluations(f))
   ret[is.na(f)] <- 0
   ret
 }

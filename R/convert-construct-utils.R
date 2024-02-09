@@ -12,13 +12,15 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
 
   tmp <- do.call(rbind,
                  args = tf[, arg, matrix = FALSE, interpolate = interpolate])
-  n_evals <- map_dbl(arg, length)
+  n_evals <- lengths(arg)
   tmp$id <-
     if (length(n_evals) == 1) {
       rep(unique_id(names(tf)) %||% seq_along(tf), each = n_evals)
     } else {
       rep(unique_id(names(tf)) %||% seq_along(tf), times = n_evals)
     }
+  # factor id avoids reordering of rows in tfb_fpc constructor and elsewhere..
+  tmp$id <- factor(tmp$id, unique(tmp$id))
   tmp[, c("id", "arg", "value")]
 }
 

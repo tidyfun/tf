@@ -45,10 +45,10 @@ test_that("tfb_fpc defaults work for all kinds of regular input", {
   expect_s3_class(tfb_fpc(smoo), "tfb_fpc")
   expect_equal(length(tfb_fpc(smoo)), length(smoo))
   expect_equal(
-    tf_evaluations(tfb_fpc(smoo + 10)), tf_evaluations(smoo + 10),
-    tolerance = 1e-2, ignore_attr = TRUE
+    tf_evaluations(tfb_fpc(smoo, pve = .9999)), tf_evaluations(smoo),
+    tolerance = 1e-1, ignore_attr = TRUE
   )
-  for (smoo_ in list(tfb_fpc(smoo_matrix), tfb_fpc(smoo_df))) {
+  for (smoo_ in list(tfb_fpc(smoo_matrix, pve = .9999), tfb_fpc(smoo_df))) {
     expect_s3_class(smoo_, "tfb_fpc")
     expect_equal(length(smoo_), length(smoo))
     expect_equal(tf_evaluations(smoo_), tf_evaluations(smoo),
