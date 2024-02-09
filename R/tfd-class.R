@@ -146,7 +146,7 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @importFrom rlang quo_name enexpr
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, resolution = NULL, ...) {
-  stopifnot(is.numeric(data))
+  assert_numeric(data)
   evaluator <- rlang::quo_name(rlang::enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
   id <- unique_id(rownames(data) %||% seq_len(dim(data)[1]))
@@ -156,6 +156,7 @@ tfd.matrix <- function(data, arg = NULL, domain = NULL,
   regular <- !any(is.na(data))
   new_tfd(arg, datalist, regular, domain, evaluator, resolution)
 }
+
 #' @rdname tfd
 #' @export
 tfd.numeric <- function(data, arg = NULL,
@@ -341,6 +342,7 @@ as.tfd_irreg.tfd_reg <- function(data, ...) {
   class(ret)[1] <- "tfd_irreg"
   ret
 }
+
 #' @export
 as.tfd_irreg.tfd_irreg <- function(data, ...) {
   data
