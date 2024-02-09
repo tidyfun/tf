@@ -83,13 +83,11 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 # "quantize" the values in arg to the given resolution
 round_resolution <- function(arg, resolution, updown = 0) {
   if (updown == 0) {
-    return(round(arg / resolution) * resolution)
-  }
-  if (updown < 0) {
-    return(floor(arg / resolution) * resolution)
-  }
-  if (updown > 0) {
-    return(ceiling(arg / resolution) * resolution)
+    round(arg / resolution) * resolution
+  } else if (updown < 0) {
+    floor(arg / resolution) * resolution
+  } else {
+    ceiling(arg / resolution) * resolution
   }
 }
 
