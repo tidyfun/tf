@@ -75,14 +75,14 @@ tf_count.tfd_reg <- function(f) length(tf_arg(f))
 #' @rdname tfmethods
 #' @export
 tf_domain <- function(f) {
-  stopifnot(inherits(f, "tf"))
+  assert_class(f, "tf")
   attr(f, "domain")
 }
 
 #' @rdname tfmethods
 #' @export
 `tf_domain<-` <- function(x, value) {
-  stopifnot(inherits(x, "tf"))
+  assert_class(x, "tf")
   assert_numeric(value, any.missing = FALSE, len = 2, unique = TRUE, sorted = TRUE)
   tf_zoom(f = x, begin = value[1], end = value[2])
 }
@@ -92,7 +92,7 @@ tf_domain <- function(f) {
 #' @rdname tfmethods
 #' @export
 tf_evaluator <- function(f) {
-  stopifnot(inherits(f, "tfd"))
+  assert_class(f, "tfd")
   attr(f, "evaluator")
 }
 
@@ -113,7 +113,7 @@ tf_evaluator <- function(f) {
   }
   stopifnot(is_tfd(x))
   evaluator <- get(value, mode = "function", envir = parent.frame())
-  stopifnot(inherits(x, "tfd"))
+  assert_class(x, "tfd")
   assert_set_equal(
     names(formals(evaluator)),
     c("x", "arg", "evaluations")
@@ -130,7 +130,7 @@ tf_evaluator <- function(f) {
 #'   `tf_arg(f)`? Defaults to FALSE.
 #' @export
 tf_basis <- function(f, as_tfd = FALSE) {
-  stopifnot(inherits(f, "tfb"))
+  assert_class(f, "tfb")
   basis <- attr(f, "basis")
   if (!as_tfd) {
     return(basis)
