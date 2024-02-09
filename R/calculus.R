@@ -177,6 +177,7 @@ tf_integrate.tfd <- function(f, arg,
   }
   assert_arg(arg, f)
   arg <- ensure_list(arg)
+  # TODO: integrate is NA whenever arg does not cover entire domain!
   assert_numeric(lower,
     lower = tf_domain(f)[1], upper = tf_domain(f)[2],
     any.missing = FALSE

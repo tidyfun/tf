@@ -50,6 +50,7 @@ Collate:
     'convert.R'
     'depth.R'
     'evaluate.R'
+    'fwise.R'
     'globals.R'
     'graphics.R'
     'interpolate.R'

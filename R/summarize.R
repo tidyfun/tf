@@ -1,12 +1,12 @@
-#' Functions that summarize `tf` objects
+#' Functions that summarize `tf` objects across argument values
 #'
 #' These will return a `tf` object containing the respective *functional*
-#' statistic. `summary` returns a `tf`-vector with the mean function, the
+#' statistic.
+#' `summary` returns a `tf`-vector with the mean function, the
 #' variance function, and the functional range of the central half of the
-#' functions, as defined by the functional
+#' functions, as defined by [tf_depth()]
 #'
 #' @param x a `tf` object
-#'   functions, see source code.
 #' @param ... optional additional arguments.
 #' @name tfsummaries
 #' @family tidyfun summary functions
@@ -19,7 +19,7 @@ mean.tf <- function(x, ...) {
 }
 
 #' @param depth method used to determine the most central element in `x`, i.e.,
-#'   the median. One of the functional data depths available via [depth()] or
+#'   the median. One of the functional data depths available via [tf_depth()] or
 #'   `"pointwise"` for a pointwise median function.
 #' @importFrom stats median
 #' @export

@@ -45,7 +45,7 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
     }
   }
   assert_numeric(arg,
-    any.missing = FALSE, unique = FALSE,
+    any.missing = FALSE, unique = FALSE, sorted = TRUE,
     lower = domain_x[1], upper = domain_x[2]
   )
 }
