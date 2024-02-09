@@ -33,7 +33,7 @@ which should be smoothed by using a smaller basis / stronger penalty.
 \code{tf_smooth.tfd} overrides/automatically sets some defaults of the
 used methods:
 \itemize{
-\item \strong{\code{lowess}} uses a span parameter of \code{f} = .15 (instead of .75)
+\item \strong{\code{lowess}} uses a span parameter of \code{f} = 0.15 (instead of 0.75)
 by default.
 \item \strong{\code{rollmean}/\code{median}} use a window size of \code{k} = $<$number of
 grid points$>$/20 (i.e., the nearest odd integer to that) and sets \code{fill=   "extend"} (i.e., constant extrapolation to replace missing values at the
@@ -46,7 +46,7 @@ grid points$>$/10 (i.e., the nearest odd integer to that).
 \examples{
 library(zoo)
 library(pracma)
-f <- tf_sparsify(tf_jiggle(tf_rgp(4, 201L, nugget = .05)))
+f <- tf_sparsify(tf_jiggle(tf_rgp(4, 201, nugget = 0.05)))
 f_lowess <- tf_smooth(f, "lowess")
 # these methods ignore the distances between arg-values:
 f_mean <- tf_smooth(f, "rollmean")
@@ -54,10 +54,14 @@ f_median <- tf_smooth(f, "rollmean", k = 31)
 f_sg <- tf_smooth(f, "savgol", fl = 31)
 layout(t(1:4))
 plot(f, points = FALSE, main = "original")
-plot(f_lowess, points = FALSE, col = "blue", main = "lowess (default,\n span .9 in red)")
-lines(tf_smooth(f, "lowess", f = .9), col = "red", alpha = .2)
-plot(f_mean, points = FALSE, col = "blue", main = "rolling means &\n medians (red)")
-lines(f_median, col = "red", alpha = .2) # note constant extrapolation at both ends!
+plot(f_lowess,
+  points = FALSE, col = "blue", main = "lowess (default,\n span 0.9 in red)"
+)
+lines(tf_smooth(f, "lowess", f = 0.9), col = "red", alpha = 0.2)
+plot(f_mean,
+  points = FALSE, col = "blue", main = "rolling means &\n medians (red)"
+)
+lines(f_median, col = "red", alpha = 0.2) # note constant extrapolation at both ends!
 plot(f, points = FALSE, main = "orginal and\n savgol (red)")
 lines(f_sg, col = "red")
 }

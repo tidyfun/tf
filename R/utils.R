@@ -97,11 +97,13 @@ is_equidist <- function(f) {
   }
   unique_diffs <- map_lgl(
     ensure_list(tf_arg(f)),
-    \(x) round_resolution(x, attr(f, "resolution")) |>
-      diff() |>
-      duplicated() |>
-      tail(-1) |>
-      all()
+    \(x) {
+      round_resolution(x, attr(f, "resolution")) |>
+        diff() |>
+        duplicated() |>
+        tail(-1) |>
+        all()
+    }
   )
   all(unique_diffs)
 }

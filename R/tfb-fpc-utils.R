@@ -16,13 +16,14 @@
 #' @author Cheng Meng, Fabian Scheipl
 #' @family tfb-class
 #' @family tfb_fpc-class
-fpc_wsvd <- function(data, arg, pve = .995) {
+fpc_wsvd <- function(data, arg, pve = 0.995) {
   UseMethod("fpc_wsvd")
 }
+
 #' @rdname fpc_wsvd
 #' @importFrom utils head tail
 #' @export
-fpc_wsvd.matrix <- function(data, arg, pve = .995) {
+fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   assert_matrix(data, mode = "numeric", any.missing = FALSE,
                 min.cols = 2, min.rows = 1)
   assert_numeric(arg, any.missing = FALSE, sorted = TRUE, len = ncol(data))
@@ -30,7 +31,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = .995) {
 
   delta <- c(0, diff(arg))
   # trapezoid integration weights:
-  w <- .5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+  w <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
   mean <- colMeans(data)
   data_wc <- t((t(data) - mean) * sqrt(w))
   pc <- svd(data_wc, nu = 0, nv = min(dim(data)))
@@ -44,9 +45,10 @@ fpc_wsvd.matrix <- function(data, arg, pve = .995) {
     scores = scores, npc = use, evalues = evalues
   )
 }
+
 #' @rdname fpc_wsvd
 #' @export
-fpc_wsvd.data.frame <- function(data, arg, pve = .995) {
+fpc_wsvd.data.frame <- function(data, arg, pve = 0.995) {
   data_mat <- df_2_mat(data)
   fpc_wsvd.matrix(data_mat, arg = attr(data_mat, "arg"), pve = pve)
 }

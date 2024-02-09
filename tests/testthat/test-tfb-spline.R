@@ -83,7 +83,7 @@ test_that("unpenalized tfb_spline works", {
       log() |>
       as.matrix(),
     as.matrix(smoo),
-    tolerance = .001
+    tolerance = 0.001
   )
 
   expect_message(
@@ -148,8 +148,8 @@ test_that("global and pre-specified smoothing options work", {
     tfb(rough, penalized = FALSE, k = 51, verbose = FALSE) |> tf_evaluations()
   )
   expect_equal(
-    tfb(rough, sp = .2, k = 75, verbose = FALSE) |> tf_evaluations(),
-    tfb(rough, sp = .2, k = 10, verbose = FALSE) |> tf_evaluations(),
+    tfb(rough, sp = 0.2, k = 75, verbose = FALSE) |> tf_evaluations(),
+    tfb(rough, sp = 0.2, k = 10, verbose = FALSE) |> tf_evaluations(),
     tolerance = 1e-2
   )
 
@@ -168,10 +168,10 @@ test_that("global and pre-specified smoothing options work", {
   )
   expect_equal(
     tfb(exp(rough),
-      sp = .2, k = 75, family = gaussian(link = "log"), verbose = FALSE
+      sp = 0.2, k = 75, family = gaussian(link = "log"), verbose = FALSE
     ) |> tf_evaluations(),
     tfb(exp(rough),
-      sp = .2, k = 10, family = gaussian(link = "log"), verbose = FALSE
+      sp = 0.2, k = 10, family = gaussian(link = "log"), verbose = FALSE
     ) |> tf_evaluations(),
     tolerance = 1e-2
   )

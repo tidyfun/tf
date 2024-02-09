@@ -7,7 +7,7 @@
 #' @details `tf_smooth.tfd` overrides/automatically sets some defaults of the
 #'   used methods:
 #'
-#'   - **`lowess`** uses a span parameter of `f` = .15 (instead of .75)
+#'   - **`lowess`** uses a span parameter of `f` = 0.15 (instead of 0.75)
 #'   by default.
 #'   - **`rollmean`/`median`** use a window size of `k` = $<$number of
 #'   grid points$>$/20 (i.e., the nearest odd integer to that) and sets `fill=
@@ -49,7 +49,7 @@ tf_smooth.tfb <- function(x, ...) {
 #' @examples
 #' library(zoo)
 #' library(pracma)
-#' f <- tf_sparsify(tf_jiggle(tf_rgp(4, 201L, nugget = .05)))
+#' f <- tf_sparsify(tf_jiggle(tf_rgp(4, 201, nugget = 0.05)))
 #' f_lowess <- tf_smooth(f, "lowess")
 #' # these methods ignore the distances between arg-values:
 #' f_mean <- tf_smooth(f, "rollmean")
@@ -57,10 +57,14 @@ tf_smooth.tfb <- function(x, ...) {
 #' f_sg <- tf_smooth(f, "savgol", fl = 31)
 #' layout(t(1:4))
 #' plot(f, points = FALSE, main = "original")
-#' plot(f_lowess, points = FALSE, col = "blue", main = "lowess (default,\n span .9 in red)")
-#' lines(tf_smooth(f, "lowess", f = .9), col = "red", alpha = .2)
-#' plot(f_mean, points = FALSE, col = "blue", main = "rolling means &\n medians (red)")
-#' lines(f_median, col = "red", alpha = .2) # note constant extrapolation at both ends!
+#' plot(f_lowess,
+#'   points = FALSE, col = "blue", main = "lowess (default,\n span 0.9 in red)"
+#' )
+#' lines(tf_smooth(f, "lowess", f = 0.9), col = "red", alpha = 0.2)
+#' plot(f_mean,
+#'   points = FALSE, col = "blue", main = "rolling means &\n medians (red)"
+#' )
+#' lines(f_median, col = "red", alpha = 0.2) # note constant extrapolation at both ends!
 #' plot(f, points = FALSE, main = "orginal and\n savgol (red)")
 #' lines(f_sg, col = "red")
 tf_smooth.tfd <- function(x,
@@ -78,7 +82,7 @@ tf_smooth.tfd <- function(x,
     }
     if (grepl("rollm", method)) {
       if (is.null(dots$k)) {
-        dots$k <- ceiling(.05 * min(tf_count(x)))
+        dots$k <- ceiling(0.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
         message(
           "using k = ", dots$k, " observations for rolling data window."
@@ -91,7 +95,7 @@ tf_smooth.tfd <- function(x,
     }
     if (method == "savgol") {
       if (is.null(dots$fl)) {
-        dots$fl <- ceiling(.15 * min(tf_count(x)))
+        dots$fl <- ceiling(0.15 * min(tf_count(x)))
         dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
         message(
           "using fl = ", dots$fl, " observations for rolling data window."
@@ -106,7 +110,7 @@ tf_smooth.tfd <- function(x,
 
   if (method == "lowess") {
     if (is.null(dots$f)) {
-      dots$f <- .15
+      dots$f <- 0.15
       message("using f = ", dots$f, " as smoother span for lowess")
     }
     smoothed <- map(
