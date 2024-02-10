@@ -237,7 +237,7 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
   if (!any(vectors)) {
     dims <- map(data, dim)
     stopifnot(
-      all(lengths(dims) == 2), all(map_lgl(dims, \(x) x[2] == 2)),
+      all(lengths(dims) == 2), all(map_int(dims, 2) == 2),
       all(rapply(data, is.numeric))
     )
     arg <- map(data, \(x) unlist(x[, 1]))
