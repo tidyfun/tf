@@ -40,7 +40,7 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 .assert_arg_vector <- function(arg, domain_x, resolution_x, check_unique) {
   if (check_unique) {
     round_arg <- round_resolution(arg, resolution_x)
-    if (anyDuplicated(round_arg)) {
+    if (anyDuplicated(round_arg) == 0) {
       stop("Non-unique arg-values (for resolution).")
     }
   }
@@ -192,7 +192,7 @@ ensure_list <- function(x) {
 #' @family tidyfun developer tools
 # export for tidyfun...
 unique_id <- function(x) {
-  if (!anyDuplicated(x)) {
+  if (anyDuplicated(x) > 0) {
     return(x)
   }
   if (is.character(x)) x <- sub("$^", "NA", x)
