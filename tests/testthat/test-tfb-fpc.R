@@ -5,9 +5,9 @@ test_that("fpc_wsvd works for smooth equidistant data", {
   expect_type(
     fpc_wsvd(smoo_matrix, attr(smoo_matrix, "arg"), pve = 1.0), "list"
   )
-  expect_true(
-    fpc_wsvd(smoo_matrix, attr(smoo_matrix, "arg"), pve = 0.5)$npc <
-      fpc_wsvd(smoo_matrix, attr(smoo_matrix, "arg"), pve = 0.9)$npc
+  expect_lt(
+    fpc_wsvd(smoo_matrix, attr(smoo_matrix, "arg"), pve = 0.5)$npc,
+    fpc_wsvd(smoo_matrix, attr(smoo_matrix, "arg"), pve = 0.9)$npc
   )
   fpc_smoo <- fpc_wsvd(smoo_matrix, attr(smoo_matrix, "arg"), pve = 1.0)
   expect_equal(fpc_smoo$npc, length(smoo) - 1)

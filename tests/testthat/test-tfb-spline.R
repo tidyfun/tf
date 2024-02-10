@@ -120,8 +120,8 @@ test_that("mgcv spline basis options work", {
     )
     smoo_spec <- environment(attr(smoo_, "basis"))$spec
     expect_equal(smoo_spec$bs.dim, 21)
-    expect_equal(
-      class(smoo_spec),
+    expect_s3_class(
+      smoo_spec,
       class(smooth.construct(
         s(x, bs = bs),
         data = list(x = 1:40), knots = NULL

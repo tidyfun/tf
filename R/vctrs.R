@@ -42,7 +42,7 @@ vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
 #' @export
-vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) { x }
+vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) x
 
 #' @rdname vctrs
 #' @family tidyfun vctrs

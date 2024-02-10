@@ -155,7 +155,7 @@ tfd.matrix <- function(data, arg = NULL, domain = NULL,
   # make factor conversion explicit to avoid reordering
   datalist <- split(data, factor(id, unique(as.character(id))))
   names(datalist) <- rownames(data)
-  regular <- !any(is.na(data))
+  regular <- !anyNA(data)
   new_tfd(arg, datalist, regular, domain, evaluator, resolution)
 }
 
@@ -237,7 +237,7 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
   if (!any(vectors)) {
     dims <- map(data, dim)
     stopifnot(
-      all(lengths(dims) == 2), all(map(dims, \(x) x[2]) == 2),
+      all(lengths(dims) == 2), all(map_lgl(dims, \(x) x[2]) == 2),
       all(rapply(data, is.numeric))
     )
     arg <- map(data, \(x) unlist(x[, 1]))

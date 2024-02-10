@@ -111,7 +111,7 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
 
 #' @importFrom graphics matlines
 linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
-                           alpha = min(1, max(.05, 2 / length(x))),
+                           alpha = min(1, max(0.05, 2 / length(x))),
                            interpolate = TRUE, ...) {
   assert_number(n_grid, na.ok = TRUE)
   if (missing(arg)) {
@@ -140,7 +140,7 @@ linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
 #' @rdname tfviz
 #' @family tidyfun visualization
 lines.tf <- function(x, arg, n_grid = 50,
-                     alpha = min(1, max(.05, 2 / length(x))), ...) {
+                     alpha = min(1, max(0.05, 2 / length(x))), ...) {
   args <- c(modifyList(
     head(formals(lines.tf), -1),
     as.list(match.call())[-1]
@@ -158,7 +158,7 @@ lines.tf <- function(x, arg, n_grid = 50,
 #'   for arg for which no original data is available? Only relevant for
 #'   tfd, defaults to FALSE
 points.tf <- function(x, arg, n_grid = NA,
-                      alpha = min(1, max(.05, 2 / length(x))),
+                      alpha = min(1, max(0.05, 2 / length(x))),
                       interpolate = FALSE, ...) {
   args <- c(modifyList(
     head(formals(points.tf), -1),

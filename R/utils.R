@@ -4,7 +4,7 @@ find_arg <- function(data, arg) {
   if (is.null(arg)) {
     names <- dimnames(data)[[2]]
     suppressWarnings(arg <- as.numeric(names))
-    if (is.null(arg) || any(is.na(arg))) {
+    if (is.null(arg) || anyNA(arg)) {
       # extract number-strings
       # will interpret separating-dashes as minus-signs, so functions may run
       # backwards.
@@ -17,7 +17,7 @@ find_arg <- function(data, arg) {
       suppressWarnings(arg <- as.numeric(arg))
       if (length(unique(arg)) != dim(data)[2]) arg <- NULL
     }
-    if (is.null(arg) || any(is.na(arg))) {
+    if (is.null(arg) || anyNA(arg)) {
       message("Column names not suitable as 'arg'-values. Using 1:ncol(data).")
       arg <- numeric(0)
     }
