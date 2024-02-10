@@ -310,7 +310,7 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
     if (length(re_evals)) {
       fun_names <- map(as.list(match.call())[-1], \(x) deparse(x)[1])
       warning(
-        "re-evaluating ", paste(fun_names[re_evals], collapse = ", "),
+        "re-evaluating ", toString(fun_names[re_evals]),
         " using basis and arg of ", fun_names[1]
       )
 

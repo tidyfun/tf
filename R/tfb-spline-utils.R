@@ -216,7 +216,7 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   if (length(failed) > 0) {
     stop(
       "Basis representation failed for entries:\n ",
-      paste(unname(failed), collapse = ", ")
+      toString(unname(failed))
     )
   }
   list(

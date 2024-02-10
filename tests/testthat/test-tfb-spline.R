@@ -134,10 +134,10 @@ test_that("mgcv spline basis options work", {
 test_that("global and pre-specified smoothing options work", {
   rough_global <- try(tfb(rough, global = TRUE, k = 51, verbose = FALSE))
   expect_s3_class(rough_global, "tfb")
-  expect_true(
+  expect_gt(
     system.time(
       tfb(c(rough, rough, rough), k = 51, verbose = FALSE)
-    )["elapsed"] >
+    )["elapsed"],
       system.time(
         tfb(c(rough, rough, rough), k = 51, global = TRUE, verbose = FALSE)
       )["elapsed"]
