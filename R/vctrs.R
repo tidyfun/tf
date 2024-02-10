@@ -136,7 +136,7 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
   funs <- list(x, y)
   compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
 
-  stopifnot(all(compatible[, "domain"]))
+  stopifnot(compatible[, "domain"])
   make_irreg <- rep(FALSE, length(funs))
   irreg <- map_lgl(funs, is_irreg)
   if (!any(irreg) && !all(compatible[, "arg"])) {
@@ -301,7 +301,7 @@ vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {
 vec_ptype2_tfb_tfb <- function(x, y, ...) {
   funs <- list(x, y)
   compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
-  stopifnot(all(compatible[, "domain"]))
+  stopifnot(compatible[, "domain"])
 
   if (inherits(funs[[1]], "tfb_spline")) {
     re_evals <- which(
