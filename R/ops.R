@@ -172,7 +172,7 @@ Ops.tfb <- function(e1, e2) {
       if (.Generic == "^") {
         stop("^ not defined for \"tfb\" objects")
       }
-      stopifnot(compare_tf_attribs(e1, e2))
+      stopifnot(all(compare_tf_attribs(e1, e2)))
     }
     if (both_funs && .Generic %in% c("+", "-")) {
       # just add/subtract coefs for identical bases

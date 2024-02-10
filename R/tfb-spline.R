@@ -237,7 +237,7 @@ tfb_spline.list <- function(data, arg = NULL,
                             domain = NULL, penalized = TRUE,
                             global = FALSE, resolution = NULL, ...) {
   vectors <- map_lgl(data, is.numeric)
-  stopifnot(vectors | !any(vectors))
+  stopifnot(all(vectors | !any(vectors)))
 
   names_data <- names(data)
 
@@ -250,7 +250,8 @@ tfb_spline.list <- function(data, arg = NULL,
                  global = global, resolution = resolution, ...))
     }
     stopifnot(
-      !is.null(arg), length(arg) == length(data), lengths(arg) == lens
+      !is.null(arg), length(arg) == length(data),
+      all(lengths(arg) == lens)
     )
     data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
   }
