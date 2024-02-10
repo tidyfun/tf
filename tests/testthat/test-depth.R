@@ -1,5 +1,5 @@
 grid <- round(seq(0, 10, length.out = 11), 3)
-lin <- -3:3 * tfd(.1 * grid, grid)
+lin <- -3:3 * tfd(0.1 * grid, grid)
 parallel <- -3:3 + tfd(0 * grid, grid)
 names(lin) <- names(parallel) <- 1:7
 

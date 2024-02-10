@@ -250,8 +250,7 @@ tfb_spline.list <- function(data, arg = NULL,
                  global = global, resolution = resolution, ...))
     }
     stopifnot(
-      !is.null(arg), length(arg) == length(data),
-      all(lengths(arg) == lens)
+      !is.null(arg), length(arg) == length(data), lengths(arg) == lens
     )
     data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
   }

@@ -55,7 +55,7 @@ prep_plotting_arg <- function(f, n_grid) {
 #'   spaghetti plots. *Epidemiology (Cambridge, Mass.)*, **21**(5), 621-625.
 plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
                     type = c("spaghetti", "lasagna"),
-                    alpha = min(1, max(.05, 2 / length(x))), ...) {
+                    alpha = min(1, max(0.05, 2 / length(x))), ...) {
   type <- match.arg(type)
   assert_logical(points)
   assert_number(n_grid, na.ok = TRUE)

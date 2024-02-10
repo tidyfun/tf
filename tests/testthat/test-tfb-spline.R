@@ -4,7 +4,7 @@ source(system.file("testdata", "make-test-data.R", package = "tf"))
 test_that("tfb_spline defaults work for all kinds of regular input", {
   expect_s3_class(tfb_spline(smoo, verbose = FALSE), "tfb_spline")
   expect_message(tfb_spline(smoo), "100")
-  expect_equal(length(tfb_spline(smoo, verbose = FALSE)), length(smoo))
+  expect_length(tfb_spline(smoo, verbose = FALSE), length(smoo))
   expect_equal(
     tf_evaluations(tfb_spline(smoo, verbose = FALSE)), tf_evaluations(smoo),
     tolerance = 1e-3
@@ -12,7 +12,7 @@ test_that("tfb_spline defaults work for all kinds of regular input", {
   for (dat in list(smoo_list, smoo_matrix, smoo_df)) {
     smoo_ <- try(tfb_spline(dat, verbose = FALSE))
     expect_s3_class(smoo_, "tfb_spline")
-    expect_equal(length(smoo_), length(smoo))
+    expect_length(smoo_, length(smoo))
     expect_equal(
       tf_evaluations(smoo_), tf_evaluations(smoo),
       tolerance = 1e-3, ignore_attr = TRUE
@@ -23,12 +23,12 @@ test_that("tfb_spline defaults work for all kinds of regular input", {
 test_that("tfb_spline defaults work for all kinds of irregular input", {
   expect_s3_class(tfb_spline(irr, verbose = FALSE), "tfb_spline")
   expect_message(tfb_spline(irr), "100")
-  expect_equal(length(tfb_spline(irr, verbose = FALSE)), length(irr))
+  expect_length(tfb_spline(irr, verbose = FALSE), length(irr))
   expect_message(tfb_spline(irr_df), "100")
 
   irr_tfb_ <- tfb_spline(irr_list, arg = tf_arg(irr), verbose = FALSE)
   expect_s3_class(irr_tfb_, "tfb_spline")
-  expect_equal(length(irr_tfb_), length(irr))
+  expect_length(irr_tfb_, length(irr))
   expect_equal(
     tf_evaluate(irr_tfb_, tf_arg(irr)), tf_evaluations(irr),
     tolerance = 1e-1
@@ -37,7 +37,7 @@ test_that("tfb_spline defaults work for all kinds of irregular input", {
   for (dat in list(irr_matrix, irr_df)) {
     irr_tfb_ <- tfb_spline(dat, verbose = FALSE)
     expect_s3_class(irr_tfb_, "tfb_spline")
-    expect_equal(length(irr_tfb_), length(irr))
+    expect_length(irr_tfb_, length(irr))
     expect_equal(
       tf_evaluate(irr_tfb_, tf_arg(irr)), tf_evaluations(irr),
       tolerance = 1e-1, ignore_attr = TRUE
@@ -108,7 +108,7 @@ test_that("unpenalized tfb_spline works", {
   ) |>
     as.matrix() |>
     sum()
-  expect_true(approx_penalized > approx_unpenalized)
+  expect_gt(approx_penalized, approx_unpenalized)
 })
 
 test_that("mgcv spline basis options work", {
