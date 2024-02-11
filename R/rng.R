@@ -117,9 +117,7 @@ tf_jiggle_args <- function(arg, amount) {
 #' @family tidyfun RNG functions
 tf_sparsify <- function(f, dropout = 0.5, ...) {
   stopifnot(is_tf(f))
-  nas <- map(
-    tf_evaluations(f), \(x) ifelse(runif(length(x)) < dropout, TRUE, FALSE)
-  )
+  nas <- map(tf_evaluations(f), \(x) runif(length(x)) < dropout)
   tf_evals <- map2(tf_evaluations(f), nas, \(x, y) x[!y])
   tf_args <- ensure_list(tf_arg(f))
   tf_args <- map2(tf_args, nas, \(x, y) x[!y])

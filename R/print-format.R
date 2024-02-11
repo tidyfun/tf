@@ -117,7 +117,7 @@ format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
     digits = digits, nsmall = nsmall, ...
   )
   if (prefix) {
-    prefix <- if (!all(names(x) == "")) {
+    prefix <- if (!all(nzchar(names(x), keepNA = TRUE))) {
       names(x)[seq_along(str)]
     } else {
       paste0("[", seq_along(str), "]")
