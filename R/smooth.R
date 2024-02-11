@@ -80,7 +80,7 @@ tf_smooth.tfd <- function(x,
         " ignored by ", method, "."
       )
     }
-    if (grepl("rollm", method)) {
+    if (grepl("rollm", method, fixed = TRUE)) {
       if (is.null(dots$k)) {
         dots$k <- ceiling(0.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
