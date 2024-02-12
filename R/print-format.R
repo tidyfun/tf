@@ -32,7 +32,7 @@ string_rep_tf <- function(f, signif_arg = NULL,
   str <- pmap(
     list(str, arg_len, show), \(x, y, z) ifelse(y > z, paste0(x, "; ..."), x)
   )
-  map_if(str, grepl("NA\\)", str), \(x) "NA")
+  map_if(str, grepl("NA)", str, fixed = TRUE), \(x) "NA")
 }
 
 #-------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
     digits = digits, nsmall = nsmall, ...
   )
   if (prefix) {
-    prefix <- if (!all(names(x) == "")) {
+    prefix <- if (!all(nzchar(names(x), keepNA = TRUE))) {
       names(x)[seq_along(str)]
     } else {
       paste0("[", seq_along(str), "]")
