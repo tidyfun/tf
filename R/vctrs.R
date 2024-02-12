@@ -5,12 +5,12 @@ c_names <- function(funs) {
   # argnames replace elementnames if elments have length 1
   # else paste with "."
   names <- map2(fnames, elnames, \(x, y) {
-    if (x == "") return(y)
-    if (all(y == "") || length(y) == 1) return(rep(x, length(y)))
+    if (nzchar(x, keepNA = TRUE)) return(y)
+    if (all(nzchar(y, keepNA = TRUE)) || length(y) == 1) return(rep(x, length(y)))
     paste(x, y, sep = ".")
   }) |>
     unlist()
-  if (all(names == "")) NULL else names
+  if (all(nzchar(names, keepNA = TRUE))) NULL else names
 }
 
 
@@ -42,7 +42,7 @@ vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
 #' @export
-vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) { x }
+vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) x
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
@@ -174,7 +174,7 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
       funs,
       function(x) names(x) %||% rep("", length(x))
     )))
-    if (all(tmp == "")) NULL else tmp
+    if (all(nzchar(tmp, keepNA = TRUE))) NULL else tmp
   }
   ret <- flatten(funs)
   attributes(ret) <- attr_ret
@@ -310,7 +310,7 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
     if (length(re_evals)) {
       fun_names <- map(as.list(match.call())[-1], \(x) deparse(x)[1])
       warning(
-        "re-evaluating ", paste(fun_names[re_evals], collapse = ", "),
+        "re-evaluating ", toString(fun_names[re_evals]),
         " using basis and arg of ", fun_names[1]
       )
 
@@ -347,7 +347,7 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
       funs,
       function(x) names(x) %||% rep("", length(x))
     )))
-    if (all(tmp == "")) NULL else tmp
+    if (all(nzchar(tmp, keepNA = TRUE))) NULL else tmp
   }
   ret <- flatten(funs)
   attributes(ret) <- attr_ret

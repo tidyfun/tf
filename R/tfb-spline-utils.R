@@ -212,11 +212,11 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   )
   names(ret) <- levels(data$id)
   coef <- map(ret, "coef")
-  failed <- keep(coef, \(x) any(is.na(x)))
+  failed <- keep(coef, anyNA)
   if (length(failed) > 0) {
     stop(
       "Basis representation failed for entries:\n ",
-      paste(unname(failed), collapse = ", ")
+      toString(unname(failed))
     )
   }
   list(

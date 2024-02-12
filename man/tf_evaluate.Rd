@@ -38,9 +38,9 @@ evaluate \code{object}, see examples.
 \examples{
 f <- tf_rgp(3, arg = seq(0, 1, length.out = 11))
 tf_evaluate(f) |> str()
-tf_evaluate(f, arg = .5) |> str()
+tf_evaluate(f, arg = 0.5) |> str()
 # equivalent, as matrix:
-f[, .5]
+f[, 0.5]
 new_grid <- seq(0, 1, length.out = 6)
 tf_evaluate(f, arg = new_grid) |> str()
 # equivalent, as matrix:

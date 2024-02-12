@@ -52,8 +52,8 @@ Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
 }
 \examples{
 lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
-tf_where(lin, value \%inr\% c(-1, .5))
-tf_where(lin, value \%inr\% c(-1, .5), "range")
+tf_where(lin, value \%inr\% c(-1, 0.5))
+tf_where(lin, value \%inr\% c(-1, 0.5), "range")
 a <- 1
 tf_where(lin, value > a, "first")
 tf_where(lin, value < a, "last")
@@ -61,7 +61,7 @@ tf_where(lin, value > 2, "any")
 tf_anywhere(lin, value > 2)
 
 set.seed(4353)
-f <- tf_rgp(5, 11L)
+f <- tf_rgp(5, 11)
 plot(f, pch = as.character(1:5), points = TRUE)
 tf_where(f, value == max(value))
 # where is the function increasing/decreasing?
@@ -74,7 +74,7 @@ tf_where(
     sign(c(diff(value), tail(diff(value), 1)))
 )
 # where in its second half is the function positive?
-tf_where(f, arg > .5 & value > 0)
+tf_where(f, arg > 0.5 & value > 0)
 # does the function ever exceed?
 tf_anywhere(f, value > 1)
 }

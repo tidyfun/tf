@@ -26,7 +26,7 @@ mean.tf <- function(x, ...) {
 #' @rdname tfsummaries
 median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
   if (!na.rm) {
-    if (any(is.na(x))) return(1 * NA * x[1])
+    if (anyNA(x)) return(1 * NA * x[1])
   } else {
     x <- x[!is.na(x)]
   }

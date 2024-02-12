@@ -45,7 +45,7 @@ fun_op <- function(x, y, op, numeric = NA) {
     }
   }
   attributes(ret) <- attr_ret
-  if (any(is.na(names(ret)))) {
+  if (anyNA(names(ret))) {
     names(ret) <- NULL
   }
   ret
@@ -123,7 +123,7 @@ Ops.tf <- function(e1, e2) {
 
 #' @rdname tfgroupgenerics
 #' @export
-`!=.tfd` <- function(e1, e2) !(e1 == e2)
+`!=.tfd` <- function(e1, e2) e1 != e2
 
 # need to copy instead of defining tf-method s.t. dispatch in Ops works
 #' @rdname tfgroupgenerics

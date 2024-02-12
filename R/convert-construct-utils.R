@@ -3,7 +3,7 @@
 # replaces functionality of tf_unnest.tf
 # turn a tf object into a data.frame evaluated on arg with cols id-arg-value
 tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
-  stopifnot(inherits(tf, "tf"))
+  assert_class(tf, "tf")
   if (missing(arg)) {
     arg <- tf_arg(tf)
   }
@@ -11,7 +11,8 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   assert_arg(arg, tf)
 
   tmp <- do.call(rbind,
-                 args = tf[, arg, matrix = FALSE, interpolate = interpolate])
+    args = tf[, arg, matrix = FALSE, interpolate = interpolate]
+  )
   n_evals <- lengths(arg)
   tmp$id <-
     if (length(n_evals) == 1) {
@@ -33,9 +34,10 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   newid <- as.numeric(as.factor(data$id))
   bins <- sort(unique(data$arg))
   if (binning && (length(bins) > maxbins)) {
-    binvalues <- seq((1 - 0.001 * sign(bins[1])) * bins[1],
-                     (1 + 0.001 * sign(bins[length(bins)])) * bins[length(bins)],
-                     length.out = maxbins + 1
+    binvalues <- seq(
+      (1 - 0.001 * sign(bins[1])) * bins[1],
+      (1 + 0.001 * sign(bins[length(bins)])) * bins[length(bins)],
+      length.out = maxbins + 1
     )
     bins <- binvalues
     binvalues <- head(stats::filter(binvalues, c(0.5, 0.5)), -1)
@@ -78,7 +80,7 @@ mat_2_df <- function(x, arg) {
   stopifnot(
     is.numeric(x), is.matrix(x),
     is.numeric(arg), length(arg) == ncol(x)
-    )
+  )
 
   id <- unique_id(rownames(x)) %||% seq_len(dim(x)[1])
   id <- ordered(id, levels = unique(id))

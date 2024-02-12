@@ -49,12 +49,15 @@ less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))
 # filling out sparse data (use a suitable evaluator -function!)
 sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))
 plot(sparse)
-tfd(sparse, evaluator= tf_approx_spline) |>   #change eval. for better interpolation
+# change evaluator for better interpolation
+tfd(sparse, evaluator = tf_approx_spline) |>
   tf_interpolate(arg = seq(0, 5, length.out = 201)) |>
   lines(col = 2)
 
 set.seed(1860)
-(sparse_irregular <- tf_rgp(5) |>  tf_sparsify(.5) |> tf_jiggle())
+sparse_irregular <- tf_rgp(5) |>
+  tf_sparsify(0.5) |>
+  tf_jiggle()
 tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
 }
 \seealso{
