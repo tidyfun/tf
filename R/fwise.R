@@ -1,8 +1,10 @@
 #' Summarize each `tf` in a vector
 #'
-#' These functions extract (user-specified) function-wise summary statistics
+#' These functions extract (user-specified) **function-wise** summary statistics
 #' from each entry in a  `tf`-vector. To summarize a vector of functions at each
-#' argument value, see `?tfsummaries`.
+#' argument value, see `?tfsummaries`. Note that these will tend to yield lots
+#' of `NA`s for irregular `tfd` unless you set a [tf_evaluator()]-function
+#' that does inter- and extrapolation for them beforehand.
 #'
 #' @param x  a `tf` object
 #' @param y  a `tf` object
@@ -21,21 +23,24 @@ NULL
 #'   [purrr::as_mapper()] and Details.
 #' @details `tf_fwise` turns `x` into a list of data.frames with columns `arg`
 #' and `values` internally, so the function/formula in `.f` gets a data.frame
-#' `.x` with these columns, see examples or source code for [tf_fmin()],
+#' `.x` with these columns, see examples below or source code for [tf_fmin()],
 #' [tf_fmax()], etc
 #' @examples
 #' x <- tf_rgp(3)
-#' # 80%tiles of each function's values:
-#' tf_fwise(x, ~ quantile(.x$value, .8)) |> unlist()
 #' layout(t(1:3))
-#' plot(x)
-#' # clamp each function's values into [0,1]:
+#' plot(x, col = 1:3)
+#' #  each function's values to [0,1]:
 #' x_clamp <- (x - tf_fmin(x)) / (tf_fmax(x) - tf_fmin(x))
-#' plot(x_clamp)
+#' plot(x_clamp, col = 1:3)
 #' # standardize each function to have mean / integral 0 and sd 1:
 #' x_std <- (x - tf_fmean(x)) / tf_fsd(x)
 #' tf_fvar(x_std) == c(1, 1, 1)
-#' plot(x_std)
+#' plot(x_std, col = 1:3)
+#' # Custom functions:
+#' # 80%tiles of each function's values:
+#' tf_fwise(x, ~ quantile(.x$value, .8)) |> unlist()
+#' # minimal value of each function for t >.5
+#' tf_fwise(x, ~ min(.x$value[.x$arg > .5])) |> unlist()
 #'
 #' tf_crosscor(x, -x)
 #' tf_crosscov(x, x) == tf_fvar(x)

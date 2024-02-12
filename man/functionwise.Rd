@@ -11,7 +11,7 @@
 \alias{tf_fsd}
 \alias{tf_crosscov}
 \alias{tf_crosscor}
-\title{Apply functions or formulae to each \code{tf} in a vector}
+\title{Summarize each \code{tf} in a vector}
 \usage{
 tf_fwise(x, .f, arg = tf_arg(x), ...)
 
@@ -34,7 +34,8 @@ tf_crosscor(x, y, arg = tf_arg(x))
 \arguments{
 \item{x}{a \code{tf} object}
 
-\item{.f}{a function or formula, see \code{\link[purrr:as_mapper]{purrr::as_mapper()}}}
+\item{.f}{a function or formula that is applied to each entry of \code{x}, see
+\code{\link[purrr:as_mapper]{purrr::as_mapper()}} and Details.}
 
 \item{arg}{defaults to standard argument values of \code{x}}
 
@@ -49,16 +50,21 @@ tf_crosscor(x, y, arg = tf_arg(x))
 \item{y}{a \code{tf} object}
 }
 \value{
-a list (or vector) of the same length as \code{x} with the respective summaries
+a list (or vector) of the same length as \code{x} with the respective
+summaries
 }
 \description{
-These functions extract (user-specified) function-wise summary statistics from each entry
-in a  \code{tf}-vector.
+These functions extract (user-specified) \strong{function-wise} summary statistics
+from each entry in a  \code{tf}-vector. To summarize a vector of functions at each
+argument value, see \code{?tfsummaries}. Note that these will tend to yield lots
+of \code{NA}s for irregular \code{tfd} unless you set a \code{\link[=tf_evaluator]{tf_evaluator()}}-function
+that does inter- and extrapolation for them beforehand.
 }
 \details{
-\code{tf_fwise} turns \code{x} into a list of data.frames with columns \code{arg} and \code{values} internally,
-so the function/formula in \code{.f} gets a data.frame \code{.x} with these columns, see examples or source code
-for \code{\link[=tf_fmin]{tf_fmin()}}, \code{\link[=tf_fmax]{tf_fmax()}}, etc
+\code{tf_fwise} turns \code{x} into a list of data.frames with columns \code{arg}
+and \code{values} internally, so the function/formula in \code{.f} gets a data.frame
+\code{.x} with these columns, see examples below or source code for \code{\link[=tf_fmin]{tf_fmin()}},
+\code{\link[=tf_fmax]{tf_fmax()}}, etc
 }
 \section{Functions}{
 \itemize{
@@ -70,14 +76,17 @@ for \code{\link[=tf_fmin]{tf_fmin()}}, \code{\link[=tf_fmax]{tf_fmax()}}, etc
 
 \item \code{tf_frange()}: range of values of each function
 
-\item \code{tf_fmean()}: mean of each function: \eqn{\tfrac{1}{|T|}\int_T x_i(t) dt}
+\item \code{tf_fmean()}: mean of each function:
+\eqn{\tfrac{1}{|T|}\int_T x_i(t) dt}
 
-\item \code{tf_fvar()}: variance of each function: \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}
+\item \code{tf_fvar()}: variance of each function:
+\eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}
 
-\item \code{tf_fsd()}: standard deviation of each function: \eqn{\sqrt{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}}
+\item \code{tf_fsd()}: standard deviation of each function:
+\eqn{\sqrt{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}}
 
 \item \code{tf_crosscov()}: cross-covariances between two functional vectors:
-\eqn{\tfrac{1}{|T|}\int_T \left(x_i(t) - \bar x(t)\right)\left(y_i(t)-\bar y(t)\right) dt}
+\eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}
 
 \item \code{tf_crosscor()}: cross-correlation between two functional vectors:
 \code{tf_crosscov(x, y) / (tf_fsd(x) * tf_fsd(y))}
@@ -85,17 +94,20 @@ for \code{\link[=tf_fmin]{tf_fmin()}}, \code{\link[=tf_fmax]{tf_fmax()}}, etc
 }}
 \examples{
 x <- tf_rgp(3)
-# 80\%tiles of each function's values:
-tf_fwise(x, ~ quantile(.x$value, .8)) |> unlist()
 layout(t(1:3))
-plot(x)
-# clamp each function's values into [0,1]:
+plot(x, col = 1:3)
+#  each function's values to [0,1]:
 x_clamp <- (x - tf_fmin(x)) / (tf_fmax(x) - tf_fmin(x))
-plot(x_clamp)
+plot(x_clamp, col = 1:3)
 # standardize each function to have mean / integral 0 and sd 1:
 x_std <- (x - tf_fmean(x)) / tf_fsd(x)
 tf_fvar(x_std) == c(1, 1, 1)
-plot(x_std)
+plot(x_std, col = 1:3)
+# Custom functions:
+# 80\%tiles of each function's values:
+tf_fwise(x, ~ quantile(.x$value, .8)) |> unlist()
+# minimal value of each function for t >.5
+tf_fwise(x, ~ min(.x$value[.x$arg > .5])) |> unlist()
 
 tf_crosscor(x, -x)
 tf_crosscov(x, x) == tf_fvar(x)
