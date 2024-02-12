@@ -17,7 +17,7 @@ lie, at most (relative to original distance to neighboring grid points).
 Defaults to at most 40\% (0.4) of the original grid distances. Must be lower
 than 0.5}
 
-\item{...}{not used currently}
+\item{...}{additional args for the returned \code{tfd} in \code{tf_jiggle}}
 
 \item{dropout}{how many values of \code{f} to drop, defaults to 50\%.}
 }

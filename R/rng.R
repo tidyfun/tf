@@ -89,7 +89,11 @@ tf_jiggle <- function(f, amount = .4, ...) {
   assert_number(amount, lower = 0, upper = .5)
   f <- as.tfd_irreg(f)
   new_args <- map(tf_arg(f), tf_jiggle_args, amount = amount)
-  tfd(map2(new_args, tf_evaluations(f), cbind), domain = tf_domain(f))
+  evaluator <- attr(f, "evaluator_name")
+  ret <- tfd(map2(new_args, tf_evaluations(f), cbind),
+      domain = tf_domain(f), ...)
+  tf_evaluator(ret) <- evaluator
+  ret
 }
 tf_jiggle_args <- function(arg, amount) {
   diffs <- diff(arg)
@@ -112,7 +116,7 @@ tf_jiggle_args <- function(arg, amount) {
 
 #' @rdname tf_jiggle
 #' @param dropout how many values of `f` to drop, defaults to 50%.
-#' @param ... not used currently
+#' @param ... additional args for the returned `tfd` in `tf_jiggle`
 #' @export
 #' @family tidyfun RNG functions
 tf_sparsify <- function(f, dropout = .5, ...) {
@@ -123,8 +127,13 @@ tf_sparsify <- function(f, dropout = .5, ...) {
   tf_evals <- map2(tf_evaluations(f), nas, \(x, y) x[!y])
   tf_args <- ensure_list(tf_arg(f))
   tf_args <- map2(tf_args, nas, \(x, y) x[!y])
-  tfd.list(tf_evals, tf_args,
+  ret <- tfd.list(tf_evals, tf_args,
     resolution = attr(f, "resolution"),
     domain = tf_domain(f)
   )
+  if (is_tfd(f)) {
+    evaluator <- attr(f, "evaluator_name")
+    tf_evaluator(ret) <- evaluator
+  }
+  ret
 }
