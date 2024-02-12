@@ -142,7 +142,7 @@ implementations of this.
 \strong{\code{resolution}}: \code{arg}-values that are equivalent up to this difference are
 treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at
 \eqn{t=1} and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)}
-will be returned if \code{resolution} < .01. By default, resolution will be set to
+will be returned if \code{resolution} < 0.01. By default, resolution will be set to
 an integer-valued power of 10 one smaller than the smallest difference
 between adjacent \code{arg}-values rounded down to an integer-valued power of 10:
 e.g., if the smallest difference between consecutive \code{arg}-values is between
@@ -151,15 +151,14 @@ e.g., if the smallest difference between consecutive \code{arg}-values is betwee
 \examples{
 # turn irregular to regular tfd by evaluating on a common grid:
 
-(f <- c(
+f <- c(
   tf_rgp(1, arg = seq(0, 1, length.out = 11)),
   tf_rgp(1, arg = seq(0, 1, length.out = 21))
-  ))
+)
 tfd(f, arg = seq(0, 1, length.out = 21))
 
 set.seed(1213)
-(f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |>
-  tf_sparsify(.9))
+f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(0.9)
 # does not yield regular data because linear extrapolation yields NAs
 #   outside observed range:
 tfd(f, arg = seq(0, 1, length.out = 101))
@@ -167,7 +166,8 @@ tfd(f, arg = seq(0, 1, length.out = 101))
 #   e.g. constant extrapolation:
 tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 plot(f, col = 2)
-tfd(f, arg = seq(0, 1, length.out = 151),
-    evaluator = tf_approx_fill_extend) |>  lines()
+tfd(f,
+  arg = seq(0, 1, length.out = 151), evaluator = tf_approx_fill_extend
+) |> lines()
 }
 \concept{tfd-class}

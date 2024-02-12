@@ -1,5 +1,5 @@
 grid <- round(seq(0, 10, length.out = 11), 3)
-lin <- -3:3 * tfd(.1 * grid, grid)
+lin <- -3:3 * tfd(0.1 * grid, grid)
 parallel <- -3:3 + tfd(0 * grid, grid)
 names(lin) <- names(parallel) <- 1:7
 
@@ -27,8 +27,8 @@ test_that("MBD works", {
   expect_equal(rank(tf_depth(lin_b, depth = "MBD")), ranks)
   # weighting by interval length:
   # increases importance of last point -> lower tf_depth
-  expect_true(
-    tail(tf_depth(spike_regular), 1) > tail(tf_depth(spike_irregular), 1)
+  expect_gt(
+    tail(tf_depth(spike_regular), 1), tail(tf_depth(spike_irregular), 1)
   )
 })
 
