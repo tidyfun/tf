@@ -170,6 +170,10 @@ tf_basis <- function(f, as_tfd = FALSE) {
   x
 }
 
+#' @rdname tfmethods
+#' @export
+`tf_arg<-.tfb` <- `tf_arg<-.tfd_reg`
+
 #-------------------------------------------------------------------------------
 
 #' @rdname tfmethods

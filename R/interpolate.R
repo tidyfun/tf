@@ -8,8 +8,10 @@
 #'  or zero crossings more accurate (... *if* the interpolation works well ...)
 #' - making irregular functional data into (more) regular data.
 #'
-#' This is really just syntactic sugar for `tf<d|b>(object, arg = arg)`.
-#' **To reliably impute very irregular data on a regular, common grid,
+#' For `tfd`-objects, this is just syntactic sugar for `tfd(object, arg = arg)`.
+#' For `tfb`-objects, this re-evaluates basis functions on the new grid.
+#' For both, the resolution of the resulting object may change.
+#' NB: **To reliably impute very irregular data on a regular, common grid,
 #' you'll be better off doing FPCA-based imputation or other model-based
 #' approaches in most cases.**
 #'
@@ -36,22 +38,24 @@
 #' set.seed(1860)
 #' (sparse_irregular <- tf_rgp(5) |>  tf_sparsify(.5) |> tf_jiggle())
 #' tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
-#'
 tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 
 #' @export
 #' @rdname tf_interpolate
 #' @family tidyfun setters
 tf_interpolate.tfb <- function(object, arg, ...) {
-  stopifnot(!missing(arg))
-  tfb(object, arg = arg, ...)
+  assert_arg(arg, object)
+  if (is.list(arg)) arg <- arg[[1]]
+  attr(object, "resolution") <- get_resolution(arg)
+  attr(object, "arg") <- arg
+  attr(object, "basis_matrix") <- attr(object, "basis")(arg)
+  return(object)
 }
 
 #' @export
 #' @rdname tf_interpolate
 #' @family tidyfun setters
 tf_interpolate.tfd <- function(object, arg, ...) {
-  stopifnot(!missing(arg))
   tfd(object, arg = arg, ...)
 }
 

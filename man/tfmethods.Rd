@@ -12,6 +12,7 @@
 \alias{tf_arg<-}
 \alias{tf_arg<-.tfd_irreg}
 \alias{tf_arg<-.tfd_reg}
+\alias{tf_arg<-.tfb}
 \alias{tf_resolution}
 \alias{coef.tfb}
 \alias{rev.tf}
@@ -49,6 +50,8 @@ tf_arg(x) <- value
 \method{tf_arg}{tfd_irreg}(x) <- value
 
 \method{tf_arg}{tfd_reg}(x) <- value
+
+\method{tf_arg}{tfb}(x) <- value
 
 tf_resolution(f)
 
