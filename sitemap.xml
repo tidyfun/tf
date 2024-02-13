@@ -28,6 +28,9 @@
     <loc>https://tidyfun.github.io/tf/reference/fpc_wsvd.html</loc>
   </url>
   <url>
+    <loc>https://tidyfun.github.io/tf/reference/functionwise.html</loc>
+  </url>
+  <url>
     <loc>https://tidyfun.github.io/tf/reference/in_range.html</loc>
   </url>
   <url>
@@ -37,7 +40,7 @@
     <loc>https://tidyfun.github.io/tf/reference/prep_plotting_arg.html</loc>
   </url>
   <url>
-    <loc>https://tidyfun.github.io/tf/reference/tf.html</loc>
+    <loc>https://tidyfun.github.io/tf/reference/tf-package.html</loc>
   </url>
   <url>
     <loc>https://tidyfun.github.io/tf/reference/tf_approx.html</loc>
