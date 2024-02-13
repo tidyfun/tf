@@ -157,16 +157,11 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 tf_integrate <- function(f, arg, lower, upper, ...) {
   UseMethod("tf_integrate")
 }
+
 #' @rdname tf_integrate
 #' @export
 tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
-#' @rdname tf_integrate
-#' @description `tf_integrate.function` integrates R-functions (a wrapper for
-#'   [stats::integrate()])
-#' @export
-tf_integrate.function <- function(f, arg, lower, upper, ...) {
-  stats::integrate(f, lower, upper, ...)
-}
+
 #' @rdname tf_integrate
 #' @export
 tf_integrate.tfd <- function(f, arg,
