@@ -27,6 +27,7 @@ reference:
   contents:
   - Ops.tf
   - tfsummaries
+  - functionwise
   - tf_depth
 - title: Differentiation, integration and simple smoothing
   contents:
@@ -59,7 +60,7 @@ reference:
   - in_range
   - ensure_list
   - unique_id
-  - vctrs 
+  - vctrs
   - tf
 navbar:
   type: default
