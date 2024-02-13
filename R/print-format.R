@@ -45,7 +45,7 @@ string_rep_tf <- function(f, signif_arg = NULL,
 #' @param n how many elements of `x` to print out
 #' @export
 #' @family tidyfun print
-print.tf <- function(x, n = 10, ...) {
+print.tf <- function(x, n = 5, ...) {
   cat(paste0(
     class(x)[2], "[", length(x), "] on (", tf_domain(x)[1], ",",
     tf_domain(x)[2], ")"
@@ -55,12 +55,12 @@ print.tf <- function(x, n = 10, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfd_reg <- function(x, n = 10, ...) {
+print.tfd_reg <- function(x, n = 5, ...) {
   NextMethod()
   cat(" based on", length(tf_arg(x)), "evaluations each\n")
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   if (length(x)) {
-    cat(format(x[seq_along(min(n, length(x)))], ...), sep = "\n")
+    cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {
       cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
     }
@@ -70,7 +70,7 @@ print.tfd_reg <- function(x, n = 10, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfd_irreg <- function(x, n = 10, ...) {
+print.tfd_irreg <- function(x, n = 5, ...) {
   NextMethod()
   nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
   n_evals <- tf_count(x[!nas])
@@ -80,7 +80,7 @@ print.tfd_irreg <- function(x, n = 10, ...) {
   ))
   cat("inter-/extrapolation by", attr(x, "evaluator_name"), "\n")
   if (length(x)) {
-    cat(format(x[seq_along(min(n, length(x)))], ...), sep = "\n")
+    cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {
       cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
     }
@@ -90,11 +90,11 @@ print.tfd_irreg <- function(x, n = 10, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfb <- function(x, n = 10, ...) {
+print.tfb <- function(x, n = 5, ...) {
   NextMethod()
   cat(" in basis representation:\n using ", attr(x, "basis_label"), "\n")
   if (length(x)) {
-    cat(format(x[seq_along(min(n, length(x)))], ...), sep = "\n")
+    cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {
       cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
     }
@@ -107,7 +107,7 @@ print.tfb <- function(x, n = 10, ...) {
 #' @param prefix used internally.
 #' @export
 format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
-                      n = 10, prefix = TRUE, ...) {
+                      n = 5, prefix = TRUE, ...) {
   long <- length(x) > n
   if (long && width > 0 && width <= 30) {
     x <- head(x, n)
@@ -117,7 +117,7 @@ format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
     digits = digits, nsmall = nsmall, ...
   )
   if (prefix) {
-    prefix <- if (!all(nzchar(names(x), keepNA = TRUE))) {
+    prefix <- if (!is.null(names(x)) && all(nzchar(names(x), keepNA = TRUE))) {
       names(x)[seq_along(str)]
     } else {
       paste0("[", seq_along(str), "]")
