@@ -16,7 +16,8 @@ as.tfb(data, basis = c("spline", "fpc"), ...)
 \item{data}{a \code{matrix}, \code{data.frame} or \code{list} of suitable shape, or another
 \code{tf}-object containing functional data.}
 
-\item{basis}{either "\code{spline}" (see \code{\link[=tfb_spline]{tfb_spline()}}, the default) or "\code{fpc}" (see \code{\link[=tfb_fpc]{tfb_fpc()}}).
+\item{basis}{either "\code{spline}" (see \code{\link[=tfb_spline]{tfb_spline()}}, the default) or "\code{fpc}"
+(see \code{\link[=tfb_fpc]{tfb_fpc()}}).
 (\code{wavelet} not implemented yet)}
 
 \item{...}{further arguments for \code{\link[=tfb_spline]{tfb_spline()}} or \code{\link[=tfb_fpc]{tfb_fpc()}}}
@@ -39,8 +40,8 @@ the value of \code{basis}, the basis functions \eqn{B(t)} will either be \code{s
 functions or the first few estimated eigenfunctions of the covariance
 operator of the \eqn{x(t)} (\code{fpc}) or wavelets (\code{wavelet}).
 
-See \strong{\code{\link[=tfb_spline]{tfb_spline()}}} for more details on spline basis representation (the default).
-See \strong{\code{\link[=tfb_fpc]{tfb_fpc()}}} for using an functional principal component
+See \strong{\code{\link[=tfb_spline]{tfb_spline()}}} for more details on spline basis representation (the
+default). See \strong{\code{\link[=tfb_fpc]{tfb_fpc()}}} for using an functional principal component
 representation with an orthonormal basis estimated from the data instead.
 }
 \seealso{

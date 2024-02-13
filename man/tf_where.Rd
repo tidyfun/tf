@@ -12,12 +12,12 @@ tf_anywhere(f, cond, arg)
 \arguments{
 \item{f}{a \code{tf} object}
 
-\item{cond}{a logical expression about \code{value} (and/or \code{arg}) that defines a condition about
-the functions, see examples and details.}
+\item{cond}{a logical expression about \code{value} (and/or \code{arg}) that defines a
+condition about the functions, see examples and details.}
 
-\item{return}{for each entry in \code{f}, \code{tf_where} either returns \emph{all} \code{arg} for
-which \code{cond} is true, the \emph{first}, the \emph{last} or their \emph{range} or logical
-flags whether the functions fullfill the condition \emph{any}where. For
+\item{return}{for each entry in \code{f}, \code{tf_where} either returns \emph{all} \code{arg}
+for which \code{cond} is true, the \emph{first}, the \emph{last} or their \emph{range} or
+logical flags whether the functions fullfill the condition \emph{any}where. For
 \code{"range"}, note that \code{cond} may not be true for all \code{arg} values in this
 range, though, this is not checked.}
 
@@ -27,11 +27,13 @@ defaults to \code{tf_arg(f)}.}
 \value{
 depends on  \code{return}:
 \itemize{
-\item \code{return = "any"}, i.e, \code{anywhere}: a logical vector of the same length as \code{f}.
+\item \code{return = "any"}, i.e, \code{anywhere}:
+a logical vector of the same length as \code{f}.
 \item \code{return = "all"}: a list of vectors of the same length as \code{f}, with
 empty vectors for the functions that  never fulfill the \code{cond}ition.
 \item \code{return = "range"}: a data frame with columns "begin" and "end".
-\item else, a numeric vector of the same length as \code{f} with \code{NA} for entries of \code{f} that nowhere fulfill the \code{cond}ition.
+\item else, a numeric vector of the same length as \code{f} with \code{NA} for entries of
+\code{f} that nowhere fulfill the \code{cond}ition.
 }
 }
 \description{
@@ -49,29 +51,31 @@ of the usual \code{dplyr} tricks are available as well, see examples.\cr
 Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
 }
 \examples{
-  lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
-  tf_where(lin, value \%inr\% c(-1, .5))
-  tf_where(lin, value \%inr\% c(-1, .5), "range")
-  a <- 1
-  tf_where(lin, value > a, "first")
-  tf_where(lin, value < a, "last")
-  tf_where(lin, value > 2, "any")
-  tf_anywhere(lin, value > 2)
+lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
+tf_where(lin, value \%inr\% c(-1, 0.5))
+tf_where(lin, value \%inr\% c(-1, 0.5), "range")
+a <- 1
+tf_where(lin, value > a, "first")
+tf_where(lin, value < a, "last")
+tf_where(lin, value > 2, "any")
+tf_anywhere(lin, value > 2)
 
-  set.seed(4353)
-  f <- tf_rgp(5, 11L)
-  plot(f, pch = as.character(1:5), points = TRUE)
-  tf_where(f, value == max(value))
-  # where is the function increasing/decreasing?
-  tf_where(f, value > dplyr::lag(value, 1, value[1]))
-  tf_where(f, value < dplyr::lead(value, 1, tail(value, 1)))
-  # where are the (interior) extreme points (sign changes of `diff(value)`)?
-  tf_where(f, 
-    sign(c(diff(value)[1], diff(value))) !=
-      sign(c(diff(value), tail(diff(value), 1))))
-  # where in its second half is the function positive?
-  tf_where(f, arg > .5 & value > 0)
-  # does the function ever exceed?
-  tf_anywhere(f, value > 1)
+set.seed(4353)
+f <- tf_rgp(5, 11)
+plot(f, pch = as.character(1:5), points = TRUE)
+tf_where(f, value == max(value))
+# where is the function increasing/decreasing?
+tf_where(f, value > dplyr::lag(value, 1, value[1]))
+tf_where(f, value < dplyr::lead(value, 1, tail(value, 1)))
+# where are the (interior) extreme points (sign changes of `diff(value)`)?
+tf_where(
+  f,
+  sign(c(diff(value)[1], diff(value))) !=
+    sign(c(diff(value), tail(diff(value), 1)))
+)
+# where in its second half is the function positive?
+tf_where(f, arg > 0.5 & value > 0)
+# does the function ever exceed?
+tf_anywhere(f, value > 1)
 }
 \concept{tidyfun query-functions}

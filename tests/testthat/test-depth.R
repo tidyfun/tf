@@ -1,8 +1,7 @@
-context("depth works")
-
 grid <- round(seq(0, 10, length.out = 11), 3)
-lin <- -3:3 * tfd(.1 * grid, grid)
+lin <- -3:3 * tfd(0.1 * grid, grid)
 parallel <- -3:3 + tfd(0 * grid, grid)
+names(lin) <- names(parallel) <- 1:7
 
 spike_regular <- c(parallel, tfd(100 * (grid == 10), grid))
 spike_irregular <- c(
@@ -21,14 +20,15 @@ lin_b <- tfb(lin, verbose = FALSE)
 
 test_that("MBD works", {
   ranks <- c(1.5, 3.5, 5.5, 7, 5.5, 3.5, 1.5)
-  expect_equivalent(rank(tf_depth(lin, depth = "MBD")), ranks)
-  expect_equivalent(rank(tf_depth(parallel, depth = "MBD")), ranks)
-  expect_equivalent(rank(tf_depth(lin_irreg, depth = "MBD")), ranks)
-  expect_equivalent(rank(tf_depth(lin_b, depth = "MBD")), ranks)
+  names(ranks) <- names(lin)
+  expect_equal(rank(tf_depth(lin, depth = "MBD")), ranks)
+  expect_equal(rank(tf_depth(parallel, depth = "MBD")), ranks)
+  expect_equal(rank(tf_depth(lin_irreg, depth = "MBD")), ranks)
+  expect_equal(rank(tf_depth(lin_b, depth = "MBD")), ranks)
   # weighting by interval length:
   # increases importance of last point -> lower tf_depth
-  expect_true(
-    tail(tf_depth(spike_regular), 1) > tail(tf_depth(spike_irregular), 1)
+  expect_gt(
+    tail(tf_depth(spike_regular), 1), tail(tf_depth(spike_irregular), 1)
   )
 })
 

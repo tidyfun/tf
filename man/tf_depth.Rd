@@ -21,7 +21,8 @@ tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
 
 \item{na.rm}{TRUE remove missing observations?}
 
-\item{...}{further arguments handed to the function computing the respective tf_depth.}
+\item{...}{further arguments handed to the function computing the respective
+tf_depth.}
 }
 \value{
 vector of tf_depth values

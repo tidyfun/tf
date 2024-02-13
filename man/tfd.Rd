@@ -68,46 +68,54 @@ as.tfd(data, ...)
 as.tfd_irreg(data, ...)
 }
 \arguments{
-\item{data}{a \code{matrix}, \code{data.frame} or \code{list} of suitable shape, or another \code{tf}-object. when
-this argument is \code{NULL} (i.e. when calling \code{tfd()}) this returns a prototype of class \code{tfd}}
+\item{data}{a \code{matrix}, \code{data.frame} or \code{list} of suitable shape, or another
+\code{tf}-object. when this argument is \code{NULL} (i.e. when calling \code{tfd()}) this
+returns a prototype of class \code{tfd}}
 
-\item{...}{not used in \code{tfd}, except for \code{tfd.tf} -- specify \code{arg} and \code{ìnterpolate = TRUE} to
-turn an irregular \code{tfd} into a regular one, see examples.}
+\item{...}{not used in \code{tfd}, except for \code{tfd.tf} -- specify \code{arg} and
+\code{ìnterpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
+examples.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details on its
-interplay with \code{resolution}.
-For the \code{data.frame}-method: the name/number of the column defining the
-evaluation grid. The \code{matrix} method will try to guess suitable \code{arg}-values
-from the column names of \code{data} if \code{arg} is not supplied. Other methods fall back on
-integer sequences (\verb{1:<length of data>}) as the default if not provided.}
+\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details
+on its interplay with \code{resolution}. For the \code{data.frame}-method: the
+name/number of the column defining the evaluation grid. The \code{matrix} method
+will try to guess suitable \code{arg}-values from the column names of \code{data} if
+\code{arg} is not supplied. Other methods fall back on integer sequences
+(\verb{1:<length of data>}) as the default if not provided.}
 
 \item{domain}{range of the \code{arg}.}
 
-\item{evaluator}{a function accepting arguments \verb{x, arg, evaluations}. See details for \code{\link[=tfd]{tfd()}}.}
+\item{evaluator}{a function accepting arguments \verb{x, arg, evaluations}. See
+details for \code{\link[=tfd]{tfd()}}.}
 
 \item{resolution}{resolution of the evaluation grid. See details for \code{\link[=tfd]{tfd()}}.}
 
-\item{id}{The name or number of the column defining which data belong to which function.}
+\item{id}{The name or number of the column defining which data belong to
+which function.}
 
-\item{value}{The name or number of the column containing the function evaluations.}
+\item{value}{The name or number of the column containing the function
+evaluations.}
 }
 \value{
-an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion functions, obviously.)
+an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
+functions, obviously.)
 }
 \description{
 Various constructor methods for \code{tfd}-objects.
 
-\code{tfd.matrix} accepts a numeric matrix with one function per \emph{row} (!). If
-\code{arg} is not provided, it tries to guess \code{arg} from the column names and falls back on \code{1:ncol(data)} if that fails.
+\code{tfd.matrix} accepts a numeric matrix with one function per
+\emph{row} (!). If \code{arg} is not provided, it tries to guess \code{arg} from the
+column names and falls back on \code{1:ncol(data)} if that fails.
 
-\code{tfd.data.frame} uses the first 3 columns of \code{data} for function information by default:
-(\code{id}, \code{arg}, \code{value})
+\code{tfd.data.frame} uses the first 3 columns of \code{data} for
+function information by default: (\code{id}, \code{arg}, \code{value})
 
 \code{tfd.list} accepts a list of vectors of identical lengths
 containing evaluations or a list of 2-column matrices/data.frames with
 \code{arg} in the first and evaluations in the second column
 
-\code{tfd.default} returns class prototype when argument to tfd() is NULL or not a recognised class
+\code{tfd.default} returns class prototype when argument to tfd() is
+NULL or not a recognised class
 }
 \details{
 \strong{\code{evaluator}}: must be the (quoted or bare) name of a
@@ -127,33 +135,39 @@ with \code{na.rm = FALSE}),
 \item \code{tf_approx_nocb} for "next observation carried backward" (i.e.,
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
 See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
-\code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of implementations of
-this.
+\code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of
+implementations of this.
 }
 
 \strong{\code{resolution}}: \code{arg}-values that are equivalent up to this difference are
-treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at \eqn{t=1}
-and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)} will be returned if
-\code{resolution} < .01. By default, resolution will be set to an integer-valued power
-of 10 one smaller than the smallest difference between adjacent
-\code{arg}-values rounded down to an integer-valued power
-of 10: e.g., if the smallest difference between consecutive
-\code{arg}-values is between 0.1 and 0.9999, the resolution will be 0.01, etc.
-In code: \verb{resolution = 10^(floor(log10(min(diff(<arg>))) - 1)}
+treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at
+\eqn{t=1} and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)}
+will be returned if \code{resolution} < 0.01. By default, resolution will be set to
+an integer-valued power of 10 one smaller than the smallest difference
+between adjacent \code{arg}-values rounded down to an integer-valued power of 10:
+e.g., if the smallest difference between consecutive \code{arg}-values is between
+0.1 and 0.9999, the resolution will be 0.01, etc. In code: \verb{resolution = 10^(floor(log10(min(diff(<arg>))) - 1)}
 }
 \examples{
-#turn irregular to regular tfd by evaluating on a common grid:
+# turn irregular to regular tfd by evaluating on a common grid:
 
-(f <- c(tf_rgp(1, arg = seq(0, 1, length.out = 11)), tf_rgp(1, arg = seq(0, 1, length.out = 21))))
+f <- c(
+  tf_rgp(1, arg = seq(0, 1, length.out = 11)),
+  tf_rgp(1, arg = seq(0, 1, length.out = 21))
+)
 tfd(f, arg = seq(0, 1, length.out = 21))
 
 set.seed(1213)
-(f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(.9))
-#does not yield regular data because linear extrapolation yields NAs outside observed range:
-tfd(f, arg = seq(0, 1, length.out = 101)) 
-# this "works" (but may not yield sensible values..!!) for e.g. constant extrapolation:
+f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(0.9)
+# does not yield regular data because linear extrapolation yields NAs
+#   outside observed range:
+tfd(f, arg = seq(0, 1, length.out = 101))
+# this "works" (but may not yield sensible values..!!) for
+#   e.g. constant extrapolation:
 tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 plot(f, col = 2)
-lines(tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 151)))
+tfd(f,
+  arg = seq(0, 1, length.out = 151), evaluator = tf_approx_fill_extend
+) |> lines()
 }
 \concept{tfd-class}

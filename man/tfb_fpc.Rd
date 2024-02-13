@@ -58,18 +58,20 @@ tfb_fpc(data, ...)
 \item{...}{arguments to the \code{method} which computes the
 (regularized/smoothed) FPCA.
 Unless set by the user, uses proportion of variance explained
-\code{pve = .995} to determine the truncation levels.}
+\code{pve = 0.995} to determine the truncation levels.}
 
-\item{id}{The name or number of the column defining which data belong to which function.}
+\item{id}{The name or number of the column defining which data belong to
+which function.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details on its
-interplay with \code{resolution}.
-For the \code{data.frame}-method: the name/number of the column defining the
-evaluation grid. The \code{matrix} method will try to guess suitable \code{arg}-values
-from the column names of \code{data} if \code{arg} is not supplied. Other methods fall back on
-integer sequences (\verb{1:<length of data>}) as the default if not provided.}
+\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details
+on its interplay with \code{resolution}. For the \code{data.frame}-method: the
+name/number of the column defining the evaluation grid. The \code{matrix} method
+will try to guess suitable \code{arg}-values from the column names of \code{data} if
+\code{arg} is not supplied. Other methods fall back on integer sequences
+(\verb{1:<length of data>}) as the default if not provided.}
 
-\item{value}{The name or number of the column containing the function evaluations.}
+\item{value}{The name or number of the column containing the function
+evaluations.}
 
 \item{domain}{range of the \code{arg}.}
 
@@ -100,31 +102,33 @@ of \code{\link[=fpc_wsvd]{fpc_wsvd()}} can be used for the `method`` argument, s
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{tfb_fpc(default)}: convert \code{tfb}: default method, returning prototype when data is NULL
+\item \code{tfb_fpc(default)}: convert \code{tfb}: default method, returning prototype when
+data is NULL
 
 }}
 \examples{
 # Apply FPCA for sparse data using refund::fpca.sc:
 set.seed(99290)
 # create sparse data:
-data <- tf_rgp(15) |> tf_sparsify() |> as.data.frame(unnest = TRUE)
+data <- tf_rgp(15) |>
+  tf_sparsify() |>
+  as.data.frame(unnest = TRUE)
 # wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
-fpca_sc_wrapper <- function(data, arg, pve = .995, ...) {
+fpca_sc_wrapper <- function(data, arg, pve = 0.995, ...) {
   data_mat <- tf:::df_2_mat(data)
-  fpca <- refund::fpca.sc(Y = data_mat, 
-                          argvals = attr(data_mat, "arg"), 
-                          pve = pve, ...)
+  fpca <- refund::fpca.sc(
+    Y = data_mat, argvals = attr(data_mat, "arg"), pve = pve, ...
+  )
   fpca[c("mu", "efunctions", "scores", "npc")]
 }
-tfb_fpc(data, method = fpca_sc_wrapper)
 }
 \seealso{
 \code{\link[=fpc_wsvd]{fpc_wsvd()}} for FPCA options.
 
 Other tfb-class: 
 \code{\link{fpc_wsvd}()},
-\code{\link{tfb_spline}()},
-\code{\link{tfb}}
+\code{\link{tfb}},
+\code{\link{tfb_spline}()}
 
 Other tfb_fpc-class: 
 \code{\link{fpc_wsvd}()}

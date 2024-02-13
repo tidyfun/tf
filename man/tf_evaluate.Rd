@@ -23,8 +23,9 @@ Defaults to \code{tf_arg(object)}, implicitly.}
 
 \item{...}{not used}
 
-\item{evaluator}{optional. The function to use for inter/extrapolating the \code{tfd}.
-Defaults to \code{tf_evaluator(object)}. See e.g. \code{\link[=tf_approx_linear]{tf_approx_linear()}} for details.}
+\item{evaluator}{optional. The function to use for inter/extrapolating the
+\code{tfd}. Defaults to \code{tf_evaluator(object)}.
+See e.g. \code{\link[=tf_approx_linear]{tf_approx_linear()}} for details.}
 }
 \value{
 A list of numeric vectors containing the function
@@ -37,9 +38,9 @@ evaluate \code{object}, see examples.
 \examples{
 f <- tf_rgp(3, arg = seq(0, 1, length.out = 11))
 tf_evaluate(f) |> str()
-tf_evaluate(f, arg = .5) |> str()
+tf_evaluate(f, arg = 0.5) |> str()
 # equivalent, as matrix:
-f[, .5]
+f[, 0.5]
 new_grid <- seq(0, 1, length.out = 6)
 tf_evaluate(f, arg = new_grid) |> str()
 # equivalent, as matrix:

@@ -1,17 +1,22 @@
 Package: tf
 Title: S3 classes and methods for tidy functional data
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(
-    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre")),
+    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-8172-3603")),
     person("Jeff", "Goldsmith", role = "aut"),
-    person("Julia", "Wrobel", role = "aut"),
-    person("Maximilian", "Mücke", role = "ctb"), 
-    person("Sebastian", "Fischer", role = "ctb")
+    person("Julia", "Wrobel", role = "aut", 
+           comment = c(ORCID = "0000-0001-6783-1421")),
+    person("Maximilian", "Muecke", role = "ctb",
+           comment = c(ORCID = "0000-0002-9609-3197")),
+    person("Sebastian", "Fischer", role = "ctb",
+           comment = c(ORCID = "0009-0000-9432-9795"))
   )
 Description: Provides S3 classes and methods for representing, visualizing
     and wrangling tidy functional data.
 License: MIT + file LICENSE
-URL: https://tidyfun.github.io/tf/
+URL: https://tidyfun.github.io/tf, https://github.com/tidyfun/tf
+BugReports: https://github.com/tidyfun/tf/issues
 Depends: 
     R (>= 4.1)
 Imports:
@@ -28,25 +33,15 @@ Imports:
     zoo
 Suggests: 
     covr,
-    data.table,
     dplyr,
-    fda,
-    gridExtra,
-    janitor,
     knitr,
-    maps,
-    rmarkdown,
-    scales,
-    SemiPar,
-    testthat,
-    tidyverse,
-    viridisLite
+    testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Collate:
     'approx.R'
     'brackets.R'
@@ -55,6 +50,7 @@ Collate:
     'convert.R'
     'depth.R'
     'evaluate.R'
+    'fwise.R'
     'globals.R'
     'graphics.R'
     'interpolate.R'
@@ -77,3 +73,4 @@ Collate:
     'vctrs.R'
     'where.R'
     'zoom.R'
+Config/testthat/edition: 3

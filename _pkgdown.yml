@@ -1,5 +1,8 @@
 url: https://tidyfun.github.io/tf/
-title: tf
+
+template:
+  bootstrap: 5
+
 reference:
 - title: 'tf - (Sub)classes: Constructors & converters'
   desc: Defining, evaluating and converting functional data objects

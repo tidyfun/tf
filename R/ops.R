@@ -22,7 +22,7 @@ fun_op <- function(x, y, op, numeric = NA) {
       attributes(x)
     } else {
       attributes(y)
-    }  
+    }
     arg_ret <- tf_arg(y)
   }
   if (is_tfb(x)) x_ <- coef(x)
@@ -31,7 +31,7 @@ fun_op <- function(x, y, op, numeric = NA) {
   if (is_tfb(y)) y_ <- coef(y)
   if (is_tfd(y)) y_ <- tf_evaluations(y)
   if (isTRUE(numeric == 2)) y_ <- y
-  ret <- map2(x_, y_, ~do.call(op, list(e1 = .x, e2 = .y)))
+  ret <- map2(x_, y_, \(x, y) do.call(op, list(e1 = x, e2 = y)))
   if ("tfd" %in% attr_ret$class) {
     if (is.na(numeric) &&
       (attr(x, "evaluator_name") != attr(y, "evaluator_name"))) {
@@ -41,11 +41,13 @@ fun_op <- function(x, y, op, numeric = NA) {
       )
     }
     if ("tfd_irreg" %in% attr_ret$class) {
-      ret <- map2(arg_ret, ret, ~list(arg = .x, value = .y))
+      ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
     }
   }
   attributes(ret) <- attr_ret
-  if (any(is.na(names(ret)))) {names(ret) = NULL}
+  if (anyNA(names(ret))) {
+    names(ret) <- NULL
+  }
   ret
 }
 
@@ -88,15 +90,15 @@ fun_op <- function(x, y, op, numeric = NA) {
 #' @family tidyfun compute functions
 Ops.tf <- function(e1, e2) {
   not_defined <- switch(.Generic,
-    `%%` = , 
+    `%%` = ,
     `%/%` = ,
-    `&` = , 
-    `|` = , 
+    `&` = ,
+    `|` = ,
     `!` = ,
-    `<` = , 
-    `<=` = , 
-    `>=` = , 
-    `>` = TRUE, 
+    `<` = ,
+    `<=` = ,
+    `>=` = ,
+    `>` = TRUE,
     FALSE
   )
   if (not_defined) {
@@ -116,7 +118,7 @@ Ops.tf <- function(e1, e2) {
   # not comparing names, as per convention...
   same <- all(compare_tf_attribs(e1, e2))
   if (!same) return(rep(FALSE, max(length(e1), length(e2))))
-  unlist(map2(e1, e2, ~isTRUE(all.equal(.x, .y))))
+  map2_lgl(e1, e2, \(x, y) isTRUE(all.equal(x, y)))
 }
 
 #' @rdname tfgroupgenerics

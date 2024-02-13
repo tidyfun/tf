@@ -12,14 +12,15 @@ f \%inr\% r
 \arguments{
 \item{f}{a numeric vector}
 
-\item{r}{numeric vector used to specify a range, only the minimum and maximum of \code{r} are used.}
+\item{r}{numeric vector used to specify a range, only the minimum and maximum
+of \code{r} are used.}
 }
 \value{
 a \code{logical} vector of the same length as \code{f}
 }
 \description{
-\code{in_range} and its infix-equivalent \verb{\%inr\%} return \code{TRUE} for all
-values in the numeric vector \code{f} that are within the range of values in \code{r}.
+\code{in_range} and its infix-equivalent \verb{\%inr\%} return \code{TRUE} for all values in
+the numeric vector \code{f} that are within the range of values in \code{r}.
 }
 \seealso{
 Other tidyfun utility functions: 

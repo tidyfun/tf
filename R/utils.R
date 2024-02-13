@@ -4,29 +4,26 @@ find_arg <- function(data, arg) {
   if (is.null(arg)) {
     names <- dimnames(data)[[2]]
     suppressWarnings(arg <- as.numeric(names))
-    if (is.null(arg) | any(is.na(arg))) {
+    if (is.null(arg) || anyNA(arg)) {
       # extract number-strings
       # will interpret separating-dashes as minus-signs, so functions may run
       # backwards.
       # regex adt'd from https://www.regular-expressions.info/floatingpoint.html
       arg_matches <- regexpr(
-        pattern = "[-+]?(0|(0\\.[0-9]+)|([1-9][0-9]*\\.?[0-9]*))([eE][-+]?[0-9]+)?$",
+        pattern = "[-+]?(0|(0\\.[0-9]+)|([1-9][0-9]*\\.?[0-9]*))([eE][-+]?[0-9]+)?$", # nolint
         names
       )
       arg <- regmatches(names, arg_matches)
       suppressWarnings(arg <- as.numeric(arg))
       if (length(unique(arg)) != dim(data)[2]) arg <- NULL
     }
-    if (is.null(arg) | any(is.na(arg))) {
+    if (is.null(arg) || anyNA(arg)) {
       message("Column names not suitable as 'arg'-values. Using 1:ncol(data).")
       arg <- numeric(0)
     }
   }
   if (!length(arg)) arg <- seq_len(dim(data)[2])
-  stopifnot(
-    length(arg) == dim(data)[2],
-    is.numeric(arg), all(!is.na(arg))
-  )
+  stopifnot(length(arg) == dim(data)[2], is.numeric(arg), all(!is.na(arg)))
   list(arg)
 }
 
@@ -34,32 +31,40 @@ find_arg <- function(data, arg) {
 assert_arg <- function(arg, x, check_unique = TRUE) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
-    map(arg, ~assert_arg_vector(., x = x, check_unique = check_unique))
+    walk(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
   } else {
     assert_arg_vector(arg, x, check_unique = check_unique)
   }
 }
-assert_arg_vector <- function(arg, x, check_unique = TRUE) {
+
+.assert_arg_vector <- function(arg, domain_x, resolution_x, check_unique) {
   if (check_unique) {
-    round_arg <- round_resolution(arg, tf_resolution(x))
-    if (any(duplicated(round_arg))) {
+    round_arg <- round_resolution(arg, resolution_x)
+    if (anyDuplicated(round_arg) > 0) {
       stop("Non-unique arg-values (for resolution).")
     }
   }
   assert_numeric(arg,
-                 any.missing = FALSE, unique = FALSE,
-                 lower = tf_domain(x)[1], upper = tf_domain(x)[2]
+    any.missing = FALSE, unique = FALSE, sorted = TRUE,
+    lower = domain_x[1], upper = domain_x[2]
   )
 }
 
+assert_arg_vector <- function(arg, x, check_unique = TRUE) {
+  resolution_x <- tf_resolution(x)
+  domain_x <- tf_domain(x)
+  .assert_arg_vector(arg, domain_x, resolution_x, check_unique)
+}
+
+# default resolution is ~ smallest observed interval/10
+# rounded down to the nearest decimal
 get_resolution <- function(arg) {
-  min_diff <- map(ensure_list(arg), ~min(diff(.x))) |> unlist() |> min()
+  min_diff <- map_dbl(ensure_list(arg), \(x) min(diff(x))) |> min()
   if (min_diff < .Machine$double.eps * 10) {
     stop("(Almost) non-unique arg values detected.")
   }
   10^(floor(log10(min_diff)) - 1)
 }
-
 
 adjust_resolution <- function(arg, f, unique = TRUE) {
   resolution <- resolution(f)
@@ -69,7 +74,7 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 .adjust_resolution <- function(arg, resolution, unique = TRUE) {
   u <- if (unique) base::unique else function(x) x
   if (is.list(arg)) {
-    map(arg, ~u(round_resolution(., resolution)))
+    map(arg, \(x) u(round_resolution(x, resolution)))
   } else {
     u(round_resolution(arg, resolution))
   }
@@ -77,22 +82,28 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 
 # "quantize" the values in arg to the given resolution
 round_resolution <- function(arg, resolution, updown = 0) {
-  if (updown == 0) return(round(arg / resolution) * resolution)
-  if (updown < 0) return(floor(arg / resolution) * resolution)
-  if (updown > 0) return(ceiling(arg / resolution) * resolution)
+  if (updown == 0) {
+    round(arg / resolution) * resolution
+  } else if (updown < 0) {
+    floor(arg / resolution) * resolution
+  } else {
+    ceiling(arg / resolution) * resolution
+  }
 }
 
-
-
 is_equidist <- function(f) {
-  if (is_irreg(f)) return(FALSE)
+  if (is_irreg(f)) {
+    return(FALSE)
+  }
   unique_diffs <- map_lgl(
     ensure_list(tf_arg(f)),
-    ~round_resolution(.x, attr(f, "resolution")) |>
-      diff() |>
-      duplicated() |>
-      tail(-1) |>
-      all()
+    \(x) {
+      round_resolution(x, attr(f, "resolution")) |>
+        diff() |>
+        duplicated() |>
+        tail(-1) |>
+        all()
+    }
   )
   all(unique_diffs)
 }
@@ -106,7 +117,9 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
   attribs <- union(names(a1), names(a2))
   if (length(ignore)) attribs <- attribs[!(attribs %in% ignore)]
   .compare <- function(a, b) {
-    if (is.null(a) != is.null(b)) return(FALSE)
+    if (is.null(a) != is.null(b)) {
+      return(FALSE)
+    }
     suppressWarnings(
       if (is.function(a)) {
         # FIXME: this is not reliable/useful but prob. impossible to solve
@@ -119,16 +132,15 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
         identical(a, b, ignore.environment = TRUE)
       } else {
         if (is.list(a)) {
-          all(unlist(map2(a, ensure_list(b), .compare)))
+          all(map2_lgl(a, ensure_list(b), .compare))
         } else {
           isTRUE(all.equal(a, b))
         }
       }
     )
   }
-  ret <- map(attribs, ~.compare(a1[[.]], a2[[.]]))
-  names(ret) <- attribs
-  unlist(ret)
+  ret <- map_lgl(attribs, \(x) .compare(a1[[x]], a2[[x]])) |> setNames(attribs)
+  ret
 }
 
 #-------------------------------------------------------------------------------
@@ -136,11 +148,13 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
 
 #' Find out if values are inside given bounds
 #'
-#' `in_range` and its infix-equivalent `%inr%` return `TRUE` for all
-#'    values in the numeric vector `f` that are within the range of values in `r`.
+#' `in_range` and its infix-equivalent `%inr%` return `TRUE` for all values in
+#'  the numeric vector `f` that are within the range of values in `r`.
+#'
 #' @param f a numeric vector
-#' @param r numeric vector used to specify a range, only the minimum and maximum of `r` are used.
-#' @return a `logical` vector of the same length as `f`
+#' @param r numeric vector used to specify a range, only the minimum and maximum
+#'   of `r` are used.
+#' @returns a `logical` vector of the same length as `f`
 #' @family tidyfun utility functions
 #' @export
 in_range <- function(f, r) {
@@ -154,32 +168,33 @@ in_range <- function(f, r) {
 #' @export
 `%inr%` <- function(f, r) in_range(f, r)
 
-
 get_args <- function(args, f) {
   args[names(args) %in% names(formals(f))]
 }
 
 #' Turns any object into a list
-#' 
+#'
 #' See above.
-#' @param x any input 
-#' @return `x` turned into a list.
+#' @param x any input
+#' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools
 ensure_list <- function(x) {
   if (!is.list(x)) list(x) else x
-}  
+}
 
-#' Make syntactically valid unique names 
-#' 
+#' Make syntactically valid unique names
+#'
 #' See above.
-#' @param x any input 
-#' @return `x` turned into a list.
+#' @param x any input
+#' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools
 # export for tidyfun...
 unique_id <- function(x) {
-  if (!any(duplicated(x))) return(x)
+  if (anyDuplicated(x) == 0) {
+    return(x)
+  }
   if (is.character(x)) x <- sub("$^", "NA", x)
   x <- make.names(as.character(x), unique = TRUE)
   x

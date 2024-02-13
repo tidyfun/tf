@@ -35,11 +35,12 @@ be turned into irregular \code{tfd}-objects iff \code{begin} or \code{end} are n
 These are used to redefine or restrict the \code{domain} of \code{tf} objects.
 }
 \examples{
-  (x <- tf_rgp(10))
-  plot(x)
-  tf_zoom(x, .5, .9)
-  lines(tf_zoom(x, .5, .9), col = "red")
-  points(tf_zoom(x, seq(0, .5, length.out = 10), seq(.5, 1, length.out = 10)), col = "blue")
+x <- tf_rgp(10)
+plot(x)
+tf_zoom(x, 0.5, 0.9)
+tf_zoom(x, 0.5, 0.9) |> lines(col = "red")
+tf_zoom(x, seq(0, 0.5, length.out = 10), seq(0.5, 1, length.out = 10)) |>
+  lines(col = "blue", lty = 3)
 }
 \seealso{
 Other tidyfun utility functions: 

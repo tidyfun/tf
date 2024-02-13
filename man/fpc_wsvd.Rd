@@ -13,7 +13,8 @@ fpc_wsvd(data, arg, pve = 0.995)
 \method{fpc_wsvd}{data.frame}(data, arg, pve = 0.995)
 }
 \arguments{
-\item{data}{numeric matrix of function evaluations (each row is one curve, no NAs)}
+\item{data}{numeric matrix of function evaluations
+(each row is one curve, no NAs)}
 
 \item{arg}{numeric vector of argument values}
 
@@ -38,9 +39,9 @@ package \code{mogsa} by Cheng Meng.
 }
 \seealso{
 Other tfb-class: 
+\code{\link{tfb}},
 \code{\link{tfb_fpc}()},
-\code{\link{tfb_spline}()},
-\code{\link{tfb}}
+\code{\link{tfb_spline}()}
 
 Other tfb_fpc-class: 
 \code{\link{tfb_fpc}()}
