@@ -176,7 +176,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
   if (!(length(unlist(value)) == length(tf_arg(x)))) {
     rlang::abort("length(arg) not the same as original -- use tf_interpolate.")
   }
-  if (length(ensure_list(arg)) != 1) {
+  if (length(ensure_list(value)) != 1) {
     rlang::abort(paste("can't assign irregular argument list to ", class(x)[1]))
   }
 

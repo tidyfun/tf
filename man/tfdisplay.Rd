@@ -8,20 +8,20 @@
 \alias{format.tf}
 \title{Pretty printing and formatting for functional data}
 \usage{
-\method{print}{tf}(x, n = 10, ...)
+\method{print}{tf}(x, n = 5, ...)
 
-\method{print}{tfd_reg}(x, n = 10, ...)
+\method{print}{tfd_reg}(x, n = 5, ...)
 
-\method{print}{tfd_irreg}(x, n = 10, ...)
+\method{print}{tfd_irreg}(x, n = 5, ...)
 
-\method{print}{tfb}(x, n = 10, ...)
+\method{print}{tfb}(x, n = 5, ...)
 
 \method{format}{tf}(
   x,
   digits = 2,
   nsmall = 0,
   width = options()$width,
-  n = 10,
+  n = 5,
   prefix = TRUE,
   ...
 )

@@ -5,6 +5,7 @@
 \alias{tf_fwise}
 \alias{tf_fmax}
 \alias{tf_fmin}
+\alias{tf_fmedian}
 \alias{tf_frange}
 \alias{tf_fmean}
 \alias{tf_fvar}
@@ -18,6 +19,8 @@ tf_fwise(x, .f, arg = tf_arg(x), ...)
 tf_fmax(x, arg = tf_arg(x), na.rm = FALSE)
 
 tf_fmin(x, arg = tf_arg(x), na.rm = FALSE)
+
+tf_fmedian(x, arg = tf_arg(x), na.rm = FALSE)
 
 tf_frange(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE)
 
@@ -73,6 +76,8 @@ and \code{values} internally, so the function/formula in \code{.f} gets a data.f
 \item \code{tf_fmax()}: maximal value of each function
 
 \item \code{tf_fmin()}: minimal value of each function
+
+\item \code{tf_fmedian()}: median value of each function
 
 \item \code{tf_frange()}: range of values of each function
 

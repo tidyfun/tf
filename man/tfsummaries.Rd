@@ -58,8 +58,9 @@ the median. One of the functional data depths available via \code{\link[=tf_dept
 These will return a \code{tf} object containing the respective \emph{functional}
 statistic.
 \code{summary} returns a \code{tf}-vector with the mean function, the
-variance function, and the functional range of the central half of the
-functions, as defined by \code{\link[=tf_depth]{tf_depth()}}
+variance function, the functional median, and the functional range
+(i.e., \emph{pointwise} min/max) of the central half of the functions,
+as defined by \code{\link[=tf_depth]{tf_depth()}}
 }
 \seealso{
 Other tidyfun summary functions: 
