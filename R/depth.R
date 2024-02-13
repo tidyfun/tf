@@ -10,12 +10,7 @@
 #' @param ... further arguments handed to the function computing the respective
 #'   tf_depth.
 #' @returns vector of tf_depth values
-#' @references Sun, Y., Genton, M. G., & Nychka, D. W. (2012).
-#'   Exact fast computation of band tf_depth for large functional datasets:
-#'   How quickly can one million curves be ranked?. *Stat*, **1**(1), 68-74.
-#'   Lopez-Pintado, S. and Romo, J. (2009).
-#'   On the Concept of Depth for Functional Data.
-#'   *Journal of the American Statistical Association*, **104**, 718-734.
+#' @references `r format_bib("sun2012exact", "lopez2009concept")`
 #' @export
 #' @rdname tf_depth
 #' @family tidyfun ordering and ranking functions

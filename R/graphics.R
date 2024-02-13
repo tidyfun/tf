@@ -50,9 +50,7 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @rdname tfviz
 #' @family tidyfun visualization
 #' @export
-#' @references Swihart, B. J., Caffo, B., James, B. D., Strand, M., Schwartz, B.
-#'   S., & Punjabi, N. M. (2010). Lasagna plots: a saucy alternative to
-#'   spaghetti plots. *Epidemiology (Cambridge, Mass.)*, **21**(5), 621-625.
+#' @references `r format_bib("swihart2010lasagna")`
 plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
                     type = c("spaghetti", "lasagna"),
                     alpha = min(1, max(0.05, 2 / length(x))), ...) {

@@ -44,6 +44,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Collate:
     'approx.R'
+    'bibentries.R'
     'brackets.R'
     'calculus.R'
     'convert-construct-utils.R'
