@@ -88,7 +88,7 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 summary.tf <- function(object, ...) {
   tf_depths <- tf_depth(object, ...)
   central <- which(tf_depths <= median(tf_depths))
-  central_half = range(object[central])
+  central_half <- range(object[central])
   c(
     mean = mean(object), var = var(object),
     median = object[which.max(tf_depths)] |> unname(),
