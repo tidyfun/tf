@@ -14,7 +14,7 @@
 #' @family tidyfun summary functions
 #' @return a list (or vector) of the same length as `x` with the respective
 #'   summaries
-#' @importFrom purrr as_mapper flatten_dbl
+#' @importFrom purrr as_mapper list_c
 NULL
 
 #' @export
@@ -49,19 +49,29 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
   assert_arg(arg = arg, x = x)
   x_ <- x[, arg, matrix = FALSE]
   f_map <- purrr::as_mapper(.f, ...)
-  map(x_, f_map)
+  ret <- map(x_, f_map)
+  setNames(ret, names(x))
 }
 #' @export
 #' @describeIn functionwise maximal value of each function
 #' @inheritParams base::min
 tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  tf_fwise(x, ~ max(.x$value, na.rm = na.rm), arg = arg) |> flatten_dbl()
+  ret <- tf_fwise(x, ~ max(.x$value, na.rm = na.rm), arg = arg) |> list_c()
+  setNames(ret, names(x))
 }
 #' @export
 #' @describeIn functionwise minimal value of each function
 #' @inheritParams base::min
 tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  tf_fwise(x, ~ min(.x$value, na.rm = na.rm), arg = arg) |> flatten_dbl()
+  ret  <- tf_fwise(x, ~ min(.x$value, na.rm = na.rm), arg = arg) |> list_c()
+  setNames(ret, names(x))
+}
+#' @export
+#' @describeIn functionwise median value of each function
+#' @inheritParams base::min
+tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
+  ret  <- tf_fwise(x, ~ median(.x$value, na.rm = na.rm), arg = arg) |> list_c()
+  setNames(ret, names(x))
 }
 #' @export
 #' @describeIn functionwise range of values of each function
