@@ -3,8 +3,9 @@
 #' These will return a `tf` object containing the respective *functional*
 #' statistic.
 #' `summary` returns a `tf`-vector with the mean function, the
-#' variance function, and the functional range of the central half of the
-#' functions, as defined by [tf_depth()]
+#' variance function, the functional median, and the functional range
+#' (i.e., *pointwise* min/max) of the central half of the functions,
+#' as defined by [tf_depth()]
 #'
 #' @param x a `tf` object
 #' @param ... optional additional arguments.
@@ -87,9 +88,10 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 summary.tf <- function(object, ...) {
   tf_depths <- tf_depth(object, ...)
   central <- which(tf_depths <= median(tf_depths))
+  central_half = range(object[central])
   c(
     mean = mean(object), var = var(object),
-    median = object[which.max(tf_depths)],
-    central_half = range(object[central])
+    median = object[which.max(tf_depths)] |> unname(),
+    upper_mid =  central_half[1], lower_mid =  central_half[2]
   )
 }
