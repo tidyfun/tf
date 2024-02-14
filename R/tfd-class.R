@@ -4,9 +4,13 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
   # created from an (intermediate) data.frame, but may be unnamed for different
   # provenance....
-  if (vctrs::vec_size(datalist) == 0) {
+  if (vctrs::vec_size(datalist) == 0 || all(is.na(unlist(datalist)))) {
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
-    message("empty input `data`; returning prototype of length 0")
+    datalist <-  ifelse(regular,
+                        list(),
+                        list(list(arg = list(), value = list()))
+                        )
+    message("empty or missing input `data`; returning prototype of length 0")
     ret <- vctrs::new_vctr(
       datalist,
       arg = list(numeric()),
