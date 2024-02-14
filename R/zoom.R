@@ -14,12 +14,12 @@
 #' @family tidyfun utility functions
 #' @export
 #' @examples
-#' (x <- tf_rgp(10))
+#' x <- tf_rgp(10)
 #' plot(x)
-#' tf_zoom(x, .5, .9)
-#' tf_zoom(x, .5, .9) |> lines(col = "red")
-#' tf_zoom(x, seq(0, .5, length.out = 10),
-#'   seq(.5, 1, length.out = 10)) |> lines(col = "blue", lty = 3)
+#' tf_zoom(x, 0.5, 0.9)
+#' tf_zoom(x, 0.5, 0.9) |> lines(col = "red")
+#' tf_zoom(x, seq(0, 0.5, length.out = 10), seq(0.5, 1, length.out = 10)) |>
+#'   lines(col = "blue", lty = 3)
 tf_zoom <- function(f, begin, end, ...) {
   UseMethod("tf_zoom")
 }

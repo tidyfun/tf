@@ -4,7 +4,7 @@ find_arg <- function(data, arg) {
   if (is.null(arg)) {
     names <- dimnames(data)[[2]]
     suppressWarnings(arg <- as.numeric(names))
-    if (is.null(arg) || any(is.na(arg))) {
+    if (is.null(arg) || anyNA(arg)) {
       # extract number-strings
       # will interpret separating-dashes as minus-signs, so functions may run
       # backwards.
@@ -17,7 +17,7 @@ find_arg <- function(data, arg) {
       suppressWarnings(arg <- as.numeric(arg))
       if (length(unique(arg)) != dim(data)[2]) arg <- NULL
     }
-    if (is.null(arg) || any(is.na(arg))) {
+    if (is.null(arg) || anyNA(arg)) {
       message("Column names not suitable as 'arg'-values. Using 1:ncol(data).")
       arg <- numeric(0)
     }
@@ -40,12 +40,12 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 .assert_arg_vector <- function(arg, domain_x, resolution_x, check_unique) {
   if (check_unique) {
     round_arg <- round_resolution(arg, resolution_x)
-    if (anyDuplicated(round_arg)) {
+    if (anyDuplicated(round_arg) > 0) {
       stop("Non-unique arg-values (for resolution).")
     }
   }
   assert_numeric(arg,
-    any.missing = FALSE, unique = FALSE,
+    any.missing = FALSE, unique = FALSE, sorted = TRUE,
     lower = domain_x[1], upper = domain_x[2]
   )
 }
@@ -83,13 +83,11 @@ adjust_resolution <- function(arg, f, unique = TRUE) {
 # "quantize" the values in arg to the given resolution
 round_resolution <- function(arg, resolution, updown = 0) {
   if (updown == 0) {
-    return(round(arg / resolution) * resolution)
-  }
-  if (updown < 0) {
-    return(floor(arg / resolution) * resolution)
-  }
-  if (updown > 0) {
-    return(ceiling(arg / resolution) * resolution)
+    round(arg / resolution) * resolution
+  } else if (updown < 0) {
+    floor(arg / resolution) * resolution
+  } else {
+    ceiling(arg / resolution) * resolution
   }
 }
 
@@ -99,11 +97,13 @@ is_equidist <- function(f) {
   }
   unique_diffs <- map_lgl(
     ensure_list(tf_arg(f)),
-    \(x) round_resolution(x, attr(f, "resolution")) |>
-      diff() |>
-      duplicated() |>
-      tail(-1) |>
-      all()
+    \(x) {
+      round_resolution(x, attr(f, "resolution")) |>
+        diff() |>
+        duplicated() |>
+        tail(-1) |>
+        all()
+    }
   )
   all(unique_diffs)
 }
@@ -192,7 +192,7 @@ ensure_list <- function(x) {
 #' @family tidyfun developer tools
 # export for tidyfun...
 unique_id <- function(x) {
-  if (!anyDuplicated(x)) {
+  if (anyDuplicated(x) == 0) {
     return(x)
   }
   if (is.character(x)) x <- sub("$^", "NA", x)
@@ -206,3 +206,13 @@ na_to_0 <- function(x) {
 }
 
 n_distinct <- function(x) length(unique(x))
+
+# Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
+format_bib <- function(..., bibentries = NULL, envir = parent.frame()) {
+  if (is.null(bibentries)) {
+    bibentries <- get("bibentries", envir = envir)
+  }
+  assert_list(bibentries, "bibentry", names = "unique")
+  str <- map_chr(list(...), \(entry) tools::toRd(bibentries[[entry]]))
+  paste0(str, collapse = "\n\n")
+}

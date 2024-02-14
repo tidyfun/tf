@@ -3,7 +3,6 @@
 \name{tf_integrate}
 \alias{tf_integrate}
 \alias{tf_integrate.default}
-\alias{tf_integrate.function}
 \alias{tf_integrate.tfd}
 \alias{tf_integrate.tfb}
 \title{Integrals and anti-derivatives of functional data}
@@ -11,8 +10,6 @@
 tf_integrate(f, arg, lower, upper, ...)
 
 \method{tf_integrate}{default}(f, arg, lower, upper, ...)
-
-\method{tf_integrate}{`function`}(f, arg, lower, upper, ...)
 
 \method{tf_integrate}{tfd}(
   f,
@@ -61,9 +58,6 @@ By default the scalar definite integral
 alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 \verb{[lower, upper]}, e.g. a \code{tfd} or \code{tfb} object representing \eqn{F(t) \approx
 \int^{t}_{lower}f(s)ds}, for \eqn{t \in}\verb{[lower, upper]}, is returned.
-
-\code{tf_integrate.function} integrates R-functions (a wrapper for
-\code{\link[stats:integrate]{stats::integrate()}})
 }
 \seealso{
 Other tidyfun calculus functions: 

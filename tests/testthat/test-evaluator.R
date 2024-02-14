@@ -64,7 +64,7 @@ test_that("evaluator tf_approx_spline works", {
 test_that("multiple arg-vectors work for tfb", {
   fb <- tfb(tf_rgp(3), verbose = FALSE)
   expect_equal(
-    unlist(tf_evaluate(fb, as.list(c(0, .5, 1)))),
+    unlist(tf_evaluate(fb, as.list(c(0, 0.5, 1)))),
     unlist(c(
       tf_evaluate(fb[1], 0), tf_evaluate(fb[2], 0.5), tf_evaluate(fb[3], 1)
     ))
@@ -72,7 +72,7 @@ test_that("multiple arg-vectors work for tfb", {
 })
 
 test_that("resolution finding works", {
-  fi <- tfd(list(c(1, 2), c(1, 2)), arg = list(c(0, .1), c(1, 2)))
+  fi <- tfd(list(c(1, 2), c(1, 2)), arg = list(c(0, 0.1), c(1, 2)))
   expect_equal(attr(fi, "resolution"), 0.01)
   f <- tf_rgp(3, 101L)
   expect_equal(attr(f, "resolution"), 1e-4)
@@ -82,11 +82,11 @@ test_that("resolution finding works", {
 
 test_that("resolution warnings work", {
   expect_error(
-    tfd(list(c(1, 2), c(1, 2)), arg = list(c(0, .1), c(1, 2)), resolution = 1),
+    tfd(list(c(1, 2), c(1, 2)), arg = list(c(0, 0.1), c(1, 2)), resolution = 1),
     "Non-unique arg-values"
   )
   expect_error(
-    tfd(c(0, 1), arg = c(0, .1), resolution = .5),
+    tfd(c(0, 1), arg = c(0, 0.1), resolution = 0.5),
     "Non-unique arg-values"
   )
   expect_error(
@@ -96,21 +96,21 @@ test_that("resolution warnings work", {
 })
 
 test_that("resolution works as expected", {
-  f <- tfd(1:10, 1:10, resolution = .05, evaluator = tf_approx_none)
+  f <- tfd(1:10, 1:10, resolution = 0.05, evaluator = tf_approx_none)
   set.seed(122)
   fi <- tf_sparsify(f)
   tf_evaluator(fi) <- tf_approx_none
   fb <- tfb(f, verbose = FALSE)
 
   # argvals +/- resolution/2 are not distinguished:
-  expect_equal(f[, 1:9 + .01], f[, 1:9], ignore_attr = TRUE)
-  expect_equal(f[, 1:9 + .0249], f[, 1:9], ignore_attr = TRUE)
-  expect_true(all(is.na(f[, 1:9 + .0251])))
+  expect_equal(f[, 1:9 + 0.01], f[, 1:9], ignore_attr = TRUE)
+  expect_equal(f[, 1:9 + 0.0249], f[, 1:9], ignore_attr = TRUE)
+  expect_true(all(is.na(f[, 1:9 + 0.0251])))
 
-  expect_equal(fi[, 1:9 + .01], fi[, 1:9], ignore_attr = TRUE)
-  expect_equal(fi[, 1:9 + .0249], fi[, 1:9], ignore_attr = TRUE)
-  expect_true(all(is.na(fi[, 1:9 + .0251])))
+  expect_equal(fi[, 1:9 + 0.01], fi[, 1:9], ignore_attr = TRUE)
+  expect_equal(fi[, 1:9 + 0.0249], fi[, 1:9], ignore_attr = TRUE)
+  expect_true(all(is.na(fi[, 1:9 + 0.0251])))
 
-  expect_equal(fb[, 1:9 + .01], fb[, 1:9], ignore_attr = TRUE)
-  expect_equal(fb[, 1:9 + .0249], fb[, 1:9], ignore_attr = TRUE)
+  expect_equal(fb[, 1:9 + 0.01], fb[, 1:9], ignore_attr = TRUE)
+  expect_equal(fb[, 1:9 + 0.0249], fb[, 1:9], ignore_attr = TRUE)
 })

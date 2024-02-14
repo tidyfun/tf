@@ -1,12 +1,13 @@
-#' Functions that summarize `tf` objects
+#' Functions that summarize `tf` objects across argument values
 #'
 #' These will return a `tf` object containing the respective *functional*
-#' statistic. `summary` returns a `tf`-vector with the mean function, the
-#' variance function, and the functional range of the central half of the
-#' functions, as defined by the functional
+#' statistic.
+#' `summary` returns a `tf`-vector with the mean function, the
+#' variance function, the functional median, and the functional range
+#' (i.e., *pointwise* min/max) of the central half of the functions,
+#' as defined by [tf_depth()]
 #'
 #' @param x a `tf` object
-#'   functions, see source code.
 #' @param ... optional additional arguments.
 #' @name tfsummaries
 #' @family tidyfun summary functions
@@ -19,14 +20,14 @@ mean.tf <- function(x, ...) {
 }
 
 #' @param depth method used to determine the most central element in `x`, i.e.,
-#'   the median. One of the functional data depths available via [depth()] or
+#'   the median. One of the functional data depths available via [tf_depth()] or
 #'   `"pointwise"` for a pointwise median function.
 #' @importFrom stats median
 #' @export
 #' @rdname tfsummaries
 median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
   if (!na.rm) {
-    if (any(is.na(x))) return(1 * NA * x[1])
+    if (anyNA(x)) return(1 * NA * x[1])
   } else {
     x <- x[!is.na(x)]
   }
@@ -87,9 +88,10 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 summary.tf <- function(object, ...) {
   tf_depths <- tf_depth(object, ...)
   central <- which(tf_depths <= median(tf_depths))
+  central_half <- range(object[central])
   c(
     mean = mean(object), var = var(object),
-    median = object[which.max(tf_depths)],
-    central_half = range(object[central])
+    median = object[which.max(tf_depths)] |> unname(),
+    upper_mid =  central_half[1], lower_mid =  central_half[2]
   )
 }

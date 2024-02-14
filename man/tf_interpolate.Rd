@@ -34,8 +34,10 @@ or zero crossings more accurate (... \emph{if} the interpolation works well ...)
 \item making irregular functional data into (more) regular data.
 }
 
-This is really just syntactic sugar for \verb{tf<d|b>(object, arg = arg)}.
-\strong{To reliably impute very irregular data on a regular, common grid,
+For \code{tfd}-objects, this is just syntactic sugar for \code{tfd(object, arg = arg)}.
+For \code{tfb}-objects, this re-evaluates basis functions on the new grid.
+For both, the resolution of the resulting object may change.
+NB: \strong{To reliably impute very irregular data on a regular, common grid,
 you'll be better off doing FPCA-based imputation or other model-based
 approaches in most cases.}
 }
@@ -47,14 +49,16 @@ less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))
 # filling out sparse data (use a suitable evaluator -function!)
 sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))
 plot(sparse)
-tfd(sparse, evaluator= tf_approx_spline) |>   #change eval. for better interpolation
+# change evaluator for better interpolation
+tfd(sparse, evaluator = tf_approx_spline) |>
   tf_interpolate(arg = seq(0, 5, length.out = 201)) |>
   lines(col = 2)
 
 set.seed(1860)
-(sparse_irregular <- tf_rgp(5) |>  tf_sparsify(.5) |> tf_jiggle())
+sparse_irregular <- tf_rgp(5) |>
+  tf_sparsify(0.5) |>
+  tf_jiggle()
 tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
-
 }
 \seealso{
 Other tidyfun inter/extrapolation functions: 

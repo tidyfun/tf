@@ -32,11 +32,12 @@ Data depths for functional data.
 Currently implemented: Modified Band-2 Depth, see reference.
 }
 \references{
-Sun, Y., Genton, M. G., & Nychka, D. W. (2012).
-Exact fast computation of band tf_depth for large functional datasets:
-How quickly can one million curves be ranked?. \emph{Stat}, \strong{1}(1), 68-74.
-Lopez-Pintado, S. and Romo, J. (2009).
-On the Concept of Depth for Functional Data.
-\emph{Journal of the American Statistical Association}, \strong{104}, 718-734.
+Sun, Ying, Genton, G M, Nychka, W D (2012).
+\dQuote{Exact fast computation of band depth for large functional datasets: How quickly can one million curves be ranked?}
+\emph{Stat}, \bold{1}(1), 68--74.
+
+López-Pintado, Sara, Romo, Juan (2009).
+\dQuote{On the concept of depth for functional data.}
+\emph{Journal of the American statistical Association}, \bold{104}(486), 718--734.
 }
 \concept{tidyfun ordering and ranking functions}

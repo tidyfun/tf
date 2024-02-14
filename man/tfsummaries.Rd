@@ -11,7 +11,7 @@
 \alias{var.default}
 \alias{var.tf}
 \alias{summary.tf}
-\title{Functions that summarize \code{tf} objects}
+\title{Functions that summarize \code{tf} objects across argument values}
 \usage{
 \method{mean}{tf}(x, ...)
 
@@ -32,15 +32,14 @@ var(x, y = NULL, na.rm = FALSE, use)
 \method{summary}{tf}(object, ...)
 }
 \arguments{
-\item{x}{a \code{tf} object
-functions, see source code.}
+\item{x}{a \code{tf} object}
 
 \item{...}{optional additional arguments.}
 
 \item{na.rm}{logical.  Should missing values be removed?}
 
 \item{depth}{method used to determine the most central element in \code{x}, i.e.,
-the median. One of the functional data depths available via \code{\link[=depth]{depth()}} or
+the median. One of the functional data depths available via \code{\link[=tf_depth]{tf_depth()}} or
 \code{"pointwise"} for a pointwise median function.}
 
 \item{y}{\code{NULL} (default) or a vector, matrix or data frame with
@@ -57,8 +56,14 @@ the median. One of the functional data depths available via \code{\link[=depth]{
 }
 \description{
 These will return a \code{tf} object containing the respective \emph{functional}
-statistic. \code{summary} returns a \code{tf}-vector with the mean function, the
-variance function, and the functional range of the central half of the
-functions, as defined by the functional
+statistic.
+\code{summary} returns a \code{tf}-vector with the mean function, the
+variance function, the functional median, and the functional range
+(i.e., \emph{pointwise} min/max) of the central half of the functions,
+as defined by \code{\link[=tf_depth]{tf_depth()}}
+}
+\seealso{
+Other tidyfun summary functions: 
+\code{\link{functionwise}}
 }
 \concept{tidyfun summary functions}

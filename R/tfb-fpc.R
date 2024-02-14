@@ -74,7 +74,7 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #' @param ... arguments to the `method` which computes the
 #'  (regularized/smoothed) FPCA.
 #'  Unless set by the user, uses proportion of variance explained
-#'  `pve = .995` to determine the truncation levels.
+#'  `pve = 0.995` to determine the truncation levels.
 #' @inheritParams tfb
 #' @returns an object of class `tfb_fpc`, inheriting from `tfb`.
 #'    The basis used by `tfb_fpc` is a `tfd`-vector containing the estimated
@@ -93,16 +93,17 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #' # Apply FPCA for sparse data using refund::fpca.sc:
 #' set.seed(99290)
 #' # create sparse data:
-#' data <- tf_rgp(15) |> tf_sparsify() |> as.data.frame(unnest = TRUE)
+#' data <- tf_rgp(15) |>
+#'   tf_sparsify() |>
+#'   as.data.frame(unnest = TRUE)
 #' # wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
-#' fpca_sc_wrapper <- function(data, arg, pve = .995, ...) {
+#' fpca_sc_wrapper <- function(data, arg, pve = 0.995, ...) {
 #'   data_mat <- tf:::df_2_mat(data)
-#'   fpca <- refund::fpca.sc(Y = data_mat,
-#'                           argvals = attr(data_mat, "arg"),
-#'                           pve = pve, ...)
+#'   fpca <- refund::fpca.sc(
+#'     Y = data_mat, argvals = attr(data_mat, "arg"), pve = pve, ...
+#'   )
 #'   fpca[c("mu", "efunctions", "scores", "npc")]
 #' }
-#' tfb_fpc(data, method = fpca_sc_wrapper)
 tfb_fpc.data.frame <- function(data, id = 1, arg = 2, value = 3,
                                domain = NULL, method = fpc_wsvd,
                                resolution = NULL, ...) {

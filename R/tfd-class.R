@@ -1,9 +1,9 @@
 #' @import purrr
 new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
                     domain = NULL, evaluator, resolution = NULL) {
-  #FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
-  #created from an (intermediate) data.frame, but may be unnamed for different
-  #provenance....
+  # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
+  # created from an (intermediate) data.frame, but may be unnamed for different
+  # provenance....
   if (vctrs::vec_size(datalist) == 0) {
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
 
@@ -36,8 +36,10 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   resolution <- resolution %||% get_resolution(arg)
 
   assert_number(resolution, lower = .Machine$double.eps, finite = TRUE)
-  assert_numeric(domain, finite = TRUE, any.missing = FALSE,
-                 sorted = TRUE, len = 2, unique = TRUE)
+  assert_numeric(domain,
+    finite = TRUE, any.missing = FALSE,
+    sorted = TRUE, len = 2, unique = TRUE
+  )
   stopifnot(
     domain[1] <= min(unlist(arg)),
     domain[2] >= max(unlist(arg))
@@ -109,7 +111,7 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
 #' **`resolution`**: `arg`-values that are equivalent up to this difference are
 #' treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at
 #' \eqn{t=1} and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)}
-#' will be returned if `resolution` < .01. By default, resolution will be set to
+#' will be returned if `resolution` < 0.01. By default, resolution will be set to
 #' an integer-valued power of 10 one smaller than the smallest difference
 #' between adjacent `arg`-values rounded down to an integer-valued power of 10:
 #' e.g., if the smallest difference between consecutive `arg`-values is between
@@ -146,16 +148,17 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @importFrom rlang quo_name enexpr
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, resolution = NULL, ...) {
-  stopifnot(is.numeric(data))
+  assert_numeric(data)
   evaluator <- rlang::quo_name(rlang::enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
   id <- unique_id(rownames(data) %||% seq_len(dim(data)[1]))
   # make factor conversion explicit to avoid reordering
   datalist <- split(data, factor(id, unique(as.character(id))))
   names(datalist) <- rownames(data)
-  regular <- !any(is.na(data))
+  regular <- !anyNA(data)
   new_tfd(arg, datalist, regular, domain, evaluator, resolution)
 }
+
 #' @rdname tfd
 #' @export
 tfd.numeric <- function(data, arg = NULL,
@@ -234,7 +237,7 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
   if (!any(vectors)) {
     dims <- map(data, dim)
     stopifnot(
-      all(lengths(dims) == 2), all(map(dims, \(x) x[2]) == 2),
+      all(lengths(dims) == 2), all(map_int(dims, 2) == 2),
       all(rapply(data, is.numeric))
     )
     arg <- map(data, \(x) unlist(x[, 1]))
@@ -251,15 +254,14 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
 #' @examples
 #' # turn irregular to regular tfd by evaluating on a common grid:
 #'
-#' (f <- c(
+#' f <- c(
 #'   tf_rgp(1, arg = seq(0, 1, length.out = 11)),
 #'   tf_rgp(1, arg = seq(0, 1, length.out = 21))
-#'   ))
+#' )
 #' tfd(f, arg = seq(0, 1, length.out = 21))
 #'
 #' set.seed(1213)
-#' (f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |>
-#'   tf_sparsify(.9))
+#' f <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> tf_sparsify(0.9)
 #' # does not yield regular data because linear extrapolation yields NAs
 #' #   outside observed range:
 #' tfd(f, arg = seq(0, 1, length.out = 101))
@@ -267,8 +269,9 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
 #' #   e.g. constant extrapolation:
 #' tfd(f, evaluator = tf_approx_fill_extend, arg = seq(0, 1, length.out = 101))
 #' plot(f, col = 2)
-#' tfd(f, arg = seq(0, 1, length.out = 151),
-#'     evaluator = tf_approx_fill_extend) |>  lines()
+#' tfd(f,
+#'   arg = seq(0, 1, length.out = 151), evaluator = tf_approx_fill_extend
+#' ) |> lines()
 #' @rdname tfd
 tfd.tf <- function(data, arg = NULL, domain = NULL,
                    evaluator = NULL, resolution = NULL, ...) {
@@ -341,6 +344,7 @@ as.tfd_irreg.tfd_reg <- function(data, ...) {
   class(ret)[1] <- "tfd_irreg"
   ret
 }
+
 #' @export
 as.tfd_irreg.tfd_irreg <- function(data, ...) {
   data

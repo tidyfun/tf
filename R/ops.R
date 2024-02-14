@@ -45,7 +45,7 @@ fun_op <- function(x, y, op, numeric = NA) {
     }
   }
   attributes(ret) <- attr_ret
-  if (any(is.na(names(ret)))) {
+  if (anyNA(names(ret))) {
     names(ret) <- NULL
   }
   ret

@@ -255,7 +255,7 @@ tfb_spline.list <- function(data, arg = NULL,
   }
   dims <- map(data, dim)
   stopifnot(
-    all(lengths(dims) == 2), all(map(dims, \(x) x[2]) == 2),
+    all(lengths(dims) == 2), all(map_int(dims, 2) == 2),
     all(rapply(data, is.numeric))
   )
   n_evals <- map(dims, 1)
