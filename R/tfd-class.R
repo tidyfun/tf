@@ -6,12 +6,12 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   # provenance....
   if (vctrs::vec_size(datalist) == 0) {
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
-
+    message("empty input `data`; returning prototype of length 0")
     ret <- vctrs::new_vctr(
       datalist,
-      arg = numeric(),
+      arg = list(numeric()),
       domain = numeric(2),
-      evaluator = evaluator,
+      evaluator = get(evaluator, mode = "function", envir = parent.frame()),
       evaluator_name = evaluator,
       resolution = numeric(),
       class = c(subclass, "tfd", "tf")
