@@ -8,12 +8,11 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
   op_call <- function(x) do.call(op, c(list(x), op_args))
   funs <- do.call(c, funs)
   # setting interpolate = TRUE would return more useful results for tfd_irreg
-  # not done here for transparency reasons.
+  # - not done here for transparency reasons.
   m <- suppressWarnings(as.matrix(funs))
-  ret <- apply(m, 2, op_call)
-  arg <- as.numeric(colnames(m))
-  args <- c(list(ret),
-            arg = list(arg),
+  value <- apply(m, 2, op_call) |> unname() |> list()
+  args <- c(value,
+            arg = list(attr(m, "arg")),
             domain = list(tf_domain(funs)),
             resolution = attr(funs, "resolution")
   )
