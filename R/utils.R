@@ -206,3 +206,13 @@ na_to_0 <- function(x) {
 }
 
 n_distinct <- function(x) length(unique(x))
+
+# Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
+format_bib <- function(..., bibentries = NULL, envir = parent.frame()) {
+  if (is.null(bibentries)) {
+    bibentries <- get("bibentries", envir = envir)
+  }
+  assert_list(bibentries, "bibentry", names = "unique")
+  str <- map_chr(list(...), \(entry) tools::toRd(bibentries[[entry]]))
+  paste0(str, collapse = "\n\n")
+}

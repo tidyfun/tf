@@ -17,3 +17,8 @@ test_that("round_resolution works", {
   expect_true(is.na(round_resolution(NA, 1)))
   expect_true(is.na(round_resolution(1.5, NA)))
 })
+
+test_that("format_bib", {
+  bibentries <- list(checkmate = citation("checkmate"), R = citation())
+  expect_string(format_bib("checkmate", "R"))
+})
