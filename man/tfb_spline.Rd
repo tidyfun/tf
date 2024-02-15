@@ -110,8 +110,8 @@ evaluations.}
 
 \item{domain}{range of the \code{arg}.}
 
-\item{penalized}{should the coefficients of the basis representation be estimated
-via \code{\link[mgcv:magic]{mgcv::magic()}} (default) or ordinary least squares.}
+\item{penalized}{default estimates regularized/penalized basis coefficients via \code{\link[mgcv:magic]{mgcv::magic()}},
+set FALSE for ordinary least squares/ML estimators.}
 
 \item{global}{Defaults to \code{FALSE}. If \code{TRUE} and \code{penalized = TRUE}, all
 functions share the same smoothing parameter (see Details).}

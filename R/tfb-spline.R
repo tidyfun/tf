@@ -110,6 +110,10 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   }
 
   basis_constructor <- smooth_spec_wrapper(spec_object)
+  # sp: NA for LS, -1 for local, else fixed
+  sp <- ifelse(penalized, -1, NA)
+  if ( ("sp" %in% names(list(...))) || global) sp <- fit$sp[1]
+
   ret <- vctrs::new_vctr(fit[["coef"]],
                    domain = domain,
                    basis = basis_constructor,
@@ -119,6 +123,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
                    arg = arg_u$x,
                    resolution = resolution,
                    family = eval(gam_args$family),
+                   sp = sp,
                    class = c("tfb_spline", "tfb", "tf")
   )
   assert_arg(tf_arg(ret), ret)
@@ -168,6 +173,8 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 #' sparse data, estimating a common smoothing parameter directly for all curves
 #' at once might yield better results, this is *not* what's implemented here.
 #'
+#' @param penalized default `TRUE` estimates regularized/penalized basis coefficients via [mgcv::magic()],
+#'  set `FALSE` for ordinary least squares/ML estimators.
 #' @param global Defaults to `FALSE`. If `TRUE` and `penalized = TRUE`, all
 #'   functions share the same smoothing parameter (see Details).
 #' @param ...  arguments to the calls to [mgcv::s()] setting up the basis and
@@ -183,8 +190,6 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 
 #' @export
-#' @param penalized should the coefficients of the basis representation be estimated
-#'   via [mgcv::magic()] (default) or ordinary least squares.
 #' @inheritParams tfd.data.frame
 #' @describeIn tfb_spline convert data frames
 tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
