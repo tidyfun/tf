@@ -59,6 +59,7 @@ Collate:
     'math.R'
     'methods.R'
     'print-format.R'
+    'rebase-predict.R'
     'rng.R'
     'smooth.R'
     'summarize.R'

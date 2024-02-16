@@ -110,9 +110,11 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   }
 
   basis_constructor <- smooth_spec_wrapper(spec_object)
-  # sp: NA for LS, -1 for local, else fixed
-  sp <- ifelse(penalized, -1, NA)
-  if ( ("sp" %in% names(list(...))) || global) sp <- fit$sp[1]
+  # sp: from fit for global/set, -1 for local smoothing/given as -1, NA for unpen
+  s_args$sp <- if ( isTRUE(list(...)$sp != -1) || global) {
+     fit$sp[1] |> unname()
+  } else ifelse(penalized, -1, NA)
+  s_call <- as.call(c(quote(s), quote(arg), s_args))
 
   ret <- vctrs::new_vctr(fit[["coef"]],
                    domain = domain,
@@ -123,7 +125,6 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
                    arg = arg_u$x,
                    resolution = resolution,
                    family = eval(gam_args$family),
-                   sp = sp,
                    class = c("tfb_spline", "tfb", "tf")
   )
   assert_arg(tf_arg(ret), ret)
