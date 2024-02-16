@@ -68,7 +68,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
   # (slightly), for now. this is necessary so that we don't get NAs when trying
   # to evaluate derivs over their default domain etc.
   if (is_irreg(f)) {
-    warning("Differentiating over irregular grids can be unstable.")
+    warning("Differentiating over irregular grids can be unstable.", call. = FALSE)
   }
   assert_count(order)
   data <- as.matrix(f, arg, interpolate = TRUE)
@@ -86,10 +86,16 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
 tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
   # TODO: make this work for iterated application tf_derive(tf_derive(fb))
   if (!is.null(attr(f, "basis_deriv"))) {
-    stop("Can't integrate or derive previously integrated or derived tfb_spline.")
+    stop(
+      "Can't integrate or derive previously integrated or derived tfb_spline.",
+      call. = FALSE
+    )
   }
   if (attr(f, "family")$link != "identity") {
-    stop("Can't integrate or derive tfb_spline with non-identity link function.")
+    stop(
+      "Can't integrate or derive tfb_spline with non-identity link function.",
+      call. = FALSE
+    )
   }
   if (missing(arg)) {
     arg <- tf_arg(f)

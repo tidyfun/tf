@@ -121,7 +121,7 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   checkmate::assert_class(x, "tf")
   checkmate::assert_class(y, "tf")
   if (!any(c(length(x) == length(y), length(x) == 1, length(y) == 1))) {
-    stop("x or y must have length 1 or the same lengths.")
+    stop("x or y must have length 1 or the same lengths.", call. = FALSE)
   }
   assert_arg(arg = arg, x = x)
   checkmate::assert_true(

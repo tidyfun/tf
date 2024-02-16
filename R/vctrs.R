@@ -5,8 +5,12 @@ c_names <- function(funs) {
   # argnames replace elementnames if elments have length 1
   # else paste with "."
   names <- map2(fnames, elnames, \(x, y) {
-    if (nzchar(x, keepNA = TRUE)) return(y)
-    if (all(nzchar(y, keepNA = TRUE)) || length(y) == 1) return(rep(x, length(y)))
+    if (nzchar(x, keepNA = TRUE)) {
+      return(y)
+    }
+    if (all(nzchar(y, keepNA = TRUE)) || length(y) == 1) {
+      return(rep(x, length(y)))
+    }
     paste(x, y, sep = ".")
   }) |>
     unlist()
@@ -52,7 +56,8 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
   stop(
     "casting tfd_irreg to tfd_reg not possible -- use \n",
     "  # tfd(<some tfd_irreg>, arg = <some vector>) \n",
-    "  to force irregular data onto a common grid. "
+    "  to force irregular data onto a common grid. ",
+    call. = FALSE
   )
 }
 
@@ -61,7 +66,6 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 #' @method vec_cast.tfd_irreg tfd_reg
 #' @export
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
-
   args <- attr(x, "arg")
   cast_x <- tfd(map(vctrs::vec_data(x), \(x) data.frame(arg = args, value = x)))
   as.tfd_irreg.tfd_reg(cast_x)
@@ -140,11 +144,11 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
   make_irreg <- rep(FALSE, length(funs))
   irreg <- map_lgl(funs, is_irreg)
   if (!any(irreg) && !all(compatible[, "arg"])) {
-    warning("concatenating functions on different grids.")
+    warning("concatenating functions on different grids.", call. = FALSE)
     make_irreg <- rep(TRUE, length(funs))
   }
   if (any(irreg) && !all(irreg)) {
-    warning("concatenating functions on different grids.")
+    warning("concatenating functions on different grids.", call. = FALSE)
     make_irreg[!irreg] <- TRUE
   }
   new_resolution <- NULL
@@ -152,7 +156,8 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
     new_resolution <- tf_resolution(funs[[1]])
     warning(
       "inputs have different resolutions, result has ",
-      "resolution =", new_resolution
+      "resolution =", new_resolution,
+      call. = FALSE
     )
     make_irreg[!compatible[, "resolution"]] <- TRUE
   }
@@ -162,7 +167,8 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
   if (!all(compatible[, "evaluator_name"])) {
     warning(
       "inputs have different evaluators, result has ",
-      attr(funs[[1]], "evaluator_name")
+      attr(funs[[1]], "evaluator_name"),
+      call. = FALSE
     )
   }
   attr_ret <- attributes(funs[[1]])
@@ -207,8 +213,9 @@ vec_cast.tfb_fpc <- function(x, to, ...) UseMethod("vec_cast.tfb_fpc")
 #' @export
 vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) {
   attributes_to <- flatten(list(list(x),
-                        arg = list(tf_arg(to)),
-                        attr(to, "basis_args")))
+    arg = list(tf_arg(to)),
+    attr(to, "basis_args")
+  ))
   do.call(tfb, attributes_to)
 }
 
@@ -217,7 +224,7 @@ vec_cast.tfb_spline.tfb_spline <- function(x, to, ...) {
 #' @method vec_cast.tfb_spline tfb_fpc
 #' @export
 vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) {
-  stop("casting tfb_fpc to tfb_spline is not allowed")
+  stop("casting tfb_fpc to tfb_spline is not allowed", call. = FALSE)
 }
 
 #' @rdname vctrs
@@ -225,7 +232,7 @@ vec_cast.tfb_spline.tfb_fpc <- function(x, to, ...) {
 #' @method vec_cast.tfb_fpc tfb_spline
 #' @export
 vec_cast.tfb_fpc.tfb_spline <- function(x, to, ...) {
-  stop("casting tfb_spline to tfb_fpc is not allowed")
+  stop("casting tfb_spline to tfb_fpc is not allowed", call. = FALSE)
 }
 
 #' @rdname vctrs
@@ -261,7 +268,7 @@ vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {
 #' @export
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) {
-  stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
+  stop("concatenating tfb_spline & tfb_fpc objects is not allowed", call. = FALSE)
 }
 
 #' @rdname vctrs
@@ -278,7 +285,7 @@ vec_ptype2.tfb_fpc <- function(x, y, ...) UseMethod("vec_ptype2.tfb_fpc")
 #' @export
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfb_spline <- function(x, y, ...) {
-  stop("concatenating tfb_spline & tfb_fpc objects is not allowed")
+  stop("concatenating tfb_spline & tfb_fpc objects is not allowed", call. = FALSE)
 }
 
 
@@ -311,7 +318,8 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
       fun_names <- map(as.list(match.call())[-1], \(x) deparse(x)[1])
       warning(
         "re-evaluating ", toString(fun_names[re_evals]),
-        " using basis and arg of ", fun_names[1]
+        " using basis and arg of ", fun_names[1],
+        call. = FALSE
       )
 
       funs <- map_at(
@@ -331,14 +339,18 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
     )
 
     if (length(re_evals)) {
-      stop("concatenation not yet implemented for tfb_fpc vectors with different bases")
+      stop(
+        "concatenation not yet implemented for tfb_fpc vectors with different bases",
+        call. = FALSE
+      )
     }
   }
 
   if (!all(compatible[, "resolution"])) {
     warning(
       "inputs have different resolutions, result has ",
-      "resolution =", attr(funs[[1]], "resolution")
+      "resolution =", attr(funs[[1]], "resolution"),
+      call. = FALSE
     )
   }
   attr_ret <- attributes(funs[[1]])

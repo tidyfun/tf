@@ -22,6 +22,7 @@
 tf_depth <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
   UseMethod("tf_depth")
 }
+
 #' @export
 #' @rdname tf_depth
 tf_depth.matrix <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
@@ -31,10 +32,9 @@ tf_depth.matrix <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
 
   depth <- match.arg(depth)
   # TODO: this ignores na.rm -- should it?
-  switch(depth,
-    "MBD" = mbd(x, arg, ...)
-  )
+  switch(depth, MBD = mbd(x, arg, ...))
 }
+
 #' @export
 #' @rdname tf_depth
 tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
@@ -51,7 +51,7 @@ tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
 
 # modified band-2 depth:
 mbd <- function(x, arg = seq_len(ncol(x)), ...) {
-  if (nrow(x) == 1) return(c(0.5))
+  if (nrow(x) == 1) return(0.5)
   if (nrow(x) == 2) return(c(0.5, 0.5))
 
   # algorithm of Sun/Genton/Nychka (2012)
@@ -63,7 +63,7 @@ mbd <- function(x, arg = seq_len(ncol(x)), ...) {
     (c(lengths, 0) + c(0, lengths)) / diff(range(arg))
   }
   n <- nrow(ranks)
-  tmp <- colSums( t( (n - ranks) * (ranks - 1)) * weights, na.rm = TRUE)
+  tmp <- colSums(t((n - ranks) * (ranks - 1)) * weights, na.rm = TRUE)
   (tmp + n - 1) / choose(n, 2)
 }
 
@@ -79,7 +79,10 @@ quantile.tf <- function(x, probs = seq(0, 1, 0.25), na.rm = FALSE,
   # cf. Serfling, R., & Wijesuriya, U. (2017).
   # Depth-based nonparametric description of functional data,
   #   with emphasis on use of spatial depth.
-  warning("only pointwise, non-functional quantiles implemented for tfs.")
+  warning(
+    "only pointwise, non-functional quantiles implemented for tfs.",
+    call. = FALSE
+  )
   summarize_tf(x,
                probs = probs, na.rm = na.rm, names = names,
                type = type, op = "quantile", eval = is_tfd(x), ...

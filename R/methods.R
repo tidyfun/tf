@@ -87,7 +87,7 @@ tf_domain <- function(f) {
   warning(c(
     "This changes the functions' domain but not the argument values!\n",
     "To restrict functions to a part of their domain, use tf_zoom."
-  ))
+  ), call. = FALSE)
   attr(x, "domain") <- value
   x
 }
@@ -155,14 +155,14 @@ tf_basis <- function(f, as_tfd = FALSE) {
   warning(c(
     "This changes arguments (and resolution) without changing the corresponding function values!\n",
     "In order to re-evaluate functions on a new grid, use tf_interpolate."
-  ))
+  ), call. = FALSE)
   UseMethod("tf_arg<-")
 }
 
 #' @rdname tfmethods
 #' @export
 `tf_arg<-.tfd_irreg` <- function(x, value) {
-  assert_arg(value, x, check_unique = FALSE) #don't check against resolution!
+  assert_arg(value, x, check_unique = FALSE) # don't check against resolution!
   ret <- map2(tf_evaluations(x), value, \(x, y) list(arg = y, data = x))
   attributes(ret) <- attributes(x)
   tf_resolution(ret) <- get_resolution(value)
@@ -172,7 +172,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @rdname tfmethods
 #' @export
 `tf_arg<-.tfd_reg` <- function(x, value) {
-  assert_arg(value, x, check_unique = FALSE)  #don't check against resolution!
+  assert_arg(value, x, check_unique = FALSE) # don't check against resolution!
   if (!(length(unlist(value)) == length(tf_arg(x)))) {
     rlang::abort("length(arg) not the same as original -- use tf_interpolate.")
   }
