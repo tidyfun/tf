@@ -300,41 +300,18 @@ vec_ptype2.tfb_fpc.tfb_fpc <- function(x, y, ...) {
 #' @export
 vec_ptype2_tfb_tfb <- function(x, y, ...) {
   funs <- list(x, y)
-  compatible <- do.call(rbind, map(funs, \(x) compare_tf_attribs(funs[[1]], x)))
+  compatible <- do.call(rbind,
+                        map(funs, \(y) compare_tf_attribs(x, y)))
   stopifnot(all(compatible[, "domain"]))
-
-  if (inherits(funs[[1]], "tfb_spline")) {
-    re_evals <- which(
-      !compatible[, "arg"] | !compatible[, "basis_args"]
-    )
-    if (length(re_evals)) {
+  rebase <- which(!compatible[, "arg"] | !compatible[, "basis_matrix"])
+  if (any(rebase)) {
       fun_names <- map(as.list(match.call())[-1], \(x) deparse(x)[1])
       warning(
-        "re-evaluating ", toString(fun_names[re_evals]),
-        " using basis and arg of ", fun_names[1]
-      )
-
-      funs <- map_at(
-        funs, re_evals,
-        \(x) do.call(
-          tfb,
-          flatten(list(list(x), # converts to tfb then back to tfd
-            arg = list(tf_arg(funs[[1]])),
-            attr(funs[[1]], "basis_args")
-          ))
-        )
-      )
-    }
-  } else {
-    re_evals <- which(
-      !compatible[, "arg"] | !compatible[, "basis_matrix"]
-    )
-
-    if (length(re_evals)) {
-      stop("concatenation not yet implemented for tfb_fpc vectors with different bases")
-    }
+        "using tf_rebase with basis_from = ", fun_names[1],
+        " for incompatible inputs ", paste(fun_names[rebase], collapse = ","))
+      funs <- map_at(.x = funs, .at = rebase,
+                     .f = tf_rebase, basis_from = funs[[1]])
   }
-
   if (!all(compatible[, "resolution"])) {
     warning(
       "inputs have different resolutions, result has ",
