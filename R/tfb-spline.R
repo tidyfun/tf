@@ -114,6 +114,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_args$sp <- if ( isTRUE(list(...)$sp != -1) || global) {
      fit$sp[1] |> unname()
   } else ifelse(penalized, -1, NA)
+  s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib
   s_call <- as.call(c(quote(s), quote(arg), s_args))
 
   ret <- vctrs::new_vctr(fit[["coef"]],

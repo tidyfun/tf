@@ -1,6 +1,6 @@
 #' @importFrom refund fpca.sc
 new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
-                        method = NULL, ...) {
+                        method = NULL, basis_from = NULL, ...) {
 
   if (all(dim(data) == 0)) {
     ret <- vctrs::new_vctr(
@@ -12,7 +12,10 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
       class = c("tfb_fpc", "tfb", "tf"))
     return(ret)
   }
-
+  if (!is.null(method) && !is.null(basis_from)) {
+    stop("Can't specify both method *and* basis_from for new_tfb_fpc",
+         call. = FALSE)
+  }
   arg <- sort(unique(data$arg))
   resolution <- resolution %||% get_resolution(arg)
   data$arg <- round_resolution(data$arg, resolution)
@@ -29,24 +32,44 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
     domain <- range(arg)
   }
 
+  if (is.null(basis_from)) {
+    fpc_args <- get_args(list(...), method)
+    fpc_args <- c(fpc_args, list(data = data, arg = arg))
+    fpc_spec <- do.call(method, fpc_args)
+    basis_matrix <- cbind(fpc_spec$mu, fpc_spec$efunctions)
+    basis_label <- paste0(fpc_spec$npc, " FPCs")
+    score_variance <- fpc_spec$evalues
+    scoring_function <- fpc_spec$scoring_function
+    scores <- fpc_spec$scores
+  } else {
+    basis_matrix <- tf_basis(basis_from)(arg) |> as.matrix()
+    basis_label <- attr(basis_from, "basis_label")
+    score_variance <-  attr(basis_from, "basis_label")
+    scoring_function <- attr(basis_from, "scoring_function")
 
-  fpc_args <- get_args(list(...), method)
-  fpc_args <- c(fpc_args, list(data = data, arg = arg))
-  fpc_spec <- do.call(method, fpc_args)
-  coef_list <- split(cbind(1, fpc_spec$scores), row(cbind(1, fpc_spec$scores)))
-  names(coef_list) <- levels(as.factor(data$id))
-  fpc <- rbind(fpc_spec$mu, t(fpc_spec$efunctions))
-  fpc_basis <- tfd(fpc, arg = arg, domain = domain, resolution = resolution)
+    # trapezoid integration weights: #TODO generally appropriate or just for wsvd?
+    delta <- c(0, diff(arg))
+    weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+    scores <- scoring_function(df_2_mat(data),
+                               basis_matrix[, -1], basis_matrix[, 1], weights) #!!
+  }
+  fpc_basis <- tfd(t(basis_matrix),
+                   arg = arg, domain = domain, resolution = resolution)
   fpc_constructor <- fpc_wrapper(fpc_basis)
+  coef_list <- split(cbind(1, scores), row(cbind(1, scores)))
+  names(coef_list) <- levels(as.factor(data$id))
+
+
   vctrs::new_vctr(coef_list,
     domain = domain,
     basis = fpc_constructor,
-    basis_label = paste0(fpc_spec$npc, " FPCs"),
-    basis_matrix = t(fpc),
+    basis_label = basis_label,
+    basis_matrix = basis_matrix,
     arg = arg,
     resolution = resolution,
-    score_variance = fpc_spec$evalues,
-    error_variance = fpc_spec$error_var,
+    score_variance = score_variance,
+    # scoring_fct expects data, weights, mean, efunctions -- for tf_rebase
+    scoring_function = scoring_function,
     class = c("tfb_fpc", "tfb", "tf")
   )
 }
