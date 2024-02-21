@@ -1,7 +1,6 @@
 #' @importFrom refund fpca.sc
 new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
                         method = NULL, ...) {
-
   if (all(dim(data) == 0)) {
 
     ret <- vctrs::new_vctr(
@@ -25,9 +24,12 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
               round_resolution(domain[2], resolution, 1))
   if (!isTRUE(all.equal(domain, range(arg),
                         tolerance = resolution, scale = 1))) {
-    warning("domain for tfb_fpc can't be larger than observed arg-range --",
-            " extrapolating FPCs is a bad idea.\n domain reset to [", min(arg),
-            ",", max(arg),"]")
+    warning(
+      "domain for tfb_fpc can't be larger than observed arg-range --",
+      " extrapolating FPCs is a bad idea.\n domain reset to [", min(arg),
+      ",", max(arg), "]",
+      call. = FALSE
+    )
     domain <- range(arg)
   }
 
@@ -159,15 +161,12 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
 #' @describeIn tfb_fpc convert `tfb`: default method, returning prototype when
 #'   data is NULL
 tfb_fpc.default <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
-                           resolution = NULL, ...) {
-
+                            resolution = NULL, ...) {
   if (!missing(data)) {
-    message("input `data` not recognized class;
-            returning prototype of length 0")
+    message("input `data` not recognized class;\nreturning prototype of length 0")
   }
 
   data <- data.frame()
   new_tfb_spline(data = data, arg = arg, method = method, domain = domain,
                  resolution = resolution, ...)
-
 }

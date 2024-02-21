@@ -114,7 +114,7 @@ Summary.tf <- function(...) {
     `all` = , `any` = TRUE, FALSE
   )
   if (not_defined) {
-    stop(sprintf("%s not defined for \"tf\" objects", .Generic))
+    stop(sprintf("%s not defined for \"tf\" objects", .Generic), call. = FALSE)
   }
   summarize_tf(..., op = .Generic, eval = is_tfd(list(...)[[1]]))
 }
