@@ -174,10 +174,10 @@ tf_basis <- function(f, as_tfd = FALSE) {
 `tf_arg<-.tfd_reg` <- function(x, value) {
   assert_arg(value, x, check_unique = FALSE) # don't check against resolution!
   if (!(length(unlist(value)) == length(tf_arg(x)))) {
-    rlang::abort("length(arg) not the same as original -- use tf_interpolate.")
+    stop("length(arg) not the same as original -- use tf_interpolate.", call. = FALSE)
   }
   if (length(ensure_list(value)) != 1) {
-    rlang::abort(paste("can't assign irregular argument list to ", class(x)[1]))
+    stop(paste("can't assign irregular argument list to ", class(x)[1]), call. = FALSE)
   }
 
   attr(x, "arg") <- ensure_list(value)
