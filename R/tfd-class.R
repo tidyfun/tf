@@ -149,7 +149,7 @@ tfd <- function(data, ...) UseMethod("tfd")
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, resolution = NULL, ...) {
   assert_numeric(data)
-  evaluator <- rlang::quo_name(rlang::enexpr(evaluator))
+  evaluator <- quo_name(enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
   id <- unique_id(rownames(data) %||% seq_len(dim(data)[1]))
   # make factor conversion explicit to avoid reordering
