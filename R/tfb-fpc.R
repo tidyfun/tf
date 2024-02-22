@@ -44,7 +44,7 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
   } else {
     basis_matrix <- tf_basis(basis_from)(arg) |> as.matrix()
     basis_label <- attr(basis_from, "basis_label")
-    score_variance <-  attr(basis_from, "basis_label")
+    score_variance <-  attr(basis_from, "score_variance")
     scoring_function <- attr(basis_from, "scoring_function")
 
     # trapezoid integration weights: #TODO generally appropriate or just for wsvd?

@@ -110,7 +110,8 @@ is_equidist <- function(f) {
 
 #-------------------------------------------------------------------------------
 
-compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
+compare_tf_attribs <- function(e1, e2,
+                               ignore = c("names", "id"), check_attrib = TRUE) {
   # TODO: better way to check evaluator/basis functions?
   a1 <- attributes(e1)
   a2 <- attributes(e2)
@@ -134,7 +135,7 @@ compare_tf_attribs <- function(e1, e2, ignore = c("names", "id")) {
         if (is.list(a)) {
           all(map2_lgl(a, ensure_list(b), .compare))
         } else {
-          isTRUE(all.equal(a, b))
+          isTRUE(all.equal(a, b, check.attributes = check_attrib))
         }
       }
     )

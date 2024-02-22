@@ -38,13 +38,6 @@ basis_from <-  tfb_fpc(x, pve = 1)
 object <- x
 tf_rebase(x, tfb_fpc(x, pve = 1))
 
-
-## TODO:
-expect_equal(tf_rebase(x, l$b) |> attributes(),
-             l$b |> attributes())
-expect_equal(tf_rebase(x, l$b) |> tf_evaluations(),
-             l$b |> tf_evaluations())
-
 bb <-tf_rebase(x, l$b)
 bb == tf_rebase(x, bb) #!!
 
@@ -53,8 +46,8 @@ identical(tf_arg(tf_rebase(x, l$x_ir)), tf_arg(l$x_ir))
 object <- x
 basis_from <- l$b2
 
-bb <- tf_rebase(x, l$b) == l$b
-tf_rebase(x, l$b2) #!! NOO
+bb2 <- tf_rebase(x, l$b2)
+bb2 ==  l$b2
 
 
 exp <- exp(x)

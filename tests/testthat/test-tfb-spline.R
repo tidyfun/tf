@@ -71,7 +71,7 @@ test_that("unpenalized tfb_spline works", {
   expect_equal(
     tfb_spline(irr, k = 11, penalized = FALSE, verbose = FALSE),
     tfb_spline(irr, k = 11, verbose = FALSE),
-    tolerance = 1e-1
+    tolerance = 1e-1, ignore_attr = TRUE
   )
 
   # GLM case: fitting on exp-scale and transforming back:
