@@ -6,7 +6,6 @@
 #'   (each row is one curve, no NAs)
 #' @param arg numeric vector of argument values
 #' @param pve percentage of variance explained
-#' @param basis_from used internally for [tf_rebase()]
 #' @returns a list with entries
 #' - `mu`` estimated mean function (numeric vector)
 #' - `efunctions`` estimated FPCs (numeric matrix, columns represent FPCs)
@@ -17,7 +16,7 @@
 #' @author Cheng Meng, Fabian Scheipl
 #' @family tfb-class
 #' @family tfb_fpc-class
-fpc_wsvd <- function(data, arg, pve = 0.995, basis_from = NULL) {
+fpc_wsvd <- function(data, arg, pve = 0.995) {
   UseMethod("fpc_wsvd")
 }
 
@@ -61,7 +60,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
 
 #' @rdname fpc_wsvd
 #' @export
-fpc_wsvd.data.frame <- function(data, arg, pve = 0.995, basis_from = NULL) {
+fpc_wsvd.data.frame <- function(data, arg, pve = 0.995) {
   data_mat <- df_2_mat(data)
   fpc_wsvd.matrix(data_mat, arg = attr(data_mat, "arg"), pve = pve)
 }

@@ -98,8 +98,8 @@ fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
         1,
         min(max(5, 0.1 * nlevels(data$id)), 100)
       )
-    ))
-    pilot_id <- levels(data$id)[unique(pilot_id)]
+    )) |> unique()
+    pilot_id <- levels(data$id)[pilot_id]
     arg_u_pilot <- arg_u
     attr(arg_u_pilot, "index") <-
       attr(arg_u_pilot, "index")[data$id %in% pilot_id]

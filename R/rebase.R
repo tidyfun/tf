@@ -67,6 +67,7 @@ tf_rebase.tfd.tfb_fpc <-  function(object, basis_from, arg = tf_arg(basis_from),
               arg = arg,
               resolution = tf_resolution(basis_from), ...)
 }
+
 #-------------------------------------------------------------------------------
 #'@export
 #'@method tf_rebase tfb
@@ -87,4 +88,3 @@ tf_rebase.tfb.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
 tf_rebase.tfb.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   tf_rebase(tfd(object), basis_from, arg = arg, ...)
 }
-

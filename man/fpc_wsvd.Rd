@@ -6,11 +6,11 @@
 \alias{fpc_wsvd.data.frame}
 \title{Eigenfunctions via weighted SVD}
 \usage{
-fpc_wsvd(data, arg, pve = 0.995, basis_from = NULL)
+fpc_wsvd(data, arg, pve = 0.995)
 
 \method{fpc_wsvd}{matrix}(data, arg, pve = 0.995)
 
-\method{fpc_wsvd}{data.frame}(data, arg, pve = 0.995, basis_from = NULL)
+\method{fpc_wsvd}{data.frame}(data, arg, pve = 0.995)
 }
 \arguments{
 \item{data}{numeric matrix of function evaluations
@@ -19,8 +19,6 @@ fpc_wsvd(data, arg, pve = 0.995, basis_from = NULL)
 \item{arg}{numeric vector of argument values}
 
 \item{pve}{percentage of variance explained}
-
-\item{basis_from}{used internally for \code{\link[=tf_rebase]{tf_rebase()}}}
 }
 \value{
 a list with entries
