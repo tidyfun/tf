@@ -90,17 +90,20 @@
     return(x)
   }
   if (matrix && is.list(j)) {
-    stop("need a single vector-valued <j> if matrix = TRUE")
+    stop("need a single vector-valued <j> if matrix = TRUE", call. = FALSE)
   }
   j <- ensure_list(j)
   if (!(length(j) %in% c(1, length(i)))) {
-    stop("wrong length for <j>")
+    stop("wrong length for <j>", call. = FALSE)
   }
   evals <- tf_evaluate(x, arg = j)
   if (!interpolate) {
     new_j <- map2(j, ensure_list(tf_arg(x)), \(x, y) !(x %in% y))
     if (any(unlist(new_j))) {
-      warning("interpolate = FALSE & no evaluations for some <j>: NAs created.")
+      warning(
+        "interpolate = FALSE & no evaluations for some <j>: NAs created.",
+        call. = FALSE
+      )
     }
     evals <- map2(evals, new_j, \(x, y) ifelse(y, NA, x))
   }

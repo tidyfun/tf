@@ -58,7 +58,7 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
       }
     )
     n_evals <- map(datalist, \(x) length(x$value))
-    if (any(n_evals == 0)) warning("NA entries created.")
+    if (any(n_evals == 0)) warning("NA entries created.", call. = FALSE)
     datalist <- map_if(
       datalist, n_evals == 0, \(x) list(arg = domain[1], value = NA)
     )
@@ -153,7 +153,7 @@ tfd <- function(data, ...) UseMethod("tfd")
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, resolution = NULL, ...) {
   assert_numeric(data)
-  evaluator <- rlang::quo_name(rlang::enexpr(evaluator))
+  evaluator <- quo_name(enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
   id <- unique_id(rownames(data) %||% seq_len(dim(data)[1]))
   # make factor conversion explicit to avoid reordering
@@ -228,7 +228,7 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
       arg <- map2(arg, where_na, \(x, y) x[!y])
     } else {
       if (is.null(arg)) {
-        warning("No argument values supplied, using index positions.")
+        warning("No argument values supplied, using index positions.", call. = FALSE)
         arg <- map(data, seq_along)
       }
       arg <- ensure_list(arg)
@@ -299,8 +299,8 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
     nas <- map(evaluations, \(x) which(is.na(x)))
     if (length(unlist(nas))) {
       warning(
-        length(unlist(nas)),
-        " evaluations were NA, returning irregular tfd."
+        length(unlist(nas)), " evaluations were NA, returning irregular tfd.",
+        call. = FALSE
       )
       evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
       arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)

@@ -35,7 +35,8 @@ tf_smooth.tfb <- function(x, ...) {
   warning(
     "you called tf_smooth on a tfb object, not on a tfd object -- ",
     "just use a smaller basis or stronger penalization.\n",
-    "Returning unchanged tfb object."
+    "Returning unchanged tfb object.",
+    call. = FALSE
   )
   x
 }
@@ -77,16 +78,15 @@ tf_smooth.tfd <- function(x,
     if (!is_equidist(x)) {
       warning(
         "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
-        " ignored by ", method, "."
+        " ignored by ", method, ".", 
+        call. = FALSE
       )
     }
     if (grepl("rollm", method, fixed = TRUE)) {
       if (is.null(dots$k)) {
         dots$k <- ceiling(0.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
-        message(
-          "using k = ", dots$k, " observations for rolling data window."
-        )
+        message("using k = ", dots$k, " observations for rolling data window.")
       }
       if (is.null(dots$fill)) {
         message("setting fill = 'extend' for start/end values.")
@@ -97,9 +97,7 @@ tf_smooth.tfd <- function(x,
       if (is.null(dots$fl)) {
         dots$fl <- ceiling(0.15 * min(tf_count(x)))
         dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
-        message(
-          "using fl = ", dots$fl, " observations for rolling data window."
-        )
+        message("using fl = ", dots$fl, " observations for rolling data window.")
       }
     }
 
