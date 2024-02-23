@@ -22,6 +22,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 
@@ -32,6 +33,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 
@@ -42,6 +44,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 
@@ -52,6 +55,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 
@@ -62,6 +66,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 
@@ -72,6 +77,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 
@@ -82,6 +88,7 @@ tfb_spline(data, ...)
   penalized = TRUE,
   global = FALSE,
   resolution = NULL,
+  verbose = TRUE,
   ...
 )
 }
@@ -93,7 +100,7 @@ tfb_spline(data, ...)
 \code{\link[mgcv:magic]{mgcv::magic()}} or \code{\link[mgcv:gam.fit]{mgcv::gam.fit()}} (if \code{penalized} is TRUE). If not
 user-specified here, this uses \code{k = 25} cubic regression spline basis
 functions (i.e., \code{bs = "cr"}) by default, but should be set appropriately
-by the user.}
+by the user. See also Details and examples in the vignettes.}
 
 \item{id}{The name or number of the column defining which data belong to
 which function.}
@@ -117,6 +124,8 @@ set \code{FALSE} for ordinary least squares/ML estimators.}
 functions share the same smoothing parameter (see Details).}
 
 \item{resolution}{resolution of the evaluation grid. See details for \code{\link[=tfd]{tfd()}}.}
+
+\item{verbose}{defaults to outputting statistics about the fit achieved by the basis}
 }
 \value{
 a \code{tfb}-object
@@ -135,9 +144,9 @@ supplied) or unpenalized least squares / maximum likelihood.
 
 After the "smoothed" representation is computed, the amount of smoothing that
 was performed is reported in terms of the "percentage of variability
-preserved", which is the variance (i.e, explained deviance, in the general
+preserved", which is the variance (i.e, the explained deviance, in the general
 case) of the smoothed function values divided by the variance of the original
-values (null deviance, in the general case). Reporting can be switched off
+values (the null deviance, in the general case). Reporting can be switched off
 with \code{verbose = FALSE}.
 
 The \code{...} arguments supplies arguments to both the

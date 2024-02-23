@@ -46,7 +46,7 @@ test_that("tfb_spline defaults work for all kinds of irregular input", {
 })
 
 test_that("unpenalized tfb_spline works", {
-  expect_error(tfb_spline(narrow, k = 11, penalized = FALSE), "reduce k")
+  expect_error(tfb_spline(narrow, k = 11, penalized = FALSE, verbose = FALSE), "reduce k")
   expect_s3_class(
     tfb_spline(narrow, k = 8, penalized = FALSE, verbose = FALSE), "tfb_spline"
   )
@@ -61,11 +61,10 @@ test_that("unpenalized tfb_spline works", {
     "tfb_spline"
   )
   expect_s3_class(
-    suppressWarnings(
       tfb_spline(narrow^3,
-        family = scat(), k = 5, penalized = FALSE, verbose = FALSE
-      )
-    ), "tfb_spline"
+        family = scat(), k = 5, penalized = FALSE, verbose = FALSE) |>
+        suppressWarnings() |> suppressMessages(),
+      "tfb_spline"
   )
 
   expect_equal(
@@ -88,14 +87,14 @@ test_that("unpenalized tfb_spline works", {
 
   expect_message(
     try(
-      tfb_spline(smoo, family = Gamma(link = "log"), penalized = FALSE),
+      tfb_spline(smoo[1], family = Gamma(link = "log"), penalized = FALSE),
       silent = TRUE
     ),
     "non-positive"
   )
   expect_error(
     suppressMessages(
-      tfb_spline(smoo, family = Gamma(link = "log"), penalized = FALSE)
+      tfb_spline(smoo[1], family = Gamma(link = "log"), penalized = FALSE)
     ),
     "Basis representation failed"
   )
@@ -148,8 +147,10 @@ test_that("global and pre-specified smoothing options work", {
     tfb(rough, penalized = FALSE, k = 51, verbose = FALSE) |> tf_evaluations()
   )
   expect_equal(
-    tfb(rough, sp = 0.2, k = 75, verbose = FALSE) |> tf_evaluations(),
-    tfb(rough, sp = 0.2, k = 10, verbose = FALSE) |> tf_evaluations(),
+    tfb(rough, sp = 0.2, k = 75, verbose = FALSE) |> tf_evaluations() |>
+      suppressMessages() |> suppressWarnings(),
+    tfb(rough, sp = 0.2, k = 10, verbose = FALSE) |> tf_evaluations() |>
+      suppressMessages() |> suppressWarnings(),
     tolerance = 1e-2
   )
 
@@ -169,10 +170,12 @@ test_that("global and pre-specified smoothing options work", {
   expect_equal(
     tfb(exp(rough),
       sp = 0.2, k = 75, family = gaussian(link = "log"), verbose = FALSE
-    ) |> tf_evaluations(),
+    ) |> tf_evaluations() |>
+      suppressMessages() |> suppressWarnings(),
     tfb(exp(rough),
       sp = 0.2, k = 10, family = gaussian(link = "log"), verbose = FALSE
-    ) |> tf_evaluations(),
+    ) |> tf_evaluations() |>
+      suppressMessages() |> suppressWarnings(),
     tolerance = 1e-2
   )
 })
