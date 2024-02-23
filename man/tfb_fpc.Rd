@@ -56,7 +56,7 @@ tfb_fpc(data, ...)
 \code{tf}-object containing functional data.}
 
 \item{...}{arguments to the \code{method} which computes the
-(regularized/smoothed) FPCA.
+(regularized/smoothed) FPCA - see e.g. \code{\link[=fpc_wsvd]{fpc_wsvd()}}.
 Unless set by the user, uses proportion of variance explained
 \code{pve = 0.995} to determine the truncation levels.}
 

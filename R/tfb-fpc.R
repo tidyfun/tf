@@ -95,7 +95,7 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
 #' @param method the function to use that computes eigenfunctions and scores.
 #'   Defaults to [fpc_wsvd()], which gives unsmoothed eigenfunctions.
 #' @param ... arguments to the `method` which computes the
-#'  (regularized/smoothed) FPCA.
+#'  (regularized/smoothed) FPCA - see e.g. [fpc_wsvd()].
 #'  Unless set by the user, uses proportion of variance explained
 #'  `pve = 0.995` to determine the truncation levels.
 #' @inheritParams tfb
