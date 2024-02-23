@@ -33,11 +33,10 @@ fun_op <- function(x, y, op, numeric = NA) {
   if (isTRUE(numeric == 2)) y_ <- y
   ret <- map2(x_, y_, \(x, y) do.call(op, list(e1 = x, e2 = y)))
   if ("tfd" %in% attr_ret$class) {
-    if (is.na(numeric) &&
-      (attr(x, "evaluator_name") != attr(y, "evaluator_name"))) {
+    if (is.na(numeric) && (attr(x, "evaluator_name") != attr(y, "evaluator_name"))) {
       warning(
-        "inputs have different evaluators, result has ",
-        attr_ret$evaluator_name
+        "inputs have different evaluators, result has ", attr_ret$evaluator_name,
+        call. = FALSE
       )
     }
     if ("tfd_irreg" %in% attr_ret$class) {
@@ -102,7 +101,7 @@ Ops.tf <- function(e1, e2) {
     FALSE
   )
   if (not_defined) {
-    stop(sprintf("%s not defined for \"tf\" objects", .Generic))
+    stop(sprintf("%s not defined for \"tf\" objects", .Generic), call. = FALSE)
   }
   if (nargs() == 1) {
     return(fun_op(0, e1, .Generic, numeric = 1))
@@ -117,7 +116,9 @@ Ops.tf <- function(e1, e2) {
     (length(e2) %in% c(1, length(e1))))
   # not comparing names, as per convention...
   same <- all(compare_tf_attribs(e1, e2))
-  if (!same) return(rep(FALSE, max(length(e1), length(e2))))
+  if (!same) {
+    return(rep(FALSE, max(length(e1), length(e2))))
+  }
   map2_lgl(e1, e2, \(x, y) isTRUE(all.equal(x, y)))
 }
 
@@ -141,7 +142,7 @@ Ops.tfd <- function(e1, e2) {
   if (nargs() != 1) {
     if (is_tfd(e1) && is_tfd(e2)) {
       if (.Generic == "^") {
-        stop("^ not defined for \"tfd\" objects")
+        stop("^ not defined for \"tfd\" objects", call. = FALSE)
       } else {
         return(fun_op(e1, e2, .Generic))
       }
@@ -155,9 +156,8 @@ Ops.tfd <- function(e1, e2) {
       return(fun_op(e1, e2, .Generic, numeric = 1))
     }
     stop(sprintf(
-      "binary %s not defined for classes %s and %s",
-      .Generic, class(e1)[1], class(e2)[1]
-    ))
+      "binary %s not defined for classes %s and %s", .Generic, class(e1)[1], class(e2)[1]
+    ), call. = FALSE)
   }
   ret
 }
@@ -170,7 +170,7 @@ Ops.tfb <- function(e1, e2) {
     both_funs <- is_tfb(e1) & is_tfb(e2)
     if (both_funs) {
       if (.Generic == "^") {
-        stop("^ not defined for \"tfb\" objects")
+        stop("^ not defined for \"tfb\" objects", call. = FALSE)
       }
       stopifnot(all(compare_tf_attribs(e1, e2)))
     }

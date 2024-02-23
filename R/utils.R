@@ -18,7 +18,10 @@ find_arg <- function(data, arg) {
       if (length(unique(arg)) != dim(data)[2]) arg <- NULL
     }
     if (is.null(arg) || anyNA(arg)) {
-      message("Column names not suitable as 'arg'-values. Using 1:ncol(data).")
+      message(
+        "Column names not suitable as 'arg'-values. Using 1:ncol(data).",
+        call. = FALSE
+      )
       arg <- numeric(0)
     }
   }
@@ -41,7 +44,7 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
   if (check_unique) {
     round_arg <- round_resolution(arg, resolution_x)
     if (anyDuplicated(round_arg) > 0) {
-      stop("Non-unique arg-values (for resolution).")
+      stop("Non-unique arg-values (for resolution).", call. = FALSE)
     }
   }
   assert_numeric(arg,
@@ -61,7 +64,7 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
 get_resolution <- function(arg) {
   min_diff <- map_dbl(ensure_list(arg), \(x) min(diff(x))) |> min()
   if (min_diff < .Machine$double.eps * 10) {
-    stop("(Almost) non-unique arg values detected.")
+    stop("(Almost) non-unique arg values detected.", call. = FALSE)
   }
   10^(floor(log10(min_diff)) - 1)
 }

@@ -4,7 +4,6 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
                            resolution = NULL,
                            penalized = TRUE, global = FALSE,
                            verbose = FALSE, ...) {
-
   if (vctrs::vec_size(data) == 0) {
     ret <- vctrs::new_vctr(
       data,
@@ -12,19 +11,24 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
       arg = numeric(),
       resolution = numeric(),
       family = character(),
-      class = c("tfb_spline", "tfb", "tf"))
+      class = c("tfb_spline", "tfb", "tf")
+    )
     return(ret)
   }
 
   domain <- domain %||% range(data$arg)
   arg_u <- mgcv::uniquecombs(data$arg, ordered = TRUE)
   resolution <- resolution %||% get_resolution(arg_u)
-  domain <- c(round_resolution(domain[1], resolution, -1),
-              round_resolution(domain[2], resolution, 1))
+  domain <- c(
+    round_resolution(domain[1], resolution, -1),
+    round_resolution(domain[2], resolution, 1)
+  )
 
   assert_number(resolution, lower = .Machine$double.eps, finite = TRUE)
-  assert_numeric(domain, finite = TRUE, any.missing = FALSE,
-                 sorted = TRUE, len = 2, unique = TRUE)
+  assert_numeric(domain,
+    finite = TRUE, any.missing = FALSE,
+    sorted = TRUE, len = 2, unique = TRUE
+  )
   stopifnot(
     domain[1] <= min(unlist(arg_u)),
     domain[2] >= max(unlist(arg_u))
@@ -36,14 +40,18 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_args <- list(...)[names(list(...)) %in% names(formals(mgcv::s))]
   if (!("bs" %in% names(s_args))) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
-    warning("adaptive smooths with (bs='ad') not implemented yet.",
-    "Changing to bs='cr'.")
+    warning(
+      "adaptive smooths with (bs='ad') not implemented yet. Changing to bs='cr'.",
+      call. = FALSE
+    )
     s_args$bs <- "cr"
   }
   if (!("k" %in% names(s_args))) s_args$k <- min(25, nrow(arg_u))
   gam_args <- list(...)[names(list(...)) %in%
-                          c(names(formals(mgcv::gam)),
-                            names(formals(mgcv::bam)))]
+    c(
+      names(formals(mgcv::gam)),
+      names(formals(mgcv::bam))
+    )]
   if (!("sp" %in% names(gam_args))) gam_args$sp <- -1
 
   n_evaluations <- table(data$id)
@@ -52,16 +60,20 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
-  spec_object <- smooth.construct(s_spec, data = data.frame(arg = arg_u$x),
-                                  knots = NULL)
+  spec_object <- smooth.construct(s_spec,
+    data = data.frame(arg = arg_u$x),
+    knots = NULL
+  )
   spec_object$call <- s_call
 
   if (is.null(gam_args$family)) {
     gam_args$family <- gaussian()
   }
   if (is.character(gam_args$family)) {
-    gam_args$family <- get(gam_args$family, mode = "function",
-                           envir = parent.frame())
+    gam_args$family <- get(gam_args$family,
+      mode = "function",
+      envir = parent.frame()
+    )
   }
   if (is.function(gam_args$family)) {
     gam_args$family <- gam_args$family()
@@ -73,26 +85,30 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   if (!penalized) {
     underdetermined <- n_evaluations <= spec_object$bs.dim
     if (any(underdetermined)) {
-      stop("At least as many basis functions as evaluations for ",
-           sum(underdetermined), " functions.",
-           " Use penalized = TRUE or reduce k for spline interpolation.",
-           .call = FALSE)
+      stop(
+        "At least as many basis functions as evaluations for ",
+        sum(underdetermined), " functions.",
+        " Use penalized = TRUE or reduce k for spline interpolation.",
+        call. = FALSE
+      )
     }
     fit <-
-      fit_unpenalized(data = data, spec_object = spec_object, arg_u = arg_u,
-                      gam_args = gam_args, regular = regular, ls_fit = ls_fit)
+      fit_unpenalized(
+        data = data, spec_object = spec_object, arg_u = arg_u,
+        gam_args = gam_args, regular = regular, ls_fit = ls_fit
+      )
   } else {
     fit <-
-      fit_penalized(data = data, spec_object = spec_object, arg_u = arg_u,
-                    gam_args = gam_args, regular = regular, global = global,
-                    ls_fit = ls_fit)
+      fit_penalized(
+        data = data, spec_object = spec_object, arg_u = arg_u,
+        gam_args = gam_args, regular = regular, global = global,
+        ls_fit = ls_fit
+      )
     if (global && verbose) {
-      message(
-        sprintf(
-          c("Using global smoothing parameter sp = %.3g,",
-            " estimated on subsample of curves."),
-          fit$sp[1]
-          ))
+      message(sprintf(c(
+        "Using global smoothing parameter sp = %.3g,",
+        " estimated on subsample of curves."
+      ), fit$sp[1]))
     }
   }
   if (!regular) {
@@ -102,7 +118,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   if (isTRUE(min(fit$pve) < .5)) {
     warning(c("Fit captures <50% of input data variability for at least one function",
               " -- consider increasing no. of basis functions 'k' or decreasing penalization."),
-              .call = FALSE)
+              call. = FALSE)
     verbose <- TRUE
   }
   if (verbose) {
@@ -125,15 +141,15 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_call <- as.call(c(quote(s), quote(arg), s_args))
 
   ret <- vctrs::new_vctr(fit[["coef"]],
-                   domain = domain,
-                   basis = basis_constructor,
-                   basis_label = deparse(s_call, width.cutoff = 60)[1],
-                   basis_args = s_args,
-                   basis_matrix = spec_object$X,
-                   arg = arg_u$x,
-                   resolution = resolution,
-                   family = eval(gam_args$family),
-                   class = c("tfb_spline", "tfb", "tf")
+    domain = domain,
+    basis = basis_constructor,
+    basis_label = deparse(s_call, width.cutoff = 60)[1],
+    basis_args = s_args,
+    basis_matrix = spec_object$X,
+    arg = arg_u$x,
+    resolution = resolution,
+    family = eval(gam_args$family),
+    class = c("tfb_spline", "tfb", "tf")
   )
   assert_arg(tf_arg(ret), ret)
   ret
@@ -207,10 +223,14 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
                                   global = FALSE, resolution = NULL,
                                   verbose = TRUE, ...) {
   data <- df_2_df(data, id = id, arg = arg, value = value)
-  ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
-                        global = global, resolution = resolution,
-                        verbose = verbose, ...)
-  names_data <- data[,id] |> unique() |> as.character() |>
+  ret <- new_tfb_spline(data,
+    domain = domain, penalized = penalized,
+    global = global, resolution = resolution,
+    verbose = verbose, ...
+  )
+  names_data <- data[, id] |>
+    unique() |>
+    as.character() |>
     vctrs::vec_as_names(repair = "unique")
   setNames(ret, names_data)
 }
@@ -229,7 +249,8 @@ tfb_spline.matrix <- function(data, arg = NULL,
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
                  global = global, resolution = resolution, verbose = verbose, ...)
   if (!is.null(names_data)) {
-    names_data <- names_data |> as.character() |>
+    names_data <- names_data |>
+      as.character() |>
       vctrs::vec_as_names(repair = "unique")
     setNames(ret, names_data)
   }
@@ -283,7 +304,8 @@ tfb_spline.list <- function(data, arg = NULL,
   tmp <- do.call(rbind, data)
   tmp <- cbind(
     rep(unique_id(names(data)) %||% seq_along(data), times = n_evals),
-    tmp)
+    tmp
+  )
   # dispatch to data.frame method
   tfb_spline(tmp, domain = domain, penalized = penalized,
              global = global, resolution = resolution,
@@ -321,8 +343,8 @@ tfb_spline.tfb <- function(data, arg = NULL,
     list(...)[names(list(...)) %in% names(formals(mgcv::s))]
   )
   names_data <- names(data)
-  if (vctrs::vec_size(data) == 0){
-    #data = rep(0, )
+  if (vctrs::vec_size(data) == 0) {
+    # data = rep(0, )
     # maybe try to make an empty vector that won't break anything like matrix algebra?
 
    new_tfb_spline(data, arg = arg, domain = domain,
@@ -351,6 +373,8 @@ tfb_spline.default <- function(data, arg = NULL,
             returning prototype of length 0")
 
   data <- data.frame()
-  new_tfb_spline(data, domain = domain, penalized = penalized,
-                 global = global, resolution = resolution, ...)
+  new_tfb_spline(data,
+    domain = domain, penalized = penalized,
+    global = global, resolution = resolution, ...
+  )
 }

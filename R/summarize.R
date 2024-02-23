@@ -71,8 +71,8 @@ median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
     med <- x[tf_depths == max(tf_depths)]
     if (length(med) > 1) {
       warning(
-        length(med),
-        " observations with maximal depth, returning their mean."
+        length(med), " observations with maximal depth, returning their mean.",
+        call. = FALSE
       )
       mean(med)
     } else {

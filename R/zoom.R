@@ -56,14 +56,14 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
   )
   if (is_irreg(f) || !args$regular) {
     nas <- map_lgl(ret, \(x) length(x$arg) == 0)
-    if (all(nas)) stop("no data in zoom region.")
-    if (any(nas)) warning("NAs created by tf_zoom.")
+    if (all(nas)) stop("no data in zoom region.", call. = FALSE)
+    if (any(nas)) warning("NAs created by tf_zoom.", call. = FALSE)
     for (n in which(nas)) {
       ret[[n]] <- data.frame(arg = unname(args$dom[1]), value = NA_real_)
     }
   } else {
     if (any(map_lgl(ret, \(x) length(x$arg) == 0))) {
-      stop("no data in zoom region.")
+      stop("no data in zoom region.", call. = FALSE)
     }
   }
   ret <- tfd(ret, domain = args$dom, resolution = attr(f, "resolution"))
@@ -81,7 +81,7 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
     return(tf_zoom(tfd(f), begin, end))
   }
   use <- tf_arg(f) >= args$dom[1] & tf_arg(f) <= args$dom[2]
-  if (!any(use)) stop("no data in zoom region.")
+  if (!any(use)) stop("no data in zoom region.", call. = FALSE)
   ret <- f
   attr(ret, "basis_matrix") <- attr(f, "basis_matrix")[use, ]
   attr(ret, "arg") <- tf_arg(f)[use]
@@ -93,6 +93,8 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
 #' @export
 tf_zoom.tfb_fpc <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                             ...) {
-  warning("zoomed-in FPC representation loses orthogonality of FPC basis.")
+  warning(
+    "zoomed-in FPC representation loses orthogonality of FPC basis.", call. = FALSE
+  )
   NextMethod()
 }

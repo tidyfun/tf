@@ -8,9 +8,9 @@ Authors@R: c(
     person("Julia", "Wrobel", role = "aut", 
            comment = c(ORCID = "0000-0001-6783-1421")),
     person("Maximilian", "Muecke", role = "ctb",
-           comment = c(ORCID = "0000-0002-9609-3197")),
+           comment = c(ORCID = "0009-0000-9432-9795")),
     person("Sebastian", "Fischer", role = "ctb",
-           comment = c(ORCID = "0009-0000-9432-9795"))
+           comment = c(ORCID = "0000-0002-9609-3197"))
   )
 Description: Provides S3 classes and methods for representing, visualizing
     and wrangling tidy functional data.
