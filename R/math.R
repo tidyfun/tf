@@ -31,65 +31,6 @@ Math.tfb <- function(x, ...) {
   )
 }
 
-<<<<<<< HEAD
-=======
-#' @rdname tfgroupgenerics
-#' @export
-cummax.tfd <- function(...) {
-  summarize_tf(..., op = "cummax", eval = TRUE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-cummin.tfd <- function(...) {
-  summarize_tf(..., op = "cummin", eval = TRUE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-cumsum.tfd <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = TRUE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-#' @family tidyfun compute
-cumprod.tfd <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = TRUE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-cummax.tfb <- function(...) {
-  summarize_tf(..., op = "cummax", eval = FALSE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-cummin.tfb <- function(...) {
-  summarize_tf(..., op = "cummin", eval = FALSE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-cumsum.tfb <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = FALSE)
-}
-#' @rdname tfgroupgenerics
-#' @export
-cumprod.tfb <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = FALSE)
-}
-
-#-------------------------------------------------------------------------------
-
-#' @rdname tfgroupgenerics
-#' @export
-Summary.tf <- function(...) {
-  not_defined <- switch(.Generic,
-    `all` = , `any` = TRUE, FALSE
-  )
-  if (not_defined) {
-    stop(sprintf("%s not defined for \"tf\" objects", .Generic), call. = FALSE)
-  }
-  summarize_tf(..., op = .Generic, eval = is_tfd(list(...)[[1]]))
-}
-
->>>>>>> 46049eccabb040bc902d5522d219706fe4d4cb5a
 #-------------------------------------------------------------------------------
 # TODO:
 # inner product?
