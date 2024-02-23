@@ -80,6 +80,7 @@ tf_rebase.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 #'@importFrom utils modifyList
 tf_rebase.tfb.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   tfd_args <- list(resolution = tf_resolution(basis_from),
+                   domain = tf_domain(basis_from),
                    evaluator = attr(basis_from, "evaluator_name"))
   tfd_args <- modifyList(tfd_args, list(...))
   do.call(tfd, append(tfd_args, list(data = object, arg = arg, ...)))
