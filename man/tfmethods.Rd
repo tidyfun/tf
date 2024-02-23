@@ -95,7 +95,7 @@ that can be used to interpolate an \code{tfd}. Needs to accept vector arguments
 \code{arg}, \code{evaluations} at \code{x}. \cr
 \strong{for \verb{tf_arg<-}:} (list of) new \code{arg}-values. \cr
 \strong{for \verb{tf_domain<-}:} sorted numeric vector with the 2 new endpoints of
-the domain.
+the domain. \cr
 \strong{for \verb{tf_resolution<-}:} a (positive) number}
 
 \item{as_tfd}{should the basis be returned as a \code{tfd} evaluated on

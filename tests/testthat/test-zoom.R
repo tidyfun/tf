@@ -1,8 +1,8 @@
 set.seed(123)
 x <- tf_rgp(4, arg = seq(0, 1, length.out = 51), nugget = 0.1)
 xi <- tf_sparsify(tf_jiggle(x), 0.2)
-xb <- tfb(x, verbose = FALSE)
-xbi <- tfb(xi, verbose = FALSE)
+xb <- tfb(x, verbose = FALSE) |> suppressMessages() |> suppressWarnings()
+xbi <- tfb(xi, verbose = FALSE) |> suppressMessages() |> suppressWarnings()
 
 xfpc <- tfb_fpc(x, verbose = FALSE)
 

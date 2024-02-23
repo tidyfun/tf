@@ -6,7 +6,7 @@
 \alias{as.tfb}
 \title{Constructors for functional data in basis representation}
 \usage{
-tfb(data, basis = c("spline", "fpc", "wavelet"), ...)
+tfb(data = data.frame(), basis = c("spline", "fpc", "wavelet"), ...)
 
 tfb_wavelet(data, ...)
 

@@ -108,7 +108,7 @@ tf_evaluator <- function(f) {
 #'   `arg`, `evaluations` at `x`. \cr
 #'   **for `tf_arg<-`:** (list of) new `arg`-values. \cr
 #'   **for `tf_domain<-`:** sorted numeric vector with the 2 new endpoints of
-#'   the domain.
+#'   the domain. \cr
 #'   **for `tf_resolution<-`:** a (positive) number
 #' @export
 `tf_evaluator<-` <- function(x, value) {

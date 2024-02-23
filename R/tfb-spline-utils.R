@@ -98,8 +98,8 @@ fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
         1,
         min(max(5, 0.1 * nlevels(data$id)), 100)
       )
-    ))
-    pilot_id <- levels(data$id)[unique(pilot_id)]
+    )) |> unique()
+    pilot_id <- levels(data$id)[pilot_id]
     arg_u_pilot <- arg_u
     attr(arg_u_pilot, "index") <-
       attr(arg_u_pilot, "index")[data$id %in% pilot_id]
@@ -119,10 +119,11 @@ fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
     gam_args$sp <- exp(mean(log(pilot_sp))) # median?
   }
   if (!ls_fit) {
-    return(fit_ml(data, spec_object, gam_args, arg_u,
-      penalized = TRUE,
-      sp = gam_args$sp
-    ))
+    return(
+      fit_ml(data, spec_object, gam_args, arg_u,
+             penalized = TRUE,
+             sp = gam_args$sp
+      ))
   }
   fit_penalized_ls(data, spec_object, arg_u, gam_args, regular)
 }
@@ -225,7 +226,6 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
     sp = if (penalized & !fixed_sp) map_dbl(ret, "sp") else NULL
   )
 }
-
 
 fit_ml_once <- function(index, evaluations, gam_prep, sp) {
   G_tmp <- gam_prep

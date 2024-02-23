@@ -31,20 +31,32 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
 
   delta <- c(0, diff(arg))
   # trapezoid integration weights:
-  w <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+  weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
   mean <- colMeans(data)
-  data_wc <- t((t(data) - mean) * sqrt(w))
+  data_wc <- t((t(data) - mean) * sqrt(weights))
+
   pc <- svd(data_wc, nu = 0, nv = min(dim(data)))
   pve_observed <- cumsum(pc$d^2) / sum(pc$d^2)
   use <- min(which(pve_observed >= pve))
-  efunctions <- pc$v[, 1:use] / sqrt(w)
+
+  efunctions <- pc$v[, 1:use] / sqrt(weights)
   evalues <- (pc$d[1:use])^2
-  scores <- t(qr.coef(qr(efunctions), t(data_wc) / sqrt(w))) #!!
+  scores <- .fpc_wsvd_scores(data, efunctions, mean, weights) #!!
+
   list(
     mu = mean, efunctions = efunctions,
-    scores = scores, npc = use, evalues = evalues
+    scores = scores, npc = use, evalues = evalues,
+    error_variance = cumsum((pc$d^2)[-(1:use)]),
+    scoring_function = .fpc_wsvd_scores
   )
 }
+
+#extract for reuse in tf_rebase
+.fpc_wsvd_scores <- function(data_matrix, efunctions,  mean, weights) {
+  data_wc <- t((t(data_matrix) - mean) * sqrt(weights))
+  t(qr.coef(qr(efunctions), t(data_wc) / sqrt(weights)))
+}
+
 
 #' @rdname fpc_wsvd
 #' @export
