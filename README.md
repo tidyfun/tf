@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# tf <a href="https://tidyfun.github.io/tf/"><img src="https://github.com/tidyfun/tidyfun/blob/master/README_files/figures/tidyfun_hex.gif?raw=true" align="right" height="150" alt="tf website" /></a>
+# tf <a href="https://tidyfun.github.io/tf/"><img src="https://github.com/tidyfun/tidyfun/blob/master/man/figures/logo.gif?raw=true" align="right" height="150" alt="tf website" /></a>
 
 <!-- badges: start -->
 
