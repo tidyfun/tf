@@ -14,6 +14,7 @@
 #' @references code adapted from / inspired by `wsvd()` function of Bioconductor
 #'   package `mogsa` by Cheng Meng.
 #' @author Cheng Meng, Fabian Scheipl
+#' @references `r format_bib("meng2023mogsa")`
 #' @family tfb-class
 #' @family tfb_fpc-class
 fpc_wsvd <- function(data, arg, pve = 0.995) {
@@ -24,16 +25,20 @@ fpc_wsvd <- function(data, arg, pve = 0.995) {
 #' @importFrom utils head tail
 #' @export
 fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
-  assert_matrix(data, mode = "numeric", any.missing = FALSE,
-                min.cols = 2, min.rows = 1)
+  assert_matrix(data, mode = "numeric", min.cols = 2, min.rows = 1)
   assert_numeric(arg, any.missing = FALSE, sorted = TRUE, len = ncol(data))
   assert_number(pve, lower = 0, upper = 1)
 
   delta <- c(0, diff(arg))
   # trapezoid integration weights:
   weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
-  mean <- colMeans(data)
-  data_wc <- t((t(data) - mean) * sqrt(weights))
+  mean <- colMeans(data, na.rm = TRUE)
+  # set missing data & its weights to 0:
+  w_mat <- matrix(weights, ncol = length(weights), nrow = nrow(data),
+                  byrow = TRUE)
+  w_mat[is.na(data)] <- 0
+  data[is.na(data)] <- 0
+  data_wc <- t((t(data) - mean) * sqrt(t(w_mat)))
 
   pc <- svd(data_wc, nu = 0, nv = min(dim(data)))
   pve_observed <- cumsum(pc$d^2) / sum(pc$d^2)
@@ -53,7 +58,11 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
 
 #extract for reuse in tf_rebase
 .fpc_wsvd_scores <- function(data_matrix, efunctions,  mean, weights) {
-  data_wc <- t((t(data_matrix) - mean) * sqrt(weights))
+  w_mat <- matrix(weights, ncol = length(weights), nrow = nrow(data_matrix),
+                  byrow = TRUE)
+  w_mat[is.na(data_matrix)] <- 0
+  data_matrix[is.na(data_matrix)] <- 0
+  data_wc <- t((t(data_matrix) - mean) * sqrt(t(w_mat)))
   t(qr.coef(qr(efunctions), t(data_wc) / sqrt(weights)))
 }
 

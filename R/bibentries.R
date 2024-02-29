@@ -19,6 +19,13 @@ bibentries <- c(
     year = "2009",
     publisher = "Taylor & Francis"
   ),
+  meng2023mogsa = bibentry("manual",
+    title = "\\code{mogsa}: Multiple omics data integrative clustering and gene set analysis",
+    author = "Chen Meng",
+    year = "2023",
+    url = "\\url{https://bioconductor.org/packages/mogsa}",
+    doi = "10.18129/B9.bioc.mogsa",
+  ),
   swihart2010lasagna = bibentry("article",
     title = "Lasagna plots: a saucy alternative to spaghetti plots",
     author = "Swihart, Bruce J and Caffo, Brian and James, Bryan D and Strand, Matthew and Schwartz, Brian S and Punjabi, Naresh M",
