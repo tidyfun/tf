@@ -12,8 +12,8 @@ test_that("tf_rebase.tfd preserves args & evals and transfers attributes", {
     b2 = tfb(x, k = 15, bs = "tp", sp= .1, verbose = FALSE),
     bu = tfb(x, k = 15, penalized = FALSE, verbose = FALSE),
     bg = tfb(x, k = 5, global = TRUE, verbose = FALSE),
-    fp = tfb_fpc(x, pve = 1),
-    fp_low = tfb_fpc(x, pve = .95)
+    fpc = tfb_fpc(x, pve = 1),
+    fpc_low = tfb_fpc(x, pve = .95)
   )
   for (i in seq_along(l)) {
      cat(i)
@@ -50,8 +50,8 @@ test_that("tf_rebase.tfb_spline preserves args & evals and transfers attributes"
     b2 = tfb(x, k = 15, bs = "tp", sp = .1, verbose = FALSE),
     bu = tfb(x, k = 15, penalized = FALSE, verbose = FALSE),
     bg = tfb(x, k = 5, global = TRUE, verbose = FALSE),
-    fp = tfb_fpc(x, pve = 1),
-    fp_low = tfb_fpc(x, pve = .95)
+    fpc = tfb_fpc(x, pve = 1),
+    fpc_low = tfb_fpc(x, pve = .95)
   )
   for (i in seq_along(l)) {
     # cat(i)
@@ -78,7 +78,7 @@ test_that("tf_rebase.tfb_fpc preserves args & evals and transfers attributes", {
   x <- tf_rgp(5,  arg = 301L) |> tf_smooth() |>
     tfd(evaluator = tf_approx_fill_extend) |> suppressMessages()
   names(x) <- letters[1:5]
-  fp <- tfb_fpc(x, pve = 1)
+  fpc <- tfb_fpc(x, pve = 1, )
 
   l <- list(
     x = x,
@@ -89,11 +89,11 @@ test_that("tf_rebase.tfb_fpc preserves args & evals and transfers attributes", {
     b2 = tfb(x, k = 15, bs = "tp", sp= .1, verbose = FALSE),
     bu = tfb(x, k = 15, penalized = FALSE, verbose = FALSE),
     bg = tfb(x, k = 5, global = TRUE, verbose = FALSE),
-    fp_low = tfb_fpc(x, pve = .95)
+    fpc_low = tfb_fpc(x, pve = .95)
   )
   for (i in seq_along(l)) {
-    # cat(i)
-    x_rebase <- tf_rebase(x, l[[i]], verbose = FALSE)
+    cat(i)
+    x_rebase <- tf_rebase(fpc, l[[i]], verbose = FALSE)
     expect_equal(
       x_rebase |> tf_evaluations(),
       l[[i]] |> tf_evaluations(),
