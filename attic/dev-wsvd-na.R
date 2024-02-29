@@ -1,19 +1,27 @@
-library(tf)
 
-x <- tf_rgp(50) |> tfb_fpc()
+x <- tf_rgp(150) |> tfb_fpc()
 
-y <- tf_rgp(15, arg = 11L) |> tf_sparsify()
+y <- tf_rgp(15, arg = 21L) |> tf_sparsify()
 
 y_xbase <- tf_rebase(y, x)
 
+layout(t(1:2))
 plot(y, lwd = 2)
-lines(y_xbase, lty = 2, col = 2)
+plot(y_xbase, lty = 2, col = 2)
 
 all.equal(tf_basis(y_xbase, as_tfd = TRUE),
           tf_basis(x, as_tfd = TRUE))
 
 
 #------------------------------------------------------------------------------
+
+y <- tf_rgp(50, arg = 51L) |> tf_sparsify(dropout = .1)
+y_pc <- tfb_fpc(y, pve = .99)
+
+plot(y[1:10])
+lines(y_pc[1:10], col = 2)
+
+#-------------------------------------------------------------------------------
 
 
 g <- 201

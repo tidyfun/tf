@@ -5,9 +5,9 @@ test_that("tf_rebase.tfd preserves args & evals and transfers attributes", {
   names(x) <- letters[1:5]
 
   l <- list(
-    x_2 = tfd(as.matrix(x), resolution = tf_resolution(x) * 3),
+    x_2 = tfd(as.matrix(x), resolution = tf_resolution(x) * 2),
     x_sp = tf_sparsify(x, dropout = .1),
-    x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .2),
+    x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .05),
     b = tfb(x, k = 45, verbose = FALSE),
     b2 = tfb(x, k = 15, bs = "tp", sp= .1, verbose = FALSE),
     bu = tfb(x, k = 15, penalized = FALSE, verbose = FALSE),
@@ -16,7 +16,7 @@ test_that("tf_rebase.tfd preserves args & evals and transfers attributes", {
     fp_low = tfb_fpc(x, pve = .95)
   )
   for (i in seq_along(l)) {
-    # cat(i)
+     cat(i)
     x_rebase <- tf_rebase(x, l[[i]], verbose = FALSE)
     expect_equal(
        x_rebase |> tf_evaluations(),

@@ -19,6 +19,8 @@
 tf_rebase <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   all.equal(tf_domain(object), tf_domain(basis_from)) |>
     assert_true()
+  assert_arg(arg, object, check_unique = FALSE)
+  assert_arg(arg, basis_from, check_unique = FALSE)
   UseMethod("tf_rebase", object)
 }
 
@@ -61,6 +63,9 @@ tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_fro
 }
 #'@export
 tf_rebase.tfd.tfb_fpc <-  function(object, basis_from, arg = tf_arg(basis_from), ...) {
+  if (is_irreg(object)) {
+    warning("")
+  }
   data <- tf_interpolate(object, arg = arg) |> as.data.frame(unnest = TRUE)
   new_tfb_fpc(data = data, basis_from = basis_from,
               domain = tf_domain(basis_from),
