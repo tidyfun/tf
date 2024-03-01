@@ -15,10 +15,8 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
     stop("Can't specify both method *and* basis_from for new_tfb_fpc",
          call. = FALSE)
   }
-  arg <- sort(unique(data$arg))
+  arg <- mgcv::uniquecombs(data$arg, ordered = TRUE) |> unlist()
   resolution <- resolution %||% get_resolution(arg)
-  data$arg <- round_resolution(data$arg, resolution)
-  arg <- unique(round_resolution(arg, resolution))
 
   domain <- domain %||% range(arg)
   domain <- c(round_resolution(domain[1], resolution, -1),
