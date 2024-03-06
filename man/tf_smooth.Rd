@@ -8,14 +8,21 @@
 \usage{
 tf_smooth(x, ...)
 
-\method{tf_smooth}{tfb}(x, ...)
+\method{tf_smooth}{tfb}(x, verbose = TRUE, ...)
 
-\method{tf_smooth}{tfd}(x, method = c("lowess", "rollmean", "rollmedian", "savgol"), ...)
+\method{tf_smooth}{tfd}(
+  x,
+  method = c("lowess", "rollmean", "rollmedian", "savgol"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{a \code{tf} object containing functional data}
 
 \item{...}{arguments for the respective \code{method}. See Details.}
+
+\item{verbose}{give lots of diagnostic messages? Defaults to TRUE}
 
 \item{method}{one of "lowess" (see \code{\link[stats:lowess]{stats::lowess()}}), "rollmean",
 "rollmedian" (see \code{\link[zoo:rollmean]{zoo::rollmean()}}) or "savgol" (see \code{\link[pracma:savgol]{pracma::savgol()}})}

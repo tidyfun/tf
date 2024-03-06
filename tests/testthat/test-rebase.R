@@ -16,7 +16,7 @@ test_that("tf_rebase.tfd preserves args & evals and transfers attributes", {
     fpc_low = tfb_fpc(x, pve = .95)
   )
   for (i in seq_along(l)) {
-    cat(i)
+    # cat(i)
     x_rebase <- tf_rebase(x, l[[i]], verbose = FALSE)
     expect_equal(
        x_rebase |> tf_evaluations(),
@@ -31,7 +31,7 @@ test_that("tf_rebase.tfd preserves args & evals and transfers attributes", {
       compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
     )
     expect_equal(names(x_rebase), names(x))
-    try(c(x_rebase, l[[i]])) #!! see #77
+   # try(c(x_rebase, l[[i]])) #!! see #77
   }
 })
 

@@ -15,53 +15,26 @@ all.equal(tf_basis(y_xbase, as_tfd = TRUE),
 
 #------------------------------------------------------------------------------
 
-pve <- .8
-y <- tf_rgp(150, arg = 51L)
+pve <- .85
+y <- tf_rgp(50, arg = 51L)
 y_pc <- tfb_fpc(y, pve = pve)
-y_mis <- y |> tf_sparsify(dropout = .05)
+y_mis <- y |> tf_sparsify(dropout = .2)
 y_pc_sparse <- tfb_fpc(y_mis, pve = pve)
 y_pc_sparse_impute <- y_mis |>
   tf_interpolate(arg = tf_arg(y), evaluator = tf_approx_fill_extend) |>
   tfb_fpc(pve = pve)
 y_pc_rebase <- tf_rebase(y_mis, y_pc)
 
-data <- as.matrix(y_mis)
-delta <- c(0, diff(find_arg(data, NULL)[[1]]))
-# trapezoid integration weights:
-weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
-
-mean <- colMeans(data, na.rm = TRUE)
-data_wc <- as.matrix(t((t(data) - mean) * sqrt(weights)))
-
-pc_na <- softImpute(data_wc, rank.max = min(dim(data)) - 1)
-pve_observed <- cumsum(pc_na$d^2) / sum(pc_na$d^2)
-use <- min(which(pve_observed >= pve))
-
-efunctions <- pc_na$v[, 1:use] / sqrt(weights)
-evalues <- (pc_na$d[1:use])^2
-scores <- .fpc_wsvd_scores(data, efunctions, mean, weights)
-
-pc_basis <- tf_basis(y_pc, as_tfd=TRUE)
-pcna_basis <- tfd(t(cbind(mean, efunctions)), arg = tf_arg(y))
-
-tf_integrate(pcna_basis^2) # weighted SVD works!
-tf_integrate(pc_basis^2)
-
-plot(pc_basis, col = 1:length(pc_basis))
-plot(pcna_basis |> tf_smooth(), col = 1:(use+1))
-
-scores[1:3,]
-unclass(y_pc)[1:3]
 
 layout(t(1:4))
 plot(y[1:10], main = "full")
-lines(y_pc[1:10], col = 2)
+lines(y_pc[1:10], col = 2, lty = 2)
 plot(y[1:10], main = "sparse")
-lines(y_pc_sparse[1:10], col = 2)
+lines(y_pc_sparse[1:10], col = 2, lty = 2)
 plot(y[1:10], main = "interpolated")
-lines(y_pc_sparse_impute[1:10], col = 2)
+lines(y_pc_sparse_impute[1:10], col = 2, lty = 2)
 plot(y[1:10], main = "sparse scores")
-lines(y_pc_rebase[1:10], col = 2)
+lines(y_pc_rebase[1:10], col = 2, lty = 2)
 
 
 #-------------------------------------------------------------------------------

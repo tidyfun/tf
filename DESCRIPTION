@@ -62,6 +62,7 @@ Collate:
     'rebase.R'
     'rng.R'
     'smooth.R'
+    'soft-impute-svd.R'
     'summarize.R'
     'tf-package.R'
     'tfb-fpc.R'
