@@ -1,7 +1,7 @@
-#' Re-evaluate `tf`-objects on new evaluation grid.
+#' Re-evaluate `tf`-objects on a new grid of argument values.
 #'
 #' @description Change the internal representation of a `tf`-object so that it
-#' uses a different grid of evaluation points (`arg`). Useful for
+#' uses a different grid of argument values (`arg`). Useful for
 #'
 #' - thinning out dense grids to make data smaller
 #' - filling out sparse grids to make derivatives/integrals and locating extrema
@@ -9,8 +9,10 @@
 #' - making irregular functional data into (more) regular data.
 #'
 #' For `tfd`-objects, this is just syntactic sugar for `tfd(object, arg = arg)`.
-#' For `tfb`-objects, this re-evaluates basis functions on the new grid.
-#' For both, the resolution of the resulting object may change.
+#' To inter/extrapolate more reliably and avoid `NA`s, call
+#' `tf_interpolate` with `evaluator = tf_approx_fill_extend`.\cr
+#' For `tfb`-objects, this re-evaluates basis functions on the new grid which can
+#' speed up subsequent computations if they all use that grid.
 #' NB: **To reliably impute very irregular data on a regular, common grid,
 #' you'll be better off doing FPCA-based imputation or other model-based
 #' approaches in most cases.**
@@ -21,6 +23,7 @@
 #' @param ...  additional arguments handed over to `tfd` or `tfb`, for the
 #'   construction of the returned object
 #' @returns a `tfd` or `tfb` object on the new grid given by `arg`
+#' @seealso [tf_rebase()], which is more general.
 #' @family tidyfun inter/extrapolation functions
 #' @export
 #' @examples
@@ -28,7 +31,7 @@
 #' dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001))
 #' less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))
 #'
-#' # filling out sparse data (use a suitable evaluator -function!)
+#' # filling out sparse data (use a suitable evaluator-function!)
 #' sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))
 #' plot(sparse)
 #' # change evaluator for better interpolation
@@ -49,7 +52,6 @@ tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 tf_interpolate.tfb <- function(object, arg, ...) {
   assert_arg(arg, object)
   if (is.list(arg)) arg <- arg[[1]]
-  attr(object, "resolution") <- get_resolution(arg)
   attr(object, "arg") <- arg
   attr(object, "basis_matrix") <- attr(object, "basis")(arg)
   return(object)

@@ -1,7 +1,6 @@
 #' @importFrom stats var na.omit median gaussian
 #' @importFrom utils capture.output
 new_tfb_spline <- function(data, domain = NULL, arg = NULL,
-                           resolution = NULL,
                            penalized = TRUE, global = FALSE,
                            verbose = FALSE, ...) {
   if (vctrs::vec_size(data) == 0) {
@@ -9,7 +8,6 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
       data,
       domain = numeric(2),
       arg = numeric(),
-      resolution = numeric(),
       family = character(),
       class = c("tfb_spline", "tfb", "tf")
     )
@@ -18,13 +16,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
   domain <- domain %||% range(data$arg)
   arg_u <- mgcv::uniquecombs(data$arg, ordered = TRUE)
-  resolution <- resolution %||% get_resolution(arg_u)
-  domain <- c(
-    round_resolution(domain[1], resolution, -1),
-    round_resolution(domain[2], resolution, 1)
-  )
 
-  assert_number(resolution, lower = .Machine$double.eps, finite = TRUE)
   assert_numeric(domain,
     finite = TRUE, any.missing = FALSE,
     sorted = TRUE, len = 2, unique = TRUE
@@ -112,7 +104,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     }
   }
   if (!regular) {
-    arg_u <- data.frame(x = unique(round_resolution(arg_u$x, resolution)))
+    arg_u <- data.frame(x = arg_u$x)
     spec_object$X <- PredictMat(spec_object, data = data.frame(arg = arg_u$x))
   }
   if (isTRUE(min(fit$pve) < .5)) {
@@ -147,7 +139,6 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     basis_args = s_args,
     basis_matrix = spec_object$X,
     arg = arg_u$x,
-    resolution = resolution,
     family = eval(gam_args$family),
     class = c("tfb_spline", "tfb", "tf")
   )
@@ -220,13 +211,11 @@ tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 #' @describeIn tfb_spline convert data frames
 tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
                                   domain = NULL, penalized = TRUE,
-                                  global = FALSE, resolution = NULL,
-                                  verbose = TRUE, ...) {
+                                  global = FALSE, verbose = TRUE, ...) {
   data <- df_2_df(data, id = id, arg = arg, value = value)
   ret <- new_tfb_spline(data,
     domain = domain, penalized = penalized,
-    global = global, resolution = resolution,
-    verbose = verbose, ...
+    global = global, verbose = verbose, ...
   )
   names_data <- data[, id] |>
     unique() |>
@@ -240,14 +229,14 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
 #' @describeIn tfb_spline convert matrices
 tfb_spline.matrix <- function(data, arg = NULL,
                               domain = NULL, penalized = TRUE,
-                              global = FALSE, resolution = NULL,
+                              global = FALSE,
                               verbose = TRUE, ...) {
   if (is.null(arg)) arg <- unlist(find_arg(data, arg))
   names_data <- rownames(data)
 
   data <- mat_2_df(data, arg)
   ret <- new_tfb_spline(data, domain = domain, penalized = penalized,
-                 global = global, resolution = resolution, verbose = verbose, ...)
+                 global = global, verbose = verbose, ...)
   if (!is.null(names_data)) {
     names_data <- names_data |>
       as.character() |>
@@ -261,11 +250,11 @@ tfb_spline.matrix <- function(data, arg = NULL,
 #' @describeIn tfb_spline convert matrices
 tfb_spline.numeric <- function(data, arg = NULL,
                                domain = NULL, penalized = TRUE,
-                               global = FALSE, resolution = NULL,
+                               global = FALSE,
                                verbose = TRUE, ...) {
   data <- t(as.matrix(data))
   tfb_spline(data = data, arg = arg, domain = domain, penalized = penalized,
-      global = global, resolution = resolution, verbose = verbose, ...)
+      global = global, verbose = verbose, ...)
 }
 
 
@@ -273,7 +262,7 @@ tfb_spline.numeric <- function(data, arg = NULL,
 #' @describeIn tfb_spline convert lists
 tfb_spline.list <- function(data, arg = NULL,
                             domain = NULL, penalized = TRUE,
-                            global = FALSE, resolution = NULL,
+                            global = FALSE,
                             verbose = TRUE, ...) {
   vectors <- map_lgl(data, is.numeric)
   stopifnot(all(vectors) | !any(vectors))
@@ -286,7 +275,7 @@ tfb_spline.list <- function(data, arg = NULL,
       data <- do.call(rbind, data)
       # dispatch to matrix method
       return(tfb_spline(data, arg, domain = domain, penalized = penalized,
-                 global = global, resolution = resolution,
+                 global = global,
                  verbose = verbose, ...))
     }
     stopifnot(
@@ -308,7 +297,7 @@ tfb_spline.list <- function(data, arg = NULL,
   )
   # dispatch to data.frame method
   tfb_spline(tmp, domain = domain, penalized = penalized,
-             global = global, resolution = resolution,
+             global = global,
              verbose = verbose, ...)
 }
 
@@ -317,26 +306,23 @@ tfb_spline.list <- function(data, arg = NULL,
 #' @describeIn tfb_spline convert `tfd` (raw functional data)
 tfb_spline.tfd <- function(data, arg = NULL,
                            domain = NULL, penalized = TRUE,
-                           global = FALSE, resolution = NULL,
+                           global = FALSE,
                            verbose = TRUE, ...) {
   arg <- arg %||% tf_arg(data)
   domain <- domain %||% tf_domain(data)
-  resolution <- resolution %||% tf_resolution(data)
 
   tmp <- tf_2_df(data, arg)
   tfb_spline(tmp, domain = domain,
-             penalized = penalized, global = global,
-             resolution = resolution, verbose = verbose, ...)
+             penalized = penalized, global = global, verbose = verbose, ...)
 }
 
 #' @export
 #' @describeIn tfb_spline convert `tfb`: modify basis representation, smoothing.
 tfb_spline.tfb <- function(data, arg = NULL,
                            domain = NULL, penalized = TRUE,
-                           global = FALSE, resolution = NULL,
+                           global = FALSE,
                            verbose = TRUE, ...) {
   arg <- arg %||% tf_arg(data)
-  resolution <- resolution %||% tf_resolution(data)
   domain <- domain %||% tf_domain(data)
   s_args <- modifyList(
     attr(data, "basis_args"),
@@ -349,13 +335,13 @@ tfb_spline.tfb <- function(data, arg = NULL,
 
    new_tfb_spline(data, arg = arg, domain = domain,
                           penalized = penalized, global = global,
-                          resolution = resolution, s_args, verbose = verbose)
+                          s_args, verbose = verbose)
   } else {
     data <- tf_2_df(data, arg = arg)
     do.call("tfb_spline", c(list(data),
                                    domain = domain, global = global,
                                    penalized = penalized,
-                                   resolution = resolution, s_args,
+                                   s_args,
                             verbose = verbose
     ))
   }
@@ -366,7 +352,7 @@ tfb_spline.tfb <- function(data, arg = NULL,
 #'   when data is missing
 tfb_spline.default <- function(data, arg = NULL,
                                domain = NULL, penalized = TRUE,
-                               global = FALSE, resolution = NULL,
+                               global = FALSE,
                                verbose = TRUE, ...) {
 
   message("input `data` not from a recognized class;
@@ -375,6 +361,6 @@ tfb_spline.default <- function(data, arg = NULL,
   data <- data.frame()
   new_tfb_spline(data,
     domain = domain, penalized = penalized,
-    global = global, resolution = resolution, ...
+    global = global, ...
   )
 }

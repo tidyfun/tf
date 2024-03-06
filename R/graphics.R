@@ -10,10 +10,11 @@ prep_plotting_arg <- function(f, n_grid) {
   if (!isTRUE(n_grid > 1)) {
     tf_arg(f)
   } else {
+    resolution <- get_resolution(tf_arg(f))
     seq(tf_domain(f)[1], tf_domain(f)[2], length.out = n_grid) |>
-      round_resolution(attr(f, "resolution")) |>
+      round_resolution(resolution) |>
       setdiff(
-        round_resolution(unlist(tf_arg(f)), attr(f, "resolution"))
+        round_resolution(unlist(tf_arg(f)), resolution)
       ) |>
       union(unlist(tf_arg(f))) |>
       sort()

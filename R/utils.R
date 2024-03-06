@@ -40,12 +40,9 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
   }
 }
 
-.assert_arg_vector <- function(arg, domain_x, resolution_x, check_unique) {
-  if (check_unique) {
-    round_arg <- round_resolution(arg, resolution_x)
-    if (anyDuplicated(round_arg) > 0) {
-      stop("Non-unique arg-values (for resolution).", call. = FALSE)
-    }
+.assert_arg_vector <- function(arg, domain_x, check_unique) {
+  if (check_unique && (anyDuplicated(arg) > 0) ) {
+      stop("Non-unique arg-values.", call. = FALSE)
   }
   assert_numeric(arg,
     any.missing = FALSE, unique = FALSE, sorted = TRUE,
@@ -54,9 +51,8 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 }
 
 assert_arg_vector <- function(arg, x, check_unique = TRUE) {
-  resolution_x <- tf_resolution(x)
   domain_x <- tf_domain(x)
-  .assert_arg_vector(arg, domain_x, resolution_x, check_unique)
+  .assert_arg_vector(arg, domain_x, check_unique)
 }
 
 # default resolution is ~ smallest observed interval/10
@@ -212,6 +208,7 @@ na_to_0 <- function(x) {
 n_distinct <- function(x) length(unique(x))
 
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
+# by Michel Lang (copied here Feb 2024)
 format_bib <- function(..., bibentries = NULL, envir = parent.frame()) {
   if (is.null(bibentries)) {
     bibentries <- get("bibentries", envir = envir)

@@ -66,7 +66,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
       stop("no data in zoom region.", call. = FALSE)
     }
   }
-  ret <- tfd(ret, domain = args$dom, resolution = attr(f, "resolution"))
+  ret <- tfd(ret, domain = args$dom)
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   ret
 }
@@ -94,7 +94,8 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
 tf_zoom.tfb_fpc <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                             ...) {
   warning(
-    "zoomed-in FPC representation loses orthogonality of FPC basis.", call. = FALSE
+    "zoomed-in FPC representation will lose orthonormality of FPC basis.",
+    call. = FALSE
   )
   NextMethod()
 }

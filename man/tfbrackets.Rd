@@ -77,6 +77,6 @@ x[1:2, c(4.5, 9), interpolate = FALSE] # NA for arg-values not in the original d
 x[-3, seq(1, 9, by = 2), matrix = FALSE] # list of data.frames for each function
 # in order to evaluate a set of observed functions on a new grid and
 # save them as a functional data vector again, use `tfd` or `tfb` instead:
-tfd(x, arg = seq(0, 10, by = 0.01), resolution = 1e-3)
+tfd(x, arg = seq(0, 10, by = 0.01))
 }
 \concept{tidyfun bracket-operator}

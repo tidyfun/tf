@@ -151,16 +151,6 @@ vec_ptype2_tfd_tfd <- function(x, y, ...) {
     warning("concatenating functions on different grids.", call. = FALSE)
     make_irreg[!irreg] <- TRUE
   }
-  new_resolution <- NULL
-  if (!all(compatible[, "resolution"])) {
-    new_resolution <- tf_resolution(funs[[1]])
-    warning(
-      "inputs have different resolutions, result has ",
-      "resolution =", new_resolution,
-      call. = FALSE
-    )
-    make_irreg[!compatible[, "resolution"]] <- TRUE
-  }
   if (any(make_irreg)) {
     funs <- map_at(funs, which(make_irreg), as.tfd_irreg)
   }
@@ -346,13 +336,6 @@ vec_ptype2_tfb_tfb <- function(x, y, ...) {
     }
   }
 
-  if (!all(compatible[, "resolution"])) {
-    warning(
-      "inputs have different resolutions, result has ",
-      "resolution =", attr(funs[[1]], "resolution"),
-      call. = FALSE
-    )
-  }
   attr_ret <- attributes(funs[[1]])
   attr_ret$names <- {
     tmp <- unlist(flatten(map(

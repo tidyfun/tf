@@ -75,8 +75,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
   arg <- as.numeric(colnames(data))
   derived <- derive_matrix(data, arg, order)
   ret <- tfd(derived$data, derived$arg,
-    domain = range(derived$arg), # !! shorter
-    resolution = tf_resolution(f)
+    domain = range(derived$arg) # !! shorter
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   setNames(ret, names(f))
@@ -209,7 +208,7 @@ tf_integrate.tfd <- function(f, arg,
     names(data_list) <- names(f)
     tfd(
       data = data_list, arg = unlist(arg), domain = as.numeric(limits),
-      resolution = tf_resolution(f), evaluator = tf_approx_linear
+      evaluator = !!attr(f, "evaluator_name")
     )
   }
   # this is too slow:

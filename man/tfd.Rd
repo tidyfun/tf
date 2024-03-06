@@ -14,23 +14,9 @@
 \usage{
 tfd(data, ...)
 
-\method{tfd}{matrix}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  evaluator = tf_approx_linear,
-  resolution = NULL,
-  ...
-)
+\method{tfd}{matrix}(data, arg = NULL, domain = NULL, evaluator = tf_approx_linear, ...)
 
-\method{tfd}{numeric}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  evaluator = tf_approx_linear,
-  resolution = NULL,
-  ...
-)
+\method{tfd}{numeric}(data, arg = NULL, domain = NULL, evaluator = tf_approx_linear, ...)
 
 \method{tfd}{data.frame}(
   data,
@@ -39,29 +25,14 @@ tfd(data, ...)
   value = 3,
   domain = NULL,
   evaluator = tf_approx_linear,
-  resolution = NULL,
   ...
 )
 
-\method{tfd}{list}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  evaluator = tf_approx_linear,
-  resolution = NULL,
-  ...
-)
+\method{tfd}{list}(data, arg = NULL, domain = NULL, evaluator = tf_approx_linear, ...)
 
-\method{tfd}{tf}(data, arg = NULL, domain = NULL, evaluator = NULL, resolution = NULL, ...)
+\method{tfd}{tf}(data, arg = NULL, domain = NULL, evaluator = NULL, ...)
 
-\method{tfd}{default}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  evaluator = tf_approx_linear,
-  resolution = NULL,
-  ...
-)
+\method{tfd}{default}(data, arg = NULL, domain = NULL, evaluator = tf_approx_linear, ...)
 
 as.tfd(data, ...)
 
@@ -76,8 +47,8 @@ returns a prototype of class \code{tfd}}
 \code{ìnterpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
 examples.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details
-on its interplay with \code{resolution}. For the \code{data.frame}-method: the
+\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid.
+For the \code{data.frame}-method: the
 name/number of the column defining the evaluation grid. The \code{matrix} method
 will try to guess suitable \code{arg}-values from the column names of \code{data} if
 \code{arg} is not supplied. Other methods fall back on integer sequences
@@ -87,8 +58,6 @@ will try to guess suitable \code{arg}-values from the column names of \code{data
 
 \item{evaluator}{a function accepting arguments \verb{x, arg, evaluations}. See
 details for \code{\link[=tfd]{tfd()}}.}
-
-\item{resolution}{resolution of the evaluation grid. See details for \code{\link[=tfd]{tfd()}}.}
 
 \item{id}{The name or number of the column defining which data belong to
 which function.}
@@ -138,15 +107,6 @@ See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
 \code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of
 implementations of this.
 }
-
-\strong{\code{resolution}}: \code{arg}-values that are equivalent up to this difference are
-treated as identical. E.g., if an evaluation of \eqn{f(t)} is available at
-\eqn{t=1} and a function value is requested at \eqn{t = 1.01}, \eqn{f(1)}
-will be returned if \code{resolution} < 0.01. By default, resolution will be set to
-an integer-valued power of 10 one smaller than the smallest difference
-between adjacent \code{arg}-values rounded down to an integer-valued power of 10:
-e.g., if the smallest difference between consecutive \code{arg}-values is between
-0.1 and 0.9999, the resolution will be 0.01, etc. In code: \verb{resolution = 10^(floor(log10(min(diff(<arg>))) - 1)}
 }
 \examples{
 # turn irregular to regular tfd by evaluating on a common grid:

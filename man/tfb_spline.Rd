@@ -21,7 +21,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -32,7 +31,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -43,7 +41,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -54,7 +51,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -65,7 +61,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -76,7 +71,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -87,7 +81,6 @@ tfb_spline(data, ...)
   domain = NULL,
   penalized = TRUE,
   global = FALSE,
-  resolution = NULL,
   verbose = TRUE,
   ...
 )
@@ -105,8 +98,8 @@ by the user. See also Details and examples in the vignettes.}
 \item{id}{The name or number of the column defining which data belong to
 which function.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details
-on its interplay with \code{resolution}. For the \code{data.frame}-method: the
+\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid.
+For the \code{data.frame}-method: the
 name/number of the column defining the evaluation grid. The \code{matrix} method
 will try to guess suitable \code{arg}-values from the column names of \code{data} if
 \code{arg} is not supplied. Other methods fall back on integer sequences
@@ -122,8 +115,6 @@ set \code{FALSE} for ordinary least squares/ML estimators.}
 
 \item{global}{Defaults to \code{FALSE}. If \code{TRUE} and \code{penalized = TRUE}, all
 functions share the same smoothing parameter (see Details).}
-
-\item{resolution}{resolution of the evaluation grid. See details for \code{\link[=tfd]{tfd()}}.}
 
 \item{verbose}{defaults to outputting statistics about the fit achieved by the basis}
 }

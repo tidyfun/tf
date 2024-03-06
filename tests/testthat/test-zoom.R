@@ -52,7 +52,7 @@ test_that("tf_zoom for tfb_spline works", {
 
 test_that("tf_zoom for tfb_fpc works", {
   expect_warning(
-    tf_zoom(xfpc, 0.2, 0.8), "orthogonality of FPC basis"
+    tf_zoom(xfpc, 0.2, 0.8), "orthonormality of FPC basis"
   )
   expect_equal(
     tf_domain(suppressWarnings(tf_zoom(xfpc, 0.2, 0.8))),

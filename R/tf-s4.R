@@ -4,14 +4,12 @@ setClass("tf",
          contains = "structure",
          slots = c(
            domain = "numeric",
-           arg = "vector",
-           resolution = "numeric"
+           arg = "vector"
          ),
          prototype = structure(
            list(),
            domain = c(NA_real_, NA_real_),
-           arg = numeric(),
-           resolution = NA_real_
+           arg = numeric()
          )
 )
 setOldClass("tf", S4Class = "tf")
@@ -26,7 +24,6 @@ setClass("tfd",
            list(),
            domain = c(NA_real_, NA_real_),
            arg = numeric(),
-           resolution = NA_real_,
            evaluator = function(x, arg, evaluations) NULL,
            evaluator_name = NA_character_
          )
@@ -42,7 +39,6 @@ setClass("tfd_reg",
            list(),
            domain = c(NA_real_, NA_real_),
            arg = list(),
-           resolution = NA_real_,
            evaluator = function(x, arg, evaluations) NULL,
            evaluator_name = NA_character_
          )
@@ -66,7 +62,6 @@ setClass("tfb",
            list(),
            domain = c(NA_real_, NA_real_),
            arg = numeric(),
-           resolution = NA_real_,
            basis = function(x, arg, evaluations) NULL,
            basis_label = NA_character_,
            basis_args = list(),

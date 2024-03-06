@@ -4,7 +4,7 @@
 \alias{tf_interpolate}
 \alias{tf_interpolate.tfb}
 \alias{tf_interpolate.tfd}
-\title{Re-evaluate \code{tf}-objects on new evaluation grid.}
+\title{Re-evaluate \code{tf}-objects on a new grid of argument values.}
 \usage{
 tf_interpolate(object, arg, ...)
 
@@ -26,7 +26,7 @@ a \code{tfd} or \code{tfb} object on the new grid given by \code{arg}
 }
 \description{
 Change the internal representation of a \code{tf}-object so that it
-uses a different grid of evaluation points (\code{arg}). Useful for
+uses a different grid of argument values (\code{arg}). Useful for
 \itemize{
 \item thinning out dense grids to make data smaller
 \item filling out sparse grids to make derivatives/integrals and locating extrema
@@ -35,8 +35,10 @@ or zero crossings more accurate (... \emph{if} the interpolation works well ...)
 }
 
 For \code{tfd}-objects, this is just syntactic sugar for \code{tfd(object, arg = arg)}.
-For \code{tfb}-objects, this re-evaluates basis functions on the new grid.
-For both, the resolution of the resulting object may change.
+To inter/extrapolate more reliably and avoid \code{NA}s, call
+\code{tf_interpolate} with \code{evaluator = tf_approx_fill_extend}.\cr
+For \code{tfb}-objects, this re-evaluates basis functions on the new grid which can
+speed up subsequent computations if they all use that grid.
 NB: \strong{To reliably impute very irregular data on a regular, common grid,
 you'll be better off doing FPCA-based imputation or other model-based
 approaches in most cases.}
@@ -46,7 +48,7 @@ approaches in most cases.}
 dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001))
 less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))
 
-# filling out sparse data (use a suitable evaluator -function!)
+# filling out sparse data (use a suitable evaluator-function!)
 sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))
 plot(sparse)
 # change evaluator for better interpolation
@@ -61,6 +63,8 @@ sparse_irregular <- tf_rgp(5) |>
 tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
 }
 \seealso{
+\code{\link[=tf_rebase]{tf_rebase()}}, which is more general.
+
 Other tidyfun inter/extrapolation functions: 
 \code{\link{tf_approx_linear}()},
 \code{\link{tf_evaluate}()}
