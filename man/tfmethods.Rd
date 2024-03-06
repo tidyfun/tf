@@ -13,8 +13,6 @@
 \alias{tf_arg<-.tfd_irreg}
 \alias{tf_arg<-.tfd_reg}
 \alias{tf_arg<-.tfb}
-\alias{tf_resolution}
-\alias{tf_resolution<-}
 \alias{coef.tfb}
 \alias{rev.tf}
 \alias{is.na.tf}
@@ -54,10 +52,6 @@ tf_arg(x) <- value
 
 \method{tf_arg}{tfb}(x) <- value
 
-tf_resolution(f)
-
-tf_resolution(f) <- value
-
 \method{coef}{tfb}(object, ...)
 
 \method{rev}{tf}(x)
@@ -95,8 +89,7 @@ that can be used to interpolate an \code{tfd}. Needs to accept vector arguments
 \code{arg}, \code{evaluations} at \code{x}. \cr
 \strong{for \verb{tf_arg<-}:} (list of) new \code{arg}-values. \cr
 \strong{for \verb{tf_domain<-}:} sorted numeric vector with the 2 new endpoints of
-the domain. \cr
-\strong{for \verb{tf_resolution<-}:} a (positive) number}
+the domain. \cr}
 
 \item{as_tfd}{should the basis be returned as a \code{tfd} evaluated on
 \code{tf_arg(f)}? Defaults to FALSE.}

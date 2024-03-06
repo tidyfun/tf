@@ -8,7 +8,6 @@ z2 <- z |> tfb_fpc(npc = 10)
 
 test_that("concatenation behaves for tfd", {
   suppressWarnings(expect_warning(c(x, y), "different grids"))
-  suppressWarnings(expect_warning(c(x, y), "different resolutions"))
   expect_error(c(x, tfb(x)))
 
   expect_s3_class(suppressWarnings(c(x, x_irr)), "tfd_irreg")

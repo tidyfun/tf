@@ -43,8 +43,7 @@ tf_evaluate.tfd <- function(object, arg,
     list(arg, ensure_list(tf_arg(object)), tf_evaluations(object)),
     \(x, y, z) evaluate_tfd_once(
       new_arg = x, arg = y, evaluations = z,
-      evaluator = evaluator,
-      resolution = tf_resolution(object)
+      evaluator = evaluator
     )
   )
 
@@ -53,10 +52,8 @@ tf_evaluate.tfd <- function(object, arg,
 
 evaluate_tfd_once <- function(new_arg, arg,
                               evaluations, evaluator, resolution) {
-  new_arg_round <- round_resolution(new_arg, resolution)
-  arg_round <- round_resolution(arg, resolution)
-  if (isTRUE(all.equal(new_arg_round, arg_round))) return(evaluations)
-  seen <- match(new_arg_round, arg_round)
+  if (isTRUE(all.equal(new_arg, arg))) return(evaluations)
+  seen <- match(new_arg, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
   ret <- rep(NA, length(new_arg))
@@ -81,8 +78,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       arg = tf_arg(object),
       coefs = do.call(cbind, coef(object)),
       basis = attr(object, "basis"),
-      X = attr(object, "basis_matrix"),
-      resolution = tf_resolution(object)
+      X = attr(object, "basis_matrix")
     )
     ret <- if (length(arg) == 1) {
       # avoid cast to simple vector for point evaluations
@@ -95,8 +91,8 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       list(arg, ensure_list(tf_arg(object)), coef(object)),
       \(x, y, z) evaluate_tfb_once(
         x = x, arg = y, coefs = z,
-        basis = attr(object, "basis"), X = attr(object, "basis_matrix"),
-        resolution = tf_resolution(object)
+        basis = attr(object, "basis"),
+        X = attr(object, "basis_matrix")
       )
     )
   }
@@ -107,10 +103,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
 }
 
 evaluate_tfb_once <- function(x, arg, coefs, basis, X, resolution) {
-  seen <- match(
-    round_resolution(x, resolution),
-    round_resolution(arg, resolution)
-  )
+  seen <- match(x, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
   if (all(seen)) return(drop(X[seen_index, , drop = FALSE] %*% coefs))

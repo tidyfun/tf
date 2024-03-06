@@ -78,7 +78,7 @@ tf_smooth.tfd <- function(x,
     if (!is_equidist(x)) {
       warning(
         "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
-        " ignored by ", method, ".", 
+        " ignored by ", method, ".",
         call. = FALSE
       )
     }
@@ -118,7 +118,7 @@ tf_smooth.tfd <- function(x,
 
   tfd(smoothed, tf_arg(x),
     evaluator = !!attr(x, "evaluator_name"),
-    resolution = attr(x, "resolution"), domain = tf_domain(x)
+    domain = tf_domain(x)
   )
 }
 

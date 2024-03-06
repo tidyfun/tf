@@ -1,7 +1,7 @@
 #' Change (basis) representation of a `tf`-object
 #'
 #' Apply the representation of one `tf`-object to another; i.e. re-express it in
-#' the other's basis, on its grid, with its resolution, etc.\cr
+#' the other's basis, on its grid, etc.\cr
 #' Useful for making different functional data objects compatible so they can
 #' be combined, compared or computed with.
 #'
@@ -11,7 +11,7 @@
 #' `tf_rebase.tfb.tfb` that dispatch on `object_from`.
 #'
 #' @param object a `tf` object whose representation should be changed
-#' @param basis_from  the `tf` object with the desired basis, resolution, `arg` etc
+#' @param basis_from  the `tf` object with the desired basis, `arg`, etc
 #' @param arg optional new `arg` values, defaults to those of `basis_from`
 #' @param ... forwarded to the `tfb` or `tfd` constructors
 #'
@@ -34,7 +34,6 @@ tf_rebase.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   if (!identical(tf_arg(object),  arg)) {
     object <- tf_interpolate(object, arg,
-                             resolution = tf_resolution(basis_from),
                              domain = tf_domain(basis_from),
                              ...)
   }
@@ -53,7 +52,6 @@ tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_fro
           c(list(data = data,
                  domain = tf_domain(basis_from),
                  arg = arg,
-                 resolution = tf_resolution(basis_from),
                  penalized = penalized,
                  sp = attr(basis_from, "basis_args")$sp),
             basis_args, list(...))
@@ -64,8 +62,7 @@ tf_rebase.tfd.tfb_fpc <-  function(object, basis_from, arg = tf_arg(basis_from),
   data <- tf_interpolate(object, arg = arg) |> as.data.frame(unnest = TRUE)
   new_tfb_fpc(data = data, basis_from = basis_from,
               domain = tf_domain(basis_from),
-              arg = arg,
-              resolution = tf_resolution(basis_from), ...)
+              arg = arg, ...)
 }
 
 #-------------------------------------------------------------------------------
@@ -79,8 +76,7 @@ tf_rebase.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 #'@export
 #'@importFrom utils modifyList
 tf_rebase.tfb.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
-  tfd_args <- list(resolution = tf_resolution(basis_from),
-                   domain = tf_domain(basis_from),
+  tfd_args <- list(domain = tf_domain(basis_from),
                    evaluator = attr(basis_from, "evaluator_name"))
   tfd_args <- modifyList(tfd_args, list(...))
   do.call(tfd, append(tfd_args, list(data = object, arg = arg, ...)))

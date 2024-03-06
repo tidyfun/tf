@@ -15,7 +15,7 @@ tf_rebase(object, basis_from, arg = tf_arg(basis_from), ...)
 \arguments{
 \item{object}{a \code{tf} object whose representation should be changed}
 
-\item{basis_from}{the \code{tf} object with the desired basis, resolution, \code{arg} etc}
+\item{basis_from}{the \code{tf} object with the desired basis, \code{arg}, etc}
 
 \item{arg}{optional new \code{arg} values, defaults to those of \code{basis_from}}
 
@@ -23,7 +23,7 @@ tf_rebase(object, basis_from, arg = tf_arg(basis_from), ...)
 }
 \description{
 Apply the representation of one \code{tf}-object to another; i.e. re-express it in
-the other's basis, on its grid, with its resolution, etc.\cr
+the other's basis, on its grid, etc.\cr
 Useful for making different functional data objects compatible so they can
 be combined, compared or computed with.
 }

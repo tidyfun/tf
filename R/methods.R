@@ -85,7 +85,7 @@ tf_domain <- function(f) {
   assert_class(x, "tf")
   assert_numeric(value, any.missing = FALSE, len = 2, unique = TRUE, sorted = TRUE)
   warning(c(
-    "This changes the functions' domain but not the argument values!\n",
+    "This changes the functions' domain but not their argument values!\n",
     "To restrict functions to a part of their domain, use tf_zoom."
   ), call. = FALSE)
   attr(x, "domain") <- value
@@ -109,7 +109,6 @@ tf_evaluator <- function(f) {
 #'   **for `tf_arg<-`:** (list of) new `arg`-values. \cr
 #'   **for `tf_domain<-`:** sorted numeric vector with the 2 new endpoints of
 #'   the domain. \cr
-#'   **for `tf_resolution<-`:** a (positive) number
 #' @export
 `tf_evaluator<-` <- function(x, value) {
   value <- if (is.function(value)) {
@@ -162,48 +161,32 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @rdname tfmethods
 #' @export
 `tf_arg<-.tfd_irreg` <- function(x, value) {
-  assert_arg(value, x, check_unique = FALSE) # don't check against resolution!
+  assert_arg(value, x, check_unique = FALSE)
   ret <- map2(tf_evaluations(x), value, \(x, y) list(arg = y, data = x))
   attributes(ret) <- attributes(x)
-  tf_resolution(ret) <- get_resolution(value)
   ret
 }
 
 #' @rdname tfmethods
 #' @export
 `tf_arg<-.tfd_reg` <- function(x, value) {
-  assert_arg(value, x, check_unique = FALSE) # don't check against resolution!
+  assert_arg(value, x, check_unique = FALSE)
   if (!(length(unlist(value)) == length(tf_arg(x)))) {
-    stop("length(arg) not the same as original -- use tf_interpolate.", call. = FALSE)
+    stop("length(arg) not the same as original -- use tf_interpolate.",
+         call. = FALSE)
   }
   if (length(ensure_list(value)) != 1) {
-    stop(paste("can't assign irregular argument list to ", class(x)[1]), call. = FALSE)
+    stop(paste("can't assign irregular argument list to ", class(x)[1]),
+         call. = FALSE)
   }
 
   attr(x, "arg") <- ensure_list(value)
-  tf_resolution(x) <- get_resolution(value)
   x
 }
 
 #' @rdname tfmethods
 #' @export
 `tf_arg<-.tfb` <- `tf_arg<-.tfd_reg`
-
-#-------------------------------------------------------------------------------
-
-#' @rdname tfmethods
-#' @export
-tf_resolution <- function(f) {
-  attr(f, "resolution")
-}
-
-#' @rdname tfmethods
-#' @export
-`tf_resolution<-` <- function(f, value) {
-  assert_number(value, na.ok = FALSE, lower = 0)
-  attr(f, "resolution") <- value
-  f
-}
 
 # TODO: add pipe-able modify_xx that call assignment functions on their first arg
 

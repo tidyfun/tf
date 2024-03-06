@@ -18,38 +18,16 @@ tfb_fpc(data, ...)
   value = 3,
   domain = NULL,
   method = fpc_wsvd,
-  resolution = NULL,
   ...
 )
 
-\method{tfb_fpc}{matrix}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  method = fpc_wsvd,
-  resolution = NULL,
-  ...
-)
+\method{tfb_fpc}{matrix}(data, arg = NULL, domain = NULL, method = fpc_wsvd, ...)
 
-\method{tfb_fpc}{numeric}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  method = fpc_wsvd,
-  resolution = NULL,
-  ...
-)
+\method{tfb_fpc}{numeric}(data, arg = NULL, domain = NULL, method = fpc_wsvd, ...)
 
 \method{tfb_fpc}{tf}(data, arg = NULL, method = fpc_wsvd, ...)
 
-\method{tfb_fpc}{default}(
-  data,
-  arg = NULL,
-  domain = NULL,
-  method = fpc_wsvd,
-  resolution = NULL,
-  ...
-)
+\method{tfb_fpc}{default}(data, arg = NULL, domain = NULL, method = fpc_wsvd, ...)
 }
 \arguments{
 \item{data}{a \code{matrix}, \code{data.frame} or \code{list} of suitable shape, or another
@@ -63,8 +41,8 @@ Unless set by the user, uses proportion of variance explained
 \item{id}{The name or number of the column defining which data belong to
 which function.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid. See Details
-on its interplay with \code{resolution}. For the \code{data.frame}-method: the
+\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid.
+For the \code{data.frame}-method: the
 name/number of the column defining the evaluation grid. The \code{matrix} method
 will try to guess suitable \code{arg}-values from the column names of \code{data} if
 \code{arg} is not supplied. Other methods fall back on integer sequences
@@ -77,8 +55,6 @@ evaluations.}
 
 \item{method}{the function to use that computes eigenfunctions and scores.
 Defaults to \code{\link[=fpc_wsvd]{fpc_wsvd()}}, which gives unsmoothed eigenfunctions.}
-
-\item{resolution}{resolution of the evaluation grid. See details for \code{\link[=tfd]{tfd()}}.}
 }
 \value{
 an object of class \code{tfb_fpc}, inheriting from \code{tfb}.

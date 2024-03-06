@@ -126,7 +126,6 @@ tf_sparsify <- function(f, dropout = 0.5, ...) {
   tf_args <- ensure_list(tf_arg(f))
   tf_args <- map2(tf_args, nas, \(x, y) x[!y])
   ret <- tfd.list(tf_evals, tf_args,
-    resolution = attr(f, "resolution"),
     domain = tf_domain(f)
   )
   if (is_tfd(f)) {

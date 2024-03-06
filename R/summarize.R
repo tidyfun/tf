@@ -13,8 +13,7 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
   value <- apply(m, 2, op_call) |> unname() |> list()
   args <- c(value,
             arg = list(attr(m, "arg")),
-            domain = list(tf_domain(funs)),
-            resolution = attr(funs, "resolution")
+            domain = list(tf_domain(funs))
   )
   if (eval) {
     ret <- do.call(tfd, c(args, evaluator = attr(funs, "evaluator_name")))

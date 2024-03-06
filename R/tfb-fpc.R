@@ -1,12 +1,11 @@
 #' @importFrom refund fpca.sc
-new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
+new_tfb_fpc <- function(data, domain = NULL,
                        method = NULL, basis_from = NULL, ...) {
   if (all(dim(data) == 0)) {
     ret <- vctrs::new_vctr(
       data,
       domain = numeric(),
       arg = numeric(),
-      resolution = numeric(),
       score_variance = numeric(),
       class = c("tfb_fpc", "tfb", "tf"))
     return(ret)
@@ -16,15 +15,9 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
          call. = FALSE)
   }
   arg <- sort(unique(data$arg))
-  resolution <- resolution %||% get_resolution(arg)
-  data$arg <- round_resolution(data$arg, resolution)
-  arg <- unique(round_resolution(arg, resolution))
 
   domain <- domain %||% range(arg)
-  domain <- c(round_resolution(domain[1], resolution, -1),
-              round_resolution(domain[2], resolution, 1))
-  if (!isTRUE(all.equal(domain, range(arg),
-                        tolerance = resolution, scale = 1))) {
+  if (!isTRUE(all.equal(domain, range(arg)))) {
     warning(
       "domain for tfb_fpc can't be larger than observed arg-range --",
       " extrapolating FPCs is a bad idea.\n domain reset to [", min(arg),
@@ -56,7 +49,7 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
                                basis_matrix[, -1], basis_matrix[, 1], weights) #!!
   }
   fpc_basis <- tfd(t(basis_matrix),
-                   arg = arg, domain = domain, resolution = resolution)
+                   arg = arg, domain = domain)
   fpc_constructor <- fpc_wrapper(fpc_basis)
   coef_list <- split(cbind(1, scores), row(cbind(1, scores)))
   names(coef_list) <- levels(as.factor(data$id))
@@ -68,7 +61,6 @@ new_tfb_fpc <- function(data, domain = NULL, resolution = NULL,
     basis_label = basis_label,
     basis_matrix = basis_matrix,
     arg = arg,
-    resolution = resolution,
     score_variance = score_variance,
     # scoring_fct expects data, weights, mean, efunctions -- for tf_rebase
     scoring_function = scoring_function,
@@ -130,32 +122,28 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #'   fpca[c("mu", "efunctions", "scores", "npc")]
 #' }
 tfb_fpc.data.frame <- function(data, id = 1, arg = 2, value = 3,
-                               domain = NULL, method = fpc_wsvd,
-                               resolution = NULL, ...) {
+                               domain = NULL, method = fpc_wsvd, ...) {
   data <- df_2_df(data, id, arg, value)
-  new_tfb_fpc(data, domain = domain, method = method,
-               resolution = resolution, ...)
+  new_tfb_fpc(data, domain = domain, method = method, ...)
 }
 
 #' @rdname tfb_fpc
 #' @export
-tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
-                           resolution = NULL, ...) {
+tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL,
+                           method = fpc_wsvd, ...) {
   arg <- unlist(find_arg(data, arg))
   names_data <- rownames(data)
   data <- mat_2_df(data, arg)
-  ret <- new_tfb_fpc(data, domain = domain, method = method,
-                      resolution = resolution, ...)
+  ret <- new_tfb_fpc(data, domain = domain, method = method, ...)
   setNames(ret, names_data)
 }
 
 #' @rdname tfb_fpc
 #' @export
-tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
-                            resolution = NULL, ...) {
+tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL,
+                            method = fpc_wsvd, ...) {
   data <- t(as.matrix(data))
-  tfb_fpc(data = data, arg = arg, method = method, domain = domain,
-          resolution = resolution, ...)
+  tfb_fpc(data = data, arg = arg, method = method, domain = domain, ...)
 }
 
 # #' @rdname tfb_fpc
@@ -173,7 +161,7 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
   ret <- tfb_fpc(
     tf_2_df(data, arg = arg),
     method = method,
-    domain = tf_domain(data), resolution = tf_resolution(data), ...
+    domain = tf_domain(data), ...
   )
   setNames(ret, names_data)
 }
@@ -182,12 +170,12 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
 #' @describeIn tfb_fpc convert `tfb`: default method, returning prototype when
 #'   data is NULL
 tfb_fpc.default <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
-                            resolution = NULL, ...) {
+                            ...) {
   if (!missing(data)) {
     message("input `data` not recognized class;\nreturning prototype of length 0")
   }
 
   data <- data.frame()
   new_tfb_spline(data = data, arg = arg, method = method, domain = domain,
-                 resolution = resolution, ...)
+                 ...)
 }

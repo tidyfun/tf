@@ -5,7 +5,6 @@ test_that("tf_rebase.tfd preserves args & evals and transfers attributes", {
   names(x) <- letters[1:5]
 
   l <- list(
-    x_2 = tfd(as.matrix(x), resolution = tf_resolution(x) * 3),
     x_sp = tf_sparsify(x, dropout = .1),
     x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .2),
     b = tfb(x, k = 45, verbose = FALSE),
@@ -44,7 +43,6 @@ test_that("tf_rebase.tfb_spline preserves args & evals and transfers attributes"
 
   l <- list(
     x = x,
-    x_2 = tfd(as.matrix(x), resolution = tf_resolution(x) * 3),
     x_sp = tf_sparsify(x, dropout = .1),
     x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .2),
     b2 = tfb(x, k = 15, bs = "tp", sp = .1, verbose = FALSE),
@@ -82,7 +80,6 @@ test_that("tf_rebase.tfb_fpc preserves args & evals and transfers attributes", {
 
   l <- list(
     x = x,
-    x_2 = tfd(as.matrix(x), resolution = tf_resolution(x) * 3),
     x_sp = tf_sparsify(x, dropout = .1),
     x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .2),
     b = tfb(x, k = 45, verbose = FALSE),
