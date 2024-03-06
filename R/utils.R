@@ -1,3 +1,4 @@
+#-------------------------------------------------------------------------------
 # arg-related
 
 find_arg <- function(data, arg) {
@@ -108,6 +109,7 @@ is_equidist <- function(f) {
 }
 
 #-------------------------------------------------------------------------------
+#  compatibility
 
 compare_tf_attribs <- function(e1, e2,
                                ignore = c("names", "id"), check_attrib = TRUE) {

@@ -17,6 +17,18 @@ c_names <- function(funs) {
   if (all(nzchar(names, keepNA = TRUE))) NULL else names
 }
 
+assert_domain_x_in_to <- function(x, to) {
+  dom_x <- tf_domain(x)
+  dom_to <- tf_domain(to)
+  # can (try to) cast losslessly if domain of 'to' contains domain of 'x'
+  if ((dom_to[1] <= dom_x[1]) & (dom_to[2] >= dom_x[2])) {
+    return(TRUE)
+  }
+  stop_incompatible_cast(x = x, to = to, x_arg = "", to_arg = "",
+                         details = "domains not compatible")
+}
+
+
 
 #----------------- s3 generics for tfd casting -----------------#
 
@@ -46,19 +58,20 @@ vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
 #' @export
-vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) x
+vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) {
+  assert_domain_x_in_to(x, to)
+  x_cast <- tf_rebase(x, to) |> suppressWarnings()
+  if (!is_irreg(x_cast)) return(x_cast)
+  stop_incompatible_cast(x = x, to = to, x_arg = "", to_arg = "",
+                         details = "re-evaluation on new <arg> yields NAs")
+}
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_irreg
 #' @export
 vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
-  stop(
-    "casting tfd_irreg to tfd_reg not possible -- use \n",
-    "  # tfd(<some tfd_irreg>, arg = <some vector>) \n",
-    "  to force irregular data onto a common grid. ",
-    call. = FALSE
-  )
+  stop_incompatible_cast(x = x, to = to, x_arg = "", to_arg = "")
 }
 
 #' @rdname vctrs
@@ -66,8 +79,9 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 #' @method vec_cast.tfd_irreg tfd_reg
 #' @export
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
-  args <- attr(x, "arg")
-  cast_x <- tfd(map(vctrs::vec_data(x), \(x) data.frame(arg = args, value = x)))
+  assert_domain_x_in_to(x, to)
+  cast_x <- tfd(x, domain = tf_domain(to),
+                  evaluator = attr(to, "evaluator_name"))
   as.tfd_irreg.tfd_reg(cast_x)
 }
 
@@ -75,8 +89,11 @@ vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_irreg
 #' @export
-vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) x
-
+vec_cast.tfd_irreg.tfd_irreg <- function(x, to, ...) {
+  assert_domain_x_in_to(x, to)
+  tfd(x, domain = tf_domain(to),
+      evaluator = force(attr(to, "evaluator_name") |> as.symbol()))
+}
 
 
 #----------------- s3 generics for tfd coercion -----------------#

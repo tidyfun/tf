@@ -101,6 +101,11 @@ tf_evaluator <- function(f) {
   attr(f, "evaluator")
 }
 
+tf_evaluator_expr <- function(f) {
+  assert_class(f, "tfd")
+  attr(f, "evaluator_name") |> as.symbol()
+}
+
 #' @rdname tfmethods
 #' @param value **for `tf_evaluator<-`:** (bare or quoted) name of a function
 #'   that can be used to interpolate an `tfd`. Needs to accept vector arguments
