@@ -72,7 +72,8 @@ Collate:
     'tfb-fpc-utils.R'
     'tfb-spline-utils.R'
     'utils.R'
-    'vctrs.R'
+    'vctrs-cast.R'
+    'vctrs-ptype2.R'
     'where.R'
     'zoom.R'
 Config/testthat/edition: 3

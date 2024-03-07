@@ -31,11 +31,11 @@ tf_rebase.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 #' @export
 tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_domain_x_in_to(x = object, to = basis_from)
+
   if (!identical(tf_arg(object),  arg)) {
-    object <- tf_interpolate(object, arg,
-                             domain = tf_domain(basis_from),
-                             ...)
+    object <- tfd(object, arg, domain = tf_domain(basis_from), ...)
   }
+  attr(object, "domain") <- tf_domain(basis_from)
   attr(object, "evaluator") <- attr(basis_from, "evaluator")
   attr(object, "evaluator_name") <- attr(basis_from, "evaluator_name")
   object

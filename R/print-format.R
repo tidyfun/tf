@@ -74,11 +74,13 @@ print.tfd_irreg <- function(x, n = 5, ...) {
   NextMethod()
   nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
   n_evals <- tf_count(x[!nas])
-  cat(paste0(
-    " based on ", min(n_evals), " to ", max(n_evals), " (mean: ",
-    round(mean(n_evals)), ") evaluations each\n"
-  ))
-  cat("inter-/extrapolation by", attr(x, "evaluator_name"), "\n")
+  if (length(n_evals)) {
+    cat(paste0(
+      " based on ", min(n_evals), " to ", max(n_evals), " (mean: ",
+      round(mean(n_evals)), ") evaluations each\n"
+    ))
+  } else cat(" (irregular) \n")
+  cat("interpolation by", attr(x, "evaluator_name"), "\n")
   if (length(x)) {
     cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
     if (n < length(x)) {

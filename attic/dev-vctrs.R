@@ -4,10 +4,11 @@ names(x) <- letters[1:5]
 l <- list(
   x = x,
   x_short = x |> tf_zoom(0.1, 0.4),
-  x_short_dom = tfd(x |> tf_zoom(0.1, 0.4), domain = tf_domain(x),
+  x_short_longdom = tfd(x |> tf_zoom(0.1, 0.4), domain = tf_domain(x),
                     evaluator = tf_approx_linear),
   x_sp = tf_sparsify(x, dropout = .1),
   x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .2),
+  x_fake_ir = as.tfd_irreg(x |> tf_zoom(0.1, 0.4)),
   b = tfb(x, k = 45, verbose = FALSE),
   b2 = tfb(x, k = 15, bs = "tp", sp= .1, verbose = FALSE),
   bu = tfb(x, k = 15, penalized = FALSE, verbose = FALSE),
@@ -16,12 +17,8 @@ l <- list(
   fp_low = tfb_fpc(x, pve = .95)
 )
 
-vec_cast(l$x, l$x_short)
-vec_cast(l$x, l$x_short_dom)
-vec_cast(l$x_short_dom, l$x)
-vec_cast(l$x, x_short)
-
-
-vec_cast(l$x, l$x_sp)
-vec_cast(l$x_sp, l$x)
-
+vec_ptype2(l$x, l$x_short)
+vec_ptype2(l$x, l$x_ir)
+vec_ptype2(l$x_ir, l$x)
+vec_ptype2(l$x_ir, l$b)
+vec_ptype2(l$b2, l$b)
