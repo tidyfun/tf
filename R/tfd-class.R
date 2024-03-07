@@ -276,16 +276,30 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   } else {
     tf_evaluations(data)
   }
-  if (re_eval) {
-    nas <- map(evaluations, \(x) which(is.na(x)))
-    if (length(unlist(nas))) {
+  nas <- map(evaluations, \(x) which(is.na(x)))
+  if (re_eval & any(lengths(nas))) {
+    evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
+    # check if all NAs occur at the same args and try to make a regular tfd if so
+    na_args <- map2(arg, nas, ~.x[.y])
+    if (!all(duplicated(na_args)[-1])) {
       warning(
         length(unlist(nas)), " evaluations were NA, returning irregular tfd.",
         call. = FALSE
       )
-      evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
-      arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+    } else {
+      na_arg_string <- prettyNum(na_args[[1]]) |> paste(collapse = ", ")
+      if (nchar(na_arg_string) > options()$width) {
+        na_arg_string <- substr(na_arg_string, 1, options()$width - 15) |>
+          paste0("[... truncated]")
+      }
+      warning(
+        length(unlist(nas)), " evaluations on arg = (", na_arg_string,
+        ") were NA, returning regular data on reduced grid.",
+        call. = FALSE
+      )
+      nas <- nas[1]
     }
+    arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
   }
   names(evaluations) <- names(data)
   new_tfd(arg, evaluations,
