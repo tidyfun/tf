@@ -32,7 +32,8 @@ string_rep_tf <- function(f, signif_arg = NULL,
   str <- pmap(
     list(str, arg_len, show), \(x, y, z) ifelse(y > z, paste0(x, "; ..."), x)
   )
-  map_if(str, grepl("NA)", str, fixed = TRUE), \(x) "NA")
+  str <- map_if(str, grepl("NA)", str, fixed = TRUE), \(x) "NA")
+  map_if(str, grepl("NULL", str, fixed = TRUE), \(x) "NA")
 }
 
 #-------------------------------------------------------------------------------
