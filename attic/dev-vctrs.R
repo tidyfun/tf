@@ -17,8 +17,26 @@ l <- list(
   fp_low = tfb_fpc(x, pve = .95)
 )
 
-vec_ptype2(l$x, l$x_short)
-vec_ptype2(l$x, l$x_ir)
-vec_ptype2(l$x_ir, l$x)
-vec_ptype2(l$x_ir, l$b)
-vec_ptype2(l$b2, l$b)
+for (i in seq_along(l)) {
+  testthat::expect_identical(l[[i]],
+                             vec_restore(vec_proxy(l[[i]]), vec_ptype(l[[i]])))
+  testthat::expect_identical(vec_ptype2(l[[i]], l[[i]]),
+                             vec_ptype(l[[i]]))
+  testthat::expect_identical(l[[i]],
+                             c(l[[i]], l[[i]])[1:length(l[[i]])])
+}
+
+
+sp <- tf_rgp(5) |> tf_sparsify()
+x <- tf_rgp(5)
+y <- x |> tf_zoom(.2, .4)
+b <- tfb(x)
+b2 <- tfb(x, arg = seq(0, 1, l = 21))
+xx <- tfd(1:10, arg  = 1:10)
+
+x[1] <- y[2] #no
+x[1] <- b[2] #yes
+x[1] <- b2[2] #no
+x[1] <- xx #no
+
+b[2] <- x[1]
