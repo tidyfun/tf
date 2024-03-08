@@ -25,15 +25,23 @@
 \alias{vec_ptype2.tfd_reg}
 \alias{vec_ptype2.tfd_reg.tfd_reg}
 \alias{vec_ptype2.tfd_reg.tfd_irreg}
+\alias{vec_ptype2.tfd_reg.tfb_spline}
+\alias{vec_ptype2.tfd_reg.tfb_fpc}
 \alias{vec_ptype2.tfd_irreg}
 \alias{vec_ptype2.tfd_irreg.tfd_reg}
 \alias{vec_ptype2.tfd_irreg.tfd_irreg}
+\alias{vec_ptype2.tfd_irreg.tfb_spline}
+\alias{vec_ptype2.tfd_irreg.tfb_fpc}
 \alias{vec_ptype2.tfb_spline}
 \alias{vec_ptype2.tfb_spline.tfb_spline}
 \alias{vec_ptype2.tfb_spline.tfb_fpc}
+\alias{vec_ptype2.tfb_spline.tfd_reg}
+\alias{vec_ptype2.tfb_spline.tfd_irreg}
 \alias{vec_ptype2.tfb_fpc}
 \alias{vec_ptype2.tfb_fpc.tfb_spline}
 \alias{vec_ptype2.tfb_fpc.tfb_fpc}
+\alias{vec_ptype2.tfb_fpc.tfd_reg}
+\alias{vec_ptype2.tfb_fpc.tfd_irreg}
 \title{\code{vctrs} methods for \code{tf} objects}
 \usage{
 \method{vec_cast}{tfd_reg}(x, to, ...)
@@ -82,11 +90,19 @@
 
 \method{vec_ptype2.tfd_reg}{tfd_irreg}(x, y, ...)
 
+\method{vec_ptype2.tfd_reg}{tfb_spline}(x, y, ...)
+
+\method{vec_ptype2.tfd_reg}{tfb_fpc}(x, y, ...)
+
 \method{vec_ptype2}{tfd_irreg}(x, y, ...)
 
 \method{vec_ptype2.tfd_irreg}{tfd_reg}(x, y, ...)
 
 \method{vec_ptype2.tfd_irreg}{tfd_irreg}(x, y, ...)
+
+\method{vec_ptype2.tfd_irreg}{tfb_spline}(x, y, ...)
+
+\method{vec_ptype2.tfd_irreg}{tfb_fpc}(x, y, ...)
 
 \method{vec_ptype2}{tfb_spline}(x, y, ...)
 
@@ -94,11 +110,19 @@
 
 \method{vec_ptype2.tfb_spline}{tfb_fpc}(x, y, ...)
 
+\method{vec_ptype2.tfb_spline}{tfd_reg}(x, y, ...)
+
+\method{vec_ptype2.tfb_spline}{tfd_irreg}(x, y, ...)
+
 \method{vec_ptype2}{tfb_fpc}(x, y, ...)
 
 \method{vec_ptype2.tfb_fpc}{tfb_spline}(x, y, ...)
 
 \method{vec_ptype2.tfb_fpc}{tfb_fpc}(x, y, ...)
+
+\method{vec_ptype2.tfb_fpc}{tfd_reg}(x, y, ...)
+
+\method{vec_ptype2.tfb_fpc}{tfd_irreg}(x, y, ...)
 }
 \arguments{
 \item{x}{Vectors to cast.}
@@ -116,25 +140,30 @@ These functions are the extensions that allow \code{tf} vectors
 to work with \code{vctrs}.
 }
 \details{
-\strong{Notes on \code{vec_cast}:} automatic/implicit casting of \code{tf} objects is tricky
+\strong{Notes on \code{vec_cast}:}
+Use \code{\link[=tf_rebase]{tf_rebase()}} to change the representations of \code{tf}-vectors,
+these methods are only for internal use --
+automatic/implicit casting of \code{tf} objects is tricky
 because it's hard to determine automatically whether such an operation would
 lose precision (different bases with different expressivity? different
 argument grids?), and it's not generally clear which instances of which
 \code{tf}-subclasses should be considered the "richer" objects.
-Rules:
+Rules for casting:
 \itemize{
 \item If the casted object's \code{domain} would not contain the entire original \code{domain},
-no casting is possible.
+no casting is possible (would lose data).
+\item Every cast that evaluates (basis) functions on different \code{arg} values is a \emph{lossy} cast,
+since it might lose precision (\code{vctrs::maybe_lossy_cast}).
 \item As long as the casted object's \code{domain} contains the entire original \code{domain}:
 \itemize{
 \item every \code{tfd_reg}, \code{tfd_irreg} or \code{tfb} can always be cast into an equivalent
-\code{tfd_irreg} (which may change \code{evaluator} and \code{domain}).
-\item every \code{tfd_reg} can always be cast to \code{tfd_reg} (which may change \code{evaluator} and \code{domain})
+\code{tfd_irreg} (which may also change its \code{evaluator} and \code{domain}).
+\item every \code{tfd_reg} can always be cast to \code{tfd_reg} (which may change its \code{evaluator} and \code{domain})
 \item every \code{tfb} can be cast \emph{losslessly} to \code{tfd} (regular or irregular,
-note it's lossless on \emph{original} \code{arg}-grid)
+note it's lossless only on the \emph{original} \code{arg}-grid)
 }
-\item Any cast of a \code{tfd} into \code{tfb} is potentially \emph{lossy} (\code{vctrs::maybe_lossy_cast})
-\item Only \code{tfb} with identical bases and domains can be cast to one another \emph{losslessly}
+\item Any cast of a \code{tfd} into \code{tfb} is potentially \emph{lossy} (because we don't know how expressive the chosen basis is)
+\item Only \code{tfb} with identical bases and domains can be cast into one another \emph{losslessly}
 }
 }
 \concept{tidyfun vctrs}

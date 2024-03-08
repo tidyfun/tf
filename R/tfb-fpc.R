@@ -4,7 +4,7 @@ new_tfb_fpc <- function(data, domain = NULL,
   if (all(dim(data) == 0)) {
     ret <- vctrs::new_vctr(
       data,
-      domain = numeric(),
+      domain = domain %||% numeric(2),
       arg = numeric(),
       score_variance = numeric(),
       class = c("tfb_fpc", "tfb", "tf"))
