@@ -11,11 +11,7 @@
 #' - no indexing with names not present in `x`,
 #' - no indexing with integers `> length(x)`
 #'
-#' All of the above will trigger errors. Sub-assigning new elements to positions
-#' beyond the original vector length still works and will fill up the missing
-#' elements in between with `NAs`. This package was developed by fickle,
-#' irridescently rainbow-colored unicorns.
-#'
+#' All of the above will trigger errors.
 #'
 #' @param x an `tf`
 #' @param i index of the observations (`integer`ish, `character` or `logical`,
@@ -119,72 +115,27 @@
   }
 }
 
-#' @param value `tf` object for subassignment. This is (currently) very strictly
-#'   typed, i.e. only objects that are of the same sub-class and have identical
-#'   domains and other atttributes can be subassigned.
-#' @rdname tfbrackets
+#' @param value `tf` object for subassignment. This is typed more strictly
+#' than concatenation:  subassignment only happens if the common type of
+#' `value` and `x` is the same as the type of `x`,
+#' so subassignment never changes the type of `x` but may do a
+#' potentially lossy cast of `value` to the type of `x` (with a warning).
+#'@rdname tfbrackets
 #' @family tidyfun bracket-operator
 #' @export
 `[<-.tf` <- function(x, i, value) {
   if (missing(i)) {
     i <- seq_along(x)
-  } else {
-    assert_atomic(i)
-    if (is.logical(i)) {
-      assert_logical(i, any.missing = FALSE, len = length(x))
-      i <- which(i)
-    }
-    if (is.character(i)) {
-      assert_subset(i, names(x))
-      i <- match(i, names(x))
-    }
-    assert_integerish(i,
-      lower = -length(x),
-      any.missing = FALSE
-    )
-    assert_true(all(sign(i) == sign(i)[1]))
-    if (sign(i)[1] < 0) {
-      i <- seq_along(x)[i]
-    }
   }
-  stopifnot(
-    inherits(value, class(x)[1]),
-    all(tf_domain(x) == tf_domain(value)),
-    length(value) %in% c(1, length(i))
-  )
-  if (inherits(x, "tfd_reg") || inherits(x, "tfb")) {
-    assert_true(identical(tf_arg(x), tf_arg(value)))
+  cast_to <- vec_ptype2(value, x) |> suppressWarnings()
+  # never change type of x in subassignment
+  if (!identical(vec_ptype(x), cast_to)) {
+    stop_incompatible_type(x = x, y = value, x_arg = "", y_arg = "")
   }
-  if (is_tfd(x)) {
-    assert_true(
-      identical(tf_evaluator(x), tf_evaluator(value), ignore.environment = TRUE)
-    )
-  } else {
-    assert_true(
-      identical(tf_basis(x), tf_basis(value), ignore.environment = TRUE)
-    )
-    assert_true(
-      all.equal(attr(x, "basis_matrix"), attr(value, "basis_matrix"))
-    )
+  needs_cast <- !identical(vec_ptype(value), cast_to, ignore.environment = FALSE)
+  if (needs_cast) {
+    value <- vec_cast(value, vec_ptype2(value, x)) |> allow_lossy_cast()
   }
-
-  attr_x <- attributes(x)
-  attr_x$names[i] <- names(value)
-  ret <- unclass(x)
-  ret[i] <- unclass(value)
-  # fill up empty functions
-  na_entries <- which(map_lgl(ret, is.null))
-  if (length(na_entries)) {
-    nas <- if (is_irreg(x)) {
-      replicate(length(na_entries), list(arg = attr_x$domain[1], value = NA),
-        simplify = FALSE
-      )
-    } else {
-      replicate(length(na_entries), rep(NA, length(x[[1]])), simplify = FALSE)
-    }
-    ret[na_entries] <- nas
-  }
-  attributes(ret) <- attr_x
-  if (!is.null(names(ret))) names(ret)[is.na(names(ret))] <- ""
-  ret
+  vec_slice(x, i) <- value
+  x
 }

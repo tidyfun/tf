@@ -5,16 +5,18 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   # created from an (intermediate) data.frame, but may be unnamed for different
   # provenance....
   if (vctrs::vec_size(datalist) == 0 || all(is.na(unlist(datalist)))) {
+    arg <- arg %||% list(numeric())
+    domain <- domain %||% numeric(2)
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
     datalist <-  ifelse(regular,
                         list(),
                         list(list(arg = list(), value = list()))
                         )
-    message("empty or missing input `data`; returning prototype of length 0")
+    # message("empty or missing input `data`; returning prototype of length 0")
     ret <- vctrs::new_vctr(
       datalist,
-      arg = list(numeric()),
-      domain = numeric(2),
+      arg = arg,
+      domain = domain,
       evaluator = get(evaluator, mode = "function", envir = parent.frame()),
       evaluator_name = evaluator,
       class = c(subclass, "tfd", "tf")
@@ -276,16 +278,30 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   } else {
     tf_evaluations(data)
   }
-  if (re_eval) {
-    nas <- map(evaluations, \(x) which(is.na(x)))
-    if (length(unlist(nas))) {
+  nas <- map(evaluations, \(x) which(is.na(x)))
+  if (re_eval & any(lengths(nas))) {
+    evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
+    # check if all NAs occur at the same args and try to make a regular tfd if so
+    na_args <- map2(arg, nas, ~.x[.y])
+    if (!all(duplicated(na_args)[-1])) {
       warning(
         length(unlist(nas)), " evaluations were NA, returning irregular tfd.",
         call. = FALSE
       )
-      evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
-      arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+    } else {
+      na_arg_string <- prettyNum(na_args[[1]]) |> paste(collapse = ", ")
+      if (nchar(na_arg_string) > options()$width) {
+        na_arg_string <- substr(na_arg_string, 1, options()$width - 15) |>
+          paste0("[... truncated]")
+      }
+      warning(
+        length(unlist(nas)), " evaluations on arg = (", na_arg_string,
+        ") were NA, returning regular data on reduced grid.",
+        call. = FALSE
+      )
+      nas <- nas[1]
     }
+    arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
   }
   names(evaluations) <- names(data)
   new_tfd(arg, evaluations,
@@ -315,7 +331,7 @@ as.tfd.default <- function(data, ...) {
   tfd(data, ...)
 }
 
-# TODO: this ignores arg, domain for now, only needed internally in c.tfd
+
 #' @rdname tfd
 #' @export
 as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
@@ -329,8 +345,11 @@ as.tfd_irreg.tfd_reg <- function(data, ...) {
   class(ret)[1] <- "tfd_irreg"
   ret
 }
-
 #' @export
 as.tfd_irreg.tfd_irreg <- function(data, ...) {
   data
+}
+#' @export
+as.tfd_irreg.tfb <- function(data, ...) {
+  tfd(data) |> as.tfd_irreg()
 }

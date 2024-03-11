@@ -44,7 +44,7 @@ tf_evaluations.tfd_irreg <- function(f) {
 
 #' @export
 tf_evaluations.tfb <- function(f) {
-  evals <- map(f, \(x) drop(attr(f, "basis_matrix") %*% x))
+  evals <- map(f, \(x) drop(attr(f, "basis_matrix") %*% x) |> unname())
   if (!inherits(f, "tfb_fpc")) {
     evals <- map(evals, attr(f, "family")$linkinv)
   }
@@ -99,6 +99,11 @@ tf_domain <- function(f) {
 tf_evaluator <- function(f) {
   assert_class(f, "tfd")
   attr(f, "evaluator")
+}
+
+tf_evaluator_expr <- function(f) {
+  assert_class(f, "tfd")
+  attr(f, "evaluator_name") |> as.symbol()
 }
 
 #' @rdname tfmethods
