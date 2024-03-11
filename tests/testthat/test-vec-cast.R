@@ -80,7 +80,7 @@ test_that("vec_cast for tfd to tfb fails as expected", {
 test_that("vec_cast for tfb to tfd works/fails as expected", {
   expect_cast_result(l$b, l$x, ignore = 4) #env(evaluator)
   expect_cast_result(l$b, l$x_ir, ignore = 4) #env(evaluator)
-  expect_cast_result(l$fp, l$x, ignore = 4) #env(evaluator)
+  expect_cast_result(l$fp, l$x, ignore = c(2, 4)) # arg names, env(evaluator)
   expect_cast_result(l$fp, l$x_sp, ignore = 4) #env(evaluator)
   expect_cast_result(l$bu, l$x_short_longdom, ignore = c(2, 4)) # arg + evaluator
   expect_cast_result(l$fp_low, l$x_short_longdom, ignore = c(2, 4)) # arg + evaluator
