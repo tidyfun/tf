@@ -4,7 +4,7 @@
 \alias{fpc_wsvd}
 \alias{fpc_wsvd.matrix}
 \alias{fpc_wsvd.data.frame}
-\title{Eigenfunctions via weighted SVD}
+\title{Eigenfunctions via weighted, regularized SVD}
 \usage{
 fpc_wsvd(data, arg, pve = 0.995)
 
@@ -23,19 +23,49 @@ fpc_wsvd(data, arg, pve = 0.995)
 \value{
 a list with entries
 \itemize{
-\item `mu`` estimated mean function (numeric vector)
-\item `efunctions`` estimated FPCs (numeric matrix, columns represent FPCs)
+\item \code{mu} estimated mean function (numeric vector)
+\item \code{efunctions} estimated FPCs (numeric matrix, columns represent FPCs)
 \item \code{scores} estimated FPC scores (one row per observed curve)
 \item \code{npc} how many FPCs were returned for the given \code{pve} (integer)
+\item \code{scoring_function} a function that returns FPC scores for new data
+and given eigenfunctions, see \code{tf:::.fpc_wsvd_scores} for an example.
 }
 }
 \description{
 Compute (truncated) orthonormal eigenfunctions and scores
-for data potentially on a non-equidistant grid.
+for (partially missing) data on a common (potentially non-equidistant) grid.
+}
+\details{
+Performs a weighted SVD with trapezoidal quadrature weights s.t. returned
+vectors represent (evaluations of)
+orthonormal eigen\emph{functions} \eqn{\phi_j(t)}, not eigen\emph{vectors}
+\eqn{\phi_j = (\phi_j(t_1), \dots, \phi_j(t_n))}, specifically:\cr
+\eqn{\int_T \phi_j(t)^2 dt \approx \sum_i \Delta_i \phi_j(t_i)^2 = 1}
+given quadrature weights \eqn{\Delta_i}, not
+\eqn{\phi_j'\phi_j = \sum_i \phi_j(t_i)^2 = 1};\cr
+\eqn{\int_T \phi_j(t) \phi_k(t) dt = 0} not
+\eqn{\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0},
+c.f. \code{mogsa::wsvd()}.\cr
+For incomplete data, this uses an adaptation of \code{softImpute::softImpute()},
+see references. Note that will not work well for data on a common grid if more
+than a few percent of data points are missing, and it breaks down completely
+for truly irregular data with no/few common timepoints, even if observed very
+densely. For such data, either re-evaluate on a common grid first or use more
+advanced FPCA approaches like \code{refund::fpca_sc()},
+see last example for \code{\link[=tfb_fpc]{tfb_fpc()}}
 }
 \references{
-code adapted from / inspired by \code{wsvd()} function of Bioconductor
-package \code{mogsa} by Cheng Meng.
+code adapted from / inspired by \code{mogsa::wsvd()} by Cheng Meng
+and \code{softImpute::softImpute()} by Trevor Hastie and Rahul Mazumder.\cr
+Meng C (2023).
+\emph{\code{mogsa}: Multiple omics data integrative clustering and gene set analysis}.
+\url{https://bioconductor.org/packages/mogsa}.\cr
+Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
+\dQuote{Spectral regularization algorithms for learning large incomplete matrices.}
+\emph{The Journal of Machine Learning Research}, \bold{11}, 2287-2322.\cr
+Hastie T, Mazumder R (2021).
+\emph{\code{softImpute}: Matrix Completion via Iterative Soft-Thresholded SVD}.
+R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.
 }
 \seealso{
 Other tfb-class: 
@@ -47,7 +77,7 @@ Other tfb_fpc-class:
 \code{\link{tfb_fpc}()}
 }
 \author{
-Cheng Meng, Fabian Scheipl
+Trevor Hastie, Rahul Mazumder, Cheng Meng, Fabian Scheipl
 }
 \concept{tfb-class}
 \concept{tfb_fpc-class}
