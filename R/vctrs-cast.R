@@ -15,7 +15,12 @@ assert_same_domains <- function(x, to) {
 }
 
 same_args <- function(x, to) {
-  identical(tf_arg(to),  tf_arg(x))
+  arg_x <- tf_arg(x)
+  arg_to <- tf_arg(to)
+  min_resolution <- c(get_resolution(arg_x), get_resolution(arg_to)) |> min()
+  all.equal(tf_arg(to),  tf_arg(x),
+            check.attributes = FALSE, tolerance = min_resolution) |>
+    isTRUE()
 }
 
 #----------------- s3 generics for tfd casting -----------------#
