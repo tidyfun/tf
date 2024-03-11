@@ -1,3 +1,4 @@
+# create string representation for a tf.
 string_rep_tf <- function(f, signif_arg = NULL,
                           show = 3, digits = NULL, ...) {
   digits_eval <- digits %||% options()$digits
@@ -48,7 +49,7 @@ string_rep_tf <- function(f, signif_arg = NULL,
 #' @family tidyfun print
 print.tf <- function(x, n = 5, ...) {
   cat(paste0(
-    class(x)[2], "[", length(x), "] on (", tf_domain(x)[1], ",",
+    ifelse(is_irreg(x), "irregular ", ""), class(x)[2], "[", length(x), "] on (", tf_domain(x)[1], ",",
     tf_domain(x)[2], ")"
   ))
   invisible(x)

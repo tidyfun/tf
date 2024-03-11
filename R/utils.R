@@ -59,8 +59,12 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
 # default resolution is ~ smallest observed interval/10
 # rounded down to the nearest decimal
 get_resolution <- function(arg) {
+  .min_diff <- function(x) {
+    suppressWarnings(ifelse(length(x) - 1, min(diff(x)), x[1]))
+  }
   min_diff <- map_dbl(ensure_list(arg),
-                      \(x) ifelse(length(x) - 1, min(diff(x)), x[1])) |> min()
+                      possibly(.f = .min_diff, otherwise = NA)) |>
+    min(na.rm = TRUE)
   if (min_diff < .Machine$double.eps * 10) {
     stop("(Almost) non-unique arg values detected.", call. = FALSE)
   }

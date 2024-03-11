@@ -8,10 +8,7 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
     arg <- arg %||% list(numeric())
     domain <- domain %||% numeric(2)
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
-    datalist <-  ifelse(regular,
-                        list(),
-                        list(list(arg = list(), value = list()))
-                        )
+    datalist <- list()
     # message("empty or missing input `data`; returning prototype of length 0")
     ret <- vctrs::new_vctr(
       datalist,
@@ -318,7 +315,9 @@ tfd.default <- function(data, arg = NULL, domain = NULL,
                         evaluator = tf_approx_linear, ...) {
   message("input `data` not recognized class; returning prototype of length 0")
   datalist <- list()
-  new_tfd(arg, datalist, domain, evaluator)
+  evaluator <- quo_name(enexpr(evaluator))
+  new_tfd(arg = arg, datalist = datalist, domain = domain, regular = TRUE,
+          evaluator = evaluator)
 }
 
 #-------------------------------------------------------------------------------
