@@ -30,7 +30,7 @@ NULL or not a recognised class"><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,24 +87,10 @@ NULL or not a recognised class</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for matrix</span></span>
-<span><span class="fu">tfd</span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>,</span>
-<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
+<span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, domain <span class="op">=</span> <span class="cn">NULL</span>, evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for numeric</span></span>
-<span><span class="fu">tfd</span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>,</span>
-<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
+<span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, domain <span class="op">=</span> <span class="cn">NULL</span>, evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for data.frame</span></span>
 <span><span class="fu">tfd</span><span class="op">(</span></span>
@@ -114,32 +100,17 @@ NULL or not a recognised class</p>
 <span>  value <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>,</span>
-<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for list</span></span>
-<span><span class="fu">tfd</span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>,</span>
-<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
+<span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, domain <span class="op">=</span> <span class="cn">NULL</span>, evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tf</span></span>
-<span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, domain <span class="op">=</span> <span class="cn">NULL</span>, evaluator <span class="op">=</span> <span class="cn">NULL</span>, resolution <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, domain <span class="op">=</span> <span class="cn">NULL</span>, evaluator <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for default</span></span>
-<span><span class="fu">tfd</span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  arg <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  domain <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>,</span>
-<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
+<span><span class="fu">tfd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="cn">NULL</span>, domain <span class="op">=</span> <span class="cn">NULL</span>, evaluator <span class="op">=</span> <span class="va">tf_approx_linear</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">as.tfd</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -161,8 +132,8 @@ examples.</p></dd>
 
 
 <dt>arg</dt>
-<dd><p><code>numeric</code>, or list of <code>numeric</code>s. The evaluation grid. See Details
-on its interplay with <code>resolution</code>. For the <code>data.frame</code>-method: the
+<dd><p><code>numeric</code>, or list of <code>numeric</code>s. The evaluation grid.
+For the <code>data.frame</code>-method: the
 name/number of the column defining the evaluation grid. The <code>matrix</code> method
 will try to guess suitable <code>arg</code>-values from the column names of <code>data</code> if
 <code>arg</code> is not supplied. Other methods fall back on integer sequences
@@ -176,10 +147,6 @@ will try to guess suitable <code>arg</code>-values from the column names of <cod
 <dt>evaluator</dt>
 <dd><p>a function accepting arguments <code>x, arg, evaluations</code>. See
 details for <code>tfd()</code>.</p></dd>
-
-
-<dt>resolution</dt>
-<dd><p>resolution of the evaluation grid. See details for <code>tfd()</code>.</p></dd>
 
 
 <dt>id</dt>
@@ -218,15 +185,7 @@ with <code>na.rm = FALSE</code>),</p></li>
 See <code>tf:::zoo_wrapper</code> and <code>tf:::tf_approx_linear</code>, which is simply
 <code>zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)</code>, for examples of
 implementations of this.</p></li>
-</ul><p><strong><code>resolution</code></strong>: <code>arg</code>-values that are equivalent up to this difference are
-treated as identical. E.g., if an evaluation of \(f(t)\) is available at
-\(t=1\) and a function value is requested at \(t = 1.01\), \(f(1)\)
-will be returned if <code>resolution</code> &lt; 0.01. By default, resolution will be set to
-an integer-valued power of 10 one smaller than the smallest difference
-between adjacent <code>arg</code>-values rounded down to an integer-valued power of 10:
-e.g., if the smallest difference between consecutive <code>arg</code>-values is between
-0.1 and 0.9999, the resolution will be 0.01, etc. In code: <code>resolution = 10^(floor(log10(min(diff(&lt;arg&gt;))) - 1)</code></p>
-    </div>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -236,16 +195,15 @@ e.g., if the smallest difference between consecutive <code>arg</code>-values is 
 <span class="r-in"><span>  <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">1</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">1</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">21</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>concatenating functions on different grids.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>inputs have different resolutions, result has resolution =0.01</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>combining incompatible &lt;tfd_reg&gt; with &lt;tfd_reg&gt; by casting to &lt;tfd_irreg&gt;.</span>
 <span class="r-in"><span><span class="fu">tfd</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">21</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> New names:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `1` -&gt; `1...1`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> `1` -&gt; `1...2`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> tfd[2] on (0,1) based on 21 evaluations each</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1...1: (0.00, 0.342);(0.05, 0.214);(0.10, 0.086); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1...2: (0.00,-0.104);(0.05,-0.156);(0.10,-0.075); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1...1: (0.00, 0.59);(0.05, 0.39);(0.10, 0.20); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1...2: (0.00,-0.89);(0.05,-1.00);(0.10,-1.09); ...</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1213</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">3</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">51</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="tf_jiggle.html">tf_sparsify</a></span><span class="op">(</span><span class="fl">0.9</span><span class="op">)</span></span></span>
@@ -253,8 +211,8 @@ e.g., if the smallest difference between consecutive <code>arg</code>-values is 
 <span class="r-in"><span><span class="co">#   outside observed range:</span></span></span>
 <span class="r-in"><span><span class="fu">tfd</span><span class="op">(</span><span class="va">f</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>86 evaluations were NA, returning irregular tfd.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[3] on (0,1) based on 59 to 87 (mean: 72) evaluations each</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> inter-/extrapolation by tf_approx_linear </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> irregular tfd[3] on (0,1) based on 59 to 87 (mean: 72) evaluations each</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1: (0.20, 0.50);(0.21, 0.48);(0.22, 0.46); ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2: (0.12,-0.34);(0.13,-0.30);(0.14,-0.26); ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3: (0.04,-0.43);(0.05,-0.43);(0.06,-0.42); ...</span>
@@ -278,7 +236,7 @@ e.g., if the smallest difference between consecutive <code>arg</code>-values is 
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

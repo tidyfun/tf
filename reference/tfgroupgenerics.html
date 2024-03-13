@@ -12,7 +12,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Math, Summary and Ops Methods for <code>tf</code></h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/HEAD/R/ops.R" class="external-link"><code>R/ops.R</code></a>, <a href="https://github.com/tidyfun/tf/blob/HEAD/R/math.R" class="external-link"><code>R/math.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/HEAD/R/ops.R" class="external-link"><code>R/ops.R</code></a>, <a href="https://github.com/tidyfun/tf/blob/HEAD/R/math.R" class="external-link"><code>R/math.R</code></a>, <a href="https://github.com/tidyfun/tf/blob/HEAD/R/summarize.R" class="external-link"><code>R/summarize.R</code></a></small>
       <div class="d-none name"><code>tfgroupgenerics.Rd</code></div>
     </div>
 
@@ -84,32 +84,32 @@ Math(x, ...)
 # S3 method for tfb
 Math(x, ...)
 
-# S3 method for tfd
-cummax(...)
-
-# S3 method for tfd
-cummin(...)
-
-# S3 method for tfd
-cumsum(...)
-
-# S3 method for tfd
-cumprod(...)
-
-# S3 method for tfb
-cummax(...)
-
-# S3 method for tfb
-cummin(...)
-
-# S3 method for tfb
-cumsum(...)
-
-# S3 method for tfb
-cumprod(...)
-
 # S3 method for tf
-Summary(...)</code></pre></div>
+Summary(...)
+
+# S3 method for tfd
+cummax(...)
+
+# S3 method for tfd
+cummin(...)
+
+# S3 method for tfd
+cumsum(...)
+
+# S3 method for tfd
+cumprod(...)
+
+# S3 method for tfb
+cummax(...)
+
+# S3 method for tfb
+cummin(...)
+
+# S3 method for tfb
+cumsum(...)
+
+# S3 method for tfb
+cumprod(...)</code></pre></div>
     </div>
 
     <div class="section level2">
@@ -166,10 +166,6 @@ small spline bases and/or very wiggly data.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">layout</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f2</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="va">f2</span><span class="op">)</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Percentage of input data variability preserved in basis representation</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> (per functional observation, approximate):</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>     100     100     100     100     100     100 </span>
 <span class="r-plt img"><img src="tfgroupgenerics-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># use ?tf_integrate for "function-wise" integrals i.e., weighted cumulative sums...</span></span></span>
 </code></pre></div>
@@ -179,7 +175,7 @@ small spline bases and/or very wiggly data.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

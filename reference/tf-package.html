@@ -16,7 +16,7 @@ exploratory analysis for functional data in R quick and easy, using
 tidyverse syntax and standards. 
 Please also install tidyfun for the full functionality to
 access the full documentation including a number of vignettes and case
-studies, or visit the tidyfun website."><title>tf: S3 classes and methods for tidy functional data — tf-package • tf</title><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="tf: S3 classes and methods for tidy functional data — tf-package"><meta property="og:description" content="tf is a light-weight package with few dependencies that
+studies, or visit the tidyfun website."><title>tf: S3 Classes and Methods for Tidy Functional Data — tf-package • tf</title><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous"><!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="tf: S3 Classes and Methods for Tidy Functional Data — tf-package"><meta property="og:description" content="tf is a light-weight package with few dependencies that
 provides the class definitions and methods infrastructure for tidyfun --
 tf gives you:
 new S3 data types for representing (vectors of) functional data:
@@ -44,7 +44,7 @@ studies, or visit the tidyfun website."><!-- mathjax --><script src="https://cdn
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,7 @@ studies, or visit the tidyfun website."><!-- mathjax --><script src="https://cdn
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>tf: S3 classes and methods for tidy functional data</h1>
+      <img src="" class="logo" alt=""><h1>tf: S3 Classes and Methods for Tidy Functional Data</h1>
       <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/HEAD/R/tf-package.R" class="external-link"><code>R/tf-package.R</code></a></small>
       <div class="d-none name"><code>tf-package.Rd</code></div>
     </div>
@@ -103,8 +103,8 @@ studies, or visit the <a href="https://tidyfun.github.io/tidyfun/" class="extern
 
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p>Useful links:</p><ul><li><p><a href="https://tidyfun.github.io/tf">https://tidyfun.github.io/tf</a></p></li>
-<li><p><a href="https://github.com/tidyfun/tf" class="external-link">https://github.com/tidyfun/tf</a></p></li>
+    <div class="dont-index"><p>Useful links:</p><ul><li><p><a href="https://tidyfun.github.io/tf/">https://tidyfun.github.io/tf/</a></p></li>
+<li><p><a href="https://github.com/tidyfun/tf/" class="external-link">https://github.com/tidyfun/tf/</a></p></li>
 <li><p>Report bugs at <a href="https://github.com/tidyfun/tf/issues" class="external-link">https://github.com/tidyfun/tf/issues</a></p></li>
 </ul></div>
     </div>
@@ -112,9 +112,12 @@ studies, or visit the <a href="https://tidyfun.github.io/tidyfun/" class="extern
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
     <p><strong>Maintainer</strong>: Fabian Scheipl <a href="mailto:fabian.scheipl@googlemail.com">fabian.scheipl@googlemail.com</a> (<a href="https://orcid.org/0000-0001-8172-3603" class="external-link">ORCID</a>)</p>
 <p>Authors:</p><ul><li><p>Jeff Goldsmith</p></li>
-<li><p>Julia Wrobel (<a href="https://orcid.org/0000-0001-6783-1421" class="external-link">ORCID</a>)</p></li>
-</ul><p>Other contributors:</p><ul><li><p>Maximilian Muecke (<a href="https://orcid.org/0000-0002-9609-3197" class="external-link">ORCID</a>) [contributor]</p></li>
-<li><p>Sebastian Fischer (<a href="https://orcid.org/0009-0000-9432-9795" class="external-link">ORCID</a>) [contributor]</p></li>
+</ul><p>Other contributors:</p><ul><li><p>Julia Wrobel (<a href="https://orcid.org/0000-0001-6783-1421" class="external-link">ORCID</a>) [contributor]</p></li>
+<li><p>Maximilian Muecke (<a href="https://orcid.org/0009-0000-9432-9795" class="external-link">ORCID</a>) [contributor]</p></li>
+<li><p>Sebastian Fischer (<a href="https://orcid.org/0000-0002-9609-3197" class="external-link">ORCID</a>) [contributor]</p></li>
+<li><p>Trevor Hastie (softImpute author) [contributor]</p></li>
+<li><p>Rahul Mazumder (softImpute author) [contributor]</p></li>
+<li><p>Chen Meng (mogsa author) [contributor]</p></li>
 </ul></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -122,7 +125,7 @@ studies, or visit the <a href="https://tidyfun.github.io/tidyfun/" class="extern
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

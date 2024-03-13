@@ -14,7 +14,7 @@ which should be smoothed by using a smaller basis / stronger penalty."><!-- math
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,10 +63,15 @@ which should be smoothed by using a smaller basis / stronger penalty.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tf_smooth</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tfb</span></span>
-<span><span class="fu">tf_smooth</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">tf_smooth</span><span class="op">(</span><span class="va">x</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tfd</span></span>
-<span><span class="fu">tf_smooth</span><span class="op">(</span><span class="va">x</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lowess"</span>, <span class="st">"rollmean"</span>, <span class="st">"rollmedian"</span>, <span class="st">"savgol"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">tf_smooth</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lowess"</span>, <span class="st">"rollmean"</span>, <span class="st">"rollmedian"</span>, <span class="st">"savgol"</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -77,6 +82,10 @@ which should be smoothed by using a smaller basis / stronger penalty.</p>
 
 <dt>...</dt>
 <dd><p>arguments for the respective <code>method</code>. See Details.</p></dd>
+
+
+<dt>verbose</dt>
+<dd><p>give lots of diagnostic messages? Defaults to TRUE</p></dd>
 
 
 <dt>method</dt>
@@ -146,7 +155,7 @@ grid points$&gt;$/10 (i.e., the nearest odd integer to that).</p></li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

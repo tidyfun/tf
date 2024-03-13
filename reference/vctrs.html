@@ -12,7 +12,7 @@ to work with vctrs."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/a
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,8 +45,8 @@ to work with vctrs."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/a
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>vctrs methods for <code>tf</code> objects</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/HEAD/R/vctrs.R" class="external-link"><code>R/vctrs.R</code></a></small>
+      <img src="" class="logo" alt=""><h1><code>vctrs</code> methods for <code>tf</code> objects</h1>
+      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/HEAD/R/vctrs-cast.R" class="external-link"><code>R/vctrs-cast.R</code></a>, <a href="https://github.com/tidyfun/tf/blob/HEAD/R/vctrs-ptype2.R" class="external-link"><code>R/vctrs-ptype2.R</code></a></small>
       <div class="d-none name"><code>vctrs.Rd</code></div>
     </div>
 
@@ -69,31 +69,23 @@ to work with <code>vctrs</code>.</p>
 <span><span class="co"># S3 method for tfd_irreg</span></span>
 <span><span class="fu">vec_cast.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S3 method for tfb_spline</span></span>
+<span><span class="fu">vec_cast.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_fpc</span></span>
+<span><span class="fu">vec_cast.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S3 method for tfd_reg</span></span>
 <span><span class="fu">vec_cast.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tfd_irreg</span></span>
 <span><span class="fu">vec_cast.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for tfd_reg</span></span>
-<span><span class="fu">vec_ptype2</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="co"># S3 method for tfb_spline</span></span>
+<span><span class="fu">vec_cast.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S3 method for tfd_reg</span></span>
-<span><span class="fu">vec_ptype2.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for tfd_irreg</span></span>
-<span><span class="fu">vec_ptype2.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for tfd_irreg</span></span>
-<span><span class="fu">vec_ptype2</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for tfd_reg</span></span>
-<span><span class="fu">vec_ptype2.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S3 method for tfd_irreg</span></span>
-<span><span class="fu">vec_ptype2.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">vec_ptype2_tfd_tfd</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="co"># S3 method for tfb_fpc</span></span>
+<span><span class="fu">vec_cast.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tfb_spline</span></span>
 <span><span class="fu">vec_cast</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -113,6 +105,48 @@ to work with <code>vctrs</code>.</p>
 <span><span class="co"># S3 method for tfb_fpc</span></span>
 <span><span class="fu">vec_cast.tfb_fpc</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_cast.tfb_spline</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
+<span><span class="fu">vec_cast.tfb_spline</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_cast.tfb_fpc</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
+<span><span class="fu">vec_cast.tfb_fpc</span><span class="op">(</span><span class="va">x</span>, <span class="va">to</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_ptype2</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_ptype2.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
+<span><span class="fu">vec_ptype2.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_spline</span></span>
+<span><span class="fu">vec_ptype2.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_fpc</span></span>
+<span><span class="fu">vec_ptype2.tfd_reg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
+<span><span class="fu">vec_ptype2</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_ptype2.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
+<span><span class="fu">vec_ptype2.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_spline</span></span>
+<span><span class="fu">vec_ptype2.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfb_fpc</span></span>
+<span><span class="fu">vec_ptype2.tfd_irreg</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S3 method for tfb_spline</span></span>
 <span><span class="fu">vec_ptype2</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -120,6 +154,12 @@ to work with <code>vctrs</code>.</p>
 <span><span class="fu">vec_ptype2.tfb_spline</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tfb_fpc</span></span>
+<span><span class="fu">vec_ptype2.tfb_spline</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_ptype2.tfb_spline</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
 <span><span class="fu">vec_ptype2.tfb_spline</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for tfb_fpc</span></span>
@@ -131,7 +171,11 @@ to work with <code>vctrs</code>.</p>
 <span><span class="co"># S3 method for tfb_fpc</span></span>
 <span><span class="fu">vec_ptype2.tfb_fpc</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">vec_ptype2_tfb_tfb</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># S3 method for tfd_reg</span></span>
+<span><span class="fu">vec_ptype2.tfb_fpc</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for tfd_irreg</span></span>
+<span><span class="fu">vec_ptype2.tfb_fpc</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -154,13 +198,36 @@ dots are only for future extensions and should be empty.</p></dd>
 <dd><p>Vectors to cast.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><strong>Notes on <code>vec_cast</code>:</strong>
+Use <code><a href="tf_rebase.html">tf_rebase()</a></code> to change the representations of <code>tf</code>-vectors,
+these methods are only for internal use --
+automatic/implicit casting of <code>tf</code> objects is tricky
+because it's hard to determine automatically whether such an operation would
+lose precision (different bases with different expressivity? different
+argument grids?), and it's not generally clear which instances of which
+<code>tf</code>-subclasses should be considered the "richer" objects.
+Rules for casting:</p><ul><li><p>If the casted object's <code>domain</code> would not contain the entire original <code>domain</code>,
+no casting is possible (would lose data).</p></li>
+<li><p>Every cast that evaluates (basis) functions on different <code>arg</code> values is a <em>lossy</em> cast,
+since it might lose precision (<code><a href="https://vctrs.r-lib.org/reference/maybe_lossy_cast.html" class="external-link">vctrs::maybe_lossy_cast</a></code>).</p></li>
+<li><p>As long as the casted object's <code>domain</code> contains the entire original <code>domain</code>:</p><ul><li><p>every <code>tfd_reg</code>, <code>tfd_irreg</code> or <code>tfb</code> can always be cast into an equivalent
+<code>tfd_irreg</code> (which may also change its <code>evaluator</code> and <code>domain</code>).</p></li>
+<li><p>every <code>tfd_reg</code> can always be cast to <code>tfd_reg</code> (which may change its <code>evaluator</code> and <code>domain</code>)</p></li>
+<li><p>every <code>tfb</code> can be cast <em>losslessly</em> to <code>tfd</code> (regular or irregular,
+note it's lossless only on the <em>original</em> <code>arg</code>-grid)</p></li>
+</ul></li>
+<li><p>Any cast of a <code>tfd</code> into <code>tfb</code> is potentially <em>lossy</em> (because we don't know how expressive the chosen basis is)</p></li>
+<li><p>Only <code>tfb</code> with identical bases and domains can be cast into one another <em>losslessly</em></p></li>
+</ul></div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

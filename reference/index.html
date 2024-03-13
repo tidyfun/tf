@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@
     <div class="section level2">
       <h2 id="tf-sub-classes-constructors-converters">tf - (Sub)classes: Constructors &amp; converters<a class="anchor" aria-label="anchor" href="#tf-sub-classes-constructors-converters"></a></h2>
       
-      <p class="section-desc"></p><p>Defining, evaluating and converting functional data objects</p>
+      <p class="section-desc"></p><p>Defining and converting functional data objects</p>
 
       
     </div><div id="" class="section level2">
@@ -86,11 +86,16 @@
           
           <code><a href="fpc_wsvd.html">fpc_wsvd()</a></code> 
         </dt>
-        <dd>Eigenfunctions via weighted SVD</dd>
+        <dd>Eigenfunctions via weighted, regularized SVD</dd>
+      </dl><dl><dt>
+          
+          <code><a href="tf_rebase.html">tf_rebase()</a></code> 
+        </dt>
+        <dd>Change (basis) representation of a <code>tf</code>-object</dd>
       </dl></div><div class="section level2">
       <h2 id="evaluation-and-indexing">Evaluation and indexing<a class="anchor" aria-label="anchor" href="#evaluation-and-indexing"></a></h2>
       
-      <p class="section-desc"></p><p>Accessing, appending, evaluating and overwriting functional data objects</p>
+      <p class="section-desc"></p><p>Accessing, appending and evaluating functional data objects</p>
 
       
     </div><div id="" class="section level2">
@@ -117,7 +122,7 @@
           
           <code><a href="tf_interpolate.html">tf_interpolate()</a></code> 
         </dt>
-        <dd>Re-evaluate <code>tf</code>-objects on new evaluation grid.</dd>
+        <dd>Re-evaluate <code>tf</code>-objects on a new grid of argument values.</dd>
       </dl></div><div class="section level2">
       <h2 id="arithmetic-logical-and-summary-functions">Arithmetic, logical and summary functions<a class="anchor" aria-label="anchor" href="#arithmetic-logical-and-summary-functions"></a></h2>
       
@@ -131,7 +136,7 @@
 
       <dl><dt>
           
-          <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Summary(<i>&lt;tf&gt;</i>)</a></code> 
+          <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`==`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">`!=`(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Ops(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Math(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">Summary(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfd&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummax(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cummin(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumsum(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfgroupgenerics.html">cumprod(<i>&lt;tfb&gt;</i>)</a></code> 
         </dt>
         <dd>Math, Summary and Ops Methods for <code>tf</code></dd>
       </dl><dl><dt>
@@ -235,7 +240,7 @@
 
       <dl><dt>
           
-          <code><a href="tfmethods.html">tf_arg()</a></code> <code><a href="tfmethods.html">tf_evaluations()</a></code> <code><a href="tfmethods.html">tf_count()</a></code> <code><a href="tfmethods.html">tf_domain()</a></code> <code><a href="tfmethods.html">`tf_domain&lt;-`()</a></code> <code><a href="tfmethods.html">tf_evaluator()</a></code> <code><a href="tfmethods.html">`tf_evaluator&lt;-`()</a></code> <code><a href="tfmethods.html">tf_basis()</a></code> <code><a href="tfmethods.html">`tf_arg&lt;-`()</a></code> <code><a href="tfmethods.html">tf_resolution()</a></code> <code><a href="tfmethods.html">`tf_resolution&lt;-`()</a></code> <code><a href="tfmethods.html">coef(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfmethods.html">rev(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfmethods.html">is.na(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfmethods.html">is.na(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="tfmethods.html">is_tf()</a></code> <code><a href="tfmethods.html">is_tfd()</a></code> <code><a href="tfmethods.html">is_reg()</a></code> <code><a href="tfmethods.html">is_tfd_reg()</a></code> <code><a href="tfmethods.html">is_irreg()</a></code> <code><a href="tfmethods.html">is_tfd_irreg()</a></code> <code><a href="tfmethods.html">is_tfb()</a></code> <code><a href="tfmethods.html">is_tfb_spline()</a></code> <code><a href="tfmethods.html">is_tfb_fpc()</a></code> 
+          <code><a href="tfmethods.html">tf_arg()</a></code> <code><a href="tfmethods.html">tf_evaluations()</a></code> <code><a href="tfmethods.html">tf_count()</a></code> <code><a href="tfmethods.html">tf_domain()</a></code> <code><a href="tfmethods.html">`tf_domain&lt;-`()</a></code> <code><a href="tfmethods.html">tf_evaluator()</a></code> <code><a href="tfmethods.html">`tf_evaluator&lt;-`()</a></code> <code><a href="tfmethods.html">tf_basis()</a></code> <code><a href="tfmethods.html">`tf_arg&lt;-`()</a></code> <code><a href="tfmethods.html">coef(<i>&lt;tfb&gt;</i>)</a></code> <code><a href="tfmethods.html">rev(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfmethods.html">is.na(<i>&lt;tf&gt;</i>)</a></code> <code><a href="tfmethods.html">is.na(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="tfmethods.html">is_tf()</a></code> <code><a href="tfmethods.html">is_tfd()</a></code> <code><a href="tfmethods.html">is_reg()</a></code> <code><a href="tfmethods.html">is_tfd_reg()</a></code> <code><a href="tfmethods.html">is_irreg()</a></code> <code><a href="tfmethods.html">is_tfd_irreg()</a></code> <code><a href="tfmethods.html">is_tfb()</a></code> <code><a href="tfmethods.html">is_tfb_spline()</a></code> <code><a href="tfmethods.html">is_tfb_fpc()</a></code> 
         </dt>
         <dd>Utility functions for <code>tf</code>-objects</dd>
       </dl></div><div class="section level2">
@@ -287,21 +292,21 @@
         <dd>Make syntactically valid unique names</dd>
       </dl><dl><dt>
           
-          <code><a href="vctrs.html">vec_cast(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2_tfd_tfd()</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2_tfb_tfb()</a></code> 
+          <code><a href="vctrs.html">vec_cast(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_reg(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfd_irreg(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_spline(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_cast.tfb_fpc(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_reg(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfd_irreg(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_spline(<i>&lt;tfd_irreg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfb_spline&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfb_fpc&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfd_reg&gt;</i>)</a></code> <code><a href="vctrs.html">vec_ptype2.tfb_fpc(<i>&lt;tfd_irreg&gt;</i>)</a></code> 
         </dt>
-        <dd>vctrs methods for <code>tf</code> objects</dd>
+        <dd><code>vctrs</code> methods for <code>tf</code> objects</dd>
       </dl><dl><dt>
           
           <code><a href="tf-package.html">tf</a></code> <code><a href="tf-package.html">tf-package</a></code> 
         </dt>
-        <dd>tf: S3 classes and methods for tidy functional data</dd>
+        <dd>tf: S3 Classes and Methods for Tidy Functional Data</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

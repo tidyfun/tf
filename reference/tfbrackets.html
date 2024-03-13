@@ -14,7 +14,7 @@ list, data.frame or matrix, see tfd() and tfb(). See Details."><!-- mathjax --><
     
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,9 +98,11 @@ the raw data class <code>tfd</code>, for which it defaults to <code>TRUE</code>.
 
 
 <dt>value</dt>
-<dd><p><code>tf</code> object for subassignment. This is (currently) very strictly
-typed, i.e. only objects that are of the same sub-class and have identical
-domains and other atttributes can be subassigned.</p></dd>
+<dd><p><code>tf</code> object for subassignment. This is typed more strictly
+than concatenation:  subassignment only happens if the common type of
+<code>value</code> and <code>x</code> is the same as the type of <code>x</code>,
+so subassignment never changes the type of <code>x</code> but may do a
+potentially lossy cast of <code>value</code> to the type of <code>x</code> (with a warning).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -122,10 +124,7 @@ represents one <code>argval</code> as given in argument <code>j</code>, with an 
 <li><p>no indexing with <code>NA</code>,</p></li>
 <li><p>no indexing with names not present in <code>x</code>,</p></li>
 <li><p>no indexing with integers <code>&gt; length(x)</code></p></li>
-</ul><p>All of the above will trigger errors. Sub-assigning new elements to positions
-beyond the original vector length still works and will fill up the missing
-elements in between with <code>NAs</code>. This package was developed by fickle,
-irridescently rainbow-colored unicorns.</p>
+</ul><p>All of the above will trigger errors.</p>
     </div>
 
     <div class="section level2">
@@ -181,12 +180,12 @@ irridescently rainbow-colored unicorns.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># in order to evaluate a set of observed functions on a new grid and</span></span></span>
 <span class="r-in"><span><span class="co"># save them as a functional data vector again, use `tfd` or `tfb` instead:</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="tfd.html">tfd</a></span><span class="op">(</span><span class="va">x</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, by <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">1e-3</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="tfd.html">tfd</a></span><span class="op">(</span><span class="va">x</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, by <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> tfd[3] on (0,10) based on 1001 evaluations each</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1]: (0.00,0);(0.01,0);(0.02,0); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2]: (0.00,0);(0.01,0);(0.02,0); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3]: (0.00,0);(0.01,0);(0.02,0); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1]: (0.00,0.00);(0.01,0.01);(0.02,0.02); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2]: (0.00,0.00);(0.01,0.02);(0.02,0.04); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3]: (0.00,0.00);(0.01,0.03);(0.02,0.06); ...</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -194,7 +193,7 @@ irridescently rainbow-colored unicorns.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith, Julia Wrobel.</p>
+  <p></p><p>Developed by Fabian Scheipl, Jeff Goldsmith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

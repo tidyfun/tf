@@ -7,9 +7,6 @@
     <loc>https://tidyfun.github.io/tf/CONTRIBUTING.html</loc>
   </url>
   <url>
-    <loc>https://tidyfun.github.io/tf/LICENSE-text.html</loc>
-  </url>
-  <url>
     <loc>https://tidyfun.github.io/tf/LICENSE.html</loc>
   </url>
   <url>
@@ -62,6 +59,9 @@
   </url>
   <url>
     <loc>https://tidyfun.github.io/tf/reference/tf_jiggle.html</loc>
+  </url>
+  <url>
+    <loc>https://tidyfun.github.io/tf/reference/tf_rebase.html</loc>
   </url>
   <url>
     <loc>https://tidyfun.github.io/tf/reference/tf_rgp.html</loc>
