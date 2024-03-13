@@ -33,16 +33,15 @@ several new functions in `tf` that implement operations specific for
 containing other variables, for simple and reliable data manipulation.
 This approach is connected to the conceptual framework in functional
 data analysis which assumes that *complete functions* are the unit of
-observation. With `tidyfun` and `tf`, full curves are kept alongside
-numeric, factor, and other observations on the same subject.
+observation. With `tidyfun` and `tf`, you can keep full curves alongside
+numeric, factor, and other observations on the same subject in one data
+frame.
 
 ## Installation
 
-`tf` is currently not on CRAN. You can install the development version
-from GitHub with:
+You can install the latest release from GitHub with:
 
 ``` r
-# install.packages("pak")
 pak::pak("tidyfun/tf")
 ```
 
@@ -81,13 +80,13 @@ Almost all
 are defined for **`tf`**’s data structures
 ([more](https://tidyfun.github.io/tidyfun/reference/index.html#section-arithmetic-logical-and-summary-functions)).
 
-The `tf` objects are basically glorified lists, so they work well as
-columns in data frames. That makes it a lot easier to keep your other
-data and functional measurements together in one object for
-preprocessing, exploratory analysis and description. At the same time,
-these objects actually behave like vectors of *functions* to some
-extent, i.e., they can be evaluated on any point in their domain, they
-can be integrated or differentiated, etc.
+The `tf` objects are just glorified lists, so they work well as columns
+in data frames. That makes it a lot easier to keep your other data and
+functional measurements together in one object for preprocessing,
+exploratory analysis and description. At the same time, these objects
+actually behave like vectors of *functions* to some extent, i.e., they
+can be evaluated on any point in their domain, they can be integrated or
+differentiated, etc.
 
 [See
 here](https://tidyfun.github.io/tidyfun/articles/x01_tf_Vectors.html)
