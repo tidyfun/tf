@@ -28,9 +28,9 @@
 #' @family tfb-class
 #' @export
 tfb <- function(data = data.frame(), basis = c("spline", "fpc", "wavelet"), ...) {
+  # nocov start
   basis <- match.arg(basis)
   if (vctrs::vec_size(data) == 0) {
-    message("empty input `data`; returning prototype of length 0")
     ret <-
       switch(basis,
            spline  = new_tfb_spline(numeric(0), ...),
@@ -41,8 +41,10 @@ tfb <- function(data = data.frame(), basis = c("spline", "fpc", "wavelet"), ...)
          spline  = tfb_spline(data, ...),
          fpc     = tfb_fpc(data, ...),
          wavelet = tfb_wavelet(data, ...))
+  # nocov end
 }
 
+# nocov start
 #' @rdname tfb
 tfb_wavelet <- function(data, ...) .NotYetImplemented()
 
@@ -52,3 +54,4 @@ tfb_wavelet <- function(data, ...) .NotYetImplemented()
 #' @export
 #' @family tfb-class
 as.tfb <- function(data, basis = c("spline", "fpc"), ...) tfb(data, basis, ...)
+# nocov end

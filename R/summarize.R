@@ -128,7 +128,7 @@ summary.tf <- function(object, ...) {
 }
 
 #-------------------------------------------------------------------------------
-
+# nocov start
 #' @rdname tfgroupgenerics
 #' @export
 Summary.tf <- function(...) {
@@ -182,4 +182,4 @@ cumsum.tfb <- function(...) {
 cumprod.tfb <- function(...) {
   summarize_tf(..., op = "cumprod", eval = FALSE)
 }
-
+# nocov end

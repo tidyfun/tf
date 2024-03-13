@@ -4,7 +4,7 @@
 \name{tf-package}
 \alias{tf}
 \alias{tf-package}
-\title{tf: S3 classes and methods for tidy functional data}
+\title{tf: S3 Classes and Methods for Tidy Functional Data}
 \description{
 \code{tf} is a light-weight package with few dependencies that
 provides the class definitions and methods infrastructure for \code{tidyfun} --
@@ -29,8 +29,8 @@ studies, or visit the \href{https://tidyfun.github.io/tidyfun/}{\code{tidyfun} w
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://tidyfun.github.io/tf}
-  \item \url{https://github.com/tidyfun/tf}
+  \item \url{https://tidyfun.github.io/tf/}
+  \item \url{https://github.com/tidyfun/tf/}
   \item Report bugs at \url{https://github.com/tidyfun/tf/issues}
 }
 
@@ -41,13 +41,16 @@ Useful links:
 Authors:
 \itemize{
   \item Jeff Goldsmith
-  \item Julia Wrobel (\href{https://orcid.org/0000-0001-6783-1421}{ORCID})
 }
 
 Other contributors:
 \itemize{
+  \item Julia Wrobel (\href{https://orcid.org/0000-0001-6783-1421}{ORCID}) [contributor]
   \item Maximilian Muecke (\href{https://orcid.org/0009-0000-9432-9795}{ORCID}) [contributor]
   \item Sebastian Fischer (\href{https://orcid.org/0000-0002-9609-3197}{ORCID}) [contributor]
+  \item Trevor Hastie (softImpute author) [contributor]
+  \item Rahul Mazumder (softImpute author) [contributor]
+  \item Chen Meng (mogsa author) [contributor]
 }
 
 }

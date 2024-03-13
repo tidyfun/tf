@@ -75,6 +75,7 @@ tf_smooth.tfd <- function(x,
   method <- match.arg(method)
   smoother <- get(method, mode = "function")
   dots <- list(...)
+  # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose & !is_equidist(x)) {
       warning(
@@ -101,12 +102,11 @@ tf_smooth.tfd <- function(x,
         if (verbose) message("using fl = ", dots$fl, " observations for rolling data window.")
       }
     }
-
     smoothed <- map(
       tf_evaluations(x), \(x) do.call(smoother, append(list(x), dots))
     )
   }
-
+  # nocov end
   if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- 0.15

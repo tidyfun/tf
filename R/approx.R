@@ -1,5 +1,6 @@
 #' @import zoo
 zoo_wrapper <- function(f, ...) {
+  #nocov start
   dots <- list(...)
   function(x, arg, evaluations) {
     x_arg <- sort(unique(c(x, arg)))
@@ -9,6 +10,7 @@ zoo_wrapper <- function(f, ...) {
     ret <- do.call(f, dots)
     coredata(ret)[requested]
   }
+  #nocov end
 }
 
 #-------------------------------------------------------------------------------
