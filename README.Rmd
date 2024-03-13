@@ -42,7 +42,7 @@ pak::pak("tidyfun/tf")
 - basic **graphics** functions for `tf` vectors
 - basic data **wrangling** for functional data: reshaping from list columns to wide to long and back, interpolating on different grids, filtering and zooming, etc. 
 
-Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun) for the full documentation including vignettes etc.
+Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun/) for the full documentation including vignettes etc.
 
 ## What does it do?
 
@@ -67,7 +67,7 @@ The `tf` objects are just glorified lists, so they work well as columns in data 
 #### Methods for converting existing data to `tf` and back
 
 **`tf`** includes functions `tfd` and `tfb` for converting matrices, data frames, etc. to `tf` vectors and back. 
-Much more data wrangling functionality in a `tidyverse`-inspired way is available in [**`tidyfun`**](https://tidyfun.github.io/tidyfun). 
+More data wrangling methods in a `tidyverse`-inspired way and `ggplot2`-geoms for functional data are available in [**`tidyfun`**](https://tidyfun.github.io/tidyfun/). 
 
 [See here](https://tidyfun.github.io/tidyfun/articles/x02_Conversion.html) for details on getting data into (and out of) the `tf` format.
 

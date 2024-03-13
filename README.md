@@ -54,7 +54,7 @@ pak::pak("tidyfun/tf")
   columns to wide to long and back, interpolating on different grids,
   filtering and zooming, etc.
 
-Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun)
+Please see the [`tidyfun` website](https://tidyfun.github.io/tidyfun/)
 for the full documentation including vignettes etc.
 
 ## What does it do?
@@ -93,9 +93,9 @@ for more information on the operations defined for `tf` vectors.
 #### Methods for converting existing data to `tf` and back
 
 **`tf`** includes functions `tfd` and `tfb` for converting matrices,
-data frames, etc. to `tf` vectors and back. Much more data wrangling
-functionality in a `tidyverse`-inspired way is available in
-[**`tidyfun`**](https://tidyfun.github.io/tidyfun).
+data frames, etc. to `tf` vectors and back. More data wrangling methods
+in a `tidyverse`-inspired way and `ggplot2`-geoms for functional data
+are available in [**`tidyfun`**](https://tidyfun.github.io/tidyfun/).
 
 [See
 here](https://tidyfun.github.io/tidyfun/articles/x02_Conversion.html)
