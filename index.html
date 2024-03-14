@@ -71,7 +71,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The <strong><code>tf</code></strong> package provides necessary infrastructure for <a href="https://tidyfun.github.io/tidyfun" class="external-link"><strong><code>tidyfun</code></strong></a> with minimal dependencies – specifically: no <code>tidyverse</code>-dependencies.</p>
+<p>The <strong><code>tf</code></strong> package provides necessary infrastructure for <a href="https://tidyfun.github.io/tidyfun/" class="external-link"><strong><code>tidyfun</code></strong></a> with minimal dependencies – specifically: no <code>tidyverse</code>-dependencies.</p>
 <p>The goal of <strong><code>tidyfun</code></strong>, in turn, is to provide accessible and well-documented software that <strong>makes functional data analysis in <code>R</code> easy</strong> – specifically data wrangling and exploratory analysis.</p>
 <p><strong><code>tf</code></strong> includes definitions of new <code>S3</code> data types for vectors of functional data and associated methods. These <code>tf</code>-vectors, with subclasses <code>tfd</code> and <code>tfb</code>, use the <a href="https://vctrs.r-lib.org/" class="external-link"><strong><code>vctrs</code></strong></a>-framework, can be operated on using most standard functions (<code>+</code>, <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>, etc.) as well as several new functions in <code>tf</code> that implement operations specific for <em>functional</em> data (<code>tf_smooth</code>, <code>tf_derive</code>, <code>tf_integrate</code>).</p>
 <p><strong>Crucially</strong>, vectors of class <code>tf</code> can be included in data frames containing other variables, for simple and reliable data manipulation. This approach is connected to the conceptual framework in functional data analysis which assumes that <em>complete functions</em> are the unit of observation. With <code>tidyfun</code> and <code>tf</code>, you can keep full curves alongside numeric, factor, and other observations on the same subject in one data frame.</p>
@@ -93,7 +93,7 @@
 <li>basic <strong>graphics</strong> functions for <code>tf</code> vectors</li>
 <li>basic data <strong>wrangling</strong> for functional data: reshaping from list columns to wide to long and back, interpolating on different grids, filtering and zooming, etc.</li>
 </ul>
-<p>Please see the <a href="https://tidyfun.github.io/tidyfun" class="external-link"><code>tidyfun</code> website</a> for the full documentation including vignettes etc.</p>
+<p>Please see the <a href="https://tidyfun.github.io/tidyfun/" class="external-link"><code>tidyfun</code> website</a> for the full documentation including vignettes etc.</p>
 </div>
 <div class="section level2">
 <h2 id="what-does-it-do">What does it do?<a class="anchor" aria-label="anchor" href="#what-does-it-do"></a>
@@ -119,7 +119,7 @@
 <div class="section level4">
 <h4 id="methods-for-converting-existing-data-to-tf-and-back">Methods for converting existing data to <code>tf</code> and back<a class="anchor" aria-label="anchor" href="#methods-for-converting-existing-data-to-tf-and-back"></a>
 </h4>
-<p><strong><code>tf</code></strong> includes functions <code>tfd</code> and <code>tfb</code> for converting matrices, data frames, etc. to <code>tf</code> vectors and back. Much more data wrangling functionality in a <code>tidyverse</code>-inspired way is available in <a href="https://tidyfun.github.io/tidyfun" class="external-link"><strong><code>tidyfun</code></strong></a>.</p>
+<p><strong><code>tf</code></strong> includes functions <code>tfd</code> and <code>tfb</code> for converting matrices, data frames, etc. to <code>tf</code> vectors and back. More data wrangling methods in a <code>tidyverse</code>-inspired way and <code>ggplot2</code>-geoms for functional data are available in <a href="https://tidyfun.github.io/tidyfun/" class="external-link"><strong><code>tidyfun</code></strong></a>.</p>
 <p><a href="https://tidyfun.github.io/tidyfun/articles/x02_Conversion.html" class="external-link">See here</a> for details on getting data into (and out of) the <code>tf</code> format.</p>
 <hr>
 <p>Found a bug? Got a question? Missing some functionality?<br>

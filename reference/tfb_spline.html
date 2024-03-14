@@ -144,11 +144,10 @@
 
 
 <dt>...</dt>
-<dd><p>arguments to the calls to <code><a href="https://rdrr.io/pkg/mgcv/man/s.html" class="external-link">mgcv::s()</a></code> setting up the basis and
-<code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code> or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.fit.html" class="external-link">mgcv::gam.fit()</a></code> (if <code>penalized</code> is TRUE). If not
-user-specified here, this uses <code>k = 25</code> cubic regression spline basis
-functions (i.e., <code>bs = "cr"</code>) by default, but should be set appropriately
-by the user. See also Details and examples in the vignettes.</p></dd>
+<dd><p>arguments to the calls to <code><a href="https://rdrr.io/pkg/mgcv/man/s.html" class="external-link">mgcv::s()</a></code> setting up the basis (and
+to <code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code> or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.fit.html" class="external-link">mgcv::gam.fit()</a></code> if <code>penalized = TRUE</code>). Uses <code>k = 25</code> cubic regression spline basis functions (<code>bs = "cr"</code>) by default, but
+should be set appropriately by the user. See Details and examples in the
+vignettes.</p></dd>
 
 
 <dt>id</dt>
@@ -175,8 +174,10 @@ evaluations.</p></dd>
 
 
 <dt>penalized</dt>
-<dd><p>default <code>TRUE</code> estimates regularized/penalized basis coefficients via <code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code>,
-set <code>FALSE</code> for ordinary least squares/ML estimators.</p></dd>
+<dd><p><code>TRUE</code> (default) estimates regularized/penalized basis
+coefficients via <code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code> or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.fit.html" class="external-link">mgcv::gam.fit()</a></code>, <code>FALSE</code> yields
+ordinary least squares / ML estimates for basis coefficients. <code>FALSE</code> is
+much faster but will overfit for noisy data if <code>k</code> is (too) large.</p></dd>
 
 
 <dt>global</dt>
@@ -185,7 +186,8 @@ functions share the same smoothing parameter (see Details).</p></dd>
 
 
 <dt>verbose</dt>
-<dd><p>defaults to outputting statistics about the fit achieved by the basis</p></dd>
+<dd><p><code>TRUE</code> (default) outputs statistics about the fit achieved by
+the basis and other diagnostic messages.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -205,27 +207,33 @@ square error, the default) or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.ht
 supplied) or unpenalized least squares / maximum likelihood.</p>
 <p>After the "smoothed" representation is computed, the amount of smoothing that
 was performed is reported in terms of the "percentage of variability
-preserved", which is the variance (i.e, the explained deviance, in the general
-case) of the smoothed function values divided by the variance of the original
+preserved", which is the variance (or the explained deviance, in the general
+case if <code>family</code> was specified) of the smoothed function values divided by the variance of the original
 values (the null deviance, in the general case). Reporting can be switched off
 with <code>verbose = FALSE</code>.</p>
 <p>The <code>...</code> arguments supplies arguments to both the
 spline basis (via <code><a href="https://rdrr.io/pkg/mgcv/man/s.html" class="external-link">mgcv::s()</a></code>) and the estimation (via
-<code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code> or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam()</a></code>), most important:</p><ul><li><p>how many basis functions <code>k</code> the spline basis should have, the default is</p></li>
-</ul><ol><li><p></p></li>
-</ol><ul><li><p>which type of spline basis <code>bs</code> should be used, the default is cubic
-regression splines (<code>"cr"</code>) - a <code>family</code>-argument to the fitters for data for
-which squared errors are not a reasonable criterion for the representation
-accuracy (see <code><a href="https://rdrr.io/pkg/mgcv/man/family.mgcv.html" class="external-link">mgcv::family.mgcv()</a></code> for what's available).</p></li>
-<li><p>an <code>sp</code>-argument for manually fixing the amount of smoothing (see
-<code><a href="https://rdrr.io/pkg/mgcv/man/s.html" class="external-link">mgcv::s()</a></code>), which (drastically) reduces the computation time.</p></li>
-</ul><p>If <strong><code>global == TRUE</code></strong>, the routine first takes a subset of curves (10\<!-- % of -->
-curves sampled deterministically, at most 100, at least 5) on which smoothing
-parameters per curve are estimated and then uses the mean of the log
-smoothing parameter of those for all curves. This can be much faster than
-optimizing the smoothing parameter for each curve on large datasets. For very
-sparse data, estimating a common smoothing parameter directly for all curves
-at once might yield better results, this is <em>not</em> what's implemented here.</p>
+<code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code> or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam()</a></code>), the most important arguments are:</p><ul><li><p><strong><code>k</code></strong>: how many basis functions should the spline basis use, default is 25.</p></li>
+<li><p><strong><code>bs</code></strong>: which type of spline basis should be used, the default is cubic
+regression splines (<code>bs = "cr"</code>)</p></li>
+<li><p><strong><code>family</code></strong> argument: use this if minimizing squared errors is not
+a reasonable criterion for the representation accuracy (see
+<code><a href="https://rdrr.io/pkg/mgcv/man/family.mgcv.html" class="external-link">mgcv::family.mgcv()</a></code> for what's available) and/or if function values are
+restricted to be e.g. positive (<code>family = Gamma()/tw()/...</code>), in
+\([0,1]\)  (<code>family = betar()</code>), etc.</p></li>
+<li><p><strong><code>sp</code></strong>: numeric value for the smoothness penalty weight, for manually
+setting the amount of smoothing for all curves, see <code><a href="https://rdrr.io/pkg/mgcv/man/s.html" class="external-link">mgcv::s()</a></code>. This
+(drastically) reduces computation time. Defaults to <code>-1</code>, i.e., automatic
+optimization of <code>sp</code> using <code><a href="https://rdrr.io/pkg/mgcv/man/magic.html" class="external-link">mgcv::magic()</a></code> (LS fits) or <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam()</a></code> (GLM),
+source code in <code>R/tfb-spline-utils.R</code>.</p></li>
+</ul><p>If <strong><code>global == TRUE</code></strong>, this uses a small subset of curves (10<code>%</code> of curves,
+at least 5, at most 100; non-random sample using every j-th curve in the
+data) on which smoothing parameters per curve are estimated and then takes
+the mean of the log smoothing parameter of those as <code>sp</code> for all curves. This
+is much faster than optimizing for each curve on large data sets. For very
+sparse or noisy curves, estimating a common smoothing parameter based on the
+data for all curves simultaneously is likely to yield better results, this is
+<em>not</em> what's implemented here.</p>
     </div>
     <div class="section level2">
     <h2 id="methods-by-class-">Methods (by class)<a class="anchor" aria-label="anchor" href="#methods-by-class-"></a></h2>
