@@ -163,42 +163,51 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 #'
 #' After the "smoothed" representation is computed, the amount of smoothing that
 #' was performed is reported in terms of the "percentage of variability
-#' preserved", which is the variance (i.e, the explained deviance, in the general
-#' case) of the smoothed function values divided by the variance of the original
+#' preserved", which is the variance (or the explained deviance, in the general
+#' case if `family` was specified) of the smoothed function values divided by the variance of the original
 #' values (the null deviance, in the general case). Reporting can be switched off
 #' with `verbose = FALSE`.
 #'
 #' The `...` arguments supplies arguments to both the
 #' spline basis (via [mgcv::s()]) and the estimation (via
-#' [mgcv::magic()] or [mgcv::gam()]), most important:
+#' [mgcv::magic()] or [mgcv::gam()]), the most important arguments are:
 #'
-#' - how many basis functions `k` the spline basis should have, the default is
-#' 25.
-#' - which type of spline basis `bs` should be used, the default is cubic
-#' regression splines (`"cr"`) - a `family`-argument to the fitters for data for
-#' which squared errors are not a reasonable criterion for the representation
-#' accuracy (see [mgcv::family.mgcv()] for what's available).
-#' - an `sp`-argument for manually fixing the amount of smoothing (see
-#' [mgcv::s()]), which (drastically) reduces the computation time.
+#' - **`k`**: how many basis functions should the spline basis use, default is 25.
+#' - **`bs`**: which type of spline basis should be used, the default is cubic
+#' regression splines (`bs = "cr"`)
+#' - **`family`** argument: use this if minimizing squared errors is not
+#' a reasonable criterion for the representation accuracy (see
+#' [mgcv::family.mgcv()] for what's available) and/or if function values are
+#' restricted to be e.g. positive (`family = Gamma()/tw()/...`), in
+#' \eqn{[0,1]}  (`family = betar()`), etc.
+#' - **`sp`**: numeric value for the smoothness penalty weight, for manually
+#' setting the amount of smoothing for all curves, see [mgcv::s()]. This
+#' (drastically) reduces computation time. Defaults to `-1`, i.e., automatic
+#' optimization of `sp` using [mgcv::magic()] (LS fits) or [mgcv::gam()] (GLM),
+#' source code in `R/tfb-spline-utils.R`.
 #'
-#' If **`global == TRUE`**, the routine first takes a subset of curves (10\% of
-#' curves sampled deterministically, at most 100, at least 5) on which smoothing
-#' parameters per curve are estimated and then uses the mean of the log
-#' smoothing parameter of those for all curves. This can be much faster than
-#' optimizing the smoothing parameter for each curve on large datasets. For very
-#' sparse data, estimating a common smoothing parameter directly for all curves
-#' at once might yield better results, this is *not* what's implemented here.
+#' If **`global == TRUE`**, this uses a small subset of curves (10`%` of curves,
+#' at least 5, at most 100; non-random sample using every j-th curve in the
+#' data) on which smoothing parameters per curve are estimated and then takes
+#' the mean of the log smoothing parameter of those as `sp` for all curves. This
+#' is much faster than optimizing for each curve on large data sets. For very
+#' sparse or noisy curves, estimating a common smoothing parameter based on the
+#' data for all curves simultaneously is likely to yield better results, this is
+#' *not* what's implemented here.
 #'
-#' @param penalized default `TRUE` estimates regularized/penalized basis coefficients via [mgcv::magic()],
-#'  set `FALSE` for ordinary least squares/ML estimators.
+#' @param penalized `TRUE` (default) estimates regularized/penalized basis
+#'   coefficients via [mgcv::magic()] or [mgcv::gam.fit()], `FALSE` yields
+#'   ordinary least squares / ML estimates for basis coefficients. `FALSE` is
+#'   much faster but will overfit for noisy data if `k` is (too) large.
 #' @param global Defaults to `FALSE`. If `TRUE` and `penalized = TRUE`, all
 #'   functions share the same smoothing parameter (see Details).
-#' @param verbose defaults to outputting statistics about the fit achieved by the basis
-#' @param ...  arguments to the calls to [mgcv::s()] setting up the basis and
-#'   [mgcv::magic()] or [mgcv::gam.fit()] (if `penalized` is TRUE). If not
-#'   user-specified here, this uses `k = 25` cubic regression spline basis
-#'   functions (i.e., `bs = "cr"`) by default, but should be set appropriately
-#'   by the user. See also Details and examples in the vignettes.
+#' @param verbose `TRUE` (default) outputs statistics about the fit achieved by
+#'   the basis and other diagnostic messages.
+#' @param ...  arguments to the calls to [mgcv::s()] setting up the basis (and
+#'   to [mgcv::magic()] or [mgcv::gam.fit()] if `penalized = TRUE`). Uses `k =
+#'   25` cubic regression spline basis functions (`bs = "cr"`) by default, but
+#'   should be set appropriately by the user. See Details and examples in the
+#'   vignettes.
 #' @inheritParams tfb
 #' @returns a `tfb`-object
 #' @seealso [mgcv::smooth.terms()] for spline basis options.

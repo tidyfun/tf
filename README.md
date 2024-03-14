@@ -7,12 +7,12 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://codecov.io/github/tidyfun/tf/branch/main)
+[![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://app.codecov.io/github/tidyfun/tf/branch/main/)
 [![R-CMD-check](https://github.com/tidyfun/tf/actions/workflows/full-check.yaml/badge.svg)](https://github.com/tidyfun/tf/actions/workflows/full-check.yaml)
 <!-- badges: end -->
 
 The **`tf`** package provides necessary infrastructure for
-[**`tidyfun`**](https://tidyfun.github.io/tidyfun) with minimal
+[**`tidyfun`**](https://tidyfun.github.io/tidyfun/) with minimal
 dependencies – specifically: no `tidyverse`-dependencies.
 
 The goal of **`tidyfun`**, in turn, is to provide accessible and

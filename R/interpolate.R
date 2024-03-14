@@ -27,23 +27,26 @@
 #' @family tidyfun inter/extrapolation functions
 #' @export
 #' @examples
+#' \dontrun{
 #' # thinning out a densely observed tfd
 #' dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001))
 #' less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))
-#'
+#' dense
+#' less_dense
 #' # filling out sparse data (use a suitable evaluator-function!)
-#' sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 21))
-#' plot(sparse)
+#' sparse <- tf_rgp(10, arg = seq(0, 5, length.out = 11))
+#' plot(sparse, points = TRUE)
 #' # change evaluator for better interpolation
 #' tfd(sparse, evaluator = tf_approx_spline) |>
 #'   tf_interpolate(arg = seq(0, 5, length.out = 201)) |>
-#'   lines(col = 2)
+#'   lines(col = 2, lty = 2)
 #'
 #' set.seed(1860)
 #' sparse_irregular <- tf_rgp(5) |>
 #'   tf_sparsify(0.5) |>
 #'   tf_jiggle()
 #' tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
+#' }
 tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 
 #' @export
