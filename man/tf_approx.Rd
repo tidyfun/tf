@@ -22,11 +22,15 @@ tf_approx_locf(x, arg, evaluations)
 tf_approx_nocb(x, arg, evaluations)
 }
 \arguments{
-\item{x}{new arg values to tf_approximate the function for}
+\item{x}{new \code{arg} values to approximate/interpolate/extrapolate the function for}
 
 \item{arg}{the \code{arg} values of the \code{evaluations}}
 
-\item{evaluations}{the function's values at \code{arg}}
+\item{evaluations}{the function values at \code{arg}}
+}
+\value{
+a vector of values of the function defined by the given
+\eqn{(x_i, f(x_i))}=\verb{(arg, evaluations)}-tuples at new argument values \code{x}.
 }
 \description{
 These are the currently available \code{evaluator}-functions for \code{tfd}-objects,

@@ -53,9 +53,6 @@ same_args <- function(x, to) {
 #' - Any cast of a `tfd` into `tfb` is potentially *lossy* (because we don't know how expressive the chosen basis is)
 #' - Only `tfb` with identical bases and domains can be cast into one another *losslessly*
 #'
-#'
-
-#'
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @importFrom vctrs vec_ptype2 vec_cast stop_incompatible_cast maybe_lossy_cast
@@ -65,6 +62,8 @@ same_args <- function(x, to) {
 #' @export
 #' @export vec_cast.tfd_reg
 #' @inheritParams vctrs::vec_cast
+#' @returns for `vec_cast`: the casted `tf`-vector, for `vec_ptype2`: the common prototype
+#' @seealso [vctrs::vec_cast()], [vctrs::vec_ptype2()]
 vec_cast.tfd_reg <- function(x, to, ...) UseMethod("vec_cast.tfd_reg")
 
 #' @rdname vctrs

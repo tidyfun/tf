@@ -45,6 +45,7 @@ string_rep_tf <- function(f, signif_arg = NULL,
 #'
 #' @rdname tfdisplay
 #' @param n how many elements of `x` to print out
+#' @returns prints out `x` and returns it invisibly
 #' @export
 #' @family tidyfun print
 print.tf <- function(x, n = 5, ...) {

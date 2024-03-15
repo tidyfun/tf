@@ -27,7 +27,7 @@
 #' @family tidyfun inter/extrapolation functions
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # thinning out a densely observed tfd
 #' dense <- tf_rgp(10, arg = seq(0, 1, length.out = 1001))
 #' less_dense <- tf_interpolate(dense, arg = seq(0, 1, length.out = 101))

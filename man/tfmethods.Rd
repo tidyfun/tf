@@ -91,12 +91,17 @@ that can be used to interpolate an \code{tfd}. Needs to accept vector arguments
 \strong{for \verb{tf_domain<-}:} sorted numeric vector with the 2 new endpoints of
 the domain. \cr}
 
-\item{as_tfd}{should the basis be returned as a \code{tfd} evaluated on
-\code{tf_arg(f)}? Defaults to FALSE.}
+\item{as_tfd}{should the basis be returned as a \code{tfd}-vector evaluated on
+\code{tf_arg(f)}? Defaults to \code{FALSE}, which returns the matrix of basis functions
+(columns) evaluated on \code{tf_arg(f)} (rows).}
 
 \item{object}{as usual}
 
 \item{...}{dots}
+}
+\value{
+either the respective attribute or, for setters (assignment functions),
+the input object with modified properties.
 }
 \description{
 A bunch of methods & utilities that do what they say: get or set the

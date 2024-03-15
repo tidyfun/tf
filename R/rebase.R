@@ -11,9 +11,11 @@
 #' `tf_rebase.tfb.tfb` that dispatch on `object_from`.
 #'
 #' @param object a `tf` object whose representation should be changed
-#' @param basis_from  the `tf` object with the desired basis, `arg`, etc
+#' @param basis_from  the `tf` object with the desired basis, `arg`, `evaluator`, etc.
 #' @param arg optional new `arg` values, defaults to those of `basis_from`
 #' @param ... forwarded to the `tfb` or `tfd` constructors
+#' @returns a `tf`-vector containing the data of `object` in the same representation
+#'  as `basis_from` (potentially modified by the arguments given in `...`).
 #'
 #' @export
 tf_rebase <- function(object, basis_from, arg = tf_arg(basis_from), ...) {

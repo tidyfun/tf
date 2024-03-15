@@ -135,6 +135,9 @@ dots are only for future extensions and should be empty.}
 
 \item{y}{Vectors to cast.}
 }
+\value{
+for \code{vec_cast}: the casted \code{tf}-vector, for \code{vec_ptype2}: the common prototype
+}
 \description{
 These functions are the extensions that allow \code{tf} vectors
 to work with \code{vctrs}.
@@ -165,5 +168,8 @@ note it's lossless only on the \emph{original} \code{arg}-grid)
 \item Any cast of a \code{tfd} into \code{tfb} is potentially \emph{lossy} (because we don't know how expressive the chosen basis is)
 \item Only \code{tfb} with identical bases and domains can be cast into one another \emph{losslessly}
 }
+}
+\seealso{
+\code{\link[vctrs:vec_cast]{vctrs::vec_cast()}}, \code{\link[vctrs:vec_ptype2]{vctrs::vec_ptype2()}}
 }
 \concept{tidyfun vctrs}

@@ -55,6 +55,9 @@
 
 \item{prefix}{used internally.}
 }
+\value{
+prints out \code{x} and returns it invisibly
+}
 \description{
 Print/format \code{tf}-objects.
 }

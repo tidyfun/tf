@@ -43,9 +43,11 @@ zoo_wrapper <- function(f, ...) {
 #' @rdname tf_approx
 #' @seealso tfd
 #' @export
-#' @param x new arg values to tf_approximate the function for
+#' @param x new `arg` values to approximate/interpolate/extrapolate the function for
 #' @param arg the `arg` values of the `evaluations`
-#' @param evaluations the function's values at `arg`
+#' @param evaluations the function values at `arg`
+#' @returns a vector of values of the function defined by the given
+#' \eqn{(x_i, f(x_i))}=`(arg, evaluations)`-tuples at new argument values `x`.
 #' @family tidyfun inter/extrapolation functions
 tf_approx_linear <- zoo_wrapper(na.approx, na.rm = FALSE)
 

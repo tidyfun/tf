@@ -66,6 +66,9 @@
 
 \item{...}{\code{tf}-objects (not used for \code{Math} group generic)}
 }
+\value{
+a \code{tf}- or \code{logical} vector with the computed result
+}
 \description{
 These methods and operators mostly work \code{arg}-value-wise on \code{tf} objects, see
 \code{?groupGeneric} for implementation details.
@@ -89,11 +92,16 @@ log(exp(f)) == f
 plot(f, points = FALSE)
 lines(range(f), col = 2, lty = 2)
 
-f2 <- tfb(tf_rgp(5), k = 50)
-layout(t(1:2))
-plot(f2, col = 1:5)
-plot(cumsum(f2), col = 1:5)
-# use ?tf_integrate for "function-wise" integrals i.e., weighted cumulative sums...
+f2 <- tf_rgp(5) |> exp() |> tfb(k = 25)
+layout(t(1:3))
+plot(f2, col = gray.colors(5))
+plot(cummin(f2), col = gray.colors(5))
+plot(cumsum(f2), col = gray.colors(5))
+
+# ?tf_integrate for integrals, ?tf_fwise for scalar summaries of each function
+}
+\seealso{
+\code{\link[=tf_fwise]{tf_fwise()}} for scalar summaries of each function in a \code{tf}-vector
 }
 \concept{tidyfun compute}
 \concept{tidyfun compute functions}

@@ -1,4 +1,3 @@
-#' @importFrom refund fpca.sc
 new_tfb_fpc <- function(data, domain = NULL,
                        method = NULL, basis_from = NULL, ...) {
   if (all(dim(data) == 0)) {
@@ -140,7 +139,7 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #'   as.data.frame(unnest = TRUE)
 #' # wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
 #' fpca_sc_wrapper <- function(data, arg, pve = 0.995, ...) {
-#'   data_mat <- tf:::df_2_mat(data)
+#'   data_mat <- tfd(data) |> as.matrix(interpolate = TRUE)
 #'   fpca <- refund::fpca.sc(
 #'     Y = data_mat, argvals = attr(data_mat, "arg"), pve = pve, ...
 #'   )

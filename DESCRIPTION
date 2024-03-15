@@ -18,8 +18,13 @@ Authors@R: c(
     person("Chen", "Meng", role = "ctb", 
            comment = "mogsa author")
   )
-Description: Provides S3 classes and methods for representing, visualizing
-    and wrangling tidy functional data.
+Description: Defines S3 vector data types for vectors of functional data (grid-based,
+   spline-based or FPC-based) with all arithmetic and summary methods, derivation, 
+   integration and smoothing, plotting, data import and export, and data wrangling, 
+   such as re-evaluating, subsetting, subassigning, zooming into subdomains, 
+   or extracting functional features like minima/maxima and their locations. 
+   The vctrs-based implementation allows including such vectors in data frames 
+   for joint analysis of functional and scalar variables.
 License: AGPL (>= 3)
 URL: https://tidyfun.github.io/tf/, https://github.com/tidyfun/tf/
 BugReports: https://github.com/tidyfun/tf/issues
@@ -32,7 +37,6 @@ Imports:
     mvtnorm,
     pracma,
     purrr,
-    refund,
     rlang,
     stats,
     vctrs (>= 0.2.4),
@@ -41,6 +45,7 @@ Suggests:
     covr,
     dplyr,
     knitr,
+    refund,
     testthat (>= 3.0.0)
 Encoding: UTF-8
 LazyData: true

@@ -4,6 +4,8 @@
 #' respective attributes of a `tf`-object.
 #' @param f an `tf` object
 #' @param x an `tf` object
+#' @returns either the respective attribute or, for setters (assignment functions),
+#'  the input object with modified properties.
 #' @rdname tfmethods
 #' @family tidyfun utility functions
 #' @export
@@ -136,8 +138,9 @@ tf_evaluator_expr <- function(f) {
 #-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
-#' @param as_tfd should the basis be returned as a `tfd` evaluated on
-#'   `tf_arg(f)`? Defaults to FALSE.
+#' @param as_tfd should the basis be returned as a `tfd`-vector evaluated on
+#'   `tf_arg(f)`? Defaults to `FALSE`, which returns the matrix of basis functions
+#'    (columns) evaluated on `tf_arg(f)` (rows).
 #' @export
 tf_basis <- function(f, as_tfd = FALSE) {
   assert_class(f, "tfb")

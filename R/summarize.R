@@ -32,16 +32,20 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
 #' Functions that summarize `tf` objects across argument values
 #'
 #' These will return a `tf` object containing the respective *functional*
-#' statistic.
-#' `summary` returns a `tf`-vector with the mean function, the
-#' variance function, the functional median, and the functional range
-#' (i.e., *pointwise* min/max) of the central half of the functions,
-#' as defined by [tf_depth()]
+#' statistic. See [tf_fwise()] for scalar summaries
+#' (e.g. `tf_fmean` for means, `tf_fmax` for max. values) of each entry
+#' in a `tf`-vector.
 #'
 #' @param x a `tf` object
 #' @param ... optional additional arguments.
+#' @returns a `tf` object with the computed result.\cr
+#' **`summary.tf`** returns a `tf`-vector with the mean function, the
+#' variance function, the functional median, and the functional range
+#' (i.e., *pointwise* min/max) of the central half of the functions,
+#' as defined by [tf_depth()].
 #' @name tfsummaries
 #' @family tidyfun summary functions
+#' @seealso [tf_fwise()]
 NULL
 
 #' @export
