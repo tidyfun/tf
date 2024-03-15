@@ -199,6 +199,12 @@ dots are only for future extensions and should be empty.</p></dd>
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>for <code>vec_cast</code>: the casted <code>tf</code>-vector, for <code>vec_ptype2</code>: the common prototype</p>
+    </div>
+    <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><strong>Notes on <code>vec_cast</code>:</strong>
 Use <code><a href="tf_rebase.html">tf_rebase()</a></code> to change the representations of <code>tf</code>-vectors,
@@ -221,6 +227,10 @@ note it's lossless only on the <em>original</em> <code>arg</code>-grid)</p></li>
 <li><p>Any cast of a <code>tfd</code> into <code>tfb</code> is potentially <em>lossy</em> (because we don't know how expressive the chosen basis is)</p></li>
 <li><p>Only <code>tfb</code> with identical bases and domains can be cast into one another <em>losslessly</em></p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="https://vctrs.r-lib.org/reference/vec_cast.html" class="external-link">vctrs::vec_cast()</a></code>, <code><a href="https://vctrs.r-lib.org/reference/vec_ptype2.html" class="external-link">vctrs::vec_ptype2()</a></code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

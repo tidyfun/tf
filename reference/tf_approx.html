@@ -124,7 +124,7 @@ with <code>na.rm = FALSE</code>),</p></li>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>new arg values to tf_approximate the function for</p></dd>
+<dd><p>new <code>arg</code> values to approximate/interpolate/extrapolate the function for</p></dd>
 
 
 <dt>arg</dt>
@@ -132,9 +132,16 @@ with <code>na.rm = FALSE</code>),</p></li>
 
 
 <dt>evaluations</dt>
-<dd><p>the function's values at <code>arg</code></p></dd>
+<dd><p>the function values at <code>arg</code></p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>a vector of values of the function defined by the given
+\((x_i, f(x_i))\)=<code>(arg, evaluations)</code>-tuples at new argument values <code>x</code>.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>tfd</p>

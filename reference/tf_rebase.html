@@ -79,7 +79,7 @@ be combined, compared or computed with.</p>
 
 
 <dt>basis_from</dt>
-<dd><p>the <code>tf</code> object with the desired basis, <code>arg</code>, etc</p></dd>
+<dd><p>the <code>tf</code> object with the desired basis, <code>arg</code>, <code>evaluator</code>, etc.</p></dd>
 
 
 <dt>arg</dt>
@@ -90,6 +90,13 @@ be combined, compared or computed with.</p>
 <dd><p>forwarded to the <code>tfb</code> or <code>tfd</code> constructors</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>a <code>tf</code>-vector containing the data of <code>object</code> in the same representation
+as <code>basis_from</code> (potentially modified by the arguments given in <code>...</code>).</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This uses double dispatch (S3) internally, so the methods defined below are

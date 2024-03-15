@@ -134,8 +134,9 @@ the domain. <br></p></dd>
 
 
 <dt>as_tfd</dt>
-<dd><p>should the basis be returned as a <code>tfd</code> evaluated on
-<code>tf_arg(f)</code>? Defaults to FALSE.</p></dd>
+<dd><p>should the basis be returned as a <code>tfd</code>-vector evaluated on
+<code>tf_arg(f)</code>? Defaults to <code>FALSE</code>, which returns the matrix of basis functions
+(columns) evaluated on <code>tf_arg(f)</code> (rows).</p></dd>
 
 
 <dt>object</dt>
@@ -146,6 +147,13 @@ the domain. <br></p></dd>
 <dd><p>dots</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    
+
+<p>either the respective attribute or, for setters (assignment functions),
+the input object with modified properties.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other tidyfun utility functions: 
