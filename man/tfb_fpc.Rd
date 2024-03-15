@@ -108,8 +108,8 @@ x_pc |> tf_basis(as_tfd = TRUE) |> plot(col = 1:5)
 \donttest{
 # Apply FPCA for sparse, irregular data using refund::fpca.sc:
 set.seed(99290)
-# create sparse, irregular data:
-x_irreg <- x |>
+# create small, sparse, irregular data:
+x_irreg <- x[1:8] |>
   tf_jiggle() |> tf_sparsify(dropout = 0.3)
 plot(x_irreg)
 x_df <- x_irreg |>
