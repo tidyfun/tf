@@ -229,8 +229,8 @@ data is NULL</p></li>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># Apply FPCA for sparse, irregular data using refund::fpca.sc:</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">99290</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># create sparse, irregular data:</span></span></span>
-<span class="r-in"><span><span class="va">x_irreg</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span><span class="co"># create small, sparse, irregular data:</span></span></span>
+<span class="r-in"><span><span class="va">x_irreg</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="tf_jiggle.html">tf_jiggle</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="tf_jiggle.html">tf_sparsify</a></span><span class="op">(</span>dropout <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x_irreg</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">x_df</span> <span class="op">&lt;-</span> <span class="va">x_irreg</span> <span class="op">|&gt;</span></span></span>
