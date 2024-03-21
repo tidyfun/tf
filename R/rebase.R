@@ -36,7 +36,7 @@ tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
 
   default_arg <- identical(arg, tf_arg(basis_from))
 
-  if (is_irreg(basis_from)) {
+  if (is_irreg(basis_from) & vec_size(basis_from) != 0) {
     if (vec_size(basis_from) != vec_size(object)) {
       if (vec_size(object) != 1) {
         stop("can't rebase regular tfd with irregular tfd of incompatible size",
