@@ -113,6 +113,21 @@ is_equidist <- function(f) {
   all(unique_diffs)
 }
 
+# get intersection of arg vectors
+common_args <- function(e1, e2) {
+  arg1 <- tf_arg(e1) |> ensure_list()
+  arg2 <- tf_arg(e2) |> ensure_list()
+  map2(arg1, arg2, \(x, y) intersect(x, y) |> sort())
+}
+
+# get union of arg vectors
+all_args <- function(e1, e2) {
+  arg1 <- tf_arg(e1) |> ensure_list()
+  arg2 <- tf_arg(e2) |> ensure_list()
+  map2(arg1, arg2, \(x, y) union(x, y) |> sort())
+}
+
+
 #-------------------------------------------------------------------------------
 #  compatibility
 

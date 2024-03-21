@@ -17,14 +17,16 @@ fun_op <- function(x, y, op, numeric = NA) {
     stopifnot(
       # no "recycling" of args
       (length(x) %in% c(1, length(y))) | (length(y) %in% c(1, length(x))),
-      all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE),
-      all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE)
+      all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)
+      # all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE)
     )
+    #?? get attributes from vec_ptype2 here!
     attr_ret <- if (length(x) >= length(y)) {
       attributes(x)
     } else {
       attributes(y)
     }
+    #?? get new arg from arg_intersect instead
     arg_ret <- tf_arg(y)
   }
   if (is_tfb(x)) x_ <- coef(x)
