@@ -1,6 +1,7 @@
 # *, / for tfs; and +, -, ^ for tfds
 fun_op <- function(x, y, op, numeric = NA) {
   if (!is.na(numeric)) {
+  # function-scalar-ops
     num <- list(x, y)[[numeric]]
     f <- list(x, y)[[3 - numeric]]
     assert_numeric(num)
@@ -12,11 +13,12 @@ fun_op <- function(x, y, op, numeric = NA) {
     attr_ret <- attributes(f)
     arg_ret <- tf_arg(f)
   } else {
+  # function-function-ops
     stopifnot(
       # no "recycling" of args
       (length(x) %in% c(1, length(y))) | (length(y) %in% c(1, length(x))),
-      all.equal(tf_domain(x), tf_domain(y)),
-      all.equal(tf_arg(x), tf_arg(y))
+      all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE),
+      all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE)
     )
     attr_ret <- if (length(x) >= length(y)) {
       attributes(x)
