@@ -53,7 +53,7 @@ test_that("tf_rebase.tfb_spline preserves args & evals and transfers attributes"
     fpc_low = tfb_fpc(x, pve = .95)
   )
   for (i in seq_along(l)) {
-    # cat(i)
+     cat(i)
     x_rebase <- tf_rebase(b, l[[i]], verbose = FALSE)
     expect_equal(
       x_rebase |> tf_evaluations(),
@@ -64,9 +64,10 @@ test_that("tf_rebase.tfb_spline preserves args & evals and transfers attributes"
       x_rebase |> tf_arg(),
       l[[i]] |> tf_arg()
     )
-    expect_true(
-      compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
-    )
+    skip_on_cran( # to avoid not reproducible BS on Fedora 36 - MKL
+      expect_true(
+        compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
+      ))
     expect_equal(names(x_rebase), names(x))
     # c(x_rebase, l[[i]]) # !! see #77
   }
