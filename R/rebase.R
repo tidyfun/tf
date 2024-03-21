@@ -34,14 +34,35 @@ tf_rebase.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_domain_x_in_to(x = object, to = basis_from)
 
-  if (!identical(tf_arg(object),  arg)) {
+  default_arg <- identical(arg, tf_arg(basis_from))
+
+  if (is_irreg(basis_from)) {
+    if (vec_size(basis_from) != vec_size(object)) {
+      if (vec_size(object) != 1) {
+        stop("can't rebase regular tfd with irregular tfd of incompatible size",
+             call. = FALSE)
+      }
+      # if <object> is length 1, extrapolate it to *all* eval points of
+      # basis_from by default
+      if (default_arg) {
+        arg <- arg |> unlist() |> unique() |> sort()
+        message("using all ", length(arg), " unique time points for new arg.")
+        default_arg <- FALSE
+      }
+    }
+  }
+
+  if (!identical(tf_arg(object), arg)) {
     object <- tfd(object, arg, domain = tf_domain(basis_from), ...)
   }
+  if (is_irreg(basis_from)) object <- as.tfd_irreg(object)
   attr(object, "domain") <- tf_domain(basis_from)
   attr(object, "evaluator") <- attr(basis_from, "evaluator")
   attr(object, "evaluator_name") <- attr(basis_from, "evaluator_name")
   object
 }
+
+
 #'@export
 tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_same_domains(object, basis_from)
