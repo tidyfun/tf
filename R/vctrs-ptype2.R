@@ -3,6 +3,17 @@ warn_tfd_cast <- function(x, y, to = class(y)[1]) {
          "> by casting to <", to, ">.", call. = FALSE)
 }
 
+get_larger_domain <- function(x, y) {
+  domains <- cbind(x = tf_domain(x), y = tf_domain(y))
+  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
+  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
+  if (!(dom_x_larger | dom_y_larger)) {
+    stop_incompatible_type(x, y, x_arg = "", y_arg = "",
+                           details = "domains incompatible")
+  }
+  ifelse(dom_x_larger, "x", "y")
+}
+
 #-------------------------------------------------------------------------------
 #' @name vctrs
 #' @family tidyfun vctrs
@@ -17,24 +28,18 @@ vec_ptype2.tfd_reg <- function(x, y, ...) UseMethod("vec_ptype2.tfd_reg")
 #' @method vec_ptype2.tfd_reg tfd_reg
 #' @export
 vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
-  domains <- cbind(x = tf_domain(x), y = tf_domain(y))
-  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
-  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
-  if (!(dom_x_larger | dom_y_larger)) {
-    stop_incompatible_type(x, y, x_arg = "", y_arg = "",
-                           details = "domains incompatible")
-  }
+  dom_ret <- get_larger_domain(x, y)
   same_args <- same_args(x, y)
   # same grid --> common way to represent x and y is still a tfd_reg
   if (same_args) {
     # return the one with larger domain
-    if (dom_x_larger) return(x)
-    if (dom_y_larger) return(y)
+    if (dom_ret == "x") return(x)
+    if (dom_ret == "y") return(y)
   } else {
     # different grids--> only tfd_irreg can represent x *and* y
     warn_tfd_cast(x, y, "tfd_irreg")
-    if (dom_x_larger) return(as.tfd_irreg(x))
-    if (dom_y_larger) return(as.tfd_irreg(y))
+    if (dom_ret == "x")  return(as.tfd_irreg(x))
+    if (dom_ret == "y")  return(as.tfd_irreg(y))
   }
 }
 
@@ -43,17 +48,11 @@ vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
 #' @method vec_ptype2.tfd_reg tfd_irreg
 #' @export
 vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) {
-  domains <- cbind(x = tf_domain(x), y = tf_domain(y))
-  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
-  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
-  if (!(dom_x_larger | dom_y_larger)) {
-    stop_incompatible_type(x, y, x_arg = "", y_arg = "",
-                           details = "domains incompatible")
-  }
+  dom_ret <- get_larger_domain(x, y)
   # different grids --> only tfd_irreg can represent x *and* y
   warn_tfd_cast(x, y, "tfd_irreg")
-  if (dom_x_larger) return(as.tfd_irreg(x))
-  if (dom_y_larger) return(y)
+  if (dom_ret == "x") return(as.tfd_irreg(x))
+  if (dom_ret == "y") return(y)
 }
 
 #' @name vctrs
@@ -92,16 +91,10 @@ vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) {
 #' @method vec_ptype2.tfd_irreg tfd_irreg
 #' @export
 vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {
-  domains <- cbind(x = tf_domain(x), y = tf_domain(y))
-  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
-  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
-  if (!(dom_x_larger | dom_y_larger)) {
-    stop_incompatible_type(x, y, x_arg = "", y_arg = "",
-                         details = "domains incompatible")
-  }
+  dom_ret <- get_larger_domain(x, y)
   # return the one with larger domain
-  if (dom_x_larger) return(x)
-  if (dom_y_larger) return(y)
+  if (dom_ret == "x") return(x)
+  if (dom_ret == "y") return(y)
 }
 
 #' @name vctrs
@@ -138,15 +131,9 @@ vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {
   same_basis <- isTRUE(all.equal(tf_basis(y)(tf_arg(x)),
                                  attr(x, "basis_matrix"),
                                  check.attributes = FALSE))
-  domains <- cbind(x = tf_domain(x), y = tf_domain(y))
-  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
-  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
-  if (same_basis && dom_x_larger) return(x)
-  if (same_basis && dom_y_larger) return(y)
-  if (!(dom_x_larger | dom_y_larger)) {
-    stop_incompatible_type(x, y, x_arg = "", y_arg = "",
-                           details = "domains incompatible")
-  }
+  dom_ret <- get_larger_domain(x, y)
+  if (same_basis && dom_ret == "x") return(x)
+  if (same_basis && dom_ret == "y") return(y)
   # joint representation for different bases/domains is some tfd
   warn_tfd_cast(x, y, "tfd_reg")
   vec_ptype2(as.tfd(x), as.tfd(y))
