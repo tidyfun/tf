@@ -1,8 +1,6 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
-
-* This is a new release.
+0 errors | 0 warnings | 0 notes
 
 --------------------------------------------------------------------------------
 
@@ -13,6 +11,7 @@ to https://www.stats.ox.ac.uk/pub/bdr/Rblas/MKL/tf.out.
 We were unable to reproduce the behavior using r-hub's Docker container for this
 environment and decided to skip it consequently to avoid getting flagged  
 with a false positive. 
-We have verified that the omitted test continues to pass in the standard 
-environments on r-hub.
+We have verified that the omitted test continues to pass in our own testing
+envioronment as well as the standard environments available on 
+r-hub / win-builder.r-project.org / mac.r-project.org/macbuilder.
 --------------------------------------------------------------------------------
