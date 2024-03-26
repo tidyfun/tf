@@ -65,7 +65,7 @@ for (i in seq_along(l)) {
       l[[i]] |> tf_arg()
     )
     expect_equal(names(x_rebase), names(x))
-    skip_on_cran() # to avoid not reproducible BS on Fedora 36 - MKL
+    # skip_on_cran() # to avoid not reproducible BS on Fedora 36 - MKL
     expect_true(
       compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
     )

@@ -55,7 +55,7 @@ evaluations.}
 
 \item{method}{the function to use that computes eigenfunctions and scores.
 Defaults to \code{\link[=fpc_wsvd]{fpc_wsvd()}}, which is quick and easy but returns completely
-unsmoothed eigenfunctions unlikely to be suited for noisy data.}
+unsmoothed eigenfunctions unlikely to be suited for noisy data. See Details.}
 }
 \value{
 an object of class \code{tfb_fpc}, inheriting from \code{tfb}.
@@ -114,14 +114,24 @@ x_irreg <- x[1:8] |>
 plot(x_irreg)
 x_df <- x_irreg |>
   as.data.frame(unnest = TRUE)
-# wrap refund::fpca_sc for use as FPCA method in tfb_fpc:
+# wrap refund::fpca_sc for use as FPCA method in tfb_fpc --
+# 1. define scoring function (simple weighted LS fit)
+fpca_scores <- function(data_matrix, efunctions, mean, weights) {
+  w_mat <- matrix(weights, ncol = length(weights), nrow = nrow(data_matrix),
+                  byrow = TRUE)
+  w_mat[is.na(data_matrix)] <- 0
+  data_matrix[is.na(data_matrix)] <- 0
+  data_wc <- t((t(data_matrix) - mean) * sqrt(t(w_mat)))
+  t(qr.coef(qr(efunctions), t(data_wc) / sqrt(weights)))
+}
+# 2. define wrapper for fpca_sc:
 fpca_sc_wrapper <- function(data, arg, pve = 0.995, ...) {
   data_mat <- tfd(data) |> as.matrix(interpolate = TRUE)
   fpca <- refund::fpca.sc(
     Y = data_mat, argvals = attr(data_mat, "arg"), pve = pve, ...
   )
   c(fpca[c("mu", "efunctions", "scores", "npc")],
-    scoring_function = tf:::.fpc_wsvd_scores)
+    scoring_function = fpca_scores)
 }
 x_pc <- tfb_fpc(x_df, method = fpca_sc_wrapper)
 lines(x_pc, col = 2, lty = 2)
