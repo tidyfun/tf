@@ -1,3 +1,7 @@
+# dev
+
+* Fixed a bug related to correlation between functional data
+
 # tf 0.3.3
 
 * tf_rebase behaves more consistently on (irregular) data with different lengths

@@ -31,6 +31,10 @@ test_that("fwise summaries work for tfd_irreg", {
   expect_equal(tf_crosscov(x, x), tf_fvar(x))
   expect_equal(tf_crosscor(x, -x), c(-1, -1, -1), ignore_attr = TRUE)
 
+  x2 <- tfd(data = list(runif(2), runif(2)), arg = 1:2)
+  expect_equal(tf_crosscor(x2, x2), c(1, 1))
+  expect_equal(tf_crosscor(x2, -x2), -c(1, 1))
+
   tf_rgp(3) |> tf_jiggle() |> tf_fmean()
 })
 

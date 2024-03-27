@@ -113,10 +113,7 @@ tf_fsd <- function(x, arg = tf_arg(x)) {
   tf_fvar(x, arg) |> sqrt()
 }
 
-#' @export
-#' @describeIn functionwise cross-covariances between two functional vectors:
-#'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}
-tf_crosscov <- function(x, y, arg = tf_arg(x)) {
+tf_crosscov_helper = function(x, y, arg = tf_arg(x)) {
   # check same domain, arg
   checkmate::assert_class(x, "tf")
   checkmate::assert_class(y, "tf")
@@ -136,13 +133,23 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   y_mean <- tf_integrate(y_)/length
   x_c <- x_ - x_mean
   y_c <- y_ - y_mean
-  tf_integrate(x_c * y_c)
+  cov = tf_integrate(x_c * y_c)
+
+  list(cov = cov, length = length)
+}
+
+#' @export
+#' @describeIn functionwise cross-covariances between two functional vectors:
+#'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}
+tf_crosscov <- function(x, y, arg = tf_arg(x)) {
+  tf_crosscov_helper(x, y, arg)$cov
 }
 #' @export
 #' @describeIn functionwise cross-correlation between two functional vectors:
 #'   `tf_crosscov(x, y) / (tf_fsd(x) * tf_fsd(y))`
 tf_crosscor <- function(x, y, arg = tf_arg(x)) {
-  tf_crosscov(x, y, arg) / sqrt(tf_fvar(x, arg) * tf_fvar(y, arg))
+  res = tf_crosscov_helper(x, y, arg)
+  res$cov / (tf_fsd(x, arg) * tf_fsd(y, arg)) * res$length
 }
 
 
