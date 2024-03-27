@@ -89,7 +89,8 @@ test_that("concatentation of mixed tfs works as expected", {
   expect_identical(incremental_c, all_c)
 })
 
-# TODO: NA concatenating
+# !! NA concatenating
 # c(x, NA) works, c(NA, x) does not --
 # but: vec_ptype2(NA, x) works
-# and doing the concatenation manually with vec_init, vec_cast, vec_slice etc works as well..
+# and doing the concatenation manually with vec_init, vec_cast, vec_slice etc works as well.
+# -- this is a vctrs issue - wontfix
