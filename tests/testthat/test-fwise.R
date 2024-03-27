@@ -1,5 +1,5 @@
 test_that("fwise summaries work for tfd_reg", {
-  x <- tf_rgp(3)
+  x <- tf_rgp(3, arg = seq(0, 5, l = 101)) #use non-unit length to verify scaling
 
   x_clamp <- (x - tf_fmin(x)) / (tf_fmax(x) - tf_fmin(x))
   expect_equal(tf_fmin(x_clamp), c(0, 0, 0), ignore_attr = TRUE)
@@ -11,6 +11,7 @@ test_that("fwise summaries work for tfd_reg", {
 
   expect_equal(tf_crosscov(x, x), tf_fvar(x))
   expect_equal(tf_crosscor(x, -x), c(-1, -1, -1), ignore_attr = TRUE)
+
 })
 
 test_that("fwise summaries work for tfd_irreg", {

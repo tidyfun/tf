@@ -75,7 +75,7 @@ Almost all
 - math functions like `sum`, `log` or `abs`
 - and statistics functions like `mean` or `sd`
 
-are defined for **`tf`**’s data structures
+are defined for the vector classes defined in **`tf`**
 ([more](https://tidyfun.github.io/tidyfun/reference/index.html#section-arithmetic-logical-and-summary-functions)).
 
 The `tf` objects are just glorified lists, so they work well as columns
