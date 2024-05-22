@@ -16,3 +16,4 @@ attic
 CONTRIBUTING.md
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
+revdep
