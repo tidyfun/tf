@@ -136,7 +136,7 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   y_mean <- tf_integrate(y_)/length
   x_c <- x_ - x_mean
   y_c <- y_ - y_mean
-  tf_integrate(x_c * y_c)
+  tf_integrate(x_c * y_c) / length
 }
 #' @export
 #' @describeIn functionwise cross-correlation between two functional vectors:
