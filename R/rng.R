@@ -38,9 +38,9 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
   if (!is.function(cov)) {
     cov <- match.arg(cov)
     f_cov <- switch(cov,
-      "wiener" = function(s, t) pmin(s, t) / scale,
-      "squareexp" = function(s, t) exp(-(s - t)^2 / scale),
-      "matern" = function(s, t) {
+      wiener = function(s, t) pmin(s, t) / scale,
+      squareexp = function(s, t) exp(-(s - t)^2 / scale),
+      matern = function(s, t) {
         r <- sqrt(2 * order) * abs(s - t) / scale
         cov <- 2^(1 - order) / gamma(order) * r^order *
           base::besselK(r, nu = order)

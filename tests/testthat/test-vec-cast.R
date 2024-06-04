@@ -6,18 +6,18 @@ l <- list(
   x_short = x |> tf_zoom(0.1, 0.4),
   x_short_longdom = tfd(x |> tf_zoom(0.1, 0.4), domain = tf_domain(x),
                         evaluator = tf_approx_linear),
-  x_sp = tf_sparsify(x, dropout = .1) |> tfd(evaluator = tf_approx_spline),
-  x_ir = tf_sparsify(x, dropout = .1) |> tf_jiggle(amount = .2) |>
+  x_sp = tf_sparsify(x, dropout = 0.1) |> tfd(evaluator = tf_approx_spline),
+  x_ir = tf_sparsify(x, dropout = 0.1) |> tf_jiggle(amount = 0.2) |>
     tfd(evaluator = tf_approx_locf),
   x_fake_ir = as.tfd_irreg(x |> tf_zoom(0.1, 0.4)),
-  x_short_sp = tf_zoom(x, 0.2, 0.7) |> tf_sparsify(dropout = .2) |>
+  x_short_sp = tf_zoom(x, 0.2, 0.7) |> tf_sparsify(dropout = 0.2) |>
     tfd(evaluator = tf_approx_none),
   b = tfb(x, k = 45, verbose = FALSE),
-  b2 = tfb(x, k = 15, bs = "tp", sp= .1, verbose = FALSE),
+  b2 = tfb(x, k = 15, bs = "tp", sp = 0.1, verbose = FALSE),
   bu = tfb(x, k = 15, penalized = FALSE, verbose = FALSE),
   bg = tfb(x, k = 5, global = TRUE, verbose = FALSE),
   fp = tfb_fpc(x, pve = 1),
-  fp_low = tfb_fpc(x, pve = .95)
+  fp_low = tfb_fpc(x, pve = 0.95)
 )
 
 expect_cast_result <- function(x, to, irreg = FALSE, ignore = 1,

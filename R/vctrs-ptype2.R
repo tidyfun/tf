@@ -5,9 +5,9 @@ warn_tfd_cast <- function(x, y, to = class(y)[1]) {
 
 get_larger_domain <- function(x, y) {
   domains <- cbind(x = tf_domain(x), y = tf_domain(y))
-  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
-  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
-  if (!(dom_x_larger | dom_y_larger)) {
+  dom_x_larger <- domains[1, 1] <= domains[1, 2] && domains[2, 1] >= domains[2, 2]
+  dom_y_larger <- domains[1, 1] >= domains[1, 2] && domains[2, 1] <= domains[2, 2]
+  if (!(dom_x_larger || dom_y_larger)) {
     stop_incompatible_type(x, y, x_arg = "", y_arg = "",
                            details = "domains incompatible")
   }

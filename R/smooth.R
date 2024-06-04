@@ -77,7 +77,7 @@ tf_smooth.tfd <- function(x,
   dots <- list(...)
   # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
-    if (verbose & !is_equidist(x)) {
+    if (verbose && !is_equidist(x)) {
       warning(
         "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
         " ignored by ", method, ".",

@@ -4,7 +4,7 @@
 find_arg <- function(data, arg) {
   if (is.null(arg)) {
     names <- dimnames(data)[[2]]
-    suppressWarnings(arg <- as.numeric(names))
+    arg <- suppressWarnings(as.numeric(names))
     if (is.null(arg) || anyNA(arg)) {
       # extract number-strings
       # will interpret separating-dashes as minus-signs, so functions may run
@@ -15,7 +15,7 @@ find_arg <- function(data, arg) {
         names
       )
       arg <- regmatches(names, arg_matches)
-      suppressWarnings(arg <- as.numeric(arg))
+      arg <- suppressWarnings(as.numeric(arg))
       if (length(unique(arg)) != dim(data)[2]) arg <- NULL
     }
     if (is.null(arg) || anyNA(arg)) {
@@ -27,7 +27,7 @@ find_arg <- function(data, arg) {
     }
   }
   if (!length(arg)) arg <- seq_len(dim(data)[2])
-  stopifnot(length(arg) == dim(data)[2], is.numeric(arg), all(!is.na(arg)))
+  stopifnot(length(arg) == dim(data)[2], is.numeric(arg), !anyNA(arg))
   list(arg)
 }
 
@@ -42,8 +42,8 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 }
 
 .assert_arg_vector <- function(arg, domain_x, check_unique) {
-  if (check_unique && (anyDuplicated(arg) > 0) ) {
-      stop("Non-unique arg-values.", call. = FALSE)
+  if (check_unique && (anyDuplicated(arg) > 0)) {
+    stop("Non-unique arg-values.", call. = FALSE)
   }
   assert_numeric(arg,
     any.missing = FALSE, unique = FALSE, sorted = TRUE,

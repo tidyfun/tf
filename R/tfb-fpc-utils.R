@@ -35,9 +35,7 @@
 #' @author Trevor Hastie, Rahul Mazumder, Cheng Meng, Fabian Scheipl
 #' @references code adapted from / inspired by `mogsa::wsvd()` by Cheng Meng
 #'   and `softImpute::softImpute()` by Trevor Hastie and Rahul Mazumder.\cr
-#' `r format_bib("meng2023mogsa")`\cr
-#' `r format_bib("mazumder2010")`\cr
-#' `r format_bib("softimpute")`
+#' `r format_bib("meng2023mogsa", "mazumder2010", "softimpute")`
 #' @family tfb-class
 #' @family tfb_fpc-class
 fpc_wsvd <- function(data, arg, pve = 0.995) {
@@ -80,7 +78,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   if (any(nas)) {
     # slightly smooth efunctions from incomplete data to reduce artefacts
     efunctions <- apply(efunctions, 2,
-                        \(ef) stats::lowess(x = arg, y = ef,  f = .15)$y)
+                        \(ef) stats::lowess(x = arg, y = ef,  f = 0.15)$y)
   }
   evalues <- (pc$d[1:use])^2
   scores <- .fpc_wsvd_scores(data, efunctions, mean, weights) #!!

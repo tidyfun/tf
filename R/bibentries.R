@@ -20,7 +20,7 @@ bibentries <- c(
     publisher = "Taylor & Francis"
   ),
   mazumder2010 = bibentry("article",
-    title= "Spectral regularization algorithms for learning large incomplete matrices",
+    title = "Spectral regularization algorithms for learning large incomplete matrices",
     author = "Mazumder, Rahul and Hastie, Trevor and Tibshirani, Robert",
     journal = "The Journal of Machine Learning Research",
     volume = "11",

@@ -88,9 +88,9 @@ tf_where <- function(f, cond,
     return(where_at)
   }
   where_at <- switch(return,
-    "any"   = map_lgl(where_at, \(x) !all(is.na(x))),
-    "first" = map_dbl(where_at, min),
-    "last"  = map_dbl(where_at, max)
+    any   = map_lgl(where_at, \(x) !all(is.na(x))),
+    first = map_dbl(where_at, min),
+    last  = map_dbl(where_at, max)
   )
   where_at
 }

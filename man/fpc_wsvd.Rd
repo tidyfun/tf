@@ -59,10 +59,12 @@ code adapted from / inspired by \code{mogsa::wsvd()} by Cheng Meng
 and \code{softImpute::softImpute()} by Trevor Hastie and Rahul Mazumder.\cr
 Meng C (2023).
 \emph{\code{mogsa}: Multiple omics data integrative clustering and gene set analysis}.
-\url{https://bioconductor.org/packages/mogsa}.\cr
+\url{https://bioconductor.org/packages/mogsa}.
+
 Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
 \dQuote{Spectral regularization algorithms for learning large incomplete matrices.}
-\emph{The Journal of Machine Learning Research}, \bold{11}, 2287-2322.\cr
+\emph{The Journal of Machine Learning Research}, \bold{11}, 2287-2322.
+
 Hastie T, Mazumder R (2021).
 \emph{\code{softImpute}: Matrix Completion via Iterative Soft-Thresholded SVD}.
 R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.

@@ -136,9 +136,7 @@ summary.tf <- function(object, ...) {
 #' @rdname tfgroupgenerics
 #' @export
 Summary.tf <- function(...) {
-  not_defined <- switch(.Generic,
-                        `all` = , `any` = TRUE, FALSE
-  )
+  not_defined <- switch(.Generic, all = , any = TRUE, FALSE)
   if (not_defined) {
     stop(sprintf("%s not defined for \"tf\" objects", .Generic))
   }

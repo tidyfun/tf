@@ -34,6 +34,6 @@ test_that("MBD works", {
 
 test_that("median works", {
   expect_true(is.na(median(c(na, lin))))
-  expect_true(median(c(na, lin), na.rm = TRUE) == median(lin))
+  expect_identical(median(c(na, lin), na.rm = TRUE), median(lin))
   expect_warning(median(lin[1:2]), "2 observations")
 })
