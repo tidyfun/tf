@@ -59,7 +59,7 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   colnames(data_mat) <- binvalues
   attr(data_mat, "arg") <- binvalues
   data_mat[cbind(newid, as.numeric(newindex))] <- data$value
-  return(data_mat)
+  data_mat
 }
 
 #-------------------------------------------------------------------------------

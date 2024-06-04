@@ -57,7 +57,7 @@ tf_interpolate.tfb <- function(object, arg, ...) {
   if (is.list(arg)) arg <- arg[[1]]
   attr(object, "arg") <- arg
   attr(object, "basis_matrix") <- attr(object, "basis")(arg)
-  return(object)
+  object
 }
 
 #' @export

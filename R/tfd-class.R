@@ -157,7 +157,7 @@ tfd.numeric <- function(data, arg = NULL,
     arg = arg, domain = domain,
     evaluator = evaluator
   )
-  return(do.call(tfd, args))
+  do.call(tfd, args)
 }
 
 #' @description `tfd.data.frame` uses the first 3 columns of \code{data} for

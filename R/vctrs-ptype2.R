@@ -35,12 +35,11 @@ vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
     # return the one with larger domain
     if (dom_ret == "x") return(x)
     if (dom_ret == "y") return(y)
-  } else {
-    # different grids--> only tfd_irreg can represent x *and* y
-    warn_tfd_cast(x, y, "tfd_irreg")
-    if (dom_ret == "x")  return(as.tfd_irreg(x))
-    if (dom_ret == "y")  return(as.tfd_irreg(y))
   }
+  # different grids--> only tfd_irreg can represent x *and* y
+  warn_tfd_cast(x, y, "tfd_irreg")
+  if (dom_ret == "x")  return(as.tfd_irreg(x))
+  if (dom_ret == "y")  return(as.tfd_irreg(y))
 }
 
 #' @name vctrs
