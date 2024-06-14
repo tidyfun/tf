@@ -52,32 +52,36 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
   ret <- map(x_, f_map)
   setNames(ret, names(x))
 }
+
 #' @export
 #' @describeIn functionwise maximal value of each function
 #' @inheritParams base::min
 tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  ret <- tf_fwise(x, ~ max(.x$value, na.rm = na.rm), arg = arg) |> list_c()
+  ret <- tf_fwise(x, \(.x) max(.x$value, na.rm = na.rm), arg = arg) |> list_c()
   setNames(ret, names(x))
 }
+
 #' @export
 #' @describeIn functionwise minimal value of each function
 #' @inheritParams base::min
 tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  ret  <- tf_fwise(x, ~ min(.x$value, na.rm = na.rm), arg = arg) |> list_c()
+  ret <- tf_fwise(x, \(.x) min(.x$value, na.rm = na.rm), arg = arg) |> list_c()
   setNames(ret, names(x))
 }
+
 #' @export
 #' @describeIn functionwise median value of each function
 #' @inheritParams base::min
 tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  ret  <- tf_fwise(x, ~ median(.x$value, na.rm = na.rm), arg = arg) |> list_c()
+  ret <- tf_fwise(x, \(.x) median(.x$value, na.rm = na.rm), arg = arg) |> list_c()
   setNames(ret, names(x))
 }
+
 #' @export
 #' @describeIn functionwise range of values of each function
 #' @inheritParams base::range
 tf_frange <- function(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE) {
-  tf_fwise(x, ~ range(.x$value, na.rm = na.rm, finite = finite), arg = arg)
+  tf_fwise(x, \(.x) range(.x$value, na.rm = na.rm, finite = finite), arg = arg)
 }
 
 #' @export
@@ -90,8 +94,9 @@ tf_fmean <- function(x, arg = tf_arg(x)) {
   x_ <- tf_interpolate(x, arg = arg)
   arg <- ensure_list(arg)
   length <- map_dbl(arg, max) - map_dbl(arg, min)
-  tf_integrate(x_)/length
+  tf_integrate(x_) / length
 }
+
 #' @export
 #' @describeIn functionwise variance of each function:
 #'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}
@@ -102,10 +107,11 @@ tf_fvar <- function(x, arg = tf_arg(x)) {
   arg <- ensure_list(arg)
   length <- map_dbl(arg, max) - map_dbl(arg, min)
   x_ <- tf_interpolate(x, arg = arg)
-  x_mean <- tf_integrate(x_)/length
+  x_mean <- tf_integrate(x_) / length
   x_c <- x_ - x_mean
-  tf_integrate(x_c^2)/length
+  tf_integrate(x_c^2) / length
 }
+
 #' @export
 #' @describeIn functionwise standard deviation of each function:
 #'   \eqn{\sqrt{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}}
@@ -120,7 +126,7 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   # check same domain, arg
   checkmate::assert_class(x, "tf")
   checkmate::assert_class(y, "tf")
-  if (!any(c(length(x) == length(y), length(x) == 1, length(y) == 1))) {
+  if (length(x) != length(y) && length(x) != 1 && length(y) != 1) {
     stop("x or y must have length 1 or the same lengths.", call. = FALSE)
   }
   assert_arg(arg = arg, x = x)
@@ -132,17 +138,16 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   # set up common args
   x_ <- tf_interpolate(x, arg = arg)
   y_ <- tf_interpolate(y, arg = arg)
-  x_mean <- tf_integrate(x_)/length
-  y_mean <- tf_integrate(y_)/length
+  x_mean <- tf_integrate(x_) / length
+  y_mean <- tf_integrate(y_) / length
   x_c <- x_ - x_mean
   y_c <- y_ - y_mean
   tf_integrate(x_c * y_c) / length
 }
+
 #' @export
 #' @describeIn functionwise cross-correlation between two functional vectors:
 #'   `tf_crosscov(x, y) / (tf_fsd(x) * tf_fsd(y))`
 tf_crosscor <- function(x, y, arg = tf_arg(x)) {
   tf_crosscov(x, y, arg) / sqrt(tf_fvar(x, arg) * tf_fvar(y, arg))
 }
-
-

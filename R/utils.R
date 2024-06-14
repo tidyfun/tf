@@ -202,7 +202,7 @@ get_args <- function(args, f) {
 #' @export
 #' @family tidyfun developer tools
 ensure_list <- function(x) {
-  if (!is.list(x)) list(x) else x
+  if (is.list(x)) x else list(x)
 }
 
 #' Make syntactically valid unique names
