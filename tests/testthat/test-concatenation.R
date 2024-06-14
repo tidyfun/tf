@@ -1,10 +1,7 @@
 x <- suppressMessages({
-  tf_rgp(5,  arg = 301L) |>
-    tf_smooth() |>
-    tfd(evaluator = tf_approx_fill_extend) |>
-    suppressMessages() |>
-    setNames(letters[1:5])
+  tf_rgp(5,  arg = 301L) |> tf_smooth() |> tfd(evaluator = tf_approx_fill_extend)
 })
+names(x) <- letters[1:5]
 
 l <- list(
   x = x,
