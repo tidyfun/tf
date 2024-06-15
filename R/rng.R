@@ -54,11 +54,11 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
   }
 
   if (length(arg) == 1) {
-    assert_integerish(arg, lower = 1)
+    assert_int(arg, lower = 1)
     arg <- seq(0, 1, length.out = arg)
   }
   assert_numeric(arg, any.missing = FALSE, unique = TRUE)
-  assert_number(n, lower = 1)
+  assert_int(n, lower = 1)
   assert_number(scale, lower = 0)
   assert_number(nugget, lower = 0)
 

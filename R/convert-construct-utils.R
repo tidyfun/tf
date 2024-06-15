@@ -86,8 +86,8 @@ mat_2_df <- function(x, arg) {
   id <- ordered(id, levels = unique(id))
   df_2_df(data.frame(
     # use t(x) here so that order of vector remains unchanged...
-    id = id[col(t(x))], arg = arg[row(t(x))],
-    value = as.vector(t(x)),
-    stringsAsFactors = FALSE
+    id = id[col(t(x))],
+    arg = arg[row(t(x))],
+    value = as.vector(t(x))
   ))
 }
