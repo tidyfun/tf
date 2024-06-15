@@ -50,8 +50,10 @@ simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxi
   J <- min(sum(d > 0) + 1, J)
   svd.xfill <- list(u = svd.xfill$u[, seq(J)], d = d[seq(J)], v = svd.xfill$v[, seq(J)])
   if (iter == maxit) {
-    warning(paste("Incomplete-data-SVD convergence not achieved by", maxit,
-                  "iterations"), call. = FALSE)
+    warning(
+      "Incomplete-data-SVD convergence not achieved by ", maxit, " iterations",
+      call. = FALSE
+    )
   }
   svd.xfill
 }
