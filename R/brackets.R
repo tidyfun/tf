@@ -71,7 +71,7 @@
       assert_subset(i, names(x))
       i <- match(i, names(x))
     }
-    assert_int(i,
+    assert_integerish(i,
       lower = -length(x), upper = length(x),
       any.missing = FALSE
     )
