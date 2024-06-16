@@ -62,10 +62,11 @@ print.tfd_reg <- function(x, n = 5, ...) {
   NextMethod()
   cat(" based on", length(tf_arg(x)), "evaluations each\n")
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
-  if (length(x)) {
-    cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
-    if (n < length(x)) {
-      cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
+  len <- length(x)
+  if (len > 0) {
+    cat(format(x[seq_len(min(n, len))], ...), sep = "\n")
+    if (n < len) {
+      cat(paste0("    [....]   (", len - n, " not shown)\n"))
     }
   }
   invisible(x)
@@ -77,17 +78,20 @@ print.tfd_irreg <- function(x, n = 5, ...) {
   NextMethod()
   nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
   n_evals <- tf_count(x[!nas])
-  if (length(n_evals)) {
+  if (length(n_evals) > 0) {
     cat(paste0(
       " based on ", min(n_evals), " to ", max(n_evals), " (mean: ",
       round(mean(n_evals)), ") evaluations each\n"
     ))
-  } else cat(" (irregular) \n")
+  } else {
+    cat(" (irregular) \n")
+  }
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
-  if (length(x)) {
-    cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
-    if (n < length(x)) {
-      cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
+  len <- length(x)
+  if (len > 0) {
+    cat(format(x[seq_len(min(n, len))], ...), sep = "\n")
+    if (n < len) {
+      cat(paste0("    [....]   (", len - n, " not shown)\n"))
     }
   }
   invisible(x)
@@ -98,10 +102,11 @@ print.tfd_irreg <- function(x, n = 5, ...) {
 print.tfb <- function(x, n = 5, ...) {
   NextMethod()
   cat(" in basis representation:\n using ", attr(x, "basis_label"), "\n")
-  if (length(x)) {
-    cat(format(x[seq_len(min(n, length(x)))], ...), sep = "\n")
-    if (n < length(x)) {
-      cat(paste0("    [....]   (", length(x) - n, " not shown)\n"))
+  len <- length(x)
+  if (len > 0) {
+    cat(format(x[seq_len(min(n, len))], ...), sep = "\n")
+    if (n < len) {
+      cat(paste0("    [....]   (", len - n, " not shown)\n"))
     }
     invisible(x)
   }
