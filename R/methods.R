@@ -184,8 +184,9 @@ tf_basis <- function(f, as_tfd = FALSE) {
          call. = FALSE)
   }
   if (length(ensure_list(value)) != 1) {
-    stop(paste("can't assign irregular argument list to ", class(x)[1]),
-         call. = FALSE)
+    stop(
+      "can't assign irregular argument list to ", class(x)[1],
+      call. = FALSE)
   }
 
   attr(x, "arg") <- ensure_list(value)

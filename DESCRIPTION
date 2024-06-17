@@ -2,30 +2,30 @@ Package: tf
 Title: S3 Classes and Methods for Tidy Functional Data
 Version: 0.3.4
 Authors@R: c(
-    person("Fabian", "Scheipl", email = "fabian.scheipl@googlemail.com", role = c("aut", "cre"),
+    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8172-3603")),
     person("Jeff", "Goldsmith", role = "aut"),
-    person("Julia", "Wrobel", role = "ctb", 
+    person("Julia", "Wrobel", role = "ctb",
            comment = c(ORCID = "0000-0001-6783-1421")),
     person("Maximilian", "Muecke", role = "ctb",
            comment = c(ORCID = "0009-0000-9432-9795")),
     person("Sebastian", "Fischer", role = "ctb",
            comment = c(ORCID = "0000-0002-9609-3197")),
-    person("Trevor", "Hastie", role = "ctb", 
-           comment = "softImpute author"),       
-    person("Rahul", "Mazumder", role = "ctb", 
+    person("Trevor", "Hastie", role = "ctb",
            comment = "softImpute author"),
-    person("Chen", "Meng", role = "ctb", 
+    person("Rahul", "Mazumder", role = "ctb",
+           comment = "softImpute author"),
+    person("Chen", "Meng", role = "ctb",
            comment = "mogsa author")
   )
-Description: Defines S3 vector data types for vectors of functional data 
-   (grid-based, spline-based or functional principal components-based) with all 
-   arithmetic and summary methods, derivation, integration and smoothing, 
-   plotting, data import and export, and data wrangling, such as re-evaluating, 
-   subsetting, sub-assigning, zooming into sub-domains, or extracting functional 
-   features like minima/maxima and their locations. 
-   The implementation allows including such vectors in data frames for joint 
-   analysis of functional and scalar variables.
+Description: Defines S3 vector data types for vectors of functional data
+    (grid-based, spline-based or functional principal components-based)
+    with all arithmetic and summary methods, derivation, integration and
+    smoothing, plotting, data import and export, and data wrangling, such
+    as re-evaluating, subsetting, sub-assigning, zooming into sub-domains,
+    or extracting functional features like minima/maxima and their
+    locations.  The implementation allows including such vectors in data
+    frames for joint analysis of functional and scalar variables.
 License: AGPL (>= 3)
 URL: https://tidyfun.github.io/tf/, https://github.com/tidyfun/tf/
 BugReports: https://github.com/tidyfun/tf/issues
@@ -48,6 +48,7 @@ Suggests:
     knitr,
     refund,
     testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -87,4 +88,3 @@ Collate:
     'vctrs-ptype2.R'
     'where.R'
     'zoom.R'
-Config/testthat/edition: 3

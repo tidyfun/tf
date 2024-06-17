@@ -48,12 +48,12 @@ test_that("fpc_wsvd works for partially missing data", {
   expect_message(tfb_fpc(sparse), "Using softImpute") |> suppressWarnings()
   set.seed(1312)
   x <- tf_rgp(50)
-  x_sp_pc <- x |> tf_sparsify(.02) |> tfb_fpc(pve = .98) |>
+  x_sp_pc <- x |> tf_sparsify(0.02) |> tfb_fpc(pve = 0.98) |>
     suppressMessages() |> suppressWarnings()
   expect_equal(
     as.matrix(x_sp_pc, arg = tf_arg(x)),
     as.matrix(x, arg = tf_arg(x)),
-    tolerance = .1)
+    tolerance = 0.1)
 })
 
 test_that("tfb_fpc defaults work for all kinds of regular input", {

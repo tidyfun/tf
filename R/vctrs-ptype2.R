@@ -5,9 +5,9 @@ warn_tfd_cast <- function(x, y, to = class(y)[1]) {
 
 get_larger_domain <- function(x, y) {
   domains <- cbind(x = tf_domain(x), y = tf_domain(y))
-  dom_x_larger <- domains[1,1] <= domains[1,2] && domains[2,1] >= domains[2,2]
-  dom_y_larger <- domains[1,1] >= domains[1,2] && domains[2,1] <= domains[2,2]
-  if (!(dom_x_larger | dom_y_larger)) {
+  dom_x_larger <- domains[1, 1] <= domains[1, 2] && domains[2, 1] >= domains[2, 2]
+  dom_y_larger <- domains[1, 1] >= domains[1, 2] && domains[2, 1] <= domains[2, 2]
+  if (!(dom_x_larger || dom_y_larger)) {
     stop_incompatible_type(x, y, x_arg = "", y_arg = "",
                            details = "domains incompatible")
   }
@@ -35,12 +35,11 @@ vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
     # return the one with larger domain
     if (dom_ret == "x") return(x)
     if (dom_ret == "y") return(y)
-  } else {
-    # different grids--> only tfd_irreg can represent x *and* y
-    warn_tfd_cast(x, y, "tfd_irreg")
-    if (dom_ret == "x")  return(as.tfd_irreg(x))
-    if (dom_ret == "y")  return(as.tfd_irreg(y))
   }
+  # different grids--> only tfd_irreg can represent x *and* y
+  warn_tfd_cast(x, y, "tfd_irreg")
+  if (dom_ret == "x")  return(as.tfd_irreg(x))
+  if (dom_ret == "y")  return(as.tfd_irreg(y))
 }
 
 #' @name vctrs

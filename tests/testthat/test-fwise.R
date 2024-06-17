@@ -1,5 +1,5 @@
 test_that("fwise summaries work for tfd_reg", {
-  x <- tf_rgp(3, arg = seq(0, 5, l = 101)) #use non-unit length to verify scaling
+  x <- tf_rgp(3, arg = seq(0, 5, length.out = 101)) #use non-unit length to verify scaling
 
   x_clamp <- (x - tf_fmin(x)) / (tf_fmax(x) - tf_fmin(x))
   expect_equal(tf_fmin(x_clamp), c(0, 0, 0), ignore_attr = TRUE)
@@ -57,15 +57,15 @@ test_that("fwise summaries work for tfb_fpc", {
 
   x_clamp <- (x - tf_fmin(x)) / (tf_fmax(x) - tf_fmin(x))
   expect_equal(tf_fmin(x_clamp), c(0, 0, 0),
-               ignore_attr = TRUE, tolerance = .05) #!! uh oh
+               ignore_attr = TRUE, tolerance = 0.05) #!! uh oh
   expect_equal(tf_fmax(x_clamp), c(1, 1, 1),
-               ignore_attr = TRUE, tolerance = .05) #!! uh oh
+               ignore_attr = TRUE, tolerance = 0.05) #!! uh oh
 
   x_std <- (x - tf_fmean(x)) / tf_fsd(x)
   expect_equal(tf_fmean(x_std), c(0, 0, 0),
-               ignore_attr = TRUE, tolerance = .05) #!! uh oh
+               ignore_attr = TRUE, tolerance = 0.05) #!! uh oh
   expect_equal(tf_fsd(x_std), c(1, 1, 1),
-               ignore_attr = TRUE, tolerance = .05) #!! uh oh
+               ignore_attr = TRUE, tolerance = 0.05) #!! uh oh
 
   expect_equal(tf_crosscov(x, x),
                tf_fvar(x))

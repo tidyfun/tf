@@ -38,9 +38,9 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
   if (!is.function(cov)) {
     cov <- match.arg(cov)
     f_cov <- switch(cov,
-      "wiener" = function(s, t) pmin(s, t) / scale,
-      "squareexp" = function(s, t) exp(-(s - t)^2 / scale),
-      "matern" = function(s, t) {
+      wiener = function(s, t) pmin(s, t) / scale,
+      squareexp = function(s, t) exp(-(s - t)^2 / scale),
+      matern = function(s, t) {
         r <- sqrt(2 * order) * abs(s - t) / scale
         cov <- 2^(1 - order) / gamma(order) * r^order *
           base::besselK(r, nu = order)
@@ -54,11 +54,11 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
   }
 
   if (length(arg) == 1) {
-    assert_integerish(arg, lower = 1)
+    assert_int(arg, lower = 1)
     arg <- seq(0, 1, length.out = arg)
   }
   assert_numeric(arg, any.missing = FALSE, unique = TRUE)
-  assert_number(n, lower = 1)
+  assert_int(n, lower = 1)
   assert_number(scale, lower = 0)
   assert_number(nugget, lower = 0)
 

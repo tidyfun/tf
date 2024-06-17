@@ -2,7 +2,7 @@ assert_domain_x_in_to <- function(x, to) {
   dom_x <- tf_domain(x)
   dom_to <- tf_domain(to)
   # can (try to) cast losslessly if domain of 'to' contains domain of 'x'
-  if ((dom_to[1] <= dom_x[1]) & (dom_to[2] >= dom_x[2])) {
+  if ((dom_to[1] <= dom_x[1]) && (dom_to[2] >= dom_x[2])) {
     return(TRUE)
   }
   stop_incompatible_cast(x = x, to = to, x_arg = "", to_arg = "",

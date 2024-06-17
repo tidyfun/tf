@@ -1,5 +1,5 @@
 new_tfb_fpc <- function(data, domain = NULL,
-                       method = NULL, basis_from = NULL, ...) {
+                        method = NULL, basis_from = NULL, ...) {
   if (all(dim(data) == 0)) {
     ret <- vctrs::new_vctr(
       data,

@@ -110,9 +110,9 @@ tf_fvar(x_std) == c(1, 1, 1)
 plot(x_std, col = 1:3)
 # Custom functions:
 # 80\%tiles of each function's values:
-tf_fwise(x, ~ quantile(.x$value, .8)) |> unlist()
-# minimal value of each function for t >.5
-tf_fwise(x, ~ min(.x$value[.x$arg > .5])) |> unlist()
+tf_fwise(x, ~ quantile(.x$value, 0.8)) |> unlist()
+# minimal value of each function for t > 0.5
+tf_fwise(x, ~ min(.x$value[.x$arg > 0.5])) |> unlist()
 
 tf_crosscor(x, -x)
 tf_crosscov(x, x) == tf_fvar(x)

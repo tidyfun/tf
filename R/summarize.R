@@ -20,12 +20,8 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
     if (is_irreg(funs) && !is_irreg(ret)) ret <- as.tfd_irreg(ret)
     if (!is_irreg(funs) && is_irreg(ret)) ret <- as.tfd(ret)
     return(ret)
-  } else {
-    return(do.call(tfb, c(args,
-                          penalized = FALSE, verbose = FALSE,
-                          attr(funs, "basis_args")
-    )))
   }
+  do.call(tfb, c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args")))
 }
 #-------------------------------------------------------------------------------
 
@@ -61,26 +57,24 @@ mean.tf <- function(x, ...) {
 #' @export
 #' @rdname tfsummaries
 median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
-  if (!na.rm) {
-    if (anyNA(x)) return(1 * NA * x[1])
-  } else {
-    x <- x[!is.na(x)]
+  if (!na.rm && anyNA(x)) {
+    return(1 * NA * x[1])
   }
+  x <- x[!is.na(x)]
   depth <- match.arg(depth)
   if (depth == "pointwise") {
-    summarize_tf(x, na.rm = na.rm, op = "median", eval = is_tfd(x), ...)
+    return(summarize_tf(x, na.rm = na.rm, op = "median", eval = is_tfd(x), ...))
+  }
+  tf_depths <- tf_depth(x, depth = depth)
+  med <- x[tf_depths == max(tf_depths)]
+  if (length(med) > 1) {
+    warning(
+      length(med), " observations with maximal depth, returning their mean.",
+      call. = FALSE
+    )
+    mean(med)
   } else {
-    tf_depths <- tf_depth(x, depth = depth)
-    med <- x[tf_depths == max(tf_depths)]
-    if (length(med) > 1) {
-      warning(
-        length(med), " observations with maximal depth, returning their mean.",
-        call. = FALSE
-      )
-      mean(med)
-    } else {
-      med
-    }
+    med
   }
 }
 
@@ -136,9 +130,7 @@ summary.tf <- function(object, ...) {
 #' @rdname tfgroupgenerics
 #' @export
 Summary.tf <- function(...) {
-  not_defined <- switch(.Generic,
-                        `all` = , `any` = TRUE, FALSE
-  )
+  not_defined <- switch(.Generic, all = , any = TRUE, FALSE)
   if (not_defined) {
     stop(sprintf("%s not defined for \"tf\" objects", .Generic))
   }

@@ -107,7 +107,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     arg_u <- data.frame(x = arg_u$x)
     spec_object$X <- PredictMat(spec_object, data = data.frame(arg = arg_u$x))
   }
-  if (isTRUE(min(fit$pve) < .5)) {
+  if (isTRUE(min(fit$pve) < 0.5)) {
     warning(c("Fit captures <50% of input data variability for at least one function",
               " -- consider increasing no. of basis functions 'k' or decreasing penalization."),
               call. = FALSE)
@@ -126,7 +126,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
   basis_constructor <- smooth_spec_wrapper(spec_object)
   # sp: from fit for global/set, -1 for local smoothing/given as -1, NA for unpen
-  s_args$sp <- if ( isTRUE(list(...)$sp != -1) || global) {
+  s_args$sp <- if (isTRUE(list(...)$sp != -1) || global) {
      fit$sp[1] |> unname()
   } else ifelse(penalized, -1, NA)
   s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib

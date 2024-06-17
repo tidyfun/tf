@@ -1,12 +1,12 @@
 # copied from softImpute::Frob (v 1.4-1) under GPL-2
 # original authors: Trevor Hastie <hastie@stanford.edu> and Rahul Mazumder <rahul.mazumder@gmail.com>
 frob <- function(Uold, Dsqold, Vold, U, Dsq, V) {
-  denom = sum(Dsqold^2)
-  utu = Dsq * (t(U) %*% Uold)
-  vtv = Dsqold * (t(Vold) %*% V)
-  uvprod = sum(diag(utu %*% vtv))
-  num = denom + sum(Dsq^2) - 2 * uvprod
-  num/max(denom, 1e-09)
+  denom <- sum(Dsqold^2)
+  utu <- Dsq * (t(U) %*% Uold)
+  vtv <- Dsqold * (t(Vold) %*% V)
+  uvprod <- sum(diag(utu %*% vtv))
+  num <- denom + sum(Dsq^2) - 2 * uvprod
+  num / max(denom, 1e-09)
 }
 
 # code slightly adapted and shortened from softImpute::simpute.svd.R (v 1.4-1) under GPL-2
@@ -29,7 +29,7 @@ simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxi
   svd.xfill <- svd(xfill)
   ratio <- 1
   iter <- 0
-  while ((ratio > thresh) & (iter < maxit)) {
+  while ((ratio > thresh) && (iter < maxit)) {
     iter <- iter + 1
     svd.old <- svd.xfill
     d <- svd.xfill$d
@@ -42,7 +42,7 @@ simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxi
       svd.xfill$u[, seq(J)], pmax(svd.xfill$d - lambda, 0)[seq(J)], svd.xfill$v[, seq(J)]
     )
     if (trace.it) {
-      obj <- (.5 * sum((xfill - xhat)[!xnas]^2) + lambda * sum(d)) / nz
+      obj <- (0.5 * sum((xfill - xhat)[!xnas]^2) + lambda * sum(d)) / nz
       cat(iter, ":", "obj", format(round(obj, 5)), "ratio", ratio, "\n")
     }
   }
@@ -50,10 +50,10 @@ simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxi
   J <- min(sum(d > 0) + 1, J)
   svd.xfill <- list(u = svd.xfill$u[, seq(J)], d = d[seq(J)], v = svd.xfill$v[, seq(J)])
   if (iter == maxit) {
-    warning(paste("Incomplete-data-SVD convergence not achieved by", maxit,
-                  "iterations"), call. = FALSE)
+    warning(
+      "Incomplete-data-SVD convergence not achieved by ", maxit, " iterations",
+      call. = FALSE
+    )
   }
   svd.xfill
 }
-
-
