@@ -1,24 +1,23 @@
 # *, / for tfs; and +, -, ^ for tfds
 fun_op <- function(x, y, op, numeric = NA) {
   if (!is.na(numeric)) {
-  # function-scalar-ops
+    # function-scalar-ops
     num <- list(x, y)[[numeric]]
     f <- list(x, y)[[3 - numeric]]
     assert_numeric(num)
     # no "recycling" of args -- breaking a crappy R convention, proudly so.
     stopifnot(
-      (length(num) > 0 & length(f) == 1) |
-        length(num) %in% c(1, length(f))
+      (length(num) > 0 && length(f) == 1) || length(num) %in% c(1, length(f))
     )
     attr_ret <- attributes(f)
     arg_ret <- tf_arg(f)
   } else {
-  # function-function-ops
+    # function-function-ops
     stopifnot(
       # no "recycling" of args
-      (length(x) %in% c(1, length(y))) | (length(y) %in% c(1, length(x))),
-      all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE),
-      all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE)
+      length(x) %in% c(1, length(y)) || length(y) %in% c(1, length(x)),
+      isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
+      isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
     )
     attr_ret <- if (length(x) >= length(y)) {
       attributes(x)
@@ -117,8 +116,9 @@ Ops.tf <- function(e1, e2) {
 #' @export
 `==.tfd` <- function(e1, e2) {
   # no "recycling" of args
-  stopifnot((length(e1) %in% c(1, length(e2))) |
-    (length(e2) %in% c(1, length(e1))))
+  stopifnot(
+    length(e2) %in% c(1, length(e1)) || length(e1) %in% c(1, length(e2))
+  )
   # not comparing names, as per convention...
   same <- all(compare_tf_attribs(e1, e2))
   if (!same) {
