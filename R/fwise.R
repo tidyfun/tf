@@ -124,8 +124,8 @@ tf_fsd <- function(x, arg = tf_arg(x)) {
 #'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}
 tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   # check same domain, arg
-  checkmate::assert_class(x, "tf")
-  checkmate::assert_class(y, "tf")
+  assert_class(x, "tf")
+  assert_class(y, "tf")
   if (length(x) != length(y) && length(x) != 1 && length(y) != 1) {
     stop("x or y must have length 1 or the same lengths.", call. = FALSE)
   }
