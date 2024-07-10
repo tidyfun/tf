@@ -279,7 +279,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   if (re_eval & any(lengths(nas))) {
     evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
     # check if all NAs occur at the same args and try to make a regular tfd if so
-    na_args <- map2(arg, nas, ~.x[.y])
+    na_args <- map2(arg, nas, \(x, y) x[y])
     if (!all(duplicated(na_args)[-1])) {
       warning(
         length(unlist(nas)), " evaluations were NA, returning irregular tfd.",
