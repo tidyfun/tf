@@ -59,7 +59,7 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   colnames(data_mat) <- binvalues
   attr(data_mat, "arg") <- binvalues
   data_mat[cbind(newid, as.numeric(newindex))] <- data$value
-  return(data_mat)
+  data_mat
 }
 
 #-------------------------------------------------------------------------------
@@ -86,8 +86,8 @@ mat_2_df <- function(x, arg) {
   id <- ordered(id, levels = unique(id))
   df_2_df(data.frame(
     # use t(x) here so that order of vector remains unchanged...
-    id = id[col(t(x))], arg = arg[row(t(x))],
-    value = as.vector(t(x)),
-    stringsAsFactors = FALSE
+    id = id[col(t(x))],
+    arg = arg[row(t(x))],
+    value = as.vector(t(x))
   ))
 }

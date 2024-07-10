@@ -36,19 +36,18 @@ tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
 
   default_arg <- identical(arg, tf_arg(basis_from))
 
-  if (is_irreg(basis_from) & vec_size(basis_from) != 0) {
-    if (vec_size(basis_from) != vec_size(object)) {
-      if (vec_size(object) != 1) {
-        stop("can't rebase regular tfd with irregular tfd of incompatible size",
-             call. = FALSE)
-      }
-      # if <object> is length 1, extrapolate it to *all* eval points of
-      # basis_from by default
-      if (default_arg) {
-        arg <- arg |> unlist() |> unique() |> sort()
-        message("using all ", length(arg), " unique time points for new arg.")
-        default_arg <- FALSE
-      }
+  if (is_irreg(basis_from) && vec_size(basis_from) != 0 &&
+        vec_size(basis_from) != vec_size(object)) {
+    if (vec_size(object) != 1) {
+      stop("can't rebase regular tfd with irregular tfd of incompatible size",
+            call. = FALSE)
+    }
+    # if <object> is length 1, extrapolate it to *all* eval points of
+    # basis_from by default
+    if (default_arg) {
+      arg <- arg |> unlist() |> unique() |> sort()
+      message("using all ", length(arg), " unique time points for new arg.")
+      default_arg <- FALSE
     }
   }
 

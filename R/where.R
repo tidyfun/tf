@@ -82,15 +82,15 @@ tf_where <- function(f, cond,
   where_at <- map_if(where_at, \(x) length(x) == 0, \(x) NA)
   if (return == "range") {
     where_at <- map(where_at, range)
-    where_at <- do.call(what = rbind, args = where_at) |>
+    where_at <- do.call(rbind, where_at) |>
       as.data.frame() |>
       setNames(c("begin", "end"))
     return(where_at)
   }
   where_at <- switch(return,
-    "any"   = map_lgl(where_at, \(x) !all(is.na(x))),
-    "first" = map_dbl(where_at, min),
-    "last"  = map_dbl(where_at, max)
+    any   = map_lgl(where_at, \(x) !all(is.na(x))),
+    first = map_dbl(where_at, min),
+    last  = map_dbl(where_at, max)
   )
   where_at
 }

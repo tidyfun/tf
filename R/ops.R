@@ -148,9 +148,8 @@ Ops.tfd <- function(e1, e2) {
     if (is_tfd(e1) && is_tfd(e2)) {
       if (.Generic == "^") {
         stop("^ not defined for \"tfd\" objects", call. = FALSE)
-      } else {
-        return(fun_op(e1, e2, .Generic))
       }
+      return(fun_op(e1, e2, .Generic))
     }
     if (is.logical(e1)) e1 <- as.numeric(e1)
     if (is.logical(e2)) e2 <- as.numeric(e2)
@@ -182,27 +181,26 @@ Ops.tfb <- function(e1, e2) {
     if (both_funs && .Generic %in% c("+", "-")) {
       # just add/subtract coefs for identical bases
       return(fun_op(e1, e2, .Generic))
-    } else {
-      # ... else convert to tfd, compute, refit basis
-      if (both_funs) {
-        basis_args <- attr(e1, "basis_args")
-        eval <- fun_op(tfd(e1), tfd(e2), .Generic)
-      }
-      if (is.logical(e1)) e1 <- as.numeric(e1)
-      if (is.logical(e2)) e2 <- as.numeric(e2)
-      if (is_tfb(e1) && is.numeric(e2)) {
-        basis_args <- attr(e1, "basis_args")
-        eval <- fun_op(tfd(e1), e2, .Generic, numeric = 2)
-      }
-      if (is_tfb(e2) && is.numeric(e1)) {
-        basis_args <- attr(e2, "basis_args")
-        eval <- fun_op(e1, tfd(e2), .Generic, numeric = 1)
-      }
-      return(do.call(
-        "tfb",
-        c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
-      ))
     }
+    # ... else convert to tfd, compute, refit basis
+    if (both_funs) {
+      basis_args <- attr(e1, "basis_args")
+      eval <- fun_op(tfd(e1), tfd(e2), .Generic)
+    }
+    if (is.logical(e1)) e1 <- as.numeric(e1)
+    if (is.logical(e2)) e2 <- as.numeric(e2)
+    if (is_tfb(e1) && is.numeric(e2)) {
+      basis_args <- attr(e1, "basis_args")
+      eval <- fun_op(tfd(e1), e2, .Generic, numeric = 2)
+    }
+    if (is_tfb(e2) && is.numeric(e1)) {
+      basis_args <- attr(e2, "basis_args")
+      eval <- fun_op(e1, tfd(e2), .Generic, numeric = 1)
+    }
+    return(do.call(
+      "tfb",
+      c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+    ))
   }
   ret
 }

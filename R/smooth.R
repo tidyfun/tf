@@ -77,14 +77,14 @@ tf_smooth.tfd <- function(x,
   dots <- list(...)
   # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
-    if (verbose & !is_equidist(x)) {
+    if (verbose && !is_equidist(x)) {
       warning(
         "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
         " ignored by ", method, ".",
         call. = FALSE
       )
     }
-    if (grepl("rollm", method, fixed = TRUE)) {
+    if (startsWith(method, "rollm")) {
       if (is.null(dots$k)) {
         dots$k <- ceiling(0.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
@@ -94,8 +94,7 @@ tf_smooth.tfd <- function(x,
         if (verbose) message("setting fill = 'extend' for start/end values.")
         dots$fill <- "extend"
       }
-    }
-    if (method == "savgol") {
+    } else {
       if (is.null(dots$fl)) {
         dots$fl <- ceiling(0.15 * min(tf_count(x)))
         dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven

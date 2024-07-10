@@ -157,7 +157,7 @@ tfd.numeric <- function(data, arg = NULL,
     arg = arg, domain = domain,
     evaluator = evaluator
   )
-  return(do.call(tfd, args))
+  do.call(tfd, args)
 }
 
 #' @description `tfd.data.frame` uses the first 3 columns of \code{data} for
@@ -276,7 +276,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
     tf_evaluations(data)
   }
   nas <- map(evaluations, \(x) which(is.na(x)))
-  if (re_eval & any(lengths(nas))) {
+  if (re_eval && any(lengths(nas))) {
     evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
     # check if all NAs occur at the same args and try to make a regular tfd if so
     na_args <- map2(arg, nas, \(x, y) x[y])
@@ -325,15 +325,16 @@ tfd.default <- function(data, arg = NULL, domain = NULL,
 #' @rdname tfd
 #' @export
 as.tfd <- function(data, ...) UseMethod("as.tfd")
+
 #' @export
 as.tfd.default <- function(data, ...) {
   tfd(data, ...)
 }
 
-
 #' @rdname tfd
 #' @export
 as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
+
 #' @import purrr
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
@@ -344,10 +345,12 @@ as.tfd_irreg.tfd_reg <- function(data, ...) {
   class(ret)[1] <- "tfd_irreg"
   ret
 }
+
 #' @export
 as.tfd_irreg.tfd_irreg <- function(data, ...) {
   data
 }
+
 #' @export
 as.tfd_irreg.tfb <- function(data, ...) {
   tfd(data) |> as.tfd_irreg()

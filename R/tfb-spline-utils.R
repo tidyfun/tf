@@ -2,31 +2,28 @@
 smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
   stopifnot(deriv %in% c(-1, 0, 1, 2), isTRUE(eps > 0))
   if (deriv == 0) {
-    return(function(arg) {
+    function(arg) {
       mgcv::Predict.matrix(object = spec, data = data.frame(arg = arg))
-    })
-  }
-  if (deriv == 1) {
-    return(function(arg) {
+    }
+  } else if (deriv == 1) {
+    function(arg) {
       X <- mgcv::Predict.matrix(
         object = spec,
         data = data.frame(arg = c(arg + eps, arg - eps))
       )
       (X[seq_along(arg), ] - X[-seq_along(arg), ]) / (2 * eps)
-    })
-  }
-  if (deriv == 2) {
-    return(function(arg) {
+    }
+  } else if (deriv == 2) {
+    function(arg) {
       g <- length(arg)
       X <- mgcv::Predict.matrix(
         object = spec,
         data = data.frame(arg = c(arg + eps, arg, arg - eps))
       )
       (X[1:g, ] - (2 * X[(g + 1):(2 * g), ]) + X[-(1:(2 * g)), ]) / eps^2
-    })
-  }
-  if (deriv == -1) {
-    return(function(arg) {
+    }
+  } else {
+    function(arg) {
       # make sure quadrature runs over entire range up to the new arg
       # --> have to re-use original grid
       arg_orig <- spec$Xu[spec$Xu <= max(arg)]
@@ -39,7 +36,7 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
       apply(X, 2, function(arg, x) cumsum(quad_trapez(arg, x)),
         arg = arg_interleave
       )[new_args, ]
-    })
+    }
   }
 }
 
@@ -78,7 +75,7 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
     )
   }
   names(coef_list) <- levels(data$id)
-  return(list(coef = coef_list, pve = pve))
+  list(coef = coef_list, pve = pve)
 }
 
 #---Penalized LS fits          -------------------------------------------------
@@ -148,8 +145,9 @@ fit_penalized_ls <- function(data, spec_object, arg_u, gam_args, regular) {
   pve <- map_dbl(ret, "pve")
   coef_list <- map(ret, "coef")
   names(coef_list) <- levels(data$id)
-  return(list(coef = coef_list, pve = pve, sp = sp))
+  list(coef = coef_list, pve = pve, sp = sp)
 }
+
 magic_smooth_coef <- function(evaluations, index, spec_object, gam_args) {
   fixed_sp <- gam_args$sp != -1
   magic_args <- c(
