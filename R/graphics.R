@@ -74,7 +74,7 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
     args <- modifyList(
       list(
         x = drop(attr(m, "arg")), y = t(m), type = "l",
-        ylab = deparse(substitute(x)), xlab = "", lty = 1,
+        ylab = deparse1(substitute(x)), xlab = "", lty = 1,
         col = rgb(0, 0, 0, alpha)
       ),
       list(...)
