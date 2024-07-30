@@ -119,7 +119,7 @@ tf_evaluator_expr <- function(f) {
 #' @export
 `tf_evaluator<-` <- function(x, value) {
   value <- if (is.function(value)) {
-    deparse(substitute(value))
+    deparse1(substitute(value))
   } else {
     quo_name(enexpr(value))
   }

@@ -79,7 +79,7 @@ tf_smooth.tfd <- function(x,
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose && !is_equidist(x)) {
       warning(
-        "non-equidistant arg-values in ", sQuote(deparse(substitute(x))),
+        "non-equidistant arg-values in ", sQuote(deparse1(substitute(x))),
         " ignored by ", method, ".",
         call. = FALSE
       )
