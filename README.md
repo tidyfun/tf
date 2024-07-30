@@ -9,6 +9,8 @@
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://app.codecov.io/github/tidyfun/tf/branch/main/)
 [![R-CMD-check](https://github.com/tidyfun/tf/actions/workflows/full-check.yaml/badge.svg)](https://github.com/tidyfun/tf/actions/workflows/full-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/tf)](https://CRAN.R-project.org/package=tf)
 <!-- badges: end -->
 
 The **`tf`** package provides necessary infrastructure for
@@ -37,9 +39,17 @@ frame.
 
 ## Installation
 
-You can install the latest release from GitHub with:
+You can install the released version of **tf** from
+[CRAN](https://CRAN.R-project.org) with:
 
 ``` r
+install.packages("tf")
+```
+
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
 pak::pak("tidyfun/tf")
 ```
 
