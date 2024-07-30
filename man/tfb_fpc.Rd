@@ -87,6 +87,7 @@ data is NULL
 
 }}
 \examples{
+\dontshow{if (rlang::is_installed("refund")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 set.seed(13121)
 x <- tf_rgp(25, nugget = .02)
 x_pc <- tfb_fpc(x, pve = .9)
@@ -136,6 +137,7 @@ fpca_sc_wrapper <- function(data, arg, pve = 0.995, ...) {
 x_pc <- tfb_fpc(x_df, method = fpca_sc_wrapper)
 lines(x_pc, col = 2, lty = 2)
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=fpc_wsvd]{fpc_wsvd()}} for FPCA options.

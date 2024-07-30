@@ -109,7 +109,7 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #' @rdname tfb_fpc
 #' @export
 #' @inheritParams tfd.data.frame
-#' @examples
+#' @examplesIf rlang::is_installed("refund")
 #' set.seed(13121)
 #' x <- tf_rgp(25, nugget = .02)
 #' x_pc <- tfb_fpc(x, pve = .9)
