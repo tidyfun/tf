@@ -57,7 +57,6 @@
 #' tf_where(f, arg > 0.5 & value > 0)
 #' # does the function ever exceed?
 #' tf_anywhere(f, value > 1)
-#' @importFrom stats setNames
 #' @family tidyfun query-functions
 #' @export
 tf_where <- function(f, cond,

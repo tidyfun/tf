@@ -43,8 +43,6 @@ fpc_wsvd <- function(data, arg, pve = 0.995) {
 }
 
 #' @rdname fpc_wsvd
-#' @importFrom utils head tail
-#' @importFrom stats lowess
 #' @export
 fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   assert_matrix(data, mode = "numeric", min.cols = 2, min.rows = 1)
@@ -62,7 +60,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   pc <- if (!any(nas)) {
     svd(data_wc, nu = 0, nv = min(dim(data)))
   } else {
-    message("Using softImpute SVD on ", round(mean(nas)*100, 1), "% missing data")
+    message("Using softImpute SVD on ", round(mean(nas) * 100, 1), "% missing data")
     if (pve + mean(nas) > 1) {
       warning("High <pve> with many missings likely to yield bad FPC estimates.",
               call. = FALSE)
@@ -78,7 +76,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   if (any(nas)) {
     # slightly smooth efunctions from incomplete data to reduce artefacts
     efunctions <- apply(efunctions, 2,
-                        \(ef) stats::lowess(x = arg, y = ef,  f = 0.15)$y)
+                        \(ef) lowess(x = arg, y = ef,  f = 0.15)$y)
   }
   evalues <- (pc$d[1:use])^2
   scores <- .fpc_wsvd_scores(data, efunctions, mean, weights) #!!

@@ -14,13 +14,12 @@
 #'   `TRUE`, a 3-column data frame with columns `id` for the (unique) names of
 #'   `x` or a numeric identifier, `arg` and `value`, with each row containing
 #'   one function evaluation at the original `arg`-values.
-#' @importFrom vctrs new_data_frame
 #' @export
 #' @family tidyfun converters
 as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE,
                              unnest = FALSE, ...) {
   if (unnest) return(tf_2_df(x))
-  new_data_frame(list(x), n = vctrs::vec_size(x),
+  new_data_frame(list(x), n = vec_size(x),
                  names = deparse(substitute(x)))
 }
 

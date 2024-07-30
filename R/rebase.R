@@ -30,6 +30,7 @@ tf_rebase <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 tf_rebase.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   UseMethod("tf_rebase.tfd", basis_from)
 }
+
 #' @export
 tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_domain_x_in_to(x = object, to = basis_from)
@@ -61,7 +62,6 @@ tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
   object
 }
 
-
 #'@export
 tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_same_domains(object, basis_from)
@@ -79,6 +79,7 @@ tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_fro
             basis_args, list(...))
          )
 }
+
 #'@export
 tf_rebase.tfd.tfb_fpc <-  function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_same_domains(object, basis_from)
@@ -96,8 +97,8 @@ tf_rebase.tfd.tfb_fpc <-  function(object, basis_from, arg = tf_arg(basis_from),
 tf_rebase.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   UseMethod("tf_rebase.tfb", basis_from)
 }
+
 #'@export
-#'@importFrom utils modifyList
 tf_rebase.tfb.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_domain_x_in_to(x = object, to = basis_from)
   tfd_args <- list(domain = tf_domain(basis_from),
@@ -105,6 +106,7 @@ tf_rebase.tfb.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
   tfd_args <- modifyList(tfd_args, list(...))
   do.call(tfd, append(tfd_args, list(data = object, arg = arg, ...)))
 }
+
 #'@export
 tf_rebase.tfb.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
   assert_same_domains(object, basis_from) # no extrapolation of basis

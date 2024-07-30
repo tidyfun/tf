@@ -1,6 +1,5 @@
 # compute derivatives of data in rows by finite differences.
 # returns derivatives at interval midpoints
-#' @importFrom utils head
 derive_matrix <- function(data, arg, order) {
   for (i in 1:order) {
     delta <- diff(arg)

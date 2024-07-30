@@ -45,7 +45,6 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @param ... additional arguments for [matplot()] ("spaghetti") or
 #'   [image()] ("lasagna")
 #' @returns the plotted `tf`-object, invisibly.
-#' @importFrom utils modifyList
 #' @importFrom graphics matplot image axis
 #' @importFrom grDevices heat.colors rgb
 #' @rdname tfviz

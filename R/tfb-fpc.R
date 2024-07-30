@@ -1,7 +1,7 @@
 new_tfb_fpc <- function(data, domain = NULL,
                         method = NULL, basis_from = NULL, ...) {
   if (all(dim(data) == 0)) {
-    ret <- vctrs::new_vctr(
+    ret <- new_vctr(
       data,
       domain = domain %||% numeric(2),
       arg = numeric(),
@@ -54,7 +54,7 @@ new_tfb_fpc <- function(data, domain = NULL,
   names(coef_list) <- levels(as.factor(data$id))
 
 
-  vctrs::new_vctr(coef_list,
+  new_vctr(coef_list,
     domain = domain,
     basis = fpc_constructor,
     basis_label = basis_label,

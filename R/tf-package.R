@@ -20,4 +20,11 @@
 #' website](https://tidyfun.github.io/tidyfun/).
 #'
 #' @keywords internal
+#' @import checkmate
+#' @import purrr
+#' @import mgcv
+#' @import vctrs
+#' @importFrom rlang quo_name enexpr
+#' @importFrom stats setNames na.omit complete.cases lowess
+#' @importFrom utils head tail modifyList
 "_PACKAGE"

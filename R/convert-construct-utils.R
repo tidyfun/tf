@@ -27,7 +27,6 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
 
 
 # from refund
-#' @importFrom stats complete.cases filter
 df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]
   nobs <- length(unique(data$id))
