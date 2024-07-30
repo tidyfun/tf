@@ -8,6 +8,7 @@ assert_domain_x_in_to <- function(x, to) {
   stop_incompatible_cast(x = x, to = to, x_arg = "", to_arg = "",
                          details = "domains not compatible")
 }
+
 assert_same_domains <- function(x, to) {
   if (all(tf_domain(x) == tf_domain(to))) return(TRUE)
   stop_incompatible_cast(x = x, to = to, x_arg = "", to_arg = "",
