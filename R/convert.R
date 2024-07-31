@@ -20,8 +20,7 @@
 as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE,
                              unnest = FALSE, ...) {
   if (unnest) return(tf_2_df(x))
-  new_data_frame(list(x), n = vec_size(x),
-                 names = deparse1(substitute(x)))
+  new_data_frame(list(x), names = deparse1(substitute(x)))
 }
 
 #' @rdname converters
