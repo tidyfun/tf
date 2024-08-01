@@ -22,8 +22,8 @@
 #' @keywords internal
 #' @import checkmate
 #' @import purrr
-#' @import mgcv
 #' @import vctrs
+#' @importFrom mgcv s Predict.matrix magic uniquecombs gam bam smooth.construct PredictMat scat
 #' @importFrom rlang quo_name enexpr
 #' @importFrom stats setNames na.omit complete.cases lowess
 #' @importFrom utils head tail modifyList

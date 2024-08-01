@@ -13,7 +13,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   }
 
   domain <- domain %||% range(data$arg)
-  arg_u <- mgcv::uniquecombs(data$arg, ordered = TRUE)
+  arg_u <- uniquecombs(data$arg, ordered = TRUE)
 
   assert_numeric(domain,
     finite = TRUE, any.missing = FALSE,
@@ -27,7 +27,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   # explicit factor-conversion to avoid reordering:
   data$id <- factor(data$id, unique(as.character(data$id)))
 
-  s_args <- list(...)[names(list(...)) %in% names(formals(mgcv::s))]
+  s_args <- list(...)[names(list(...)) %in% names(formals(s))]
   if (!("bs" %in% names(s_args))) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
     warning(
@@ -39,8 +39,8 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   if (!("k" %in% names(s_args))) s_args$k <- min(25, nrow(arg_u))
   gam_args <- list(...)[names(list(...)) %in%
     c(
-      names(formals(mgcv::gam)),
-      names(formals(mgcv::bam))
+      names(formals(gam)),
+      names(formals(bam))
     )]
   if (!("sp" %in% names(gam_args))) gam_args$sp <- -1
 
@@ -333,7 +333,7 @@ tfb_spline.tfb <- function(data, arg = NULL,
   domain <- domain %||% tf_domain(data)
   s_args <- modifyList(
     attr(data, "basis_args"),
-    list(...)[names(list(...)) %in% names(formals(mgcv::s))]
+    list(...)[names(list(...)) %in% names(formals(s))]
   )
   names_data <- names(data)
   if (vec_size(data) == 0) {

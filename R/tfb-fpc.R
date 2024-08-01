@@ -13,7 +13,7 @@ new_tfb_fpc <- function(data, domain = NULL,
     stop("Can't specify both method *and* basis_from for new_tfb_fpc",
          call. = FALSE)
   }
-  arg <- mgcv::uniquecombs(data$arg, ordered = TRUE) |> unlist()
+  arg <- uniquecombs(data$arg, ordered = TRUE) |> unlist()
 
   domain <- domain %||% range(arg)
   if (!isTRUE(all.equal(domain, range(arg)))) {
