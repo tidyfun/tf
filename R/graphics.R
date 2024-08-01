@@ -14,9 +14,9 @@ prep_plotting_arg <- function(f, n_grid) {
     seq(tf_domain(f)[1], tf_domain(f)[2], length.out = n_grid) |>
       round_resolution(resolution) |>
       setdiff(
-        round_resolution(unlist(tf_arg(f)), resolution)
+        round_resolution(unlist(tf_arg(f), use.names = FALSE), resolution)
       ) |>
-      union(unlist(tf_arg(f))) |>
+      union(unlist(tf_arg(f), use.names = FALSE)) |>
       sort()
   }
 }
@@ -60,7 +60,7 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
   if (missing(y)) {
     arg <- prep_plotting_arg(x, n_grid)
     # irreg args need to be turned to a vector for as.matrix below:
-    if (is.list(arg)) arg <- sort(unique(unlist(arg)))
+    if (is.list(arg)) arg <- sort(unique(unlist(arg, use.names = FALSE)))
   } else {
     arg <- y
   }
@@ -115,7 +115,7 @@ linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
   if (missing(arg)) {
     arg <- prep_plotting_arg(x, n_grid)
     # irreg args need to be turned to a vector for as.matrix below:
-    if (is.list(arg)) arg <- sort(unique(unlist(arg)))
+    if (is.list(arg)) arg <- sort(unique(unlist(arg, use.names = FALSE)))
   }
   m <- if (is_tfd(x)) {
     suppressWarnings(

@@ -3,10 +3,10 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
   # created from an (intermediate) data.frame, but may be unnamed for different
   # provenance....
-  if (vec_size(datalist) == 0 || all(is.na(unlist(datalist)))) {
+  if (vec_size(datalist) == 0 || all(is.na(unlist(datalist, use.names = FALSE)))) {
     arg <- arg %||% list(numeric())
     domain <- domain %||% numeric(2)
-    subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
+    subclass <- if (regular) "tfd_reg" else "tfd_irreg"
     datalist <- list()
     # message("empty or missing input `data`; returning prototype of length 0")
     ret <- new_vctr(
@@ -22,11 +22,7 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
 
   assert_string(evaluator)
   evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
-  assert_function(evaluator_f)
-  assert_set_equal(
-    names(formals(evaluator_f)),
-    c("x", "arg", "evaluations")
-  )
+  assert_function(evaluator_f, args = c("x", "arg", "evaluations"), nargs = 3)
 
   # sort args and values by arg:
   arg_o <- map(arg, order)
@@ -39,8 +35,8 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
     sorted = TRUE, len = 2, unique = TRUE
   )
   stopifnot(
-    domain[1] <= min(unlist(arg)),
-    domain[2] >= max(unlist(arg))
+    domain[1] <= min(unlist(arg, use.names = FALSE)),
+    domain[2] >= max(unlist(arg, use.names = FALSE))
   )
 
   if (!regular) {
@@ -223,9 +219,9 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
       all(lengths(dims) == 2), all(map_int(dims, 2) == 2),
       all(rapply(data, is.numeric))
     )
-    arg <- map(data, \(x) unlist(x[, 1]))
-    data <- map(data, \(x) unlist(x[, 2]))
-    regular <- (length(data) == 1 | all(duplicated(arg)[-1]))
+    arg <- map(data, \(x) unlist(x[, 1], use.names = FALSE))
+    data <- map(data, \(x) unlist(x[, 2], use.names = FALSE))
+    regular <- length(data) == 1 || all(duplicated(arg)[-1])
   }
   new_tfd(arg, data,
     regular = regular, domain = domain,
@@ -264,7 +260,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   } else {
     if (is.null(evaluator)) "tf_approx_linear" else quo_name(evaluator_name)
   }
-  domain <- (domain %||% unlist(arg) %||% tf_domain(data)) |> range()
+  domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |> range()
   re_eval <- !is.null(arg)
   arg <- ensure_list(arg %||% tf_arg(data))
   evaluations <- if (re_eval) {
@@ -280,7 +276,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
     na_args <- map2(arg, nas, \(x, y) x[y])
     if (!all(duplicated(na_args)[-1])) {
       warning(
-        length(unlist(nas)), " evaluations were NA, returning irregular tfd.",
+        length(unlist(nas, use.names = FALSE)), " evaluations were NA, returning irregular tfd.",
         call. = FALSE
       )
     } else {
@@ -290,7 +286,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
           paste0("[... truncated]")
       }
       warning(
-        length(unlist(nas)), " evaluations on arg = (", na_arg_string,
+        length(unlist(nas, use.names = FALSE)), " evaluations on arg = (", na_arg_string,
         ") were NA, returning regular data on reduced grid.",
         call. = FALSE
       )
