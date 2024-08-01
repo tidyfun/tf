@@ -42,7 +42,6 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
   x
 }
 
-#' @importFrom zoo rollmean rollmedian
 #' @importFrom pracma savgol
 #' @rdname tf_smooth
 #' @export
