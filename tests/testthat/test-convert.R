@@ -44,6 +44,7 @@ test_that("as.data.frame.tf works", {
 })
 
 test_that("as.matrix.tf works", {
+  # missing arg
   set.seed(1312)
   x <- tf_rgp(3)
   mat <- as.matrix(x)
@@ -52,6 +53,7 @@ test_that("as.matrix.tf works", {
   expect_identical(colnames(mat), as.character(tf_arg(x)))
   expect_identical(attr(mat, "arg"), tf_arg(x))
 
+  # arg provided
   arg <- seq(0, 1, by = 0.04)
   mat <- as.matrix(x, arg = arg)
   expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 26)
