@@ -1,16 +1,15 @@
-#' @import purrr
 new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
                     domain = NULL, evaluator) {
   # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
   # created from an (intermediate) data.frame, but may be unnamed for different
   # provenance....
-  if (vctrs::vec_size(datalist) == 0 || all(is.na(unlist(datalist)))) {
+  if (vec_size(datalist) == 0 || all(is.na(unlist(datalist)))) {
     arg <- arg %||% list(numeric())
     domain <- domain %||% numeric(2)
     subclass <- ifelse(regular, "tfd_reg", "tfd_irreg")
     datalist <- list()
     # message("empty or missing input `data`; returning prototype of length 0")
-    ret <- vctrs::new_vctr(
+    ret <- new_vctr(
       datalist,
       arg = arg,
       domain = domain,
@@ -66,10 +65,10 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
 
   if (!is.null(names(datalist))) {
     # ensure "unique" names
-    names(datalist) <- vctrs::vec_as_names(names(datalist), repair = "unique")
+    names(datalist) <- vec_as_names(names(datalist), repair = "unique")
   }
 
-  ret <- vctrs::new_vctr(
+  ret <- new_vctr(
     datalist,
     arg = arg,
     domain = domain,
@@ -132,7 +131,6 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @param domain range of the `arg`.
 #' @param evaluator a function accepting arguments `x, arg, evaluations`. See
 #'   details for [tfd()].
-#' @importFrom rlang quo_name enexpr
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, ...) {
   assert_numeric(data)

@@ -30,7 +30,7 @@
 #'  - `return = "range"`: a data frame with columns "begin" and "end".
 #'  - else, a numeric vector of the same length as `f` with `NA` for entries of
 #'   `f` that nowhere fulfill the `cond`ition.
-#' @examples
+#' @examplesIf rlang::is_installed("dplyr")
 #' lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
 #' tf_where(lin, value %inr% c(-1, 0.5))
 #' tf_where(lin, value %inr% c(-1, 0.5), "range")
@@ -57,7 +57,6 @@
 #' tf_where(f, arg > 0.5 & value > 0)
 #' # does the function ever exceed?
 #' tf_anywhere(f, value > 1)
-#' @importFrom stats setNames
 #' @family tidyfun query-functions
 #' @export
 tf_where <- function(f, cond,

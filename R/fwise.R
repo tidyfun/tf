@@ -14,7 +14,6 @@
 #' @family tidyfun summary functions
 #' @return a list (or vector) of the same length as `x` with the respective
 #'   summaries
-#' @importFrom purrr as_mapper list_c
 NULL
 
 #' @export
@@ -48,7 +47,7 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
   assert_class(x, "tf")
   assert_arg(arg = arg, x = x)
   x_ <- x[, arg, matrix = FALSE]
-  f_map <- purrr::as_mapper(.f, ...)
+  f_map <- as_mapper(.f, ...)
   ret <- map(x_, f_map)
   setNames(ret, names(x))
 }

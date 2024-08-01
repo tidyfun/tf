@@ -31,7 +31,6 @@ find_arg <- function(data, arg) {
   list(arg)
 }
 
-#' @import checkmate
 assert_arg <- function(arg, x, check_unique = TRUE) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
