@@ -30,7 +30,7 @@
 tfb <- function(data = data.frame(), basis = c("spline", "fpc", "wavelet"), ...) {
   # nocov start
   basis <- match.arg(basis)
-  if (vctrs::vec_size(data) == 0) {
+  if (vec_size(data) == 0) {
     ret <-
       switch(basis,
            spline  = new_tfb_spline(numeric(0), ...),

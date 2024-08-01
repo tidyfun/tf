@@ -1,10 +1,8 @@
-#' @importFrom stats var na.omit median gaussian
-#' @importFrom utils capture.output
 new_tfb_spline <- function(data, domain = NULL, arg = NULL,
                            penalized = TRUE, global = FALSE,
                            verbose = FALSE, ...) {
-  if (vctrs::vec_size(data) == 0) {
-    ret <- vctrs::new_vctr(
+  if (vec_size(data) == 0) {
+    ret <- new_vctr(
       data,
       domain = numeric(2),
       arg = numeric(),
@@ -59,7 +57,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   spec_object$call <- s_call
 
   if (is.null(gam_args$family)) {
-    gam_args$family <- gaussian()
+    gam_args$family <- stats::gaussian()
   }
   if (is.character(gam_args$family)) {
     gam_args$family <- get(gam_args$family,
@@ -132,7 +130,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib
   s_call <- as.call(c(quote(s), quote(arg), s_args))
 
-  ret <- vctrs::new_vctr(fit[["coef"]],
+  ret <- new_vctr(fit[["coef"]],
     domain = domain,
     basis = basis_constructor,
     basis_label = deparse(s_call, width.cutoff = 60)[1],
@@ -229,7 +227,7 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
   names_data <- data[, id] |>
     unique() |>
     as.character() |>
-    vctrs::vec_as_names(repair = "unique")
+    vec_as_names(repair = "unique")
   setNames(ret, names_data)
 }
 
@@ -249,7 +247,7 @@ tfb_spline.matrix <- function(data, arg = NULL,
   if (!is.null(names_data)) {
     names_data <- names_data |>
       as.character() |>
-      vctrs::vec_as_names(repair = "unique")
+      vec_as_names(repair = "unique")
     setNames(ret, names_data)
   }
   ret
@@ -338,7 +336,7 @@ tfb_spline.tfb <- function(data, arg = NULL,
     list(...)[names(list(...)) %in% names(formals(mgcv::s))]
   )
   names_data <- names(data)
-  if (vctrs::vec_size(data) == 0) {
+  if (vec_size(data) == 0) {
     # data = rep(0, )
     # maybe try to make an empty vector that won't break anything like matrix algebra?
 

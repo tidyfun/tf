@@ -1,4 +1,3 @@
-#' @import mgcv
 smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
   stopifnot(deriv %in% c(-1, 0, 1, 2), isTRUE(eps > 0))
   if (deriv == 0) {

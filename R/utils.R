@@ -31,7 +31,6 @@ find_arg <- function(data, arg) {
   list(arg)
 }
 
-#' @import checkmate
 assert_arg <- function(arg, x, check_unique = TRUE) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
@@ -42,11 +41,8 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 }
 
 .assert_arg_vector <- function(arg, domain_x, check_unique) {
-  if (check_unique && (anyDuplicated(arg) > 0)) {
-    stop("Non-unique arg-values.", call. = FALSE)
-  }
   assert_numeric(arg,
-    any.missing = FALSE, unique = FALSE, sorted = TRUE,
+    any.missing = FALSE, unique = check_unique, sorted = TRUE,
     lower = domain_x[1], upper = domain_x[2]
   )
 }

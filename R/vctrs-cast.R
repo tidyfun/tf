@@ -56,9 +56,6 @@ same_args <- function(x, to) {
 #'
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @importFrom vctrs vec_ptype2 vec_cast stop_incompatible_cast maybe_lossy_cast
-#' @importFrom vctrs allow_lossy_cast stop_incompatible_type vec_ptype vec_size
-#' @importFrom vctrs vec_ptype_common vec_restore vec_proxy vec_slice<-
 #' @method vec_cast tfd_reg
 #' @export
 #' @export vec_cast.tfd_reg

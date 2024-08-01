@@ -34,7 +34,7 @@
 #'   `j` is given and `matrix == FALSE`, a list of `tbl_df`s with columns
 #'   `arg` = `j` and `value` = evaluations at `j` for each observation in
 #'   `i`.
-#' @import checkmate
+#'
 #' @rdname tfbrackets
 #' @name tfbrackets
 #' @export

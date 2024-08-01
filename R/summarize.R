@@ -99,8 +99,8 @@ sd.tf <- function(x, na.rm = FALSE) {
 #' @rdname tfsummaries
 var <- function(x, y = NULL, na.rm = FALSE, use) UseMethod("var")
 
+#' @importFrom stats var
 #' @export
-#' @importFrom stats sd
 #' @rdname tfsummaries
 var.default <- stats::var
 

@@ -95,6 +95,7 @@ tf_jiggle <- function(f, amount = 0.4, ...) {
   tf_evaluator(ret) <- evaluator
   ret
 }
+
 tf_jiggle_args <- function(arg, amount) {
   diffs <- diff(arg)
   n <- length(arg)

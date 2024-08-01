@@ -1,4 +1,3 @@
-#' @import zoo
 zoo_wrapper <- function(f, ...) {
   #nocov start
   dots <- list(...)
