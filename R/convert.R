@@ -36,7 +36,10 @@ as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE,
 #' @family tidyfun converters
 as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
-    arg <- tf_arg(x) |> unlist() |>  unique() |> sort()
+    arg <- tf_arg(x)
+    if (is_irreg(x)) {
+      arg <- arg |> unlist() |> unique() |> sort()
+    }
   }
   if (is_tfb(x)) interpolate <- TRUE
   assert_arg_vector(arg, x, check_unique = FALSE)
