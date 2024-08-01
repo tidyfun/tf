@@ -2,11 +2,11 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
   stopifnot(deriv %in% c(-1, 0, 1, 2), isTRUE(eps > 0))
   if (deriv == 0) {
     function(arg) {
-      mgcv::Predict.matrix(object = spec, data = data.frame(arg = arg))
+      Predict.matrix(object = spec, data = data.frame(arg = arg))
     }
   } else if (deriv == 1) {
     function(arg) {
-      X <- mgcv::Predict.matrix(
+      X <- Predict.matrix(
         object = spec,
         data = data.frame(arg = c(arg + eps, arg - eps))
       )
@@ -15,7 +15,7 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
   } else if (deriv == 2) {
     function(arg) {
       g <- length(arg)
-      X <- mgcv::Predict.matrix(
+      X <- Predict.matrix(
         object = spec,
         data = data.frame(arg = c(arg + eps, arg, arg - eps))
       )
@@ -28,7 +28,7 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
       arg_orig <- spec$Xu[spec$Xu <= max(arg)]
       arg_interleave <- sort(unique(c(arg_orig, arg)))
       new_args <- which(arg_interleave %in% arg)
-      X <- mgcv::Predict.matrix(
+      X <- Predict.matrix(
         object = spec,
         data = data.frame(arg = arg_interleave)
       )
@@ -127,7 +127,7 @@ fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
 fit_penalized_ls <- function(data, spec_object, arg_u, gam_args, regular) {
   eval_list <- split(data$value, data$id)
   index_list <- split(attr(arg_u, "index"), data$id)
-  gam_args <- gam_args[names(gam_args) %in% names(formals(mgcv::magic))]
+  gam_args <- gam_args[names(gam_args) %in% names(formals(magic))]
   ret <- map2(
     index_list, eval_list,
     \(x, y) possibly(magic_smooth_coef,
@@ -158,7 +158,7 @@ magic_smooth_coef <- function(evaluations, index, spec_object, gam_args) {
     ),
     flatten(list(off = 1, gam_args))
   )
-  m <- do.call(mgcv::magic, magic_args)
+  m <- do.call(magic, magic_args)
   list(coef = m$b, pve = 1 - m$scale / var(evaluations), sp = m$sp)
 }
 
