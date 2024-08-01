@@ -19,8 +19,7 @@
 as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE,
                              unnest = FALSE, ...) {
   if (unnest) return(tf_2_df(x))
-  new_data_frame(list(x), n = vec_size(x),
-                 names = deparse(substitute(x)))
+  new_data_frame(list(x), names = deparse1(substitute(x)))
 }
 
 #' @rdname converters
@@ -36,7 +35,10 @@ as.data.frame.tf <- function(x, row.names = NULL, optional = FALSE,
 #' @family tidyfun converters
 as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
-    arg <- tf_arg(x) |> unlist() |>  unique() |> sort()
+    arg <- tf_arg(x)
+    if (is_irreg(x)) {
+      arg <- arg |> unlist(use.names = FALSE) |> unique() |> sort()
+    }
   }
   if (is_tfb(x)) interpolate <- TRUE
   assert_arg_vector(arg, x, check_unique = FALSE)

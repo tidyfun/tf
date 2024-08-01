@@ -37,7 +37,7 @@ Imports:
     mgcv,
     mvtnorm,
     pracma,
-    purrr,
+    purrr (>= 1.0.0),
     rlang,
     stats,
     vctrs (>= 0.2.4),
