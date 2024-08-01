@@ -7,8 +7,7 @@ test_that("tfd.numeric works", {
   expect_length(f, 1)
   expect_identical(attr(f, "arg"), list(1:100))
   expect_identical(attr(f, "domain"), c(1L, 100L))
-  expect_type(attr(f, "evaluator"), "closure")
-  expect_named(formals(attr(f, "evaluator")), c("x", "arg", "evaluations"))
+  expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
   # irregular data
@@ -18,8 +17,7 @@ test_that("tfd.numeric works", {
   expect_length(f, 1)
   expect_identical(attr(f, "arg"), numeric())
   expect_identical(attr(f, "domain"), c(1L, 100L))
-  expect_type(attr(f, "evaluator"), "closure")
-  expect_named(formals(attr(f, "evaluator")), c("x", "arg", "evaluations"))
+  expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
   # empty data
@@ -28,8 +26,7 @@ test_that("tfd.numeric works", {
   expect_length(f, 0)
   expect_identical(attr(f, "arg"), list(integer()))
   expect_identical(attr(f, "domain"), c(0, 0))
-  expect_type(attr(f, "evaluator"), "closure")
-  expect_named(formals(attr(f, "evaluator")), c("x", "arg", "evaluations"))
+  expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
   # single NA
@@ -39,8 +36,7 @@ test_that("tfd.numeric works", {
     expect_length(f, 0)
     expect_identical(attr(f, "arg"), list(1L))
     expect_identical(attr(f, "domain"), c(0, 0))
-    expect_type(attr(f, "evaluator"), "closure")
-    expect_named(formals(attr(f, "evaluator")), c("x", "arg", "evaluations"))
+    expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
     expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
   }
 })
