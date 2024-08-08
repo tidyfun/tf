@@ -134,7 +134,7 @@ tfd <- function(data, ...) UseMethod("tfd")
 tfd.matrix <- function(data, arg = NULL, domain = NULL,
                        evaluator = tf_approx_linear, ...) {
   assert_numeric(data)
-  evaluator <- quo_name(enexpr(evaluator))
+  evaluator <- as_name(enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
   id <- unique_id(rownames(data) %||% seq_len(dim(data)[1]))
   # make factor conversion explicit to avoid reordering
@@ -148,7 +148,7 @@ tfd.matrix <- function(data, arg = NULL, domain = NULL,
 #' @export
 tfd.numeric <- function(data, arg = NULL,
                         domain = NULL, evaluator = tf_approx_linear, ...) {
-  evaluator <- quo_name(enexpr(evaluator))
+  evaluator <- as_name(enexpr(evaluator))
   data <- t(as.matrix(data))
   # dispatch to matrix method
   args <- list(data,
@@ -172,7 +172,7 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
     is.numeric(data[[arg]]),
     is.numeric(data[[value]])
   )
-  evaluator <- quo_name(enexpr(evaluator))
+  evaluator <- as_name(enexpr(evaluator))
   data <- na.omit(data[, c(id, arg, value)])
 
   # make factor conversion explicit to avoid reordering
@@ -191,7 +191,7 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
 #' @rdname tfd
 tfd.list <- function(data, arg = NULL, domain = NULL,
                      evaluator = tf_approx_linear, ...) {
-  evaluator <- quo_name(enexpr(evaluator))
+  evaluator <- as_name(enexpr(evaluator))
   vectors <- map_lgl(data, \(x) is.numeric(x) & !is.array(x))
   if (all(vectors)) {
     where_na <- map(data, is.na)
@@ -262,7 +262,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   evaluator <- if (is_tfd(data) && is.null(evaluator)) {
     attr(data, "evaluator_name")
   } else {
-    if (is.null(evaluator)) "tf_approx_linear" else quo_name(evaluator_name)
+    if (is.null(evaluator)) "tf_approx_linear" else as_name(evaluator_name)
   }
   domain <- (domain %||% unlist(arg) %||% tf_domain(data)) |> range()
   re_eval <- !is.null(arg)
@@ -313,7 +313,7 @@ tfd.default <- function(data, arg = NULL, domain = NULL,
                         evaluator = tf_approx_linear, ...) {
   message("input `data` not recognized class; returning prototype of length 0")
   datalist <- list()
-  evaluator <- quo_name(enexpr(evaluator))
+  evaluator <- as_name(enexpr(evaluator))
   new_tfd(arg = arg, datalist = datalist, domain = domain, regular = TRUE,
           evaluator = evaluator)
 }
