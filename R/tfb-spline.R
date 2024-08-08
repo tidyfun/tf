@@ -211,6 +211,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 #' @seealso [mgcv::smooth.terms()] for spline basis options.
 #' @family tfb-class
 #' @family tfb_spline-class
+#' @export
 tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 
 #' @export
