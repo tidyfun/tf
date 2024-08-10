@@ -16,7 +16,7 @@ find_arg <- function(data, arg) {
       )
       arg <- regmatches(names, arg_matches)
       arg <- suppressWarnings(as.numeric(arg))
-      if (length(unique(arg)) != dim(data)[2]) arg <- NULL
+      if (n_distinct(arg) != dim(data)[2]) arg <- NULL
     }
     if (is.null(arg) || anyNA(arg)) {
       message(
@@ -40,16 +40,12 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
   }
 }
 
-.assert_arg_vector <- function(arg, domain_x, check_unique) {
+assert_arg_vector <- function(arg, x, check_unique = TRUE) {
+  domain_x <- tf_domain(x)
   assert_numeric(arg,
     any.missing = FALSE, unique = check_unique, sorted = TRUE,
     lower = domain_x[1], upper = domain_x[2]
   )
-}
-
-assert_arg_vector <- function(arg, x, check_unique = TRUE) {
-  domain_x <- tf_domain(x)
-  .assert_arg_vector(arg, domain_x, check_unique)
 }
 
 # default resolution is ~ smallest observed interval/10
