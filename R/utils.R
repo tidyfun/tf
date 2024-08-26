@@ -27,7 +27,8 @@ find_arg <- function(data, arg) {
     }
   }
   if (!length(arg)) arg <- seq_len(dim(data)[2])
-  stopifnot(length(arg) == dim(data)[2], is.numeric(arg), !anyNA(arg))
+  assert_numeric(arg, any.missing = FALSE)
+  assert_true(length(arg) == dim(data)[2])
   list(arg)
 }
 

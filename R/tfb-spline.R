@@ -272,7 +272,7 @@ tfb_spline.list <- function(data, arg = NULL,
                             global = FALSE,
                             verbose = TRUE, ...) {
   vectors <- map_lgl(data, is.numeric)
-  stopifnot(all(vectors) | !any(vectors))
+  stopifnot(all(vectors) || !any(vectors))
 
   names_data <- names(data)
 

@@ -168,10 +168,8 @@ tfd.numeric <- function(data, arg = NULL,
 #'   evaluations.
 tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
                            evaluator = tf_approx_linear, ...) {
-  stopifnot(
-    is.numeric(data[[arg]]),
-    is.numeric(data[[value]])
-  )
+  assert_numeric(data[[arg]])
+  assert_numeric(data[[value]])
   evaluator <- quo_name(enexpr(evaluator))
   data <- na.omit(data[, c(id, arg, value)])
 
