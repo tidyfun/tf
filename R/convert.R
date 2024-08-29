@@ -37,7 +37,7 @@ as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(x)
     if (is_irreg(x)) {
-      arg <- arg |> unlist(use.names = FALSE) |> unique() |> sort()
+      arg <- sort_unique(arg, simplify = TRUE)
     }
   }
   if (is_tfb(x)) interpolate <- TRUE

@@ -222,6 +222,13 @@ na_to_0 <- function(x) {
 
 n_distinct <- function(x) length(unique(x))
 
+sort_unique <- function(x, simplify = FALSE) {
+  if (simplify) {
+    x <- unlist(x, use.names = FALSE)
+  }
+  sort(unique(x))
+}
+
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
 # by Michel Lang (copied here Feb 2024)
 format_bib <- function(..., bibentries = NULL, envir = parent.frame()) {

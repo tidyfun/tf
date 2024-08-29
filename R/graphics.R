@@ -60,7 +60,7 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
   if (missing(y)) {
     arg <- prep_plotting_arg(x, n_grid)
     # irreg args need to be turned to a vector for as.matrix below:
-    if (is.list(arg)) arg <- sort(unique(unlist(arg, use.names = FALSE)))
+    if (is_irreg(x)) arg <- sort_unique(arg, simplify = TRUE)
   } else {
     arg <- y
   }
@@ -115,7 +115,7 @@ linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
   if (missing(arg)) {
     arg <- prep_plotting_arg(x, n_grid)
     # irreg args need to be turned to a vector for as.matrix below:
-    if (is.list(arg)) arg <- sort(unique(unlist(arg, use.names = FALSE)))
+    if (is_irreg(x)) arg <- sort_unique(arg, simplify = TRUE)
   }
   m <- if (is_tfd(x)) {
     suppressWarnings(
