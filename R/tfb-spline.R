@@ -20,8 +20,8 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     sorted = TRUE, len = 2, unique = TRUE
   )
   stopifnot(
-    domain[1] <= min(unlist(arg_u)),
-    domain[2] >= max(unlist(arg_u))
+    domain[1] <= min(unlist(arg_u, use.names = FALSE)),
+    domain[2] >= max(unlist(arg_u, use.names = FALSE))
   )
 
   # explicit factor-conversion to avoid reordering:
@@ -211,6 +211,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 #' @seealso [mgcv::smooth.terms()] for spline basis options.
 #' @family tfb-class
 #' @family tfb_spline-class
+#' @export
 tfb_spline <- function(data, ...) UseMethod("tfb_spline")
 
 #' @export
@@ -238,7 +239,7 @@ tfb_spline.matrix <- function(data, arg = NULL,
                               domain = NULL, penalized = TRUE,
                               global = FALSE,
                               verbose = TRUE, ...) {
-  if (is.null(arg)) arg <- unlist(find_arg(data, arg))
+  if (is.null(arg)) arg <- unlist(find_arg(data, arg), use.names = FALSE)
   names_data <- rownames(data)
 
   data <- mat_2_df(data, arg)

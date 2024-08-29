@@ -29,7 +29,7 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
 # from refund
 df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]
-  nobs <- length(unique(data$id))
+  nobs <- n_distinct(data$id)
   newid <- as.numeric(as.factor(data$id))
   bins <- sort(unique(data$arg))
   if (binning && (length(bins) > maxbins)) {

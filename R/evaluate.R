@@ -56,7 +56,7 @@ evaluate_tfd_once <- function(new_arg, arg,
   seen <- match(new_arg, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
-  ret <- rep(NA, length(new_arg))
+  ret <- rep(NA_real_, length(new_arg))
   ret[seen] <- evaluations[seen_index]
   ret[!seen] <-
     evaluator(new_arg[!seen], arg = arg, evaluations = evaluations)
@@ -72,7 +72,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   arg <- ensure_list(arg)
   assert_arg(arg, object, check_unique = FALSE)
   if (length(arg) == 1) {
-    arg <- unlist(arg)
+    arg <- unlist(arg, use.names = FALSE)
     evals <- evaluate_tfb_once(
       x = arg,
       arg = tf_arg(object),

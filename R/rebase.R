@@ -46,7 +46,7 @@ tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
     # if <object> is length 1, extrapolate it to *all* eval points of
     # basis_from by default
     if (default_arg) {
-      arg <- arg |> unlist() |> unique() |> sort()
+      arg <- arg |> unlist(use.names = FALSE) |> unique() |> sort()
       message("using all ", length(arg), " unique time points for new arg.")
       default_arg <- FALSE
     }

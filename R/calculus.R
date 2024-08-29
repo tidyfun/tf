@@ -51,7 +51,7 @@ tf_derive.default <- function(f, arg, order = 1, ...) .NotYetImplemented()
 #' @export
 #' @describeIn tf_derive row-wise finite differences
 tf_derive.matrix <- function(f, arg, order = 1, ...) {
-  if (missing(arg)) arg <- unlist(find_arg(f))
+  if (missing(arg)) arg <- unlist(find_arg(f), use.names = FALSE)
   assert_numeric(arg,
     any.missing = FALSE, finite = TRUE, len = ncol(f),
     sorted = TRUE, unique = TRUE
@@ -206,7 +206,7 @@ tf_integrate.tfd <- function(f, arg,
     data_list <- map(quads, cumsum)
     names(data_list) <- names(f)
     tfd(
-      data = data_list, arg = unlist(arg), domain = as.numeric(limits),
+      data = data_list, arg = unlist(arg, use.names = FALSE), domain = as.numeric(limits),
       evaluator = !!attr(f, "evaluator_name")
     )
   }
