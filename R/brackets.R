@@ -95,7 +95,7 @@
   evals <- tf_evaluate(x, arg = j)
   if (!interpolate) {
     new_j <- map2(j, ensure_list(tf_arg(x)), \(x, y) !(x %in% y))
-    if (any(unlist(new_j))) {
+    if (any(unlist(new_j, use.names = FALSE))) {
       warning(
         "interpolate = FALSE & no evaluations for some <j>: NAs created.",
         call. = FALSE
@@ -105,9 +105,10 @@
   }
   if (matrix) {
     ret <- do.call(rbind, evals)
-    colnames(ret) <- unlist(j)
+    j <- unlist(j, use.names = FALSE)
+    colnames(ret) <- j
     rownames(ret) <- names(x)
-    structure(ret, arg = unlist(j))
+    structure(ret, arg = j)
   } else {
     ret <- map2(j, evals, \(x, y) data.frame(arg = x, value = y)) |>
       setNames(names(x))

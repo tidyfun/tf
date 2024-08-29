@@ -56,24 +56,30 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
 #' @describeIn functionwise maximal value of each function
 #' @inheritParams base::min
 tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  ret <- tf_fwise(x, \(.x) max(.x$value, na.rm = na.rm), arg = arg) |> list_c()
-  setNames(ret, names(x))
+  x |>
+    tf_fwise(\(.x) max(.x$value, na.rm = na.rm), arg = arg) |>
+    unlist(use.names = FALSE) |>
+    setNames(names(x))
 }
 
 #' @export
 #' @describeIn functionwise minimal value of each function
 #' @inheritParams base::min
 tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  ret <- tf_fwise(x, \(.x) min(.x$value, na.rm = na.rm), arg = arg) |> list_c()
-  setNames(ret, names(x))
+  x |>
+    tf_fwise(\(.x) min(.x$value, na.rm = na.rm), arg = arg) |>
+    unlist(use.names = FALSE) |>
+    setNames(names(x))
 }
 
 #' @export
 #' @describeIn functionwise median value of each function
 #' @inheritParams base::min
 tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  ret <- tf_fwise(x, \(.x) median(.x$value, na.rm = na.rm), arg = arg) |> list_c()
-  setNames(ret, names(x))
+  x |>
+    tf_fwise(\(.x) median(.x$value, na.rm = na.rm), arg = arg) |>
+    unlist(use.names = FALSE) |>
+    setNames(names(x))
 }
 
 #' @export

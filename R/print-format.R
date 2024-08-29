@@ -18,11 +18,11 @@ string_rep_tf <- function(f, signif_arg = NULL,
     tf_evaluations(f), show,
     \(x, y) do.call(format, c(format_args, list(x = x[1:y])))
   )
-  arg_nchar <- map(arg_ch, nchar) |>
-    unlist() |>
+  arg_nchar <- unlist(arg_ch, use.names = FALSE) |>
+    nchar() |>
     max()
-  value_nchar <- map(value_ch, nchar) |>
-    unlist() |>
+  value_nchar <- unlist(value_ch, use.names = FALSE) |>
+    nchar() |>
     max()
   # left-pad with spaces:
   arg_ch <- map(arg_ch, \(x) sprintf(paste0("%", arg_nchar, "s"), x))
@@ -137,5 +137,5 @@ format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
   }
   unlist(map_if(
     str, \(x) nchar(x) > width, \(x) paste0(substr(x, 1, width - 3), "...")
-  ))
+  ), use.names = FALSE)
 }
