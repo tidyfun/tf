@@ -4,13 +4,16 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
 
   if (deriv == 0) {
     function(arg) {
-      Predict.matrix(object = spec, data = data.frame(arg = arg))
+      Predict.matrix(
+        object = spec,
+        data = data_frame(arg = arg, .name_repair = "minimal")
+      )
     }
   } else if (deriv == 1) {
     function(arg) {
       X <- Predict.matrix(
         object = spec,
-        data = data.frame(arg = c(arg + eps, arg - eps))
+        data = data_frame(arg = c(arg + eps, arg - eps), .name_repair = "minimal")
       )
       (X[seq_along(arg), ] - X[-seq_along(arg), ]) / (2 * eps)
     }
@@ -19,7 +22,7 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
       g <- length(arg)
       X <- Predict.matrix(
         object = spec,
-        data = data.frame(arg = c(arg + eps, arg, arg - eps))
+        data = data_frame(arg = c(arg + eps, arg, arg - eps), .name_repair = "minimal")
       )
       (X[1:g, ] - (2 * X[(g + 1):(2 * g), ]) + X[-(1:(2 * g)), ]) / eps^2
     }
@@ -32,7 +35,7 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
       new_args <- which(arg_interleave %in% arg)
       X <- Predict.matrix(
         object = spec,
-        data = data.frame(arg = arg_interleave)
+        data = data_frame(arg = arg_interleave, .name_repair = "minimal")
       )
       apply(X, 2, function(arg, x) cumsum(quad_trapez(arg, x)),
         arg = arg_interleave
@@ -232,7 +235,7 @@ fit_ml_once <- function(index, evaluations, gam_prep, sp) {
   G_tmp$y <- evaluations
   G_tmp$n <- length(evaluations)
   G_tmp$w <- rep(1, G_tmp$n)
-  mf <- data.frame(x = G_tmp$y)
+  mf <- data_frame(x = G_tmp$y, .name_repair = "minimal")
   mf$X <- G_tmp$X
   attributes(mf) <- attributes(G_tmp$mf)
   G_tmp$mf <- mf

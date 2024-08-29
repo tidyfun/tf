@@ -15,7 +15,7 @@ test_that("tf_where basics work", {
   )
   expect_equal(
     tf_where(lin, value <= 0, "range"),
-    data.frame(begin = -1, end = c(0, -0.2))
+    data_frame(begin = -1, end = c(0, -0.2))
   )
   expect_equal(
     tf_where(lin, value < -1.5, "any"),

@@ -110,7 +110,9 @@
     rownames(ret) <- names(x)
     structure(ret, arg = j)
   } else {
-    ret <- map2(j, evals, \(x, y) data.frame(arg = x, value = y)) |>
+    ret <- map2(
+      j, evals, \(x, y) data_frame(arg = x, value = y, .name_repair = "minimal")
+    ) |>
       setNames(names(x))
     ret
   }

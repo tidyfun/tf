@@ -208,7 +208,7 @@ tfb_fpc.default <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
     message("input `data` not recognized class;\nreturning prototype of length 0")
   }
 
-  data <- data.frame()
+  data <- data_frame(.name_repair = "minimal")
   new_tfb_spline(data = data, arg = arg, method = method, domain = domain,
                  ...)
 }

@@ -27,7 +27,8 @@
 #' @rdname tfb
 #' @family tfb-class
 #' @export
-tfb <- function(data = data.frame(), basis = c("spline", "fpc", "wavelet"), ...) {
+tfb <- function(data = data_frame(.name_repair = "minimal"),
+                basis = c("spline", "fpc", "wavelet"), ...) {
   # nocov start
   basis <- match.arg(basis)
   if (vec_size(data) == 0) {
