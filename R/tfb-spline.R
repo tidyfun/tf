@@ -28,7 +28,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   data$id <- factor(data$id, unique(as.character(data$id)))
 
   s_args <- list(...)[names(list(...)) %in% names(formals(s))]
-  if (!("bs" %in% names(s_args))) s_args$bs <- "cr"
+  if (!has_name(s_args, "bs")) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
     warning(
       "adaptive smooths with (bs='ad') not implemented yet. Changing to bs='cr'.",
@@ -36,13 +36,13 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     )
     s_args$bs <- "cr"
   }
-  if (!("k" %in% names(s_args))) s_args$k <- min(25, nrow(arg_u))
+  if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
   gam_args <- list(...)[names(list(...)) %in%
     c(
       names(formals(gam)),
       names(formals(bam))
     )]
-  if (!("sp" %in% names(gam_args))) gam_args$sp <- -1
+  if (!has_name(gam_args, "sp")) gam_args$sp <- -1
 
   n_evaluations <- table(data$id)
   arg_list <- split(data$arg, data$id)
