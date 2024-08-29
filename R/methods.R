@@ -121,7 +121,7 @@ tf_evaluator_expr <- function(f) {
   value <- if (is.function(value)) {
     deparse1(substitute(value))
   } else {
-    quo_name(enexpr(value))
+    as_name(enexpr(value))
   }
   stopifnot(is_tfd(x))
   evaluator <- get(value, mode = "function", envir = parent.frame())
