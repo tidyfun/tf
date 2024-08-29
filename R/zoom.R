@@ -59,7 +59,9 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
     if (all(nas)) stop("no data in zoom region.", call. = FALSE)
     if (any(nas)) warning("NAs created by tf_zoom.", call. = FALSE)
     for (n in which(nas)) {
-      ret[[n]] <- data.frame(arg = unname(args$dom[1]), value = NA_real_)
+      ret[[n]] <- data_frame(
+        arg = unname(args$dom[1]), value = NA_real_, .name_repair = "minimal"
+      )
     }
   } else {
     if (any(map_int(ret, nrow) == 0)) {

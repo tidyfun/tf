@@ -2,7 +2,7 @@ test_that("as.data.frame.tf works", {
   # unnest = FALSE
   set.seed(1312)
   x <- tf_rgp(3)
-  expected <- data.frame(x = 1:3)
+  expected <- data_frame(x = 1:3)
   expected$x <- x
   df <- as.data.frame(x)
   expect_data_frame(df)
@@ -10,7 +10,7 @@ test_that("as.data.frame.tf works", {
   expect_identical(as.data.frame(df), expected)
 
   x <- tf_sparsify(x)
-  expected <- data.frame(x = 1:3)
+  expected <- data_frame(x = 1:3)
   expected$x <- x
   df <- as.data.frame(x)
   expect_identical(df, expected)

@@ -51,7 +51,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
   spec_object <- smooth.construct(s_spec,
-    data = data.frame(arg = arg_u$x),
+    data = data_frame(arg = arg_u$x, .name_repair = "minimal"),
     knots = NULL
   )
   spec_object$call <- s_call
@@ -102,8 +102,10 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     }
   }
   if (!regular) {
-    arg_u <- data.frame(x = arg_u$x)
-    spec_object$X <- PredictMat(spec_object, data = data.frame(arg = arg_u$x))
+    arg_u <- data_frame(x = arg_u$x, .name_repair = "minimal")
+    spec_object$X <- PredictMat(spec_object,
+      data = data_frame(arg = arg_u$x, .name_repair = "minimal")
+    )
   }
   if (isTRUE(min(fit$pve) < 0.5)) {
     warning(c("Fit captures <50% of input data variability for at least one function",
@@ -366,7 +368,7 @@ tfb_spline.default <- function(data, arg = NULL,
   message("input `data` not from a recognized class;
             returning prototype of length 0")
 
-  data <- data.frame()
+  data <- data_frame(.name_repair = "minimal")
   new_tfb_spline(data,
     domain = domain, penalized = penalized,
     global = global, ...

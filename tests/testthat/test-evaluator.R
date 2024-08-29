@@ -2,8 +2,8 @@ grid <- round(seq(0, 1, length.out = 21), 3)
 lin <- 2 * grid
 curve <- sin(3 * pi * grid)
 
-f_lin <- tfd(data.frame(1, grid, lin))
-f_curve <- tfd(data.frame(1, grid, curve))
+f_lin <- tfd(data_frame(x = 1, grid = grid, lin = lin))
+f_curve <- tfd(data_frame(x = 1, grid = grid, curve = curve))
 
 new_grid <- round(seq(0, 1, length.out = 41), 3)
 

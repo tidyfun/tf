@@ -104,7 +104,8 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
   spec_object <- smooth.construct(s_spec,
-    data = data.frame(arg = arg), knots = NULL
+    data = data_frame(arg = arg, .name_repair = "minimal"),
+    knots = NULL
   )
   eps <- min(diff(arg)) / 1000
   basis_constructor <- smooth_spec_wrapper(spec_object, deriv = order, eps = eps)
