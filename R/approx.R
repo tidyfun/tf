@@ -2,7 +2,7 @@ zoo_wrapper <- function(f, ...) {
   #nocov start
   dots <- list(...)
   function(x, arg, evaluations) {
-    x_arg <- sort(unique(c(x, arg)))
+    x_arg <- sort_unique(c(x, arg))
     x_arg_match <- match(x_arg, arg, nomatch = length(arg) + 1)
     requested <- x_arg %in% x
     dots[[length(dots) + 1]] <- zoo(evaluations[x_arg_match], x_arg)

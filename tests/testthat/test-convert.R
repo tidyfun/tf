@@ -62,7 +62,7 @@ test_that("as.matrix.tf works", {
   )
   expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 49)
   expect_identical(row.names(mat), as.character(1:3))
-  arg <- tf_arg(x_irreg) |> unlist(use.names = FALSE) |> unique() |> sort()
+  arg <- tf_arg(x_irreg) |> sort_unique(simplify = TRUE)
   expect_identical(
     colnames(mat), as.character(arg)
   )
@@ -72,7 +72,7 @@ test_that("as.matrix.tf works", {
   expect_no_warning(mat <- as.matrix(x_irreg, interpolate = TRUE))
   expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 49)
   expect_identical(row.names(mat), as.character(1:3))
-  arg <- tf_arg(x_irreg) |> unlist(use.names = FALSE) |> unique() |> sort()
+  arg <- tf_arg(x_irreg) |> sort_unique(simplify = TRUE)
   expect_identical(
     colnames(mat), as.character(arg)
   )

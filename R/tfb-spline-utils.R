@@ -31,7 +31,7 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
       # make sure quadrature runs over entire range up to the new arg
       # --> have to re-use original grid
       arg_orig <- spec$Xu[spec$Xu <= max(arg)]
-      arg_interleave <- sort(unique(c(arg_orig, arg)))
+      arg_interleave <- sort_unique(c(arg_orig, arg))
       new_args <- which(arg_interleave %in% arg)
       X <- Predict.matrix(
         object = spec,

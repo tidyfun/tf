@@ -31,7 +31,7 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]
   nobs <- n_distinct(data$id)
   newid <- as.numeric(as.factor(data$id))
-  bins <- sort(unique(data$arg))
+  bins <- sort_unique(data$arg)
   if (binning && (length(bins) > maxbins)) {
     binvalues <- seq(
       (1 - 0.001 * sign(bins[1])) * bins[1],
