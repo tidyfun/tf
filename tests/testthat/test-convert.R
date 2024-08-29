@@ -44,14 +44,39 @@ test_that("as.data.frame.tf works", {
 })
 
 test_that("as.matrix.tf works", {
-  # missing arg
   set.seed(1312)
   x <- tf_rgp(3)
+
+  # missing arg regular
   mat <- as.matrix(x)
   expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 51)
   expect_identical(row.names(mat), as.character(1:3))
   expect_identical(colnames(mat), as.character(tf_arg(x)))
   expect_identical(attr(mat, "arg"), tf_arg(x))
+
+  # missing arg irregular
+  x_irreg <- tf_sparsify(x)
+  expect_warning(
+    mat <- as.matrix(x_irreg),
+    "interpolate = FALSE & no evaluations for some <j>: NAs created"
+  )
+  expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 49)
+  expect_identical(row.names(mat), as.character(1:3))
+  arg <- tf_arg(x_irreg) |> unlist(use.names = FALSE) |> unique() |> sort()
+  expect_identical(
+    colnames(mat), as.character(arg)
+  )
+  expect_identical(attr(mat, "arg"), arg)
+
+  # interpolate = TRUE
+  expect_no_warning(mat <- as.matrix(x_irreg, interpolate = TRUE))
+  expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 49)
+  expect_identical(row.names(mat), as.character(1:3))
+  arg <- tf_arg(x_irreg) |> unlist(use.names = FALSE) |> unique() |> sort()
+  expect_identical(
+    colnames(mat), as.character(arg)
+  )
+  expect_identical(attr(mat, "arg"), arg)
 
   # arg provided
   arg <- seq(0, 1, by = 0.04)
