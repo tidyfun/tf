@@ -1,0 +1,307 @@
+---
+title: "tf - vctrs rcrd implementation"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Load the necessary libraries:
+
+```{r setup, message = FALSE}
+library(checkmate)
+library(purrr)
+library(rlang)
+library(vctrs)
+library(zeallot)
+```
+
+## `vctrs` rcrd example
+
+```{r, vctrs-poly-example}
+new_poly <- function(x) {
+  new_list_of(x, ptype = integer(), class = "vctrs_poly_list")
+}
+
+vec_ptype_full.vctrs_poly_list <- function(x, ...) "polynomial"
+vec_ptype_abbr.vctrs_poly_list <- function(x, ...) "poly"
+
+format.vctrs_poly_list <- function(x, ...) {
+  format_one <- function(x) {
+    if (length(x) == 0) {
+      return("")
+    }
+
+    if (length(x) == 1) {
+      format(x)
+    } else {
+      suffix <- c(paste0("\u22C5x^", seq(length(x) - 1, 1)), "")
+      out <- paste0(x, suffix)
+      out <- out[x != 0L]
+      paste0(out, collapse = " + ")
+    }
+  }
+
+  map_chr(x, format_one)
+}
+
+poly <- function(...) {
+  x <- vec_cast_common(..., .to = integer())
+  x <- new_poly(x)
+  new_rcrd(list(data = x), class = "vctrs_poly")
+}
+
+format.vctrs_poly <- function(x, ...) {
+  format(field(x, "data"))
+}
+
+obj_print_data.vctrs_poly <- function(x, ...) {
+  if (length(x) != 0) {
+    print(format(x), quote = FALSE)
+  }
+}
+
+vec_proxy_compare.vctrs_poly <- function(x, ...) {
+  x_raw <- vec_data(field(x, "data"))
+  n <- max(lengths(x_raw))
+  full <- lapply(x_raw, \(x) c(rep(0L, n - length(x)), x))
+  as.data.frame(do.call(rbind, full))
+}
+
+p <- poly(1, c(1, 0, 0, 0, 2), c(1, 0, 1))
+p
+
+p < p[2]
+```
+
+## 1-Dimensional Data
+
+which interfaces do I generally need to handle?
+
+1. `format` for printing
+2. `vec_math` for math operations
+3. `vec_arith` for arithmetic operations
+4. `vec_proxy_compare` not relevant since comparison not defined
+5. `vec_proxy_order` not relevant since ordering not defined
+
+input validation is commonly done here in the low-level constructor options are:
+
+- `stopifnot`
+- `stop`, benefit of custom message
+- `checkmate` functions, note simple checks may be faster than `checkmate`, but very negligible
+- `vctrs` functions
+- `rlang` functions
+
+-> `tf` currently uses `stopifnot`, `stop`, `checkmate` and some `vctrs` functions
+
+
+```{r}
+new_tfd <- function(x, arg) {
+  stopifnot(is.list(x), is.double(arg))
+  new_list_of(x, arg = arg, ptype = double(), class = "vctrs_tfd_list")
+}
+
+format.vctrs_tfd_list <- function(x, ...) {
+  format_one <- function(x, arg) {
+    if (length(x) == 0) {
+      return("")
+    }
+    x <- round(x, 2)
+    arg <- round(arg, 2)
+    x <- sprintf("(%s,%s)", arg, x)
+    stringr::str_trunc(paste0(x, collapse = ";"), 25, "center")
+  }
+  map_chr(x, \(.x, arg) format_one(.x, attr(x, "arg")))
+}
+
+# the constructor could also just take a single vector as input, with `x`
+# I believe a cleaner design is to only allowing vectors as input like done in
+# the docs and for lists, data.frames etc. use conversions or `as.tfd`
+# functions, check what docs suggest and how other packages handle this
+
+# would there be any benefits of storing the arg attr here?
+tfd <- function(..., arg = NULL) {
+  x <- vec_cast_common(..., .to = double())
+  arg <- arg %||% seq_along(x)
+  arg <- vec_cast(arg, double())
+  x <- new_tfd(x, arg)
+  new_rcrd(list(data = x), class = c("vctrs_tfd", "reg"))
+}
+
+tf_arg <- function(x) attr(field(x, "data"), "arg")
+
+format.vctrs_tfd <- function(x, ...) {
+  format(field(x, "data"))
+}
+
+# NB: just a sample implementation
+sum_ <- function(x) {
+  data <- field(x, "data")
+  data <- vec_data(data)
+  pmap_dbl(data, sum)
+}
+
+mean_ <- function(x) {
+  data <- field(x, "data")
+  data <- vec_data(data)
+  pmap_dbl(data, mean)
+}
+
+mean_reg_ <- function(x) {
+  data <- field(x, "data")
+  data <- vec_data(data)
+  pmap_dbl(data, mean)
+}
+
+mean_irreg_ <- function(x) {
+  data <- field(x, "data")
+  data <- vec_data(data)
+  pmap_dbl(data, mean)
+}
+
+vec_math.vctrs_tfd <- function(.fn, .x, ...) {
+  switch(.fn,
+    sum = sum_(.x),
+    mean = mean_(.x),
+    vec_math_base(.fn, .x, ...)
+  )
+}
+
+vec_arith.vctrs_tfd <- function(op, x, y, ...) {
+  UseMethod("vec_arith.vctrs_tfd", y)
+}
+
+vec_arith.vctrs_tfd.default <- function(op, x, y, ...) {
+  stop_incompatible_op(op, x, y)
+}
+
+tfd_arith <- function(op, x, y) {
+  stopifnot(identical(tf_arg(x), tf_arg(y)))
+  if ("reg") {
+  res <- map2(field(x, "data"), field(y, "data"), \(x, y) vec_arith_base(op, x, y)) # nolint
+  res <- new_tfd(res, arg = tf_arg(x))
+  new_rcrd(list(data = res), class = "vctrs_tfd")
+  }
+}
+
+vec_arith.vctrs_tfd.vctrs_tfd <- function(op, x, y, ...) {
+  switch(op,
+    "+" = ,
+    "-" = ,
+    "*" = ,
+    "/" = tfd_arith(op, x, y),
+    stop_incompatible_op(op, x, y)
+  )
+}
+
+vec_arith.vctrs_tfd.vctrs_tfd <- function(op, x, y, ...) {
+  switch(op,
+    "+" = ,
+    "-" = ,
+    "*" = ,
+    "/" = tfd_arith(op, x, y),
+    stop_incompatible_op(op, x, y)
+  )
+}
+
+tfd_arith_num <- function(op, x, y) {
+  res <- map(field(x, "data"), \(x) vec_arith_base(op, x, y))
+  res <- new_tfd(res, arg = tf_arg(x))
+  new_rcrd(list(data = res), class = "vctrs_tfd")
+}
+
+vec_arith.vctrs_tfd.numeric <- function(op, x, y, ...) {
+  switch(op,
+    "/" = ,
+    "*" = tfd_arith_num(op, x, y),
+    stop_incompatible_op(op, x, y)
+  )
+}
+
+vec_arith.numeric.vctrs_tfd <- function(op, x, y, ...) {
+  switch(op,
+    "*" = tfd_arith_num(vec_arith_base(op, y, x)),
+    stop_incompatible_op(op, x, y)
+  )
+}
+
+vec_arith.vctrs_tfd.MISSING <- function(op, x, y, ...) {
+  switch(op,
+    `-` = x * -1,
+    `+` = x,
+    stop_incompatible_op(op, x, y)
+  )
+}
+
+x <- tfd(rnorm(1:10), arg = 1:10)
+x
+
+x2 <- c(x, x, x)
+
+# method comes free with vctrs
+as.data.frame(x2)
+```
+
+## N-Dimensional Data
+
+Internally this a list of lists containing numeric vectors representing each curve.
+
+```{r}
+new_tfd <- function(x, arg) {
+  stopifnot(is.list(x), is.double(arg))
+  new_list_of(list(x), arg = arg, ptype = double(), class = "vctrs_tfd_list")
+}
+
+format.vctrs_tfd_list <- function(x, ...) {
+  format_one <- function(x) {
+    if (all(lengths(x)) == 0) {
+      return("")
+    }
+    x <- map(x, \(.x) round(.x, 2))
+    x <- pmap_chr(x, \(...) sprintf("(%s)", paste(..., sep = ", ")))
+    stringr::str_trunc(paste0(x, collapse = ";"), 4, "center")
+  }
+  map_chr(x, format_one)
+}
+
+tfd <- function(..., arg = NULL) {
+  x <- vec_cast_common(..., .to = double())
+  arg <- arg %||% max(lengths(x))
+  arg <- vec_cast(arg, double())
+  x <- new_tfd(x, arg)
+  new_rcrd(list(data = x), class = "vctrs_tfd")
+}
+
+format.vctrs_tfd <- function(x, ...) {
+  format(field(x, "data"))
+}
+
+sum_ <- function(x) {
+  data <- field(x, "data")
+  data <- vec_data(data)
+  pmap_dbl(data, sum)
+}
+
+mean_ <- function(x) {
+  data <- field(x, "data")
+  data <- vec_data(data)
+  pmap_dbl(data, mean)
+}
+
+vec_math.vctrs_tfd <- function(.fn, .x, ...) {
+  switch(.fn,
+    sum = sum_(.x),
+    mean = mean_(.x),
+    vec_math_base(.fn, .x, ...)
+  )
+}
+
+x <- tfd(x = rnorm(1:10), y = rnorm(1:10), arg = 1:10)
+x
+
+x2 <- c(x, x, x)
+sum(x2)
+```
