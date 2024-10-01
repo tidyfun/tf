@@ -84,7 +84,6 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
 
 #---Penalized LS fits          -------------------------------------------------
 
-
 # utility functions for penalized spline representation:
 # global fit, curve-specific LS, curve-specific GLM
 fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
@@ -166,7 +165,6 @@ magic_smooth_coef <- function(evaluations, index, spec_object, gam_args) {
   m <- do.call(magic, magic_args)
   list(coef = m$b, pve = 1 - m$scale / var(evaluations), sp = m$sp)
 }
-
 
 #------ General Likelihood Fits ------------------------------------------------
 

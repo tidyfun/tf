@@ -79,6 +79,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   setNames(ret, names(f))
 }
+
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing.
 tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
@@ -117,9 +118,9 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
   attr(f, "domain") <- range(arg)
   f
 }
+
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing.
-
 tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
   efunctions <- environment(attr(f, "basis"))$efunctions
   environment(attr(f, "basis")) <- new.env()
@@ -218,6 +219,7 @@ tf_integrate.tfd <- function(f, arg,
   #  Vectorize(as.function(.x)), lower = lower, upper = upper, ...)) |>
   # map("value")
 }
+
 #' @rdname tf_integrate
 #' @export
 tf_integrate.tfb <- function(f, arg,

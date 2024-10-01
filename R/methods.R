@@ -224,12 +224,12 @@ rev.tf <- function(x) {
 is.na.tf <- function(x) {
   map_lgl(unclass(x), \(x) is.na(x)[1])
 }
+
 #' @rdname tfmethods
 #' @export
 is.na.tfd_irreg <- function(x) {
   map_lgl(unclass(x), \(x) is.na(x$value[1]))
 }
-
 
 #-------------------------------------------------------------------------------
 
@@ -256,7 +256,6 @@ is_irreg <- function(x) inherits(x, "tfd_irreg")
 #' @rdname tfmethods
 #' @export
 is_tfd_irreg <- is_irreg
-
 
 #' @rdname tfmethods
 #' @export

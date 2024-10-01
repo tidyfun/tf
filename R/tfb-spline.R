@@ -146,7 +146,6 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   ret
 }
 
-
 #-------------------------------------------------------------------------------
 
 #' Spline-based representation of functional data
@@ -234,7 +233,6 @@ tfb_spline.data.frame <- function(data, id = 1, arg = 2, value = 3,
   setNames(ret, names_data)
 }
 
-
 #' @export
 #' @describeIn tfb_spline convert matrices
 tfb_spline.matrix <- function(data, arg = NULL,
@@ -266,7 +264,6 @@ tfb_spline.numeric <- function(data, arg = NULL,
   tfb_spline(data = data, arg = arg, domain = domain, penalized = penalized,
       global = global, verbose = verbose, ...)
 }
-
 
 #' @export
 #' @describeIn tfb_spline convert lists

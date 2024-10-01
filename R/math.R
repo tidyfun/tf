@@ -20,6 +20,7 @@ NULL
 Math.tfd <- function(x, ...) {
   fun_math(x, .Generic)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 Math.tfb <- function(x, ...) {
