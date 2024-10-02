@@ -95,7 +95,7 @@ is_equidist <- function(f) {
   }
   unique_diffs <- map_lgl(
     ensure_list(tf_arg(f)),
-    \(x) {
+    function(x) {
       round_resolution(x, attr(f, "resolution")) |>
         diff() |>
         duplicated() |>
