@@ -149,7 +149,6 @@ vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) {
   vec_ptype2(as.tfd(x), as.tfd(y))
 }
 
-
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_spline tfd_reg
@@ -182,7 +181,6 @@ vec_ptype2.tfb_fpc <- function(x, y, ...) UseMethod("vec_ptype2.tfb_fpc")
 #' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfb_spline <- vec_ptype2.tfb_spline.tfb_fpc
 
-
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_fpc tfb_fpc
@@ -198,6 +196,7 @@ vec_ptype2.tfb_fpc.tfb_fpc <- vec_ptype2.tfb_spline.tfb_spline
 vec_ptype2.tfb_fpc.tfd_reg <- function(x, y, ...) {
   vec_ptype2(x = y, y = x)
 }
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_ptype2.tfb_fpc tfd_irreg

@@ -71,7 +71,6 @@ vec_cast.tfd_reg <- function(x, to, ...) UseMethod("vec_cast.tfd_reg")
 #' @export vec_cast.tfd_irreg
 vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
 
-
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfd_reg
@@ -99,6 +98,7 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 vec_cast.tfd_reg.tfb_spline <- function(x, to, ...) {
   tf_rebase(x, to, arg = tf_arg(x))
 }
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_reg tfb_fpc
@@ -112,16 +112,19 @@ vec_cast.tfd_reg.tfb_fpc <- vec_cast.tfd_reg.tfb_spline
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
   tf_rebase(x, to, arg = tf_arg(x)) |> as.tfd_irreg()
 }
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfd_irreg
 #' @export
 vec_cast.tfd_irreg.tfd_irreg <- vec_cast.tfd_irreg.tfd_reg
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfb_spline
 #' @export
 vec_cast.tfd_irreg.tfb_spline <- vec_cast.tfd_irreg.tfd_reg
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfd_irreg tfb_fpc
@@ -171,41 +174,45 @@ vec_cast_tfb_tfd <- function(x, to, ...) {
 #' @method vec_cast.tfb_spline tfb_spline
 #' @export
 vec_cast.tfb_spline.tfb_spline <- vec_cast_tfb_tfb
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfb_fpc
 #' @export
 vec_cast.tfb_spline.tfb_fpc <- vec_cast_tfb_tfb
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_spline
 #' @export
 vec_cast.tfb_fpc.tfb_spline <- vec_cast_tfb_tfb
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfb_fpc
 #' @export
 vec_cast.tfb_fpc.tfb_fpc <- vec_cast_tfb_tfb
 
-
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfd_reg
 #' @export
 vec_cast.tfb_spline.tfd_reg <- vec_cast_tfb_tfd
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_spline tfd_irreg
 #' @export
 vec_cast.tfb_spline.tfd_irreg <- vec_cast_tfb_tfd
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfd_reg
 #' @export
 vec_cast.tfb_fpc.tfd_reg <- vec_cast_tfb_tfd
+
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @method vec_cast.tfb_fpc tfd_irreg
 #' @export
 vec_cast.tfb_fpc.tfd_irreg <- vec_cast_tfb_tfd
-

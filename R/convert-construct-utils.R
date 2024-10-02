@@ -25,7 +25,6 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   tmp[, c("id", "arg", "value")]
 }
 
-
 # from refund
 df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]

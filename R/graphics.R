@@ -148,6 +148,7 @@ lines.tf <- function(x, arg, n_grid = 50,
   do.call(linespoints_tf, args)
   invisible(x)
 }
+
 #' @export
 #' @rdname tfviz
 #' @family tidyfun visualization

@@ -46,7 +46,9 @@ test_that("tfb_spline defaults work for all kinds of irregular input", {
 })
 
 test_that("unpenalized tfb_spline works", {
-  expect_error(tfb_spline(narrow, k = 11, penalized = FALSE, verbose = FALSE), "reduce k")
+  expect_error(
+    tfb_spline(narrow, k = 11, penalized = FALSE, verbose = FALSE), "reduce k"
+  )
   expect_s3_class(
     tfb_spline(narrow, k = 8, penalized = FALSE, verbose = FALSE), "tfb_spline"
   )
@@ -137,9 +139,9 @@ test_that("global and pre-specified smoothing options work", {
     system.time(
       tfb(c(rough, rough, rough), k = 51, verbose = FALSE)
     )["elapsed"],
-      system.time(
-        tfb(c(rough, rough, rough), k = 51, global = TRUE, verbose = FALSE)
-      )["elapsed"]
+    system.time(
+      tfb(c(rough, rough, rough), k = 51, global = TRUE, verbose = FALSE)
+    )["elapsed"]
   )
 
   expect_equal(

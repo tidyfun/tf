@@ -53,7 +53,8 @@ test_that("fpc_wsvd works for partially missing data", {
   expect_equal(
     as.matrix(x_sp_pc, arg = tf_arg(x)),
     as.matrix(x, arg = tf_arg(x)),
-    tolerance = 0.1)
+    tolerance = 0.1
+  )
 })
 
 test_that("tfb_fpc defaults work for all kinds of regular input", {

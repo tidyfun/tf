@@ -142,37 +142,44 @@ Summary.tf <- function(...) {
 cummax.tfd <- function(...) {
   summarize_tf(..., op = "cummax", eval = TRUE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 cummin.tfd <- function(...) {
   summarize_tf(..., op = "cummin", eval = TRUE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 cumsum.tfd <- function(...) {
   summarize_tf(..., op = "cumsum", eval = TRUE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 #' @family tidyfun compute
 cumprod.tfd <- function(...) {
   summarize_tf(..., op = "cumprod", eval = TRUE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 cummax.tfb <- function(...) {
   summarize_tf(..., op = "cummax", eval = FALSE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 cummin.tfb <- function(...) {
   summarize_tf(..., op = "cummin", eval = FALSE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 cumsum.tfb <- function(...) {
   summarize_tf(..., op = "cumsum", eval = FALSE)
 }
+
 #' @rdname tfgroupgenerics
 #' @export
 cumprod.tfb <- function(...) {

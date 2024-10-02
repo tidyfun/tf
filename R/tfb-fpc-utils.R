@@ -100,7 +100,6 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   t(qr.coef(qr(efunctions), t(data_wc) / sqrt(weights)))
 }
 
-
 #' @rdname fpc_wsvd
 #' @export
 fpc_wsvd.data.frame <- function(data, arg, pve = 0.995) {
