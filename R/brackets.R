@@ -61,30 +61,18 @@
     interpolate <- TRUE
     message("interpolate argument ignored for data in basis representation")
   }
-  if (!missing(i)) {
-    assert_atomic(i)
-    if (is.logical(i)) {
-      assert_logical(i, any.missing = FALSE, len = length(x))
-      i <- which(i)
-    }
-    if (is.character(i)) {
-      assert_subset(i, names(x))
-      i <- match(i, names(x))
-    }
-    assert_integerish(i,
-      lower = -length(x), upper = length(x),
-      any.missing = FALSE
-    )
-    assert_true(all(sign(i) == sign(i)[1]))
-    attr_x <- append(attributes(unname(x)), list(names = names(x)[i]))
-    x <- unclass(x)[i]
-    attributes(x) <- attr_x
-  } else {
+  # handle i
+  if (missing(i)) {
     i <- seq_along(x)
+  } else {
+    i <- vec_as_location(i, n = vec_size(x), names = names(x), missing = "error")
   }
+  x <- vec_slice(x, i)
   if (missing(j)) {
     return(x)
   }
+
+  # handle j
   if (matrix && is.list(j)) {
     stop("need a single vector-valued <j> if matrix = TRUE", call. = FALSE)
   }
@@ -103,19 +91,19 @@
     }
     evals <- map2(evals, new_j, \(x, y) ifelse(y, NA, x))
   }
+
+
   if (matrix) {
     ret <- do.call(rbind, evals)
     j <- unlist(j, use.names = FALSE)
     colnames(ret) <- j
     rownames(ret) <- names(x)
-    structure(ret, arg = j)
-  } else {
-    ret <- map2(
-      j, evals, \(x, y) data_frame(arg = x, value = y, .name_repair = "minimal")
-    ) |>
-      setNames(names(x))
-    ret
+    return(structure(ret, arg = j))
   }
+
+  map2(
+    j, evals, \(x, y) data_frame(arg = x, value = y, .name_repair = "minimal")
+  ) |> setNames(names(x))
 }
 
 #' @param value `tf` object for subassignment. This is typed more strictly
