@@ -172,11 +172,7 @@ vec_arith.numeric.tfd <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tfd MISSING
 vec_arith.tfd.MISSING <- function(op, x, y, ...) {
-  switch(op,
-    `-` = x * -1,
-    `+` = x,
-    stop_incompatible_op(op, x, y)
-  )
+  arith_tf_and_missing(op, x, y, ...)
 }
 
 #' @rdname tfgroupgenerics
@@ -250,6 +246,10 @@ vec_arith.numeric.tfb <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tfb MISSING
 vec_arith.tfb.MISSING <- function(op, x, y, ...) {
+  arith_tf_and_missing(op, x, y, ...)
+}
+
+arith_tf_and_missing <- function(op, x, y, ...) {
   switch(op,
     `-` = x * -1,
     `+` = x,
