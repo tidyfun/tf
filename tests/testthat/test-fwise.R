@@ -35,7 +35,6 @@ test_that("fwise summaries work for tfd_irreg", {
   tf_rgp(3) |> tf_jiggle() |> tf_fmean()
 })
 
-
 test_that("fwise summaries work for tfb_spline", {
   suppressMessages(x <- tf_rgp(3) |> tfb(k = 35))
 
@@ -47,8 +46,7 @@ test_that("fwise summaries work for tfb_spline", {
   expect_equal(tf_fmean(x_std), c(0, 0, 0), ignore_attr = TRUE)
   expect_equal(tf_fsd(x_std), c(1, 1, 1), ignore_attr = TRUE)
 
-  expect_equal(tf_crosscov(x, x),
-               tf_fvar(x))
+  expect_equal(tf_crosscov(x, x), tf_fvar(x))
 })
 
 test_that("fwise summaries work for tfb_fpc", {

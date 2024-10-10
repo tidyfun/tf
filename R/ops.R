@@ -148,7 +148,14 @@ vec_arith.tfb.numeric <- function(op, x, y, ...) {
     `-` = ,
     `/` = ,
     `*` = ,
-    `^` =  fun_op(x, y, op, numeric = 2),
+    `^` = {
+      basis_args <- attr(x, "basis_args")
+      eval <- fun_op(tfd(x), y, op, numeric = 2)
+      do.call(
+        "tfb",
+        c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+      )
+    },
     stop_incompatible_op(op, x, y)
   )
 }
@@ -160,7 +167,14 @@ vec_arith.numeric.tfb <- function(op, x, y, ...) {
     `+` = ,
     `-` = ,
     `/` = ,
-    `*` = fun_op(x, y, op, numeric = 1),
+    `*` = {
+      basis_args <- attr(y, "basis_args")
+      eval <- fun_op(x, tfd(y), op, numeric = 1)
+      do.call(
+        "tfb",
+        c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+      )
+    },
     stop_incompatible_op(op, x, y)
   )
 }
