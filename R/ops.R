@@ -1,5 +1,5 @@
 # *, / for tfs; and +, -, ^ for tfds
-fun_op <- function(x, y, op, numeric = NA) {
+fun_op <- function(op, x, y, numeric = NA) {
   if (!is.na(numeric)) {
     # function-scalar-ops
     num <- list(x, y)[[numeric]]
@@ -69,7 +69,7 @@ vec_arith.tfd.tfd <- function(op, x, y, ...) {
     `+` = ,
     `-` = ,
     `*` = ,
-    `/` = fun_op(x, y, op),
+    `/` = fun_op(op, x, y),
     stop_incompatible_op(op, x, y)
   )
 }
@@ -82,7 +82,7 @@ vec_arith.tfd.numeric <- function(op, x, y, ...) {
     `-` = ,
     `/` = ,
     `*` = ,
-    `^` = fun_op(x, y, op, numeric = 2),
+    `^` = fun_op(op, x, y, numeric = 2),
     stop_incompatible_op(op, x, y)
   )
 }
@@ -94,7 +94,7 @@ vec_arith.numeric.tfd <- function(op, x, y, ...) {
     `+` = ,
     `-` = ,
     `/` = ,
-    `*` = fun_op(x, y, op, numeric = 1),
+    `*` = fun_op(op, x, y, numeric = 1),
     stop_incompatible_op(op, x, y)
   )
 }
@@ -126,14 +126,13 @@ vec_arith.tfb.tfb <- function(op, x, y, ...) {
   stopifnot(all(compare_tf_attribs(x, y)))
   switch(op,
     `+` = ,
-    `-` = fun_op(x, y, op),
+    `-` = fun_op(op, x, y),
     `*` = ,
     `/` = {
       basis_args <- attr(x, "basis_args")
-      eval <- fun_op(tfd(x), tfd(y), op)
+      eval <- fun_op(op, tfd(x), tfd(y))
       do.call(
-        "tfb",
-        c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+        tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
       )
     },
     stop_incompatible_op(op, x, y)
@@ -150,10 +149,9 @@ vec_arith.tfb.numeric <- function(op, x, y, ...) {
     `*` = ,
     `^` = {
       basis_args <- attr(x, "basis_args")
-      eval <- fun_op(tfd(x), y, op, numeric = 2)
+      eval <- fun_op(op, tfd(x), y, numeric = 2)
       do.call(
-        "tfb",
-        c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+        tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
       )
     },
     stop_incompatible_op(op, x, y)
@@ -169,10 +167,9 @@ vec_arith.numeric.tfb <- function(op, x, y, ...) {
     `/` = ,
     `*` = {
       basis_args <- attr(y, "basis_args")
-      eval <- fun_op(x, tfd(y), op, numeric = 1)
+      eval <- fun_op(op, x, tfd(y), numeric = 1)
       do.call(
-        "tfb",
-        c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+        tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
       )
     },
     stop_incompatible_op(op, x, y)
