@@ -1,3 +1,44 @@
+#' Math, Summary and Ops Methods for `tf`
+#'
+#' These methods and operators mostly work `arg`-value-wise on `tf` objects, see
+#' `?groupGeneric` for implementation details.
+#'
+#' See examples below. Equality checks of functional objects are even more iffy
+#' than usual for computer math and not very reliable. Note that `max` and `min`
+#' are not guaranteed to be maximal/minimal over the entire domain, only on the
+#' evaluation grid used for computation. With the exception of addition and
+#' multiplication, operations on `tfb`-objects first evaluate the data on their
+#' `arg`, perform computations on these evaluations and then convert back to an
+#' `tfb`- object, so a loss of precision should be expected -- especially so for
+#' small spline bases and/or very wiggly data.
+#'
+#'
+#' @param x an `tf`
+#' @param ... `tf`-objects (not used for `Math` group generic)
+#' @param e1 an `tf` or a numeric vector
+#' @param e2 an `tf` or a numeric vector
+#' @returns a `tf`- or `logical` vector with the computed result
+#' @seealso [tf_fwise()] for scalar summaries of each function in a `tf`-vector
+#' @name tfgroupgenerics
+#' @family tidyfun compute functions
+#' @examples
+#' set.seed(1859)
+#' f <- tf_rgp(4)
+#' 2 * f == f + f
+#' sum(f) == f[1] + f[2] + f[3] + f[4]
+#' log(exp(f)) == f
+#' plot(f, points = FALSE)
+#' lines(range(f), col = 2, lty = 2)
+#'
+#' f2 <- tf_rgp(5) |> exp() |> tfb(k = 25)
+#' layout(t(1:3))
+#' plot(f2, col = gray.colors(5))
+#' plot(cummin(f2), col = gray.colors(5))
+#' plot(cumsum(f2), col = gray.colors(5))
+#'
+#' # ?tf_integrate for integrals, ?tf_fwise for scalar summaries of each function
+NULL
+
 # *, / for tfs; and +, -, ^ for tfds
 fun_op <- function(op, x, y, numeric = NA) {
   if (!is.na(numeric)) {
