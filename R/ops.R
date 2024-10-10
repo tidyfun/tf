@@ -120,6 +120,7 @@ fun_op <- function(op, x, y, numeric = NA) {
 #' @export
 `!=.tfb` <- eval(`!=.tfd`)
 
+#' @rdname tfgroupgenerics
 #' @export
 #' @method vec_arith tfd
 vec_arith.tfd <- function(op, x, y, ...) {
@@ -178,6 +179,7 @@ vec_arith.tfd.MISSING <- function(op, x, y, ...) {
   )
 }
 
+#' @rdname tfgroupgenerics
 #' @export
 #' @method vec_arith tfb
 vec_arith.tfb <- function(op, x, y, ...) {

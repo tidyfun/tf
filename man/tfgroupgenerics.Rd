@@ -6,6 +6,8 @@
 \alias{!=.tfd}
 \alias{==.tfb}
 \alias{!=.tfb}
+\alias{vec_arith.tfd}
+\alias{vec_arith.tfb}
 \alias{Math.tfd}
 \alias{Math.tfb}
 \alias{Summary.tf}
@@ -26,6 +28,10 @@
 \method{==}{tfb}(e1, e2)
 
 \method{!=}{tfb}(e1, e2)
+
+\method{vec_arith}{tfd}(op, x, y, ...)
+
+\method{vec_arith}{tfb}(op, x, y, ...)
 
 \method{Math}{tfd}(x, ...)
 
