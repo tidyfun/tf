@@ -51,6 +51,34 @@ fun_op <- function(op, x, y, numeric = NA) {
   ret
 }
 
+#' @rdname tfgroupgenerics
+#' @export
+`==.tfd` <- function(e1, e2) {
+  # no "recycling" of args
+  stopifnot(
+    length(e2) %in% c(1, length(e1)) || length(e1) %in% c(1, length(e2))
+  )
+  # not comparing names, as per convention...
+  same <- all(compare_tf_attribs(e1, e2))
+  if (!same) {
+    return(rep(FALSE, max(length(e1), length(e2))))
+  }
+  map2_lgl(e1, e2, \(x, y) isTRUE(all.equal(x, y)))
+}
+
+#' @rdname tfgroupgenerics
+#' @export
+`!=.tfd` <- function(e1, e2) !(e1 == e2)
+
+# need to copy instead of defining tf-method s.t. dispatch in Ops works
+#' @rdname tfgroupgenerics
+#' @export
+`==.tfb` <- eval(`==.tfd`)
+
+#' @rdname tfgroupgenerics
+#' @export
+`!=.tfb` <- eval(`!=.tfd`)
+
 #' @export
 #' @method vec_arith tfd
 vec_arith.tfd <- function(op, x, y, ...) {
