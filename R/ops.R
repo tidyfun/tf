@@ -204,19 +204,10 @@ arith_tfd_and_numeric <- function(op, x, y, ...) {
     ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
   }
   attributes(ret) <- attributes(x)
-  # TODO: when can this even happen?
-  if (anyNA(names(ret))) {
+  if (vec_size(y) > 1) {
     names(ret) <- NULL
   }
   ret
-}
-
-
-set_names_or_null <- function(x) {
-  if (anyNA(names(x))) {
-    names(x) <- NULL
-  }
-  x
 }
 
 #' @export
