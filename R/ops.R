@@ -46,17 +46,22 @@ fun_op <- function(op, x, y, numeric = NA) {
     num <- list(x, y)[[numeric]]
     f <- list(x, y)[[3 - numeric]]
     assert_numeric(num)
-    # no "recycling" of args -- breaking a crappy R convention, proudly so.
-    stopifnot(
-      (length(num) > 0 && length(f) == 1) || length(num) %in% c(1, length(f))
-    )
+    # any op with NULL or empty vectors always return empty vectors:
+    if (vec_size(num) == 0) {
+      return(vec_ptype(f))
+    }
+    # no args-"recycling"
+    if (!((vec_size(f) == vec_size(num)) ||
+          1 %in% c(vec_size(f), vec_size(num)))) {
+      stop_incompatible_op(op, x, y)
+    }
     attr_ret <- attributes(f)
     arg_ret <- tf_arg(f)
   } else {
     # function-function-ops
     stopifnot(
       # no "recycling" of args
-      length(x) %in% c(1, length(y)) || length(y) %in% c(1, length(x)),
+      vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)),
       isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
       isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
     )
@@ -128,6 +133,7 @@ vec_arith.tfd <- function(op, x, y, ...) {
 }
 
 #' @export
+#' @method vec_arith.tfd default
 vec_arith.tfd.default <- function(op, x, y, ...) {
   stop_incompatible_op(op, x, y)
 }
@@ -183,6 +189,7 @@ vec_arith.tfb <- function(op, x, y, ...) {
 }
 
 #' @export
+#' @method vec_arith.tfb default
 vec_arith.tfb.default <- function(op, x, y, ...) {
   stop_incompatible_op(op, x, y)
 }
@@ -198,6 +205,8 @@ vec_arith.tfb.tfb <- function(op, x, y, ...) {
     `/` = {
       basis_args <- attr(x, "basis_args")
       eval <- fun_op(op, tfd(x), tfd(y))
+      # TODO: this prob. needs to use tf_rebase() with vec_ptype2(x, y) (?!?)
+      #   or similar to avoid casting to different bases etc?
       do.call(
         tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
       )
@@ -217,6 +226,8 @@ vec_arith.tfb.numeric <- function(op, x, y, ...) {
     `^` = {
       basis_args <- attr(x, "basis_args")
       eval <- fun_op(op, tfd(x), y, numeric = 2)
+      # TODO: this prob. needs to use tf_rebase() with vec_ptype(x)
+      #   or similar to avoid casting FPCs to splines etc
       do.call(
         tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
       )
@@ -235,6 +246,8 @@ vec_arith.numeric.tfb <- function(op, x, y, ...) {
     `*` = {
       basis_args <- attr(y, "basis_args")
       eval <- fun_op(op, x, tfd(y), numeric = 1)
+      # TODO: this prob. needs to use tf_rebase() with vec_ptype(y)
+      #   or similar to avoid casting FPCs to splines etc
       do.call(
         tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
       )
