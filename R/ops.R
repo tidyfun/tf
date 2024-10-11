@@ -147,9 +147,40 @@ vec_arith.tfd.tfd <- function(op, x, y, ...) {
     `+` = ,
     `-` = ,
     `*` = ,
-    `/` = fun_op(op, x, y),
+    `/` = arith_tfd_and_tfd(op, x, y),
     stop_incompatible_op(op, x, y)
   )
+}
+
+arith_tfd_and_tfd <- function(op, x, y) {
+  stopifnot(
+    # no "recycling" of args
+    vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)),
+    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
+    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
+  )
+
+  attr_ret <- if (length(x) >= length(y)) attributes(x) else attributes(y)
+  arg_ret <- tf_arg(y)
+  x_ <- tf_evaluations(x)
+  y_ <- tf_evaluations(y)
+  ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+
+  if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
+    warning(
+      "inputs have different evaluators, result has ", attr_ret$evaluator_name,
+      call. = FALSE
+    )
+  }
+  if ("tfd_irreg" %in% attr_ret$class) {
+    ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
+  }
+
+  attributes(ret) <- attr_ret
+  if (anyNA(names(ret))) {
+    names(ret) <- NULL
+  }
+  ret
 }
 
 #' @export
@@ -160,9 +191,31 @@ vec_arith.tfd.numeric <- function(op, x, y, ...) {
     `-` = ,
     `/` = ,
     `*` = ,
-    `^` = fun_op(op, x, y, numeric = 2),
+    `^` = arith_tfd_and_numeric(op, x, y),
     stop_incompatible_op(op, x, y)
   )
+}
+
+arith_tfd_and_numeric <- function(op, x, y, ...) {
+  # no "recycling" of args -- breaking a crappy R convention, proudly so.
+  stopifnot(
+    (length(y) > 0 && length(x) == 1) || length(y) %in% c(1, length(x))
+  )
+  attr_ret <- attributes(x)
+  arg_ret <- tf_arg(x)
+  x_ <- tf_evaluations(x)
+  y_ <- y
+  ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+
+  if ("tfd_irreg" %in% attr_ret$class) {
+    ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
+  }
+
+  attributes(ret) <- attr_ret
+  if (anyNA(names(ret))) {
+    names(ret) <- NULL
+  }
+  ret
 }
 
 #' @export
@@ -172,7 +225,7 @@ vec_arith.numeric.tfd <- function(op, x, y, ...) {
     `+` = ,
     `-` = ,
     `/` = ,
-    `*` = fun_op(op, x, y, numeric = 1),
+    `*` = arith_tfd_and_numeric(op, y, x),
     stop_incompatible_op(op, x, y)
   )
 }
