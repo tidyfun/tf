@@ -152,37 +152,6 @@ vec_arith.tfd.tfd <- function(op, x, y, ...) {
   )
 }
 
-arith_tfd_and_tfd <- function(op, x, y) {
-  stopifnot(
-    # no "recycling" of args
-    vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)),
-    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
-    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
-  )
-
-  attr_ret <- if (length(x) >= length(y)) attributes(x) else attributes(y)
-  arg_ret <- tf_arg(y)
-  x_ <- tf_evaluations(x)
-  y_ <- tf_evaluations(y)
-  ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
-
-  if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
-    warning(
-      "inputs have different evaluators, result has ", attr_ret$evaluator_name,
-      call. = FALSE
-    )
-  }
-  if ("tfd_irreg" %in% attr_ret$class) {
-    ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
-  }
-
-  attributes(ret) <- attr_ret
-  if (anyNA(names(ret))) {
-    names(ret) <- NULL
-  }
-  ret
-}
-
 #' @export
 #' @method vec_arith.tfd numeric
 vec_arith.tfd.numeric <- function(op, x, y, ...) {
@@ -194,20 +163,6 @@ vec_arith.tfd.numeric <- function(op, x, y, ...) {
     `^` = arith_tfd_and_numeric(op, x, y),
     stop_incompatible_op(op, x, y)
   )
-}
-
-arith_tfd_and_numeric <- function(op, x, y, ...) {
-  # no "recycling" of args -- breaking a crappy R convention, proudly so.
-  stopifnot(vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)))
-  ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
-  if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
-  }
-  attributes(ret) <- attributes(x)
-  if (vec_size(y) > 1) {
-    names(ret) <- NULL
-  }
-  ret
 }
 
 #' @export
@@ -247,19 +202,30 @@ vec_arith.tfb.tfb <- function(op, x, y, ...) {
   stopifnot(all(compare_tf_attribs(x, y)))
   switch(op,
     `+` = ,
-    `-` = fun_op(op, x, y),
+    `-` = arith_tfb_and_tfb2(op, x, y),
     `*` = ,
-    `/` = {
-      basis_args <- attr(x, "basis_args")
-      eval <- fun_op(op, tfd(x), tfd(y))
-      # TODO: this prob. needs to use tf_rebase() with vec_ptype2(x, y) (?!?)
-      #   or similar to avoid casting to different bases etc?
-      do.call(
-        tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
-      )
-    },
+    `/` = arith_tfb_and_tfb(op, x, y),
     stop_incompatible_op(op, x, y)
   )
+}
+
+arith_tfb_and_tfb2 <- function(op, x, y) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  # no "recycling" of args
+  stopifnot(
+    x_size == y_size(y) || 1 %in% c(x_size, y_size),
+    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
+    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
+  )
+
+  ret <- map2(coef(x), coef(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
+  attributes(ret) <- if (x_size >= y_size) attributes(x) else attributes(y)
+
+  if (anyNA(names(ret))) {
+    names(ret) <- NULL
+  }
+  ret
 }
 
 #' @export
@@ -270,15 +236,7 @@ vec_arith.tfb.numeric <- function(op, x, y, ...) {
     `-` = ,
     `/` = ,
     `*` = ,
-    `^` = {
-      basis_args <- attr(x, "basis_args")
-      eval <- fun_op(op, tfd(x), y, numeric = 2)
-      # TODO: this prob. needs to use tf_rebase() with vec_ptype(x)
-      #   or similar to avoid casting FPCs to splines etc
-      do.call(
-        tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
-      )
-    },
+    `^` = arith_tfb_and_numeric(op, x, y),
     stop_incompatible_op(op, x, y)
   )
 }
@@ -290,15 +248,7 @@ vec_arith.numeric.tfb <- function(op, x, y, ...) {
     `+` = ,
     `-` = ,
     `/` = ,
-    `*` = {
-      basis_args <- attr(y, "basis_args")
-      eval <- fun_op(op, x, tfd(y), numeric = 1)
-      # TODO: this prob. needs to use tf_rebase() with vec_ptype(y)
-      #   or similar to avoid casting FPCs to splines etc
-      do.call(
-        tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
-      )
-    },
+    `*` = arith_tfb_and_numeric(op, y, x),
     stop_incompatible_op(op, x, y)
   )
 }
@@ -307,6 +257,75 @@ vec_arith.numeric.tfb <- function(op, x, y, ...) {
 #' @method vec_arith.tfb MISSING
 vec_arith.tfb.MISSING <- function(op, x, y, ...) {
   arith_tf_and_missing(op, x, y, ...)
+}
+
+arith_tfd_and_tfd <- function(op, x, y) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  # no "recycling" of args
+  stopifnot(
+    x_size == y_size || 1 %in% c(x_size, y_size),
+    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
+    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
+  )
+
+  attr_ret <- if (x_size >= y_size) attributes(x) else attributes(y)
+  arg_ret <- tf_arg(y)
+  x_ <- tf_evaluations(x)
+  y_ <- tf_evaluations(y)
+  ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+
+  if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
+    warning(
+      "inputs have different evaluators, result has ", attr_ret$evaluator_name,
+      call. = FALSE
+    )
+  }
+  if ("tfd_irreg" %in% attr_ret$class) {
+    ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
+  }
+
+  attributes(ret) <- attr_ret
+  if (anyNA(names(ret))) {
+    names(ret) <- NULL
+  }
+  ret
+}
+
+arith_tfd_and_numeric <- function(op, x, y, ...) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  # no "recycling" of args -- breaking a crappy R convention, proudly so.
+  stopifnot(x_size == y_size || 1 %in% c(x_size, y_size))
+  ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
+  if (is_irreg(x)) {
+    ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
+  }
+  attributes(ret) <- attributes(x)
+  if (y_size > 1) {
+    names(ret) <- NULL
+  }
+  ret
+}
+
+arith_tfb_and_numeric <- function(op, x, y) {
+  eval <- arith_tfd_and_numeric(op, tfd(x), y)
+  # TODO: this prob. needs to use tf_rebase() with vec_ptype(y)
+  #   or similar to avoid casting FPCs to splines etc
+  basis_args <- attr(x, "basis_args")
+  do.call(
+    tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+  )
+}
+
+arith_tfb_and_tfb <- function(op, x, y) {
+  eval <- arith_tfd_and_tfd(op, tfd(x), tfd(y))
+  # TODO: this prob. needs to use tf_rebase() with vec_ptype2(x, y) (?!?)
+  #   or similar to avoid casting to different bases etc?
+  basis_args <- attr(x, "basis_args")
+  do.call(
+    tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+  )
 }
 
 arith_tf_and_missing <- function(op, x, y, ...) {
