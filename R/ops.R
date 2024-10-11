@@ -198,9 +198,7 @@ vec_arith.tfd.numeric <- function(op, x, y, ...) {
 
 arith_tfd_and_numeric <- function(op, x, y, ...) {
   # no "recycling" of args -- breaking a crappy R convention, proudly so.
-  stopifnot(
-    (length(y) > 0 && length(x) == 1) || length(y) %in% c(1, length(x))
-  )
+  stopifnot(vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)))
   attr_ret <- attributes(x)
   arg_ret <- tf_arg(x)
   x_ <- tf_evaluations(x)
