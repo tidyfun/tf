@@ -199,21 +199,24 @@ vec_arith.tfd.numeric <- function(op, x, y, ...) {
 arith_tfd_and_numeric <- function(op, x, y, ...) {
   # no "recycling" of args -- breaking a crappy R convention, proudly so.
   stopifnot(vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)))
-  attr_ret <- attributes(x)
-  arg_ret <- tf_arg(x)
-  x_ <- tf_evaluations(x)
-  y_ <- y
-  ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
-
-  if ("tfd_irreg" %in% attr_ret$class) {
-    ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
+  ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
+  if (is_irreg(x)) {
+    ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
   }
-
-  attributes(ret) <- attr_ret
+  attributes(ret) <- attributes(x)
+  # TODO: when can this even happen?
   if (anyNA(names(ret))) {
     names(ret) <- NULL
   }
   ret
+}
+
+
+set_names_or_null <- function(x) {
+  if (anyNA(names(x))) {
+    names(x) <- NULL
+  }
+  x
 }
 
 #' @export
