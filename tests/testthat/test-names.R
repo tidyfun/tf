@@ -15,6 +15,12 @@ test_that("names work", {
   expect_named(cca_five * cca_lower, names(cca_five))
   expect_named(cca_lower + cca_five, names(cca_lower))
   expect_named(cca_lower * cca_five, names(cca_lower))
+  # one of the arguments has no names
+  names(cca_lower) <- NULL
+  expect_named(cca_five * cca_lower, names(cca_five))
+  expect_named(cca_five + cca_lower, names(cca_five))
+  expect_named(cca_lower + cca_five, NULL)
+  expect_named(cca_lower * cca_five, NULL)
 })
 
 test_that("vec_arith keeps names", {
