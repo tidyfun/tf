@@ -23,6 +23,7 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
   }
   do.call(tfb, c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args")))
 }
+
 #-------------------------------------------------------------------------------
 
 #' Functions that summarize `tf` objects across argument values
@@ -44,10 +45,15 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
 #' @seealso [tf_fwise()]
 NULL
 
-#' @export
 #' @rdname tfsummaries
-mean.tf <- function(x, ...) {
-  summarize_tf(x, op = "mean", eval = is_tfd(x), ...)
+#' @export
+vec_math.tf <- function(.fn, .x, ...) {
+  switch(.fn,
+    mean = summarize_tf(.x, op = "mean", eval = is_tfd(.x), ...),
+    all = ,
+    any = stop(sprintf("%s not defined for \"tf\" objects", .fn)),
+    summarize_tf(.x, op = .fn, eval = is_tfd(list(.x)[[1]]))
+  )
 }
 
 #' @param depth method used to determine the most central element in `x`, i.e.,
@@ -127,62 +133,28 @@ summary.tf <- function(object, ...) {
 
 #-------------------------------------------------------------------------------
 # nocov start
+
 #' @rdname tfgroupgenerics
 #' @export
-Summary.tf <- function(...) {
-  not_defined <- switch(.Generic, all = , any = TRUE, FALSE)
-  if (not_defined) {
-    stop(sprintf("%s not defined for \"tf\" objects", .Generic))
-  }
-  summarize_tf(..., op = .Generic, eval = is_tfd(list(...)[[1]]))
+vec_math.tfd <- function(.fn, .x, ...) {
+  switch(.fn,
+    cummax = ,
+    cummin = ,
+    cumsum = ,
+    cumprod = summarize_tf(.x, op = .fn, eval = TRUE),
+    NextMethod()
+  )
 }
 
 #' @rdname tfgroupgenerics
 #' @export
-cummax.tfd <- function(...) {
-  summarize_tf(..., op = "cummax", eval = TRUE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-cummin.tfd <- function(...) {
-  summarize_tf(..., op = "cummin", eval = TRUE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-cumsum.tfd <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = TRUE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-#' @family tidyfun compute
-cumprod.tfd <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = TRUE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-cummax.tfb <- function(...) {
-  summarize_tf(..., op = "cummax", eval = FALSE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-cummin.tfb <- function(...) {
-  summarize_tf(..., op = "cummin", eval = FALSE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-cumsum.tfb <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = FALSE)
-}
-
-#' @rdname tfgroupgenerics
-#' @export
-cumprod.tfb <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = FALSE)
+vec_math.tfb <- function(.fn, .x, ...) {
+  switch(.fn,
+    cummax = ,
+    cummin = ,
+    cumsum = ,
+    cumprod = summarize_tf(.x, op = .fn, eval = FALSE),
+    NextMethod()
+  )
 }
 # nocov end

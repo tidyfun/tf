@@ -2,7 +2,7 @@
 % Please edit documentation in R/summarize.R
 \name{tfsummaries}
 \alias{tfsummaries}
-\alias{mean.tf}
+\alias{vec_math.tf}
 \alias{median.tf}
 \alias{sd}
 \alias{sd.default}
@@ -13,7 +13,7 @@
 \alias{summary.tf}
 \title{Functions that summarize \code{tf} objects across argument values}
 \usage{
-\method{mean}{tf}(x, ...)
+\method{vec_math}{tf}(.fn, .x, ...)
 
 \method{median}{tf}(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...)
 
@@ -32,9 +32,12 @@ var(x, y = NULL, na.rm = FALSE, use)
 \method{summary}{tf}(object, ...)
 }
 \arguments{
-\item{x}{a \code{tf} object}
+\item{.x}{a numeric vector or an \R object but not a
+    \code{\link{factor}} coercible to numeric by \code{as.double(x)}.}
 
 \item{...}{optional additional arguments.}
+
+\item{x}{a \code{tf} object}
 
 \item{na.rm}{logical.  Should missing values be removed?}
 
