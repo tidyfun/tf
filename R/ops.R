@@ -1,7 +1,7 @@
 #' Math, Summary and Ops Methods for `tf`
 #'
 #' These methods and operators mostly work `arg`-value-wise on `tf` objects, see
-#' `?groupGeneric` for implementation details.
+#' [vctrs::vec_arith()] etc. for implementation details.
 #'
 #' See examples below. Equality checks of functional objects are even more iffy
 #' than usual for computer math and not very reliable. Note that `max` and `min`
@@ -13,7 +13,9 @@
 #' small spline bases and/or very wiggly data.
 #'
 #'
-#' @param x an `tf`
+#' @param x a `tf` or `numeric` object
+#' @param y a `tf` or `numeric` object
+#' @param op An arithmetic operator as a string
 #' @param ... `tf`-objects (not used for `Math` group generic)
 #' @param e1 an `tf` or a numeric vector
 #' @param e2 an `tf` or a numeric vector

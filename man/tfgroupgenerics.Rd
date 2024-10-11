@@ -60,7 +60,11 @@
 
 \item{e2}{an \code{tf} or a numeric vector}
 
-\item{x}{an \code{tf}}
+\item{op}{An arithmetic operator as a string}
+
+\item{x}{a \code{tf} or \code{numeric} object}
+
+\item{y}{a \code{tf} or \code{numeric} object}
 
 \item{...}{\code{tf}-objects (not used for \code{Math} group generic)}
 }
@@ -69,7 +73,7 @@ a \code{tf}- or \code{logical} vector with the computed result
 }
 \description{
 These methods and operators mostly work \code{arg}-value-wise on \code{tf} objects, see
-\code{?groupGeneric} for implementation details.
+\code{\link[vctrs:vec_arith]{vctrs::vec_arith()}} etc. for implementation details.
 }
 \details{
 See examples below. Equality checks of functional objects are even more iffy
