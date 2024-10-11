@@ -41,64 +41,6 @@
 #' # ?tf_integrate for integrals, ?tf_fwise for scalar summaries of each function
 NULL
 
-# *, / for tfs; and +, -, ^ for tfds
-fun_op <- function(op, x, y, numeric = NA) {
-  if (!is.na(numeric)) {
-    # function-scalar-ops
-    num <- list(x, y)[[numeric]]
-    f <- list(x, y)[[3 - numeric]]
-    assert_numeric(num)
-    # any op with NULL or empty vectors always return empty vectors:
-    if (vec_size(num) == 0) {
-      return(vec_ptype(f))
-    }
-    # no args-"recycling"
-    if (!((vec_size(f) == vec_size(num)) ||
-          1 %in% c(vec_size(f), vec_size(num)))) {
-      stop_incompatible_op(op, x, y)
-    }
-    attr_ret <- attributes(f)
-    arg_ret <- tf_arg(f)
-  } else {
-    # function-function-ops
-    stopifnot(
-      # no "recycling" of args
-      vec_size(x) == vec_size(y) || 1 %in% c(vec_size(x), vec_size(y)),
-      isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
-      isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
-    )
-    attr_ret <- if (length(x) >= length(y)) {
-      attributes(x)
-    } else {
-      attributes(y)
-    }
-    arg_ret <- tf_arg(y)
-  }
-  if (is_tfb(x)) x_ <- coef(x)
-  if (is_tfd(x)) x_ <- tf_evaluations(x)
-  if (isTRUE(numeric == 1)) x_ <- x
-  if (is_tfb(y)) y_ <- coef(y)
-  if (is_tfd(y)) y_ <- tf_evaluations(y)
-  if (isTRUE(numeric == 2)) y_ <- y
-  ret <- map2(x_, y_, \(x, y) do.call(op, list(e1 = x, e2 = y)))
-  if ("tfd" %in% attr_ret$class) {
-    if (is.na(numeric) && (attr(x, "evaluator_name") != attr(y, "evaluator_name"))) {
-      warning(
-        "inputs have different evaluators, result has ", attr_ret$evaluator_name,
-        call. = FALSE
-      )
-    }
-    if ("tfd_irreg" %in% attr_ret$class) {
-      ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
-    }
-  }
-  attributes(ret) <- attr_ret
-  if (anyNA(names(ret))) {
-    names(ret) <- NULL
-  }
-  ret
-}
-
 #' @rdname tfgroupgenerics
 #' @export
 `==.tfd` <- function(e1, e2) {
