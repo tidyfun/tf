@@ -44,16 +44,17 @@ NULL
 #' @rdname tfgroupgenerics
 #' @export
 `==.tfd` <- function(e1, e2) {
+  e1_size <- vec_size(e1)
+  e2_size <- vec_size(e2)
   # no "recycling" of args
-  stopifnot(
-    length(e2) %in% c(1, length(e1)) || length(e1) %in% c(1, length(e2))
-  )
+  stopifnot(e1_size == e2_size || 1 %in% c(e1_size, e2_size))
   # not comparing names, as per convention...
   same <- all(compare_tf_attribs(e1, e2))
   if (!same) {
-    return(rep(FALSE, max(length(e1), length(e2))))
+    rep(FALSE, max(e1_size, e2_size))
+  } else {
+    map2_lgl(e1, e2, \(x, y) isTRUE(all.equal(x, y)))
   }
-  map2_lgl(e1, e2, \(x, y) isTRUE(all.equal(x, y)))
 }
 
 #' @rdname tfgroupgenerics
