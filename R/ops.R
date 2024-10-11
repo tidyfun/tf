@@ -144,30 +144,11 @@ vec_arith.tfb.tfb <- function(op, x, y, ...) {
   stopifnot(all(compare_tf_attribs(x, y)))
   switch(op,
     `+` = ,
-    `-` = arith_tfb_and_tfb2(op, x, y),
+    `-` = tfb_plus_tfb(op, x, y),
     `*` = ,
-    `/` = arith_tfb_and_tfb(op, x, y),
+    `/` = tfb_times_tfb(op, x, y),
     stop_incompatible_op(op, x, y)
   )
-}
-
-arith_tfb_and_tfb2 <- function(op, x, y) {
-  x_size <- vec_size(x)
-  y_size <- vec_size(y)
-  # no "recycling" of args
-  stopifnot(
-    x_size == y_size(y) || 1 %in% c(x_size, y_size),
-    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
-    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
-  )
-
-  ret <- map2(coef(x), coef(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
-  attributes(ret) <- if (x_size >= y_size) attributes(x) else attributes(y)
-
-  if (anyNA(names(ret))) {
-    names(ret) <- NULL
-  }
-  ret
 }
 
 #' @export
@@ -260,7 +241,7 @@ arith_tfb_and_numeric <- function(op, x, y) {
   )
 }
 
-arith_tfb_and_tfb <- function(op, x, y) {
+tfb_times_tfb <- function(op, x, y) {
   eval <- arith_tfd_and_tfd(op, tfd(x), tfd(y))
   # TODO: this prob. needs to use tf_rebase() with vec_ptype2(x, y) (?!?)
   #   or similar to avoid casting to different bases etc?
@@ -268,6 +249,25 @@ arith_tfb_and_tfb <- function(op, x, y) {
   do.call(
     tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
   )
+}
+
+tfb_plus_tfb <- function(op, x, y) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  # no "recycling" of args
+  stopifnot(
+    x_size == y_size || 1 %in% c(x_size, y_size),
+    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
+    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
+  )
+
+  ret <- map2(coef(x), coef(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
+  attributes(ret) <- if (x_size >= y_size) attributes(x) else attributes(y)
+
+  if (anyNA(names(ret))) {
+    names(ret) <- NULL
+  }
+  ret
 }
 
 arith_tf_and_missing <- function(op, x, y, ...) {
