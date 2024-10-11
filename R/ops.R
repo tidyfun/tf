@@ -207,11 +207,7 @@ arith_tfd_and_tfd <- function(op, x, y) {
   if ("tfd_irreg" %in% attr_ret$class) {
     ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
   }
-
   attributes(ret) <- attr_ret
-  if (anyNA(names(ret))) {
-    names(ret) <- NULL
-  }
   ret
 }
 
@@ -263,10 +259,6 @@ tfb_plus_tfb <- function(op, x, y) {
 
   ret <- map2(coef(x), coef(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
   attributes(ret) <- if (x_size >= y_size) attributes(x) else attributes(y)
-
-  if (anyNA(names(ret))) {
-    names(ret) <- NULL
-  }
   ret
 }
 
