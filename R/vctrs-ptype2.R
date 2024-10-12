@@ -92,7 +92,6 @@ vec_ptype2.tfd_irreg.tfb_fpc <- vec_ptype2.tfd_irreg.tfb_spline
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {
   same_basis <- isTRUE(all.equal(tf_basis(y)(tf_arg(x)),
                                  attr(x, "basis_matrix"),
@@ -108,7 +107,6 @@ vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) {
   # joint representation for different bases/domains is some tfd
   warn_tfd_cast(x, y, "tfd_reg")
@@ -118,14 +116,12 @@ vec_ptype2.tfb_spline.tfb_fpc <- function(x, y, ...) {
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfd_reg <- function(x, y, ...) {
   vec_ptype2(x = y, y = x)
 }
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_spline.tfd_irreg <- function(x, y, ...) {
   vec_ptype2(x = y, y = x)
 }
@@ -133,19 +129,16 @@ vec_ptype2.tfb_spline.tfd_irreg <- function(x, y, ...) {
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfb_spline <- vec_ptype2.tfb_spline.tfb_fpc
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfb_fpc <- vec_ptype2.tfb_spline.tfb_spline
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfd_reg <- function(x, y, ...) {
   vec_ptype2(x = y, y = x)
 }
@@ -153,7 +146,6 @@ vec_ptype2.tfb_fpc.tfd_reg <- function(x, y, ...) {
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-#' @inheritParams vctrs::vec_ptype2
 vec_ptype2.tfb_fpc.tfd_irreg <- function(x, y, ...) {
   vec_ptype2(x = y, y = x)
 }
