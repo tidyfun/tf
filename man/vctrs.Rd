@@ -2,7 +2,6 @@
 % Please edit documentation in R/vctrs-cast.R, R/vctrs-ptype2.R
 \name{vctrs}
 \alias{vctrs}
-\alias{vec_cast.tfd_irreg}
 \alias{vec_cast.tfd_reg.tfd_reg}
 \alias{vec_cast.tfd_reg.tfd_irreg}
 \alias{vec_cast.tfd_reg.tfb_spline}
@@ -37,8 +36,6 @@
 \alias{vec_ptype2.tfb_fpc.tfd_irreg}
 \title{\code{vctrs} methods for \code{tf} objects}
 \usage{
-vec_cast.tfd_irreg(x, to, ...)
-
 \method{vec_cast}{tfd_reg.tfd_reg}(x, to, ...)
 
 \method{vec_cast}{tfd_reg.tfd_irreg}(x, to, ...)

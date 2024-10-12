@@ -64,11 +64,6 @@ NULL
 #' @rdname vctrs
 #' @family tidyfun vctrs
 #' @export
-vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
-
-#' @rdname vctrs
-#' @family tidyfun vctrs
-#' @export
 vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) {
   tf_rebase(x, to, arg = tf_arg(x))
 }
