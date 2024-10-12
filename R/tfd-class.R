@@ -154,7 +154,7 @@ tfd.numeric <- function(data, arg = NULL,
   do.call(tfd, args)
 }
 
-#' @description `tfd.data.frame` uses the first 3 columns of \code{data} for
+#' @description `tfd.data.frame` uses the first 3 columns of `data` for
 #'   function information by default: (`id`, `arg`, `value`)
 #' @export
 #' @rdname tfd

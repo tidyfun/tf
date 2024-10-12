@@ -108,6 +108,8 @@
 \item{...}{For \code{vec_cast_common()}, vectors to cast. For
 \code{vec_cast()}, \code{vec_cast_default()}, and \code{vec_restore()}, these
 dots are only for future extensions and should be empty.}
+
+\item{y}{Vectors to cast.}
 }
 \value{
 for \code{vec_cast}: the casted \code{tf}-vector, for \code{vec_ptype2}: the common prototype

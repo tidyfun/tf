@@ -26,10 +26,10 @@ same_args <- function(x, to) {
 
 #----------------- s3 generics for tfd casting -----------------#
 
-#' \code{vctrs} methods for \code{tf} objects
+#' `vctrs` methods for `tf` objects
 #'
-#' These functions are the extensions that allow \code{tf} vectors
-#' to work with \code{vctrs}.
+#' These functions are the extensions that allow `tf` vectors
+#' to work with `vctrs`.
 #'
 #' **Notes on `vec_cast`:**
 #' Use [tf_rebase()] to change the representations of `tf`-vectors,
@@ -57,6 +57,7 @@ same_args <- function(x, to) {
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @inheritParams vctrs::vec_cast
+#' @param y Vectors to cast.
 #' @returns for `vec_cast`: the casted `tf`-vector, for `vec_ptype2`: the common prototype
 #' @seealso [vctrs::vec_cast()], [vctrs::vec_ptype2()]
 NULL

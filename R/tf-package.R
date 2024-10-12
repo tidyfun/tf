@@ -12,7 +12,7 @@
 #'
 #'
 #' The goal of the add-on package `tidyfun` is to make data wrangling and
-#' exploratory analysis for functional data in \code{R} quick and easy, using
+#' exploratory analysis for functional data in `R` quick and easy, using
 #' `tidyverse` syntax and standards. \cr\cr
 #' Please also install `tidyfun` for the full functionality to
 #' access the full documentation including a number of vignettes and case
