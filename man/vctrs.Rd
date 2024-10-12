@@ -19,22 +19,18 @@
 \alias{vec_cast.tfb_spline.tfd_irreg}
 \alias{vec_cast.tfb_fpc.tfd_reg}
 \alias{vec_cast.tfb_fpc.tfd_irreg}
-\alias{vec_ptype2.tfd_reg}
 \alias{vec_ptype2.tfd_reg.tfd_reg}
 \alias{vec_ptype2.tfd_reg.tfd_irreg}
 \alias{vec_ptype2.tfd_reg.tfb_spline}
 \alias{vec_ptype2.tfd_reg.tfb_fpc}
-\alias{vec_ptype2.tfd_irreg}
 \alias{vec_ptype2.tfd_irreg.tfd_reg}
 \alias{vec_ptype2.tfd_irreg.tfd_irreg}
 \alias{vec_ptype2.tfd_irreg.tfb_spline}
 \alias{vec_ptype2.tfd_irreg.tfb_fpc}
-\alias{vec_ptype2.tfb_spline}
 \alias{vec_ptype2.tfb_spline.tfb_spline}
 \alias{vec_ptype2.tfb_spline.tfb_fpc}
 \alias{vec_ptype2.tfb_spline.tfd_reg}
 \alias{vec_ptype2.tfb_spline.tfd_irreg}
-\alias{vec_ptype2.tfb_fpc}
 \alias{vec_ptype2.tfb_fpc.tfb_spline}
 \alias{vec_ptype2.tfb_fpc.tfb_fpc}
 \alias{vec_ptype2.tfb_fpc.tfd_reg}
@@ -75,45 +71,37 @@ vec_cast.tfd_irreg(x, to, ...)
 
 \method{vec_cast}{tfb_fpc.tfd_irreg}(x, to, ...)
 
-\method{vec_ptype2}{tfd_reg}(x, y, ...)
+\method{vec_ptype2}{tfd_reg.tfd_reg}(x, y, ...)
 
-\method{vec_ptype2.tfd_reg}{tfd_reg}(x, y, ...)
+\method{vec_ptype2}{tfd_reg.tfd_irreg}(x, y, ...)
 
-\method{vec_ptype2.tfd_reg}{tfd_irreg}(x, y, ...)
+\method{vec_ptype2}{tfd_reg.tfb_spline}(x, y, ...)
 
-\method{vec_ptype2.tfd_reg}{tfb_spline}(x, y, ...)
+\method{vec_ptype2}{tfd_reg.tfb_fpc}(x, y, ...)
 
-\method{vec_ptype2.tfd_reg}{tfb_fpc}(x, y, ...)
+\method{vec_ptype2}{tfd_irreg.tfd_reg}(x, y, ...)
 
-\method{vec_ptype2}{tfd_irreg}(x, y, ...)
+\method{vec_ptype2}{tfd_irreg.tfd_irreg}(x, y, ...)
 
-\method{vec_ptype2.tfd_irreg}{tfd_reg}(x, y, ...)
+\method{vec_ptype2}{tfd_irreg.tfb_spline}(x, y, ...)
 
-\method{vec_ptype2.tfd_irreg}{tfd_irreg}(x, y, ...)
+\method{vec_ptype2}{tfd_irreg.tfb_fpc}(x, y, ...)
 
-\method{vec_ptype2.tfd_irreg}{tfb_spline}(x, y, ...)
+\method{vec_ptype2}{tfb_spline.tfb_spline}(x, y, ...)
 
-\method{vec_ptype2.tfd_irreg}{tfb_fpc}(x, y, ...)
+\method{vec_ptype2}{tfb_spline.tfb_fpc}(x, y, ...)
 
-\method{vec_ptype2}{tfb_spline}(x, y, ...)
+\method{vec_ptype2}{tfb_spline.tfd_reg}(x, y, ...)
 
-\method{vec_ptype2.tfb_spline}{tfb_spline}(x, y, ...)
+\method{vec_ptype2}{tfb_spline.tfd_irreg}(x, y, ...)
 
-\method{vec_ptype2.tfb_spline}{tfb_fpc}(x, y, ...)
+\method{vec_ptype2}{tfb_fpc.tfb_spline}(x, y, ...)
 
-\method{vec_ptype2.tfb_spline}{tfd_reg}(x, y, ...)
+\method{vec_ptype2}{tfb_fpc.tfb_fpc}(x, y, ...)
 
-\method{vec_ptype2.tfb_spline}{tfd_irreg}(x, y, ...)
+\method{vec_ptype2}{tfb_fpc.tfd_reg}(x, y, ...)
 
-\method{vec_ptype2}{tfb_fpc}(x, y, ...)
-
-\method{vec_ptype2.tfb_fpc}{tfb_spline}(x, y, ...)
-
-\method{vec_ptype2.tfb_fpc}{tfb_fpc}(x, y, ...)
-
-\method{vec_ptype2.tfb_fpc}{tfd_reg}(x, y, ...)
-
-\method{vec_ptype2.tfb_fpc}{tfd_irreg}(x, y, ...)
+\method{vec_ptype2}{tfb_fpc.tfd_irreg}(x, y, ...)
 }
 \arguments{
 \item{x}{Vectors to cast.}
@@ -123,8 +111,6 @@ vec_cast.tfd_irreg(x, to, ...)
 \item{...}{For \code{vec_cast_common()}, vectors to cast. For
 \code{vec_cast()}, \code{vec_cast_default()}, and \code{vec_restore()}, these
 dots are only for future extensions and should be empty.}
-
-\item{y}{Vectors to cast.}
 }
 \value{
 for \code{vec_cast}: the casted \code{tf}-vector, for \code{vec_ptype2}: the common prototype
