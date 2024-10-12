@@ -26,10 +26,10 @@ same_args <- function(x, to) {
 
 #----------------- s3 generics for tfd casting -----------------#
 
-#' \code{vctrs} methods for \code{tf} objects
+#' `vctrs` methods for `tf` objects
 #'
-#' These functions are the extensions that allow \code{tf} vectors
-#' to work with \code{vctrs}.
+#' These functions are the extensions that allow `tf` vectors
+#' to work with `vctrs`.
 #'
 #' **Notes on `vec_cast`:**
 #' Use [tf_rebase()] to change the representations of `tf`-vectors,
@@ -54,26 +54,16 @@ same_args <- function(x, to) {
 #' - Any cast of a `tfd` into `tfb` is potentially *lossy* (because we don't know how expressive the chosen basis is)
 #' - Only `tfb` with identical bases and domains can be cast into one another *losslessly*
 #'
-#' @rdname vctrs
+#' @name vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast tfd_reg
-#' @export
-#' @export vec_cast.tfd_reg
 #' @inheritParams vctrs::vec_cast
+#' @param y Vectors to cast.
 #' @returns for `vec_cast`: the casted `tf`-vector, for `vec_ptype2`: the common prototype
 #' @seealso [vctrs::vec_cast()], [vctrs::vec_ptype2()]
-vec_cast.tfd_reg <- function(x, to, ...) UseMethod("vec_cast.tfd_reg")
+NULL
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast tfd_irreg
-#' @export
-#' @export vec_cast.tfd_irreg
-vec_cast.tfd_irreg <- function(x, to, ...) UseMethod("vec_cast.tfd_irreg")
-
-#' @rdname vctrs
-#' @family tidyfun vctrs
-#' @method vec_cast.tfd_reg tfd_reg
 #' @export
 vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) {
   tf_rebase(x, to, arg = tf_arg(x))
@@ -81,7 +71,6 @@ vec_cast.tfd_reg.tfd_reg <- function(x, to, ...) {
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_reg tfd_irreg
 #' @export
 vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
   regular_x <- all(duplicated(tf_arg(x))[-1])
@@ -93,7 +82,6 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_reg tfb_spline
 #' @export
 vec_cast.tfd_reg.tfb_spline <- function(x, to, ...) {
   tf_rebase(x, to, arg = tf_arg(x))
@@ -101,13 +89,11 @@ vec_cast.tfd_reg.tfb_spline <- function(x, to, ...) {
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_reg tfb_fpc
 #' @export
 vec_cast.tfd_reg.tfb_fpc <- vec_cast.tfd_reg.tfb_spline
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_irreg tfd_reg
 #' @export
 vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
   tf_rebase(x, to, arg = tf_arg(x)) |> as.tfd_irreg()
@@ -115,38 +101,20 @@ vec_cast.tfd_irreg.tfd_reg <- function(x, to, ...) {
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_irreg tfd_irreg
 #' @export
 vec_cast.tfd_irreg.tfd_irreg <- vec_cast.tfd_irreg.tfd_reg
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_irreg tfb_spline
 #' @export
 vec_cast.tfd_irreg.tfb_spline <- vec_cast.tfd_irreg.tfd_reg
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfd_irreg tfb_fpc
 #' @export
 vec_cast.tfd_irreg.tfb_fpc <- vec_cast.tfd_irreg.tfd_reg
 
 #-------------------------------------------------------------------------------
-
-#' @rdname vctrs
-#' @family tidyfun vctrs
-#' @method vec_cast tfb_spline
-#' @export
-#' @export vec_cast.tfb_spline
-#' @inheritParams vctrs::vec_cast
-vec_cast.tfb_spline <- function(x, to, ...) UseMethod("vec_cast.tfb_spline")
-
-#' @rdname vctrs
-#' @family tidyfun vctrs
-#' @method vec_cast tfb_fpc
-#' @export
-#' @export vec_cast.tfd_irreg
-vec_cast.tfb_fpc <- function(x, to, ...) UseMethod("vec_cast.tfb_fpc")
 
 vec_cast_tfb_tfb <- function(x, to, ...) {
   assert_same_domains(x, to)
@@ -171,48 +139,40 @@ vec_cast_tfb_tfd <- function(x, to, ...) {
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_spline tfb_spline
 #' @export
 vec_cast.tfb_spline.tfb_spline <- vec_cast_tfb_tfb
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_spline tfb_fpc
 #' @export
 vec_cast.tfb_spline.tfb_fpc <- vec_cast_tfb_tfb
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_fpc tfb_spline
 #' @export
 vec_cast.tfb_fpc.tfb_spline <- vec_cast_tfb_tfb
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_fpc tfb_fpc
 #' @export
 vec_cast.tfb_fpc.tfb_fpc <- vec_cast_tfb_tfb
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_spline tfd_reg
 #' @export
 vec_cast.tfb_spline.tfd_reg <- vec_cast_tfb_tfd
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_spline tfd_irreg
 #' @export
 vec_cast.tfb_spline.tfd_irreg <- vec_cast_tfb_tfd
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_fpc tfd_reg
 #' @export
 vec_cast.tfb_fpc.tfd_reg <- vec_cast_tfb_tfd
 
 #' @rdname vctrs
 #' @family tidyfun vctrs
-#' @method vec_cast.tfb_fpc tfd_irreg
 #' @export
 vec_cast.tfb_fpc.tfd_irreg <- vec_cast_tfb_tfd
