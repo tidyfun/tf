@@ -12,7 +12,7 @@ provides the class definitions and methods infrastructure for \code{tidyfun} --
 \itemize{
 \item new S3 data types for representing (vectors of) functional data:
 \code{\link[=tfd]{tfd()}} & \code{\link[=tfb]{tfb()}}
-\item arithmetic operators for such data (\code{\link[=Ops.tf]{Ops.tf()}}),
+\item arithmetic operators for such data
 \item simple descriptive statistics: e.g. \code{\link[=mean.tf]{mean.tf()}}, \code{\link[=median.tf]{median.tf()}}
 \item base graphics functions for such data: \code{\link[=plot.tf]{plot.tf()}}
 \item functions to do smoothing (\code{\link[=tf_smooth.tfd]{tf_smooth.tfd()}}),
