@@ -44,10 +44,7 @@ NULL
 #' @rdname tfgroupgenerics
 #' @export
 `==.tfd` <- function(e1, e2) {
-  e1_size <- vec_size(e1)
-  e2_size <- vec_size(e2)
-  # no "recycling" of args
-  stopifnot(e1_size == e2_size || 1 %in% c(e1_size, e2_size))
+  assert_compatible_size("==", e1, e2)
   # not comparing names, as per convention...
   same <- all(compare_tf_attribs(e1, e2))
   if (!same) {
@@ -87,11 +84,14 @@ vec_arith.tfd.default <- function(op, x, y, ...) {
 #' @method vec_arith.tfd tfd
 vec_arith.tfd.tfd <- function(op, x, y, ...) {
   switch(op,
-    `+` = ,
-    `-` = ,
-    `*` = ,
-    `/` = arith_tfd_and_tfd(op, x, y),
-    stop_incompatible_op(op, x, y)
+         `+`   = ,
+         `-`   = ,
+         `*`   = ,
+         `/`   = ,
+         `^`   = ,
+         `%%`  = ,
+         `%/%` = arith_tfd_and_tfd(op, x, y),
+         stop_incompatible_op(op, x, y)
   )
 }
 
@@ -99,12 +99,14 @@ vec_arith.tfd.tfd <- function(op, x, y, ...) {
 #' @method vec_arith.tfd numeric
 vec_arith.tfd.numeric <- function(op, x, y, ...) {
   switch(op,
-    `+` = ,
-    `-` = ,
-    `/` = ,
-    `*` = ,
-    `^` = arith_tfd_and_numeric(op, x, y),
-    stop_incompatible_op(op, x, y)
+         `+`   = ,
+         `-`   = ,
+         `*`   = ,
+         `/`   = ,
+         `^`   = ,
+         `%%`  = ,
+         `%/%` = arith_tfd_and_numeric(op, x, y),
+         stop_incompatible_op(op, x, y)
   )
 }
 
@@ -112,11 +114,11 @@ vec_arith.tfd.numeric <- function(op, x, y, ...) {
 #' @method vec_arith.numeric tfd
 vec_arith.numeric.tfd <- function(op, x, y, ...) {
   switch(op,
-    `+` = ,
-    `-` = ,
-    `/` = ,
-    `*` = arith_tfd_and_numeric(op, y, x),
-    stop_incompatible_op(op, x, y)
+         `+`   = arith_tfd_and_numeric("+", y, x),
+         `-`   = arith_tfd_and_numeric("+", -y, x),
+         `*`   = arith_tfd_and_numeric("*", y, x),
+         # `/`   = arith_tfd_and_numeric("*", 1/y, x),
+         stop_incompatible_op(op, x, y)
   )
 }
 
@@ -142,13 +144,15 @@ vec_arith.tfb.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tfb tfb
 vec_arith.tfb.tfb <- function(op, x, y, ...) {
-  stopifnot(all(compare_tf_attribs(x, y)))
   switch(op,
-    `+` = ,
-    `-` = tfb_plus_tfb(op, x, y),
-    `*` = ,
-    `/` = tfb_times_tfb(op, x, y),
-    stop_incompatible_op(op, x, y)
+         `+` = ,
+         `-` = tfb_plusminus_tfb(op, x, y),
+         `*`   = ,
+         `/`   = ,
+         `^`   = ,
+         `%%`  = ,
+         `%/%` = tfb_op_tfb(op, x, y),
+         stop_incompatible_op(op, x, y)
   )
 }
 
@@ -156,12 +160,14 @@ vec_arith.tfb.tfb <- function(op, x, y, ...) {
 #' @method vec_arith.tfb numeric
 vec_arith.tfb.numeric <- function(op, x, y, ...) {
   switch(op,
-    `+` = ,
-    `-` = ,
-    `/` = ,
-    `*` = ,
-    `^` = arith_tfb_and_numeric(op, x, y),
-    stop_incompatible_op(op, x, y)
+         `/`   = ,
+         `*`   = tfb_mult_numeric(op, x, y),
+         `+`   = ,
+         `-`   = ,
+         `^`   = ,
+         `%%`  = ,
+         `%/%` = tfb_op_numeric(op, x, y),
+         stop_incompatible_op(op, x, y)
   )
 }
 
@@ -169,11 +175,11 @@ vec_arith.tfb.numeric <- function(op, x, y, ...) {
 #' @method vec_arith.numeric tfb
 vec_arith.numeric.tfb <- function(op, x, y, ...) {
   switch(op,
-    `+` = ,
-    `-` = ,
-    `/` = ,
-    `*` = arith_tfb_and_numeric(op, y, x),
-    stop_incompatible_op(op, x, y)
+         # `/`   = tfb_mult_numeric("/", 1/y, x),
+         `*`   = tfb_mult_numeric("*", 1/y, x),
+         `+`   = tfb_op_numeric("+", y, x),
+         `-`   = tfb_op_numeric("+", -y, x),
+         stop_incompatible_op(op, x, y)
   )
 }
 
@@ -184,16 +190,21 @@ vec_arith.tfb.MISSING <- function(op, x, y, ...) {
 }
 
 arith_tfd_and_tfd <- function(op, x, y) {
-  x_size <- vec_size(x)
-  y_size <- vec_size(y)
-  # no "recycling" of args
-  stopifnot(
-    x_size == y_size || 1 %in% c(x_size, y_size),
-    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
-    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
-  )
+  assert_compatible_size(op, x, y)
+  # TODO: could be more lenient -- allow is one domain is subset of the other?
+  same_domain <- all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE) |>
+    isTRUE()
+  same_arg <- all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE) |>
+    isTRUE()
+  if (!same_domain || !same_arg) {
+    message <- c(
+      glue::glue("<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  not permitted for different domains or argument values"),
+      "-- use tf_rebase first.") |>
+      paste(collapse = "\n")
+    stop_incompatible_op(op, x, y, message = message)
+  }
 
-  attr_ret <- if (x_size >= y_size) attributes(x) else attributes(y)
+  attr_ret <- if (vec_size(x) >= vec_size(y)) attributes(x) else attributes(y)
   arg_ret <- tf_arg(y)
   x_ <- tf_evaluations(x)
   y_ <- tf_evaluations(y)
@@ -213,60 +224,69 @@ arith_tfd_and_tfd <- function(op, x, y) {
 }
 
 arith_tfd_and_numeric <- function(op, x, y, ...) {
-  x_size <- vec_size(x)
-  y_size <- vec_size(y)
-  # no "recycling" of args -- breaking a crappy R convention, proudly so.
-  stopifnot(x_size == y_size || 1 %in% c(x_size, y_size))
+  assert_compatible_size(op, x, y)
   ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
   if (is_irreg(x)) {
     ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
   }
   attributes(ret) <- attributes(x)
-  if (y_size > 1) {
+  if (vec_size(y) > 1) {
     names(ret) <- NULL
   }
   ret
 }
 
-arith_tfb_and_numeric <- function(op, x, y) {
+
+tfb_op_numeric <- function(op, x, y) {
+  warning(glue("potentially lossy cast to <tfd> and back for ",
+               "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>"))
   eval <- arith_tfd_and_numeric(op, tfd(x), y)
-  # TODO: this prob. needs to use tf_rebase() with vec_ptype(y)
-  #   or similar to avoid casting FPCs to splines etc
-  basis_args <- attr(x, "basis_args")
-  do.call(
-    tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
-  )
+  tf_rebase(eval, x, penalized = FALSE)
 }
 
-tfb_times_tfb <- function(op, x, y) {
+tfb_mult_numeric <- function(op, x, y) {
+  # dispatch to general operator implementation (i.e. cast to tfd and back)
+  # if link functions are involved:
+  if (is_tfb_spline(x) && !attributes(x)$family$link == "identity") {
+    return(tfb_op_numeric(op, x, y))
+  }
+  # if not, * and / can simply be applied to the basis coefficients:
+  ret <- map2(vec_data(x), y, \(x, y) do.call(op, list(e1 = x, e2 = y)))
+  attributes(ret) <- attributes(x)
+  ret
+}
+
+tfb_op_tfb <- function(op, x, y) {
+  warning(glue::glue("potentially lossy cast to <tfd> and back for ",
+               "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>"))
   eval <- arith_tfd_and_tfd(op, tfd(x), tfd(y))
-  # TODO: this prob. needs to use tf_rebase() with vec_ptype2(x, y) (?!?)
-  #   or similar to avoid casting to different bases etc?
-  basis_args <- attr(x, "basis_args")
-  do.call(
-    tfb, c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
-  )
+  ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)
+  tf_rebase(eval, ret_ptype, penalized = FALSE)
 }
 
-tfb_plus_tfb <- function(op, x, y) {
-  x_size <- vec_size(x)
-  y_size <- vec_size(y)
-  # no "recycling" of args
-  stopifnot(
-    x_size == y_size || 1 %in% c(x_size, y_size),
-    isTRUE(all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE)),
-    isTRUE(all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE))
-  )
-
-  ret <- map2(coef(x), coef(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
-  attributes(ret) <- if (x_size >= y_size) attributes(x) else attributes(y)
+tfb_plusminus_tfb <- function(op, x, y) {
+  assert_compatible_size(op, x, y)
+  if (!same_basis(x, y)) {
+    message <- c(
+      glue::glue("<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}> is not permitted if"),
+      "their basis functions are not identical -- use tf_rebase first.") |>
+      paste(collapse = "\n")
+    stop_incompatible_op(op, x, y, message = message)
+  }
+  # dispatch to general operator implementation (i.e. cast to tfd and back)
+  # if link functions are involved:
+  if (!all(c(attributes(x)$family$link, attributes(y)$family$link) == "identity")) {
+    return(tfb_op_tfb(op, x, y))
+  }
+  ret <- map2(vec_data(x), vec_data(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
+  attributes(ret) <- if (vec_size(x) >= vec_size(y)) attributes(x) else attributes(y)
   ret
 }
 
 arith_tf_and_missing <- function(op, x, y, ...) {
   switch(op,
-    `-` = x * -1,
-    `+` = x,
-    stop_incompatible_op(op, x, y)
+         `-` = x * -1,
+         `+` = x,
+         stop_incompatible_op(op, x, y)
   )
 }
