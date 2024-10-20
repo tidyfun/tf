@@ -101,7 +101,7 @@ print.tfd_irreg <- function(x, n = 5, ...) {
 #' @export
 print.tfb <- function(x, n = 5, ...) {
   NextMethod()
-  cat(" in basis representation:\n using ", attr(x, "basis_label"), "\n")
+  cat(" in basis representation:\n using ", attr(x, "basis_label"), attr(x, "family_label"),"\n")
   len <- length(x)
   if (len > 0) {
     cat(format(x[seq_len(min(n, len))], ...), sep = "\n")

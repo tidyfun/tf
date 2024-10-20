@@ -132,6 +132,13 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib
   s_call <- as.call(c(quote(s), quote(arg), s_args))
 
+  family <- eval(gam_args$family)
+  if (family$family == "gaussian" && family$link == "identity") {
+    family_label <- ""
+  } else {
+    family_label <- glue(" ({family$family} with {family$link}-link)")
+  }
+
   ret <- new_vctr(fit[["coef"]],
     domain = domain,
     basis = basis_constructor,
@@ -139,7 +146,8 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     basis_args = s_args,
     basis_matrix = spec_object$X,
     arg = arg_u$x,
-    family = eval(gam_args$family),
+    family = family,
+    family_label = family_label,
     class = c("tfb_spline", "tfb", "tf")
   )
   assert_arg(tf_arg(ret), ret)
