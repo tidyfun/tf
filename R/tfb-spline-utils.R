@@ -63,6 +63,7 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
     qr_basis <- qr(spec_object$X)
     coef_list <- qr.coef(qr = qr_basis, y = eval_matrix)
     coef_list <- split(coef_list, col(coef_list))
+    # TODO: set PVE to 1 if var = 0
     pve <- 1 - apply(qr.resid(
       qr = qr_basis,
       y = eval_matrix
@@ -73,9 +74,11 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
       index_list, eval_list,
       \(x, y) qr.coef(qr = qr(spec_object$X[x, ]), y = y)
     )
+    # TODO: set PVE to 1 where var = 0
     pve <- map2_dbl(
       index_list, eval_list,
       \(x, y) 1 - var(qr.resid(qr = qr(spec_object$X[x, ]), y = y)) / var(y)
+      # -> -Inf if var(y)=0 and var(resid)<1e-<large no> ...
     )
   }
   names(coef_list) <- levels(data$id)
@@ -163,6 +166,7 @@ magic_smooth_coef <- function(evaluations, index, spec_object, gam_args) {
     flatten(list(off = 1, gam_args))
   )
   m <- do.call(magic, magic_args)
+  # TODO: set PVE to 1 where var = 0
   list(coef = m$b, pve = 1 - m$scale / var(evaluations), sp = m$sp)
 }
 
@@ -174,9 +178,9 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   eval_list <- split(data$value, data$id)
   index_list <- split(attr(arg_u, "index"), data$id)
   arg_u$X <- spec_object$X
+  gam_args$sp <- NULL # weirdness ensues otherwise, restored below
   if (penalized) {
     gam_args$paraPen <- quote(list(X = spec_object$S))
-    gam_args$sp <- NULL # weirdness ensues otherwise, restored below
   }
   gam_prep <- do.call(
     gam,
@@ -243,6 +247,7 @@ fit_ml_once <- function(index, evaluations, gam_prep, sp) {
     coef = unname(m$coefficients),
     pve = (m$null.deviance - m$deviance) / m$null.deviance,
     # FIXME: null deviance not always defined..? (Gamma(link = inverse))
+    # TODO: set PVE to 1 if undef or m$null.deviance is weird
     sp = m$sp
   )
 }

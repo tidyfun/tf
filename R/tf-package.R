@@ -4,7 +4,7 @@
 #'
 #'   - new S3 data types for representing (vectors of) functional data:
 #'     [tfd()] & [tfb()]
-#'   - arithmetic operators for such data ([Ops.tf()]),
+#'   - arithmetic operators for such data
 #'   - simple descriptive statistics: e.g. [mean.tf()], [median.tf()]
 #'   - base graphics functions for such data: [plot.tf()]
 #'   - functions to do smoothing ([tf_smooth.tfd()]),

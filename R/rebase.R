@@ -67,16 +67,17 @@ tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_fro
   assert_same_domains(object, basis_from)
   #extract evals from object
   data <- as.data.frame(object, unnest = TRUE)
-  penalized <- !(is.na(attr(basis_from, "basis_args")$sp))
+  dots <- list(...)
+  dots$penalized <- dots$penalized %||% !(is.na(attr(basis_from, "basis_args")$sp))
   basis_args <- attr(basis_from, "basis_args")
   basis_args <- basis_args[names(basis_args) != "sp"]
   do.call(new_tfb_spline,
           c(list(data = data,
                  domain = tf_domain(basis_from),
                  arg = arg,
-                 penalized = penalized,
-                 sp = attr(basis_from, "basis_args")$sp),
-            basis_args, list(...))
+                 sp = attr(basis_from, "basis_args")$sp,
+                 family = attr(basis_from, "family")),
+            basis_args, dots)
          )
 }
 

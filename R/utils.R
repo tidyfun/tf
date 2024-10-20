@@ -44,8 +44,8 @@ assert_arg <- function(arg, x, check_unique = TRUE) {
 assert_arg_vector <- function(arg, x, check_unique = TRUE) {
   domain_x <- tf_domain(x)
   assert_numeric(arg,
-    any.missing = FALSE, unique = check_unique, sorted = TRUE,
-    lower = domain_x[1], upper = domain_x[2]
+                 any.missing = FALSE, unique = check_unique, sorted = TRUE,
+                 lower = domain_x[1], upper = domain_x[2]
   )
 }
 
@@ -157,6 +157,29 @@ compare_tf_attribs <- function(e1, e2,
   ret <- map_lgl(attribs, \(x) .compare(a1[[x]], a2[[x]])) |> setNames(attribs)
   ret
 }
+
+same_basis <- function(x, y) {
+  if (!(is_tfb(x) && is_tfb(y))) {
+    return(FALSE)
+  }
+  all.equal(attr(x, "basis_matrix"), attr(y, "basis_matrix"),
+            check.attributes = FALSE) |> isTRUE()
+}
+
+#' @importFrom glue glue
+assert_compatible_size <- function(op, x, y) {
+  x_size <- vec_size(x)
+  y_size <- vec_size(y)
+  if (!(x_size == y_size || 1 %in% c(x_size, y_size))) {
+    message <- c(
+      glue::glue(
+        "incompatible vector sizes in <{vec_ptype_full(x)}>[1:{x_size}] {op} <{vec_ptype_full(y)}>[1:{y_size}] --"),
+        "{tf} does not recycle arguments.") |>
+      paste(collapse = "\n")
+    stop_incompatible_op(op, x, y, message = message)
+  }
+}
+
 
 #-------------------------------------------------------------------------------
 # misc

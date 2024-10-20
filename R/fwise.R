@@ -95,7 +95,6 @@ tf_frange <- function(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE) {
 tf_fmean <- function(x, arg = tf_arg(x)) {
   assert_class(x, "tf")
   assert_arg(arg = arg, x = x)
-
   x_ <- tf_interpolate(x, arg = arg)
   arg <- ensure_list(arg)
   length <- map_dbl(arg, max) - map_dbl(arg, min)
@@ -108,11 +107,10 @@ tf_fmean <- function(x, arg = tf_arg(x)) {
 tf_fvar <- function(x, arg = tf_arg(x)) {
   assert_class(x, "tf")
   assert_arg(arg = arg, x = x)
-
   arg <- ensure_list(arg)
   length <- map_dbl(arg, max) - map_dbl(arg, min)
-  x_ <- tf_interpolate(x, arg = arg)
-  x_mean <- tf_integrate(x_) / length
+  x_ <- tfd(x, arg = arg) # cast to tfd to avoid repeatedly casting back to tfb
+  x_mean <- tf_interpolate(x, arg = arg) |> tf_fmean()
   x_c <- x_ - x_mean
   tf_integrate(x_c^2) / length
 }
@@ -140,11 +138,12 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   )
   arg <- ensure_list(arg)
   length <- map_dbl(arg, max) - map_dbl(arg, min)
-  # set up common args
-  x_ <- tf_interpolate(x, arg = arg)
-  y_ <- tf_interpolate(y, arg = arg)
-  x_mean <- tf_integrate(x_) / length
-  y_mean <- tf_integrate(y_) / length
+  # set up common args &
+  # cast to tfd to avoid repeatedly casting back to tfb
+  x_ <- tfd(x, arg = arg)
+  y_ <- tfd(y, arg = arg)
+  x_mean <- tf_interpolate(x, arg = arg) |> tf_fmean()
+  y_mean <- tf_interpolate(y, arg = arg) |> tf_fmean()
   x_c <- x_ - x_mean
   y_c <- y_ - y_mean
   tf_integrate(x_c * y_c) / length
