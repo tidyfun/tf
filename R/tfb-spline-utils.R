@@ -174,9 +174,9 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   eval_list <- split(data$value, data$id)
   index_list <- split(attr(arg_u, "index"), data$id)
   arg_u$X <- spec_object$X
+  gam_args$sp <- NULL # weirdness ensues otherwise, restored below
   if (penalized) {
     gam_args$paraPen <- quote(list(X = spec_object$S))
-    gam_args$sp <- NULL # weirdness ensues otherwise, restored below
   }
   gam_prep <- do.call(
     gam,

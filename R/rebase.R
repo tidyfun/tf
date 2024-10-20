@@ -75,7 +75,8 @@ tf_rebase.tfd.tfb_spline <-  function(object, basis_from, arg = tf_arg(basis_fro
           c(list(data = data,
                  domain = tf_domain(basis_from),
                  arg = arg,
-                 sp = attr(basis_from, "basis_args")$sp),
+                 sp = attr(basis_from, "basis_args")$sp,
+                 family = attr(basis_from, "family")),
             basis_args, dots)
          )
 }
