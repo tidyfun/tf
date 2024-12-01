@@ -265,7 +265,7 @@ numeric_op_tfd <- function(op, x, y) {
 tfb_multdiv_numeric <- function(op, x, y) {
   # dispatch to general operator implementation (i.e. cast to tfd and back)
   # if link functions are involved:
-  if (is_tfb_spline(x) && !attributes(x)$family$link == "identity") {
+  if (is_tfb_spline(x) && attributes(x)$family$link != "identity") {
     return(tfb_op_numeric(op, x, y))
   }
   # if not, * and / can simply be applied to the basis coefficients:

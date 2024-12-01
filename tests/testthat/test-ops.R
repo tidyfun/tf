@@ -50,7 +50,7 @@ test_that("tfd arithmetic operations with other tfd", {
   expect_error(x_i + tf_jiggle(x_i))
 
   y <- tf_rgp(3)
-  expect_equal(as.matrix(x + y)|> suppressWarnings(),
+  expect_equal(as.matrix(x + y) |> suppressWarnings(),
                (as.matrix(x) + as.matrix(y)) |> suppressWarnings())
 
   # no recycling
@@ -77,7 +77,7 @@ test_that("tfb_spline arithmetic operations with numeric", {
   # multiplication
   expect_equal(as.matrix(x * 2), as.matrix(x) * 2)
   expect_equal(x * 2, 2 * x)
-  expect_equal(x / 2, 1/2 * x)
+  expect_equal(x / 2, 1 / 2 * x)
 
   # other ops
   expect_warning(x^2, "lossy cast")
@@ -90,7 +90,7 @@ test_that("tfb_spline arithmetic operations with numeric", {
   # tfb with link-functions
   x_l <- tfb(tfd(x)^2, family = Gamma(link = "log"), verbose= FALSE, penalized = FALSE)
   expect_warning(2 * x_l)
-  expect_equal( ((((x_l * 2) / 2) + 2) - 2) |> suppressWarnings(),
+  expect_equal(((((x_l * 2) / 2) + 2) - 2) |> suppressWarnings(),
                 x_l |> suppressWarnings(),
                tolerance = 0.01, ignore_attr = TRUE)
   expect_equal((2 * x_l) |> suppressWarnings(),
@@ -106,9 +106,9 @@ test_that("tfb_spline arithmetic operations with numeric", {
 test_that("tfb arithmetic operations with other tfb", {
   set.seed(1234)
   x <- tf_rgp(3) |> tfb(verbose = FALSE, penalized = FALSE)
-  expect_equal( (x + x) |> suppressWarnings(),
+  expect_equal((x + x) |> suppressWarnings(),
                 x * 2)
-  expect_equal( (x / x) |> suppressWarnings() |> suppressMessages(),
+  expect_equal((x / x) |> suppressWarnings() |> suppressMessages(),
                x^0 |> suppressWarnings() |> suppressMessages(), ignore_attr = TRUE)
   expect_equal(x - x, 0 * x, ignore_attr = TRUE)
 
@@ -118,12 +118,12 @@ test_that("tfb arithmetic operations with other tfb", {
   # different bases/classes:
   x_p <- tfb_fpc(x)
   expect_warning(x + x_p, "2nd argument")
-  expect_equal( (x + x_p) |> suppressWarnings() , 2 * x, ignore_attr = TRUE)
+  expect_equal((x + x_p) |> suppressWarnings(), 2 * x, ignore_attr = TRUE)
 
   x2 <- tfb(tfd(x), k = 17, bs = "ps", verbose = FALSE, penalized = FALSE)
   expect_warning((x2[1] + x), "1st argument")
-  expect_equal( (x2[1] + x)[1] |> suppressWarnings(),
-                (2 * x)[1], ignore_attr = TRUE, tolerance = 0.01)
+  expect_equal((x2[1] + x)[1] |> suppressWarnings(),
+               (2 * x)[1], ignore_attr = TRUE, tolerance = 0.01)
 
   # recycling
   expect_error(x + x[1:2])

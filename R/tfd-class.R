@@ -167,7 +167,7 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
 
   assert_numeric(data[[arg]])
   assert_numeric(data[[value]])
-  
+
   evaluator <- as_name(enexpr(evaluator))
   data <- na.omit(data[, c(id, arg, value)])
 
@@ -257,8 +257,10 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   evaluator_name <- enexpr(evaluator)
   evaluator <- if (is_tfd(data) && is.null(evaluator)) {
     attr(data, "evaluator_name")
+  } else if (is.null(evaluator)) {
+    "tf_approx_linear"
   } else {
-    if (is.null(evaluator)) "tf_approx_linear" else as_name(evaluator_name)
+    as_name(evaluator_name)
   }
   domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |> range()
   re_eval <- !is.null(arg)
