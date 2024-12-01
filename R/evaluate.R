@@ -99,7 +99,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       }
     )
   }
-  if (!inherits(object, "tfb_fpc")) {
+  if (!is_tfb_fpc(object)) {
     ret <- map(ret, attr(object, "family")$linkinv)
   }
   setNames(ret, names(object))

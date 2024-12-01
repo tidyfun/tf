@@ -57,7 +57,7 @@
 #' # save them as a functional data vector again, use `tfd` or `tfb` instead:
 #' tfd(x, arg = seq(0, 10, by = 0.01))
 `[.tf` <- function(x, i, j, interpolate = TRUE, matrix = TRUE) {
-  if (!interpolate && inherits(x, "tfb")) {
+  if (!interpolate && is_tfb(x)) {
     interpolate <- TRUE
     cli::cli_inform("{.arg interpolate} ignored for data in basis representation.")
   }
