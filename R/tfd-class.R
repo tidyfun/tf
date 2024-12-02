@@ -48,7 +48,7 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
       }
     )
     n_evals <- map(datalist, \(x) length(x$value))
-    if (any(n_evals == 0)) cli::cli_warn("{.code NA} entries created.")
+    if (any(n_evals == 0)) cli::cli_warn("{.code NA} entries (empty functions) created.")
     datalist <- map_if(
       datalist, n_evals == 0, \(x) list(arg = domain[1], value = NA)
     )
@@ -277,18 +277,20 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
     # check if all NAs occur at the same args and try to make a regular tfd if so
     na_args <- map2(arg, nas, \(x, y) x[y])
     if (!all(duplicated(na_args)[-1])) {
-      cli::cli_warn(
-        "{length(unlist(nas, use.names = FALSE))} evaluations were {.code NA}, returning irregular {.cls tfd}."
-      )
+      cli::cli_warn(c(
+        i = "{length(unlist(nas, use.names = FALSE))} evaluations were {.code NA}",
+        x = "Returning irregular {.cls tfd}."
+      ))
     } else {
       na_arg_string <- prettyNum(na_args[[1]]) |> paste(collapse = ", ")
       if (nchar(na_arg_string) > options()$width) {
         na_arg_string <- substr(na_arg_string, 1, options()$width - 15) |>
           paste0("[... truncated]")
       }
-      cli::cli_warn(
-        "{length(unlist(nas, use.names = FALSE))} evaluations on {.code arg = ({na_arg_string})} were {.code NA}, returning regular data on reduced grid."
-      )
+      cli::cli_warn(c(
+        i = "All {length(unlist(nas, use.names = FALSE))} evaluations on {.code arg = ({na_arg_string})} were {.code NA}",
+        x = "Returning regular data {.cls tfd_reg} on the reduced grid."
+      ))
       nas <- nas[1]
     }
     arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
@@ -307,7 +309,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
 tfd.default <- function(data, arg = NULL, domain = NULL,
                         evaluator = tf_approx_linear, ...) {
   if (!missing(data)) {
-    cli::cli_inform("Input {.arg data} not recognized class; returning prototype of length 0.")
+    cli::cli_warn("Input {.arg data} not recognized class; returning prototype of length 0.")
   }
   datalist <- list()
   evaluator <- as_name(enexpr(evaluator))

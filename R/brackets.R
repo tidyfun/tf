@@ -78,15 +78,16 @@
   }
   j <- ensure_list(j)
   if (!(length(j) %in% c(1, length(i)))) {
-    cli::cli_abort("Wrong length for {.arg j}.")
+    cli::cli_abort("Unsuitable {.arg j} -- must be a single vector or a list of length {length(i)}.")
   }
   evals <- tf_evaluate(x, arg = j)
   if (!interpolate) {
     new_j <- map2(j, ensure_list(tf_arg(x)), \(x, y) !(x %in% y))
     if (any(unlist(new_j, use.names = FALSE))) {
-      cli::cli_warn(
-        "{.code interpolate = FALSE} & no evaluations for some {.arg j}: {.code NA}s created."
-      )
+      cli::cli_warn(c(
+        i = "{.code interpolate = FALSE} & no values present for some {.arg j}",
+        x = "{.code NA}s created."
+      ))
     }
     evals <- map2(evals, new_j, \(x, y) ifelse(y, NA, x))
   }

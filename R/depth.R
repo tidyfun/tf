@@ -3,11 +3,11 @@
 #' Data depths for functional data.
 #' Currently implemented:
 #'  - Modified Band-2 Depth
-#'  - Modified Epigraph Index.  
+#'  - Modified Epigraph Index.
 #'
 #' Roughly, modified band depth computes the centrality
 #' of a function (scale of 0 (extreme) to 0.5 (central)), while the epigraph index computes how often it is above
-#' other functions (scale of 0 (lowest) to 1 (highest)).  
+#' other functions (scale of 0 (lowest) to 1 (highest)).
 #' The two are closely related -- for functions that never cross other functions,
 #' MBD is \eqn{-2(MEI - 0.5)^2 + .5}.
 #
@@ -104,7 +104,7 @@ quantile.tf <- function(x, probs = seq(0, 1, 0.25), na.rm = FALSE,
   # cf. Serfling, R., & Wijesuriya, U. (2017).
   # Depth-based nonparametric description of functional data,
   #   with emphasis on use of spatial depth.
-  cli::cli_warn("Only pointwise, non-functional quantiles implemented for {.cls tf}s.")
+  cli::cli_alert_info("Only pointwise, non-functional quantiles implemented for {.cls tf}s.")
   summarize_tf(x,
                probs = probs, na.rm = na.rm, names = names,
                type = type, op = "quantile", eval = is_tfd(x), ...

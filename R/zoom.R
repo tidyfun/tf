@@ -61,7 +61,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
   if (is_irreg(f) || !args$regular) {
     nas <- map_int(ret, nrow) == 0
     if (all(nas)) cli::cli_abort("No data in zoom region.")
-    if (any(nas)) cli::cli_warn("{.code NA}s created by {.fn tf_zoom}.")
+    if (any(nas)) cli::cli_warn("{.code NA}s created by re-evaluating on new grid in {.fn tf_zoom}.")
     for (n in which(nas)) {
       ret[[n]] <- data_frame(
         arg = unname(args$dom[1]), value = NA_real_, .name_repair = "minimal"
@@ -83,7 +83,7 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                         ...) {
   args <- prep_tf_zoom_args(f, begin, end)
   if (!args$regular) {
-    cli::cli_inform("{.fn tf_zoom} with varying start or end points - converting to {.code tfd}.")
+    cli::cli_alert_danger("{.fn tf_zoom} was called with varying start or end points - converting to {.code tfd}.")
     return(tf_zoom(tfd(f), begin, end))
   }
   use <- tf_arg(f) >= args$dom[1] & tf_arg(f) <= args$dom[2]

@@ -30,9 +30,10 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   s_args <- list(...)[names(list(...)) %in% names(formals(s))]
   if (!has_name(s_args, "bs")) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
-    cli::cli_warn(
-      "Adaptive smooths with ({.code bs = 'ad'}) not implemented yet. Changing to {.code bs = 'cr'}."
-    )
+    cli::cli_warn(c(
+      x = "Adaptive smooths with ({.code bs = 'ad'}) not implemented yet.",
+      i = "Return value uses  {.code bs = 'cr'} instead."
+    ))
     s_args$bs <- "cr"
   }
   if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
@@ -103,10 +104,10 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     )
   }
   if (isTRUE(min(fit$pve) < 0.5)) {
-    cli::cli_warn("
-      Fit captures <50% of input data variability for at least one function
-      -- consider increasing no. of basis functions 'k' or decreasing penalization.
-    ")
+    cli::cli_warn(c(
+      x = "Smooth fit captures less than half of input data variability for {sum(fit$pve < .5)} entries.",
+      i = "Consider increasing basis dimension {.arg k} (or decreasing penalization ({.arg sp}))."
+    ))
     verbose <- TRUE
   }
   if (verbose) {
@@ -364,7 +365,7 @@ tfb_spline.default <- function(data, arg = NULL,
                                global = FALSE,
                                verbose = TRUE, ...) {
 
-  cli::cli_inform("Input {.arg data} not from a recognized class; returning prototype of length 0.")
+  cli::cli_warn("Input {.arg data} not from a recognized class; returning prototype of length 0.")
 
   data <- data_frame(.name_repair = "minimal")
   new_tfb_spline(data,

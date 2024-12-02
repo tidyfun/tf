@@ -70,7 +70,7 @@ test_that("tf_zoom for tfb_fpc works", {
 
   expect_error(suppressWarnings(tf_zoom(xfpc, 0.8, 0.1)))
   expect_error(suppressWarnings(tf_zoom(xfpc, 0.11, 0.111)), "No data in zoom region.")
-  expect_true(suppressWarnings(
+  expect_true(suppressMessages(suppressWarnings(
     is_irreg(tf_zoom(xfpc, 0.2, seq(0.3, 1, length.out = length(x))))
-  ))
+  )))
 })

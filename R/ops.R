@@ -222,7 +222,7 @@ tfd_op_tfd <- function(op, x, y) {
   ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
 
   if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
-    cli::cli_warn(
+    cli::cli_alert_danger(
       "Inputs have different evaluators, result has {.val {attr_ret$evaluator_name}}."
     )
   }

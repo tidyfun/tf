@@ -42,10 +42,9 @@ test_that("fpc_wsvd works for smooth non-equidistant data", {
 })
 
 test_that("fpc_wsvd works for partially missing data", {
-  expect_s3_class(tfb_fpc(sparse), "tfb_fpc") |> suppressWarnings() |>
-    suppressMessages()
-  expect_warning(tfb_fpc(sparse), "High `pve`") |> suppressMessages()
-  expect_message(tfb_fpc(sparse), "Using softImpute") |> suppressWarnings()
+  expect_s3_class(tfb_fpc(sparse), "tfb_fpc") |> suppressMessages()
+  expect_message(tfb_fpc(sparse), "High `pve`") |> suppressMessages()
+  expect_message(tfb_fpc(sparse), "Using softImpute") |> suppressMessages()
   set.seed(1312)
   x <- tf_rgp(50)
   x_sp_pc <- x |> tf_sparsify(0.02) |> tfb_fpc(pve = 0.98) |>
