@@ -54,7 +54,7 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
 # rounded down to the nearest decimal
 get_resolution <- function(arg) {
   .min_diff <- function(x) {
-    suppressWarnings(ifelse(length(x) - 1, min(diff(x)), x[1]))
+    suppressWarnings(ifelse(length(x) - 1, min(abs(diff(x))), x[1]))
   }
   min_diff <- map_dbl(ensure_list(arg),
                       possibly(.f = .min_diff, otherwise = NA)) |>

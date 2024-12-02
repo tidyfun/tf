@@ -76,6 +76,7 @@ Collate:
     'rng.R'
     'smooth.R'
     'soft-impute-svd.R'
+    'split-combine.R'
     'summarize.R'
     'tf-package.R'
     'tfb-fpc.R'

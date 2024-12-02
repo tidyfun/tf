@@ -99,6 +99,6 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
 #' @export
 tf_zoom.tfb_fpc <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                             ...) {
-  cli::cli_warn("Zoomed-in FPC representation will lose orthonormality of FPC basis.")
+  cli::cli_warn("FPC basis no longer orthonormal on sub-domain.")
   NextMethod()
 }
