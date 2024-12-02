@@ -26,9 +26,9 @@ defaults to \code{FALSE}. By default, only the first function value at duplicate
 are used, the rest are discarded (with a warning).}
 }
 \value{
-a list of \code{tf} objects
+for \code{tf_split}: a list of \code{tf} objects
 
-a \code{tfd} with the combined subfunctions on the union of the input \code{tf_arg}-values
+for \code{tf_combine}: a \code{tfd} with the combined subfunctions on the union of the input \code{tf_arg}-values
 }
 \description{
 \code{tf_split} separates each function into a vector of functions defined on a sub-interval of
