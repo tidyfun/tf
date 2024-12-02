@@ -67,7 +67,7 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
   # (slightly), for now. this is necessary so that we don't get NAs when trying
   # to evaluate derivs over their default domain etc.
   if (is_irreg(f)) {
-    cli::cli_alert_danger("Differentiating over irregular grids can be unstable.")
+    cli::cli_inform(c(x = "Differentiating over irregular grids can be unstable."))
   }
   assert_count(order)
   data <- as.matrix(f, arg, interpolate = TRUE)

@@ -34,10 +34,11 @@ tf_smooth <- function(x, ...) {
 #' @rdname tf_smooth
 tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
   if (verbose) {
-    cli::cli_alert_warning(
-      "You called {.fn tf_smooth} on a {.cls tfb} object, not on a {.cls tfd} object --
-       just use a smaller basis or stronger penalization.")
-    cli::cli_alert_info("Returning unchanged {.cls tfb} object.")
+    cli::cli_inform(c(
+      `!` = "You called {.fn tf_smooth} on a {.cls tfb} object, not on a {.cls tfd} object --
+       just use a smaller basis or stronger penalization.",
+      i = "Returning unchanged {.cls tfb} object."
+    ))
   }
   x
 }
@@ -75,7 +76,7 @@ tf_smooth.tfd <- function(x,
   # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose && !is_equidist(x)) {
-      cli::cli_alert_danger("Non-equidistant arg-values in {.arg x} ignored by {.val {method}}.")
+      cli::cli_inform(c(x = "Non-equidistant arg-values in {.arg x} ignored by {.val {method}}."))
     }
     if (startsWith(method, "rollm")) {
       if (is.null(dots$k)) {

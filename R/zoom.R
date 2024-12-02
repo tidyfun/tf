@@ -83,7 +83,7 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
                         ...) {
   args <- prep_tf_zoom_args(f, begin, end)
   if (!args$regular) {
-    cli::cli_alert_danger("{.fn tf_zoom} was called with varying start or end points - converting to {.code tfd}.")
+    cli::cli_inform(c(x = "{.fn tf_zoom} was called with varying start or end points - converting to {.code tfd}."))
     return(tf_zoom(tfd(f), begin, end))
   }
   use <- tf_arg(f) >= args$dom[1] & tf_arg(f) <= args$dom[2]

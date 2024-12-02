@@ -62,7 +62,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   } else {
     cli::cli_inform("Using softImpute SVD on {round(mean(nas) * 100, 1)}% missing data.")
     if (pve + mean(nas) > 1) {
-      cli::cli_alert_danger("High {.arg pve} combined with high missingness likely to yield bad FPC estimates.")
+      cli::cli_inform(c(x = "High {.arg pve} combined with high missingness likely to yield bad FPC estimates."))
     }
     simpute_svd(data_wc)
   }
