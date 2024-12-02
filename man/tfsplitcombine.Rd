@@ -44,10 +44,19 @@ tf_split(x, splits = c(20, 80), include = "right")
   x <- tf_rgp(5)
   tfs <- tf_split(x, splits = c(.2, .6))
   x2 <- tf_combine(tfs[[1]], tfs[[2]], tfs[[3]])
-  # tf_combine(tfs[[1]], tfs[[2]], tfs[[3]], strict = TRUE) # errors out!
+  # tf_combine(tfs[[1]], tfs[[2]], tfs[[3]], strict = TRUE) # errors out - duplicate values!
   all.equal(x, x2)
   # combine works for different input types:
   tfs2_sparse <- tf_sparsify(tfs[[2]])
   tfs3_spline <- tfb(tfs[[3]])
   tf_combine(tfs[[1]], tfs2_sparse, tfs3_spline)
+  # combine(.., strict = F) can be used to coalesce different measurements
+  # of the same process over different grids:
+  x1 <- tfd(x, arg = tf_arg(x)[seq(1, 51, by = 2)])
+  x2 <- tfd(x, arg = tf_arg(x)[seq(2, 50, by = 2)])
+  tf_combine(x2, x1, strict = FALSE) == x
+
+  plot(tf_combine(x2, x1, strict = FALSE))
+  points(x1, col = "blue", pch = "x")
+  points(x2, col = "red", pch = "o")
 }
