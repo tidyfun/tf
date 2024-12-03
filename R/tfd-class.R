@@ -169,7 +169,8 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
   assert_numeric(data[[value]])
 
   evaluator <- as_name(enexpr(evaluator))
-  data <- na.omit(data[, c(id, arg, value)])
+  keep <- which(!(is.na(data[, id]) | is.na(data[, arg])))
+  data <- data[keep, c(id, arg, value)]
 
   # make factor conversion explicit to avoid reordering
   id <- factor(data[[1]], levels = as.factor(unique(data[[1]])))
