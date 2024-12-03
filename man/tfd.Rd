@@ -47,9 +47,11 @@ returns a prototype of class \code{tfd}}
 \code{ìnterpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
 examples.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid.
+\item{arg}{For the \code{list}- and \code{matrix}-methods:
+\code{numeric}, or list of \code{numeric}s. The evaluation grid.
 For the \code{data.frame}-method: the
-name/number of the column defining the evaluation grid. The \code{matrix} method
+name/number of the column defining the evaluation grid.
+The \code{matrix} method
 will try to guess suitable \code{arg}-values from the column names of \code{data} if
 \code{arg} is not supplied. Other methods fall back on integer sequences
 (\verb{1:<length of data>}) as the default if not provided.}
@@ -77,7 +79,8 @@ Various constructor methods for \code{tfd}-objects.
 column names and falls back on \code{1:ncol(data)} if that fails.
 
 \code{tfd.data.frame} uses the first 3 columns of \code{data} for
-function information by default: (\code{id}, \code{arg}, \code{value})
+\code{id} (function ID), \code{arg} (argument value) and \code{value} (function value)
+by default.
 
 \code{tfd.list} accepts a list of vectors of identical lengths
 containing evaluations or a list of 2-column matrices/data.frames with

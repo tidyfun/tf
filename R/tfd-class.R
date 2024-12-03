@@ -48,13 +48,19 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
       }
     )
     n_evals <- map(datalist, \(x) length(x$value))
-    if (any(n_evals == 0)) cli::cli_warn("{.code NA} entries (empty functions) created.")
+    if (any(n_evals == 0)) {
+      cli::cli_warn("{sum(n_evals == 0)} {.code NA} entries (empty functions) created.")
+    }
     datalist <- map_if(
       datalist, n_evals == 0, \(x) list(arg = domain[1], value = NA)
     )
     arg <- numeric(0)
     class <- "tfd_irreg"
   } else {
+    nas <- map_lgl(datalist, \(x) any(is.na(x)))
+    if (any(nas)) {
+      cli::cli_warn("{sum(nas)} {.code NA} entries (empty functions) created.")
+    }
     arg <- list(arg[[1]])
     class <- "tfd_reg"
   }
@@ -118,9 +124,11 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @description `tfd.matrix` accepts a numeric matrix with one function per
 #'   *row* (!). If `arg` is not provided, it tries to guess `arg` from the
 #'   column names and falls back on `1:ncol(data)` if that fails.
-#' @param arg `numeric`, or list of `numeric`s. The evaluation grid.
+#' @param arg For the `list`- and `matrix`-methods:
+#'   `numeric`, or list of `numeric`s. The evaluation grid.
 #'   For the `data.frame`-method: the
-#'   name/number of the column defining the evaluation grid. The `matrix` method
+#'   name/number of the column defining the evaluation grid.
+#'   The `matrix` method
 #'   will try to guess suitable `arg`-values from the column names of `data` if
 #'   `arg` is not supplied. Other methods fall back on integer sequences
 #'   (`1:<length of data>`) as the default if not provided.
@@ -136,8 +144,13 @@ tfd.matrix <- function(data, arg = NULL, domain = NULL,
   # make factor conversion explicit to avoid reordering
   datalist <- split(data, factor(id, unique(as.character(id))))
   names(datalist) <- rownames(data)
-  regular <- !anyNA(data)
-  new_tfd(arg, datalist, regular, domain, evaluator)
+  # don't count as irregular if entire rows are NA and nowhere else:
+  irregular <- {
+    na_rows <- rowSums(is.na(data)) == ncol(data)
+    data_ <- data[!na_rows, ]
+    anyNA(data_)
+  }
+  new_tfd(arg, datalist, !irregular, domain, evaluator)
 }
 
 #' @rdname tfd
@@ -155,7 +168,8 @@ tfd.numeric <- function(data, arg = NULL,
 }
 
 #' @description `tfd.data.frame` uses the first 3 columns of `data` for
-#'   function information by default: (`id`, `arg`, `value`)
+#'   `id` (function ID), `arg` (argument value) and `value` (function value)
+#'   by default.
 #' @export
 #' @rdname tfd
 #' @param id The name or number of the column defining which data belong to
@@ -169,6 +183,8 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
   assert_numeric(data[[value]])
 
   evaluator <- as_name(enexpr(evaluator))
+  # keep observations with NA values -- otherwise this never
+  # creates NA-functions and risks dropping entire id-levels!
   keep <- which(!(is.na(data[, id]) | is.na(data[, arg])))
   data <- data[keep, c(id, arg, value)]
 
@@ -176,7 +192,14 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
   id <- factor(data[[1]], levels = as.factor(unique(data[[1]])))
   datalist <- split(data[[3]], id)
   arg <- split(data[[2]], id)
-  regular <- length(arg) == 1 || all(duplicated(arg)[-1])
+
+  # regular data always has non-NA values at all the same args:
+  regular <- {
+    data_ <- na.omit(data)
+    arg_ <- split(data_[[2]], factor(data_[[1]])) # drop missing id levels
+    length(arg_) == 1 || all(duplicated(arg_)[-1])
+  }
+
   new_tfd(arg, datalist, regular, domain, evaluator)
 }
 

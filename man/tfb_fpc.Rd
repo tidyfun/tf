@@ -41,9 +41,11 @@ Unless set by the user, uses proportion of variance explained
 \item{id}{The name or number of the column defining which data belong to
 which function.}
 
-\item{arg}{\code{numeric}, or list of \code{numeric}s. The evaluation grid.
+\item{arg}{For the \code{list}- and \code{matrix}-methods:
+\code{numeric}, or list of \code{numeric}s. The evaluation grid.
 For the \code{data.frame}-method: the
-name/number of the column defining the evaluation grid. The \code{matrix} method
+name/number of the column defining the evaluation grid.
+The \code{matrix} method
 will try to guess suitable \code{arg}-values from the column names of \code{data} if
 \code{arg} is not supplied. Other methods fall back on integer sequences
 (\verb{1:<length of data>}) as the default if not provided.}
