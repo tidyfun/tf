@@ -19,12 +19,13 @@ reference:
   - fpc_wsvd
   - tf_rebase
 - title: Evaluation and indexing
-  desc: Accessing, appending and evaluating functional data objects
+  desc: Accessing, appending, evaluating and splitting functional data objects
   contents:
   - tfbrackets
   - tf_approx_linear
   - tf_evaluate
   - tf_interpolate
+  - tfsplitcombine
 - title: Arithmetic, logical and summary functions
   desc: Functionality for computing with and comparing functional data
   contents:
