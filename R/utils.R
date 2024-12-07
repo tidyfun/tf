@@ -246,7 +246,7 @@ n_distinct <- function(x) length(unique(x))
 
 sort_unique <- function(x, simplify = FALSE) {
   if (simplify) {
-    x <- unlist(x, use.names = FALSE)
+    x <- unlist(x, recursive = FALSE, use.names = FALSE)
   }
   sort(unique(x))
 }

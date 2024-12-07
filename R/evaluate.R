@@ -73,7 +73,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   arg <- ensure_list(arg)
   assert_arg(arg, object, check_unique = FALSE)
   if (length(arg) == 1) {
-    arg <- unlist(arg, use.names = FALSE)
+    arg <- unlist(arg, recursive = FALSE, use.names = FALSE)
     evals <- evaluate_tfb_once(
       x = arg,
       arg = tf_arg(object),

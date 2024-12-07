@@ -19,7 +19,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     finite = TRUE, any.missing = FALSE,
     sorted = TRUE, len = 2, unique = TRUE
   )
-  u_args <- unlist(arg_u, use.names = FALSE)
+  u_args <- unlist(arg_u, recursive = FALSE, use.names = FALSE)
   if (domain[1] > min(u_args) || max(u_args) > domain[2]) {
     cli::cli_abort("Evaluations must be inside the domain.")
   }
@@ -242,7 +242,7 @@ tfb_spline.matrix <- function(data, arg = NULL,
                               domain = NULL, penalized = TRUE,
                               global = FALSE,
                               verbose = TRUE, ...) {
-  if (is.null(arg)) arg <- unlist(find_arg(data, arg), use.names = FALSE)
+  if (is.null(arg)) arg <- unlist(find_arg(data, arg), recursive = FALSE, use.names = FALSE)
   names_data <- rownames(data)
 
   data <- mat_2_df(data, arg)

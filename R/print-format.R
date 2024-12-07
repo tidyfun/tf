@@ -18,10 +18,10 @@ string_rep_tf <- function(f, signif_arg = NULL,
     tf_evaluations(f), show,
     \(x, y) do.call(format, c(format_args, list(x = x[1:y])))
   )
-  arg_nchar <- unlist(arg_ch, use.names = FALSE) |>
+  arg_nchar <- unlist(arg_ch, recursive = FALSE, use.names = FALSE) |>
     nchar() |>
     max()
-  value_nchar <- unlist(value_ch, use.names = FALSE) |>
+  value_nchar <- unlist(value_ch, recursive = FALSE, use.names = FALSE) |>
     nchar() |>
     max()
   # left-pad with spaces:
@@ -138,7 +138,7 @@ format.tf <- function(x, digits = 2, nsmall = 0, width = options()$width,
   }
   unlist(map_if(
     str, \(x) nchar(x) > width, \(x) paste0(substr(x, 1, width - 3), "...")
-  ), use.names = FALSE)
+  ), recursive = FALSE, use.names = FALSE)
 }
 
 # dynamically exported in zzz.R:

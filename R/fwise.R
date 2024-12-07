@@ -58,7 +58,7 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
 tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
   x |>
     tf_fwise(\(.x) max(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
+    unlist(recursive = FALSE, use.names = FALSE) |>
     setNames(names(x))
 }
 
@@ -68,7 +68,7 @@ tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
 tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
   x |>
     tf_fwise(\(.x) min(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
+    unlist(recursive = FALSE, use.names = FALSE) |>
     setNames(names(x))
 }
 
@@ -78,7 +78,7 @@ tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
 tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
   x |>
     tf_fwise(\(.x) median(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
+    unlist(recursive = FALSE, use.names = FALSE) |>
     setNames(names(x))
 }
 

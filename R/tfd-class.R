@@ -3,7 +3,7 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
   # created from an (intermediate) data.frame, but may be unnamed for different
   # provenance....
-  if (vec_size(datalist) == 0 || all(is.na(unlist(datalist, use.names = FALSE)))) {
+  if (vec_size(datalist) == 0 || all(is.na(unlist(datalist, recursive = FALSE, use.names = FALSE)))) {
     arg <- arg %||% list(numeric())
     domain <- domain %||% numeric(2)
     subclass <- if (regular) "tfd_reg" else "tfd_irreg"
@@ -35,8 +35,8 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
     sorted = TRUE, len = 2, unique = if (vec_size(datalist) == 1) FALSE else TRUE
   )
   stopifnot(
-    domain[1] <= min(unlist(arg, use.names = FALSE)),
-    domain[2] >= max(unlist(arg, use.names = FALSE))
+    domain[1] <= min(unlist(arg, recursive = FALSE, use.names = FALSE)),
+    domain[2] >= max(unlist(arg, recursive = FALSE, use.names = FALSE))
   )
 
   if (!regular) {
@@ -262,7 +262,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   } else {
     as_name(evaluator_name)
   }
-  domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |> range()
+  domain <- (domain %||% unlist(arg, recursive = FALSE, use.names = FALSE) %||% tf_domain(data)) |> range()
   re_eval <- !is.null(arg)
   arg <- ensure_list(arg %||% tf_arg(data))
   evaluations <- if (re_eval) {

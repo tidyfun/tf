@@ -178,7 +178,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @export
 `tf_arg<-.tfd_reg` <- function(x, value) {
   assert_arg(value, x, check_unique = FALSE)
-  if (!(length(unlist(value, use.names = FALSE)) == length(tf_arg(x)))) {
+  if (length(unlist(value, recursive = FALSE, use.names = FALSE)) != length(tf_arg(x))) {
     cli::cli_abort(
       "{.code length(arg)} not the same as original -- use {.fn tf_interpolate}."
     )

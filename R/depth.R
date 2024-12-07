@@ -30,7 +30,7 @@ tf_depth <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
 #' @export
 #' @rdname tf_depth
 tf_depth.matrix <- function(x, arg, depth = c("MBD", "MEI"), na.rm = TRUE, ...) {
-  if (missing(arg)) arg <- unlist(find_arg(x, arg = NULL), use.names = FALSE)
+  if (missing(arg)) arg <- unlist(find_arg(x, arg = NULL), recursive = FALSE, use.names = FALSE)
   assert_numeric(arg, finite = TRUE, any.missing = FALSE, len = ncol(x),
                  unique = TRUE, sorted = TRUE)
 

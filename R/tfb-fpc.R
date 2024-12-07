@@ -12,7 +12,7 @@ new_tfb_fpc <- function(data, domain = NULL,
   if (!is.null(method) && !is.null(basis_from)) {
     cli::cli_abort("Can't specify both {.arg method} *and* {.arg basis_from} for {.fn new_tfb_fpc}.")
   }
-  arg <- uniquecombs(data$arg, ordered = TRUE) |> unlist(use.names = FALSE)
+  arg <- uniquecombs(data$arg, ordered = TRUE) |> unlist(recursive = FALSE, use.names = FALSE)
 
   domain <- domain %||% range(arg)
   if (!isTRUE(all.equal(domain, range(arg)))) {
@@ -166,7 +166,7 @@ tfb_fpc.data.frame <- function(data, id = 1, arg = 2, value = 3,
 #' @export
 tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL,
                            method = fpc_wsvd, ...) {
-  arg <- unlist(find_arg(data, arg), use.names = FALSE)
+  arg <- unlist(find_arg(data, arg), recursive = FALSE, use.names = FALSE)
   names_data <- rownames(data)
   data <- mat_2_df(data, arg)
   ret <- new_tfb_fpc(data, domain = domain, method = method, ...)

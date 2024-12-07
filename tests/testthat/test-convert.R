@@ -27,7 +27,9 @@ test_that("as.data.frame.tf works", {
   expect_named(df, c("id", "arg", "value"))
   expect_identical(df$id, as.factor(rep(1:3, each = 51)))
   expect_identical(df$arg, rep(seq(0, 1, by = 0.02), 3))
-  expect_identical(df$value, unlist(tf_evaluations(x), use.names = FALSE))
+  expect_identical(
+    df$value, unlist(tf_evaluations(x), recursive = FALSE, use.names = FALSE)
+  )
   expect_identical(as.data.frame(df), df)
 
   x <- tf_sparsify(x)
@@ -38,8 +40,10 @@ test_that("as.data.frame.tf works", {
   )
   expect_named(df, c("id", "arg", "value"))
   expect_factor(df$id)
-  expect_identical(df$arg, unlist(tf_arg(x), use.names = FALSE))
-  expect_identical(df$value, unlist(tf_evaluations(x), use.names = FALSE))
+  expect_identical(df$arg, unlist(tf_arg(x), recursive = FALSE, use.names = FALSE))
+  expect_identical(
+    df$value, unlist(tf_evaluations(x), recursive = FALSE, use.names = FALSE)
+  )
   expect_identical(as.data.frame(df), df)
 })
 
