@@ -7,18 +7,17 @@
 #' @export
 #' @family tidyfun developer tools
 prep_plotting_arg <- function(f, n_grid) {
+  arg <- tf_arg(f)
   if (!isTRUE(n_grid > 1)) {
-    tf_arg(f)
-  } else {
-    resolution <- get_resolution(tf_arg(f))
-    seq(tf_domain(f)[1], tf_domain(f)[2], length.out = n_grid) |>
-      round_resolution(resolution) |>
-      setdiff(
-        round_resolution(unlist(tf_arg(f), use.names = FALSE), resolution)
-      ) |>
-      union(unlist(tf_arg(f), use.names = FALSE)) |>
-      sort()
+    return(arg)
   }
+  resolution <- get_resolution(arg)
+  arg <- unlist(arg, use.names = FALSE)
+  seq(tf_domain(f)[1], tf_domain(f)[2], length.out = n_grid) |>
+    round_resolution(resolution) |>
+    setdiff(round_resolution(arg, resolution)) |>
+    union(arg) |>
+    sort()
 }
 
 #' `base` plots for `tf`s
