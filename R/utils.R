@@ -58,7 +58,7 @@ get_resolution <- function(arg) {
   }
   min_diff <- map_dbl(ensure_list(arg),
                       possibly(.f = .min_diff, otherwise = NA)) |>
-    min(na.rm = TRUE)
+    min(na.rm = TRUE) |> suppressWarnings()
   if (min_diff < .Machine$double.eps * 10) {
     cli::cli_abort("(Almost) non-unique {.arg arg} values detected.")
   }
