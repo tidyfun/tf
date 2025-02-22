@@ -37,7 +37,7 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
   start <- c(tf_domain(x)[1], splits)
   end <- c(splits, tf_domain(x)[2])
   if (include == "left") {
-    end[1:(length(end) -1)] <- head(end, -1) - resolution_x
+    end[1:(length(end) - 1)] <- head(end, -1) - resolution_x
   }
   if (include == "right") {
     start[-1] <- start[-1] + resolution_x
@@ -90,9 +90,8 @@ tf_combine <- function(..., strict = FALSE) {
 
   if (strict) {
     # assert arg ranges in tfs at each vector position are strictly ordered
-    args <- map(tfs,
-                function(x) tf_arg(x) |> ensure_list())
-    irreg <- map(args, length) != 1
+    args <- map(tfs, \(x) tf_arg(x) |> ensure_list())
+    irreg <- lengths(args) != 1
     if (any(irreg)) {
       args <- map_if(args, !irreg, \(x) replicate(size, x))
     }
@@ -102,7 +101,7 @@ tf_combine <- function(..., strict = FALSE) {
 
     min_overlap <- apply(arg_mins, 1, \(x) is.unsorted(as.numeric(x)))
     max_overlap <- apply(arg_maxs, 1, \(x) is.unsorted(as.numeric(x)))
-    if( any(min_overlap) || any(max_overlap) ) {
+    if (any(min_overlap) || any(max_overlap)) {
       cli::cli_abort("{.fun tf_arg}-ranges of input data are not strictly ordered.")
     }
   }

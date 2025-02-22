@@ -121,9 +121,11 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
   basis_constructor <- smooth_spec_wrapper(spec_object)
   # sp: from fit for global/set, -1 for local smoothing/given as -1, NA for unpen
-  s_args$sp <- if (isTRUE(list(...)$sp != -1) || global) {
-     fit$sp[1] |> unname()
-  } else ifelse(penalized, -1, NA)
+  if (isTRUE(list(...)$sp != -1) || global) {
+    s_args$sp <- fit$sp[1] |> unname()
+  } else {
+    s_args$sp <- ifelse(penalized, -1, NA)
+  }
   s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib
   s_call <- as.call(c(quote(s), quote(arg), s_args))
 
@@ -289,15 +291,17 @@ tfb_spline.list <- function(data, arg = NULL,
                  verbose = verbose, ...))
     }
     stopifnot(
-      !is.null(arg), length(arg) == length(data),
-      all(lengths(arg) == lens)
+      !is.null(arg),
+      length(arg) == length(data),
+      lengths(arg) == lens
     )
     data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
   }
   dims <- map(data, dim)
   stopifnot(
-    all(lengths(dims) == 2), all(map_int(dims, 2) == 2),
-    all(rapply(data, is.numeric))
+    lengths(dims) == 2,
+    map_int(dims, 2) == 2,
+    rapply(data, is.numeric)
   )
   n_evals <- map(dims, 1)
   tmp <- do.call(rbind, data)

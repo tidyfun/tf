@@ -88,12 +88,10 @@ tf_smooth.tfd <- function(x,
         if (verbose) cli::cli_inform("Setting {.code fill = 'extend'} for start/end values.")
         dots$fill <- "extend"
       }
-    } else {
-      if (is.null(dots$fl)) {
-        dots$fl <- ceiling(0.15 * min(tf_count(x)))
-        dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
-        if (verbose) cli::cli_inform("Using {.code fl = {dots$fl}} observations for rolling data window.")
-      }
+    } else if (is.null(dots$fl)) {
+      dots$fl <- ceiling(0.15 * min(tf_count(x)))
+      dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
+      if (verbose) cli::cli_inform("Using {.code fl = {dots$fl}} observations for rolling data window.")
     }
     smoothed <- map(
       tf_evaluations(x), \(x) do.call(smoother, append(list(x), dots))

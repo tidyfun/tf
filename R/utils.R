@@ -146,12 +146,10 @@ compare_tf_attribs <- function(e1, e2,
         # wrapper.... Fingers crossed relevant differences get picked up by
         # differences in the label or basis attributes...
         identical(a, b, ignore.environment = TRUE)
+      } else if (is.list(a)) {
+        all(map2_lgl(a, ensure_list(b), .compare))
       } else {
-        if (is.list(a)) {
-          all(map2_lgl(a, ensure_list(b), .compare))
-        } else {
-          isTRUE(all.equal(a, b, check.attributes = check_attrib))
-        }
+        isTRUE(all.equal(a, b, check.attributes = check_attrib))
       }
     )
   }

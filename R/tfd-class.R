@@ -197,8 +197,9 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
       (is.numeric(arg) || all(duplicated(arg)[-1])) # duplicated(NULL) == TRUE!
     if (!regular) {
       stopifnot(
-        !is.null(arg), length(arg) == length(data),
-        all(lengths(arg) == lengths(where_na))
+        !is.null(arg),
+        length(arg) == length(data),
+        lengths(arg) == lengths(where_na)
       )
       arg <- map2(arg, where_na, \(x, y) x[!y])
     } else {
@@ -216,8 +217,9 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
   if (!any(vectors)) {
     dims <- map(data, dim)
     stopifnot(
-      all(lengths(dims) == 2), all(map_int(dims, 2) == 2),
-      all(rapply(data, is.numeric))
+      lengths(dims) == 2,
+      map_int(dims, 2) == 2,
+      rapply(data, is.numeric)
     )
     arg <- map(data, \(x) unlist(x[, 1], use.names = FALSE))
     data <- map(data, \(x) unlist(x[, 2], use.names = FALSE))
