@@ -82,21 +82,21 @@ test_that("tfb_spline arithmetic operations with numeric", {
   # other ops
   expect_warning(x^2, "lossy cast")
   expect_equal(as.matrix(x^2) |> suppressWarnings(),
-               as.matrix(x)^2, tolerance = .1)
+               as.matrix(x)^2, tolerance = 0.1)
   expect_warning(2^x, "lossy cast")
   expect_equal(as.matrix(x^2) |> suppressWarnings(),
-               as.matrix(x)^2, tolerance = .1)
+               as.matrix(x)^2, tolerance = 0.1)
 
   # tfb with link-functions
-  x_l <- tfb(tfd(x)^2, family = Gamma(link = "log"), verbose= FALSE, penalized = FALSE)
+  x_l <- tfb(tfd(x)^2, family = Gamma(link = "log"), verbose = FALSE, penalized = FALSE)
   expect_warning(2 * x_l)
   expect_equal(((((x_l * 2) / 2) + 2) - 2) |> suppressWarnings(),
                 x_l |> suppressWarnings(),
                tolerance = 0.01, ignore_attr = TRUE)
   expect_equal((2 * x_l) |> suppressWarnings(),
                (x_l * 2) |> suppressWarnings())
-  expect_equal((-.1 + x_l) |> suppressWarnings(),
-               (x_l - .1) |> suppressWarnings())
+  expect_equal((-0.1 + x_l) |> suppressWarnings(),
+               (x_l - 0.1) |> suppressWarnings())
 
   # no recycling
   expect_error(x * 1:2)

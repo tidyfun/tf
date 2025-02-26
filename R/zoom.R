@@ -67,10 +67,8 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
         arg = unname(args$dom[1]), value = NA_real_, .name_repair = "minimal"
       )
     }
-  } else {
-    if (any(map_int(ret, nrow) == 0)) {
-      cli::cli_abort("No data in zoom region.")
-    }
+  } else if (any(map_int(ret, nrow) == 0)) {
+    cli::cli_abort("No data in zoom region.")
   }
   ret <- tfd(ret, domain = args$dom)
   tf_evaluator(ret) <- attr(f, "evaluator_name")

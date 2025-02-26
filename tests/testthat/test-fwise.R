@@ -49,7 +49,7 @@ test_that("fwise summaries work for tfb_spline", {
 
 test_that("fwise summaries work for tfb_fpc", {
   set.seed(1212)
-  x <- (tf_rgp(20, arg = 501L) |> tfb_fpc(k = 10, pve = .999))[1:3]
+  x <- (tf_rgp(20, arg = 501L) |> tfb_fpc(k = 10, pve = 0.999))[1:3]
 
   x_clamp <- ((x - tf_fmin(x)) / (tf_fmax(x) - tf_fmin(x))) |> suppressWarnings()
   expect_equal(tf_fmin(x_clamp), c(0, 0, 0),

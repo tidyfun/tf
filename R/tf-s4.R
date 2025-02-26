@@ -70,4 +70,3 @@ setClass("tfb",
          )
 )
 setOldClass("tfb", S4Class = "tfb")
-

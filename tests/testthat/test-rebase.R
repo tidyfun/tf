@@ -57,7 +57,7 @@ l <- list(
 )
 
 for (i in seq_along(l)) {
-  test_that(paste0("tf_rebase.tfb_spline preserves args & evals and transfers attributes for l[",i,"]"), {
+  test_that(paste0("tf_rebase.tfb_spline preserves args & evals and transfers attributes for l[", i, "]"), {
     x_rebase <- tf_rebase(b, l[[i]], verbose = FALSE)
     expect_equal(
       x_rebase |> tf_evaluations(),
