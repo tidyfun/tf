@@ -27,7 +27,8 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   # explicit factor-conversion to avoid reordering:
   data$id <- factor(data$id, unique(as.character(data$id)))
 
-  s_args <- list(...)[names(list(...)) %in% names(formals(s))]
+  dots <- list(...)
+  s_args <- dots[names(dots) %in% names(formals(s))]
   if (!has_name(s_args, "bs")) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
     cli::cli_warn(c(
@@ -37,11 +38,7 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
     s_args$bs <- "cr"
   }
   if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
-  gam_args <- list(...)[names(list(...)) %in%
-    c(
-      names(formals(gam)),
-      names(formals(bam))
-    )]
+  gam_args <- dots[names(dots) %in% c(names(formals(gam)), names(formals(bam)))]
   if (!has_name(gam_args, "sp")) gam_args$sp <- -1
 
   n_evaluations <- table(data$id)
@@ -121,10 +118,10 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
   basis_constructor <- smooth_spec_wrapper(spec_object)
   # sp: from fit for global/set, -1 for local smoothing/given as -1, NA for unpen
-  if (isTRUE(list(...)$sp != -1) || global) {
+  if (isTRUE(dots$sp != -1) || global) {
     s_args$sp <- fit$sp[1] |> unname()
   } else {
-    s_args$sp <- ifelse(penalized, -1, NA)
+    s_args$sp <- if (penalized) -1 else NA
   }
   s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib
   s_call <- as.call(c(quote(s), quote(arg), s_args))
