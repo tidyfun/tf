@@ -1,9 +1,16 @@
-new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
-                    domain = NULL, evaluator) {
+new_tfd <- function(
+  arg = NULL,
+  datalist = NULL,
+  regular = TRUE,
+  domain = NULL,
+  evaluator
+) {
   # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
   # created from an (intermediate) data.frame, but may be unnamed for different
   # provenance....
-  if (vec_size(datalist) == 0 || all(is.na(unlist(datalist, use.names = FALSE)))) {
+  if (
+    vec_size(datalist) == 0 || all(is.na(unlist(datalist, use.names = FALSE)))
+  ) {
     arg <- arg %||% list(numeric())
     domain <- domain %||% numeric(2)
     subclass <- if (regular) "tfd_reg" else "tfd_irreg"
@@ -30,27 +37,35 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
   datalist <- map2(datalist, arg_o, \(x, y) unname(x[y]))
 
   domain <- domain %||% range(arg, na.rm = TRUE)
-  assert_numeric(domain,
-    finite = TRUE, any.missing = FALSE,
-    sorted = TRUE, len = 2, unique = if (vec_size(datalist) == 1) FALSE else TRUE
+  assert_numeric(
+    domain,
+    finite = TRUE,
+    any.missing = FALSE,
+    sorted = TRUE,
+    len = 2,
+    unique = if (vec_size(datalist) == 1) FALSE else TRUE
   )
-  stopifnot(
-    domain[1] <= min(unlist(arg, use.names = FALSE)),
-    domain[2] >= max(unlist(arg, use.names = FALSE))
-  )
+  u_args <- unlist(arg, use.names = FALSE)
+  if (domain[1] > min(u_args) || max(u_args) > domain[2]) {
+    cli::cli_abort("Evaluations must be inside the domain.")
+  }
 
   if (!regular) {
     datalist <- map2(
-      datalist, arg,
+      datalist,
+      arg,
       function(x, y) {
         this_arg <- unname(y[!is.na(x)])
         list(arg = this_arg, value = unname(x[!is.na(x)]))
       }
     )
     n_evals <- map(datalist, \(x) length(x$value))
-    if (any(n_evals == 0)) cli::cli_warn("{.code NA} entries (empty functions) created.")
+    if (any(n_evals == 0))
+      cli::cli_warn("{.code NA} entries (empty functions) created.")
     datalist <- map_if(
-      datalist, n_evals == 0, \(x) list(arg = domain[1], value = NA)
+      datalist,
+      n_evals == 0,
+      \(x) list(arg = domain[1], value = NA)
     )
     arg <- numeric(0)
     class <- "tfd_irreg"
@@ -127,8 +142,13 @@ tfd <- function(data, ...) UseMethod("tfd")
 #' @param domain range of the `arg`.
 #' @param evaluator a function accepting arguments `x, arg, evaluations`. See
 #'   details for [tfd()].
-tfd.matrix <- function(data, arg = NULL, domain = NULL,
-                       evaluator = tf_approx_linear, ...) {
+tfd.matrix <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  evaluator = tf_approx_linear,
+  ...
+) {
   assert_numeric(data)
   evaluator <- as_name(enexpr(evaluator))
   arg <- find_arg(data, arg) # either arg or numeric colnames or 1:ncol
@@ -142,15 +162,17 @@ tfd.matrix <- function(data, arg = NULL, domain = NULL,
 
 #' @rdname tfd
 #' @export
-tfd.numeric <- function(data, arg = NULL,
-                        domain = NULL, evaluator = tf_approx_linear, ...) {
+tfd.numeric <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  evaluator = tf_approx_linear,
+  ...
+) {
   evaluator <- as_name(enexpr(evaluator))
   data <- t(as.matrix(data))
   # dispatch to matrix method
-  args <- list(data,
-    arg = arg, domain = domain,
-    evaluator = evaluator
-  )
+  args <- list(data, arg = arg, domain = domain, evaluator = evaluator)
   do.call(tfd, args)
 }
 
@@ -162,9 +184,15 @@ tfd.numeric <- function(data, arg = NULL,
 #'   which function.
 #' @param value The name or number of the column containing the function
 #'   evaluations.
-tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
-                           evaluator = tf_approx_linear, ...) {
-
+tfd.data.frame <- function(
+  data,
+  id = 1,
+  arg = 2,
+  value = 3,
+  domain = NULL,
+  evaluator = tf_approx_linear,
+  ...
+) {
   assert_numeric(data[[arg]])
   assert_numeric(data[[value]])
 
@@ -185,8 +213,13 @@ tfd.data.frame <- function(data, id = 1, arg = 2, value = 3, domain = NULL,
 #' `arg` in the first and evaluations in the second column
 #' @export
 #' @rdname tfd
-tfd.list <- function(data, arg = NULL, domain = NULL,
-                     evaluator = tf_approx_linear, ...) {
+tfd.list <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  evaluator = tf_approx_linear,
+  ...
+) {
   evaluator <- as_name(enexpr(evaluator))
   vectors <- map_lgl(data, \(x) is.numeric(x) & !is.array(x))
   if (all(vectors)) {
@@ -196,11 +229,19 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
     regular <- all(lens == lens[1]) &
       (is.numeric(arg) || all(duplicated(arg)[-1])) # duplicated(NULL) == TRUE!
     if (!regular) {
-      stopifnot(
-        !is.null(arg),
-        length(arg) == length(data),
-        lengths(arg) == lengths(where_na)
-      )
+      if (is.null(arg)) {
+        cli::cli_abort("{.arg arg} cannot be NULL")
+      }
+      if (length(arg) != length(data)) {
+        cli::cli_abort(
+          "length of {.arg arg}-list does not match {.arg data}-list"
+        )
+      }
+      if (any(lengths(arg) != lengths(where_na))) {
+        cli::cli_abort(
+          "lengths of {.arg arg}-vectors do not match lengths of {.arg data}-list entries"
+        )
+      }
       arg <- map2(arg, where_na, \(x, y) x[!y])
     } else {
       if (is.null(arg)) {
@@ -208,27 +249,27 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
         arg <- map(data, seq_along)
       }
       arg <- ensure_list(arg)
-      assert_numeric(arg[[1]],
-        finite = TRUE, any.missing = FALSE,
+      assert_numeric(
+        arg[[1]],
+        finite = TRUE,
+        any.missing = FALSE,
         sorted = TRUE
       )
     }
   }
   if (!any(vectors)) {
     dims <- map(data, dim)
-    stopifnot(
-      lengths(dims) == 2,
-      map_int(dims, 2) == 2,
-      rapply(data, is.numeric)
-    )
+    if (any(lengths(dims) != 2) || any(map_int(dims, 2) != 2)) {
+      cli::cli_abort("{.arg data} cannot be formatted into dimension 2.")
+    }
+    if (!all(rapply(data, is.numeric))) {
+      cli::cli_abort("{.arg data} must be numeric.")
+    }
     arg <- map(data, \(x) unlist(x[, 1], use.names = FALSE))
     data <- map(data, \(x) unlist(x[, 2], use.names = FALSE))
     regular <- length(data) == 1 || all(duplicated(arg)[-1])
   }
-  new_tfd(arg, data,
-    regular = regular, domain = domain,
-    evaluator = evaluator
-  )
+  new_tfd(arg, data, regular = regular, domain = domain, evaluator = evaluator)
 }
 
 #' @export
@@ -254,8 +295,7 @@ tfd.list <- function(data, arg = NULL, domain = NULL,
 #'   arg = seq(0, 1, length.out = 151), evaluator = tf_approx_fill_extend
 #' ) |> lines()
 #' @rdname tfd
-tfd.tf <- function(data, arg = NULL, domain = NULL,
-                   evaluator = NULL, ...) {
+tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
   evaluator_name <- enexpr(evaluator)
   evaluator <- if (is_tfd(data) && is.null(evaluator)) {
     attr(data, "evaluator_name")
@@ -264,7 +304,8 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
   } else {
     as_name(evaluator_name)
   }
-  domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |> range()
+  domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |>
+    range()
   re_eval <- !is.null(arg)
   arg <- ensure_list(arg %||% tf_arg(data))
   evaluations <- if (re_eval) {
@@ -298,9 +339,12 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
     arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
   }
   names(evaluations) <- names(data)
-  new_tfd(arg, evaluations,
+  new_tfd(
+    arg,
+    evaluations,
     regular = (length(arg) == 1),
-    domain = domain, evaluator = evaluator
+    domain = domain,
+    evaluator = evaluator
   )
 }
 
@@ -308,15 +352,27 @@ tfd.tf <- function(data, arg = NULL, domain = NULL,
 #' @description `tfd.default` returns class prototype when argument to tfd() is
 #'   `NULL` or not a recognised class.
 #' @export
-tfd.default <- function(data, arg = NULL, domain = NULL,
-                        evaluator = tf_approx_linear, ...) {
+tfd.default <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  evaluator = tf_approx_linear,
+  ...
+) {
   if (!missing(data)) {
-    cli::cli_warn("Input {.arg data} not recognized class; returning prototype of length 0.")
+    cli::cli_warn(
+      "Input {.arg data} not recognized class; returning prototype of length 0."
+    )
   }
   datalist <- list()
   evaluator <- as_name(enexpr(evaluator))
-  new_tfd(arg = arg, datalist = datalist, domain = domain, regular = TRUE,
-          evaluator = evaluator)
+  new_tfd(
+    arg = arg,
+    datalist = datalist,
+    domain = domain,
+    regular = TRUE,
+    evaluator = evaluator
+  )
 }
 
 #-------------------------------------------------------------------------------
