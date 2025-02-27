@@ -120,8 +120,10 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
   # sp: from fit for global/set, -1 for local smoothing/given as -1, NA for unpen
   if (isTRUE(dots$sp != -1) || global) {
     s_args$sp <- fit$sp[1] |> unname()
+  } else if (penalized) {
+    s_args$sp <- -1
   } else {
-    s_args$sp <- if (penalized) -1 else NA
+    s_args$sp <- NA
   }
   s_args <- s_args[sort(names(s_args))] # for uniform basis_label for compare_tf_attrib
   s_call <- as.call(c(quote(s), quote(arg), s_args))
