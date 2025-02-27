@@ -34,10 +34,10 @@ new_tfd <- function(arg = NULL, datalist = NULL, regular = TRUE,
     finite = TRUE, any.missing = FALSE,
     sorted = TRUE, len = 2, unique = if (vec_size(datalist) == 1) FALSE else TRUE
   )
-  stopifnot(
-    domain[1] <= min(unlist(arg, use.names = FALSE)),
-    domain[2] >= max(unlist(arg, use.names = FALSE))
-  )
+  u_args <- unlist(arg, use.names = FALSE)
+  if (domain[1] > min(u_args) || max(u_args) > domain[2]) {
+    cli::cli_abort("Evaluations must be inside the domain.")
+  }
 
   if (!regular) {
     datalist <- map2(
