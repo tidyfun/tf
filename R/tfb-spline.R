@@ -364,7 +364,7 @@ tfb_spline.list <- function(
     if (length(arg) != length(data) || any(lengths(arg) != lens)) {
       cli::cli_abort("length of 'arg' does not match 'data'.")
     }
-    data <- map2(arg, data, \(x, y) as.data.frame(cbind(arg = x, value = y)))
+    data <- map2(arg, data, \(x, y) data_frame(arg = x, value = y, .name_repair = "minimal"))
   }
   dims <- map(data, dim)
   if (any(lengths(dims) != 2) || any(map_int(dims, 2) != 2)) {
