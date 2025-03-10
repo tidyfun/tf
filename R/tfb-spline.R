@@ -59,7 +59,7 @@ new_tfb_spline <- function(
   s_spec <- eval(s_call)
   spec_object <- smooth.construct(
     s_spec,
-    data = data_frame(arg = arg_u$x, .name_repair = "minimal"),
+    data = data_frame0(arg = arg_u$x),
     knots = NULL
   )
   spec_object$call <- s_call
@@ -115,10 +115,10 @@ new_tfb_spline <- function(
     }
   }
   if (!regular) {
-    arg_u <- data_frame(x = arg_u$x, .name_repair = "minimal")
+    arg_u <- data_frame0(x = arg_u$x)
     spec_object$X <- PredictMat(
       spec_object,
-      data = data_frame(arg = arg_u$x, .name_repair = "minimal")
+      data = data_frame0(arg = arg_u$x)
     )
   }
   if (isTRUE(min(fit$pve) < 0.5)) {
@@ -364,7 +364,7 @@ tfb_spline.list <- function(
     if (length(arg) != length(data) || any(lengths(arg) != lens)) {
       cli::cli_abort("length of 'arg' does not match 'data'.")
     }
-    data <- map2(arg, data, \(x, y) data_frame(arg = x, value = y, .name_repair = "minimal"))
+    data <- map2(arg, data, \(x, y) data_frame0(arg = x, value = y))
   }
   dims <- map(data, dim)
   if (any(lengths(dims) != 2) || any(map_int(dims, 2) != 2)) {
@@ -479,7 +479,7 @@ tfb_spline.default <- function(
     "Input {.arg data} not from a recognized class; returning prototype of length 0."
   )
 
-  data <- data_frame(.name_repair = "minimal")
+  data <- data_frame0()
   new_tfb_spline(
     data,
     domain = domain,

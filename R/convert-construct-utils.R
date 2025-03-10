@@ -79,11 +79,11 @@ mat_2_df <- function(x, arg) {
 
   id <- unique_id(rownames(x)) %||% seq_len(nrow(x))
   id <- ordered(id, levels = unique(id))
-  df_2_df(data_frame(
+  t_x <- t(x)
+  df_2_df(data_frame0(
     # use t(x) here so that order of vector remains unchanged...
-    id = id[col(t(x))],
-    arg = arg[row(t(x))],
-    value = as.vector(t(x)),
-    .name_repair = "minimal"
+    id = id[col(t_x)],
+    arg = arg[row(t_x)],
+    value = as.vector(t_x)
   ))
 }

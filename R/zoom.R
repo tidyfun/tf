@@ -63,9 +63,7 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
     if (all(nas)) cli::cli_abort("No data in zoom region.")
     if (any(nas)) cli::cli_warn("{.code NA}s created by re-evaluating on new grid in {.fn tf_zoom}.")
     for (n in which(nas)) {
-      ret[[n]] <- data_frame(
-        arg = unname(args$dom[1]), value = NA_real_, .name_repair = "minimal"
-      )
+      ret[[n]] <- data_frame0(arg = unname(args$dom[1]), value = NA_real_)
     }
   } else if (any(map_int(ret, nrow) == 0)) {
     cli::cli_abort("No data in zoom region.")
