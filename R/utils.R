@@ -249,6 +249,8 @@ sort_unique <- function(x, simplify = FALSE) {
   sort(unique(x))
 }
 
+data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
+
 assert_tf <- function(x) assert_class(x, "tf")
 
 assert_tfd <- function(x) assert_class(x, "tfd")

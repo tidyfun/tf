@@ -102,7 +102,7 @@
   }
 
   map2(
-    j, evals, \(x, y) data_frame(arg = x, value = y, .name_repair = "minimal")
+    j, evals, \(x, y) data_frame0(arg = x, value = y)
   ) |> setNames(names(x))
 }
 
