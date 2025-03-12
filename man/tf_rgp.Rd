@@ -8,9 +8,10 @@ tf_rgp(
   n,
   arg = 51L,
   cov = c("squareexp", "wiener", "matern"),
-  scale = diff(range(arg))/10,
+  scale = diff(domain)/10,
   nugget = scale/200,
-  order = 1.5
+  order = 1.5,
+  domain = NULL
 )
 }
 \arguments{
@@ -18,7 +19,8 @@ tf_rgp(
 
 \item{arg}{vector of evaluation points (\code{arg} of the return object). Defaults
 to (0, 0.02, 0.04, ..., 1). If given as a single \strong{integer} (don't forget
-the \strong{\code{L}}...), creates a  regular grid of that length over (0,1).}
+the \strong{\code{L}}...), creates a  regular grid of that length over (0,1).
+If given as a \code{n}-long list of vectors, irregular functional data are created.}
 
 \item{cov}{type of covariance function to use. Implemented defaults are
 \code{"squareexp"}, \code{"wiener"}, \code{"matern"}, see Description. Can also be any
@@ -35,6 +37,9 @@ variability. Defaults to \code{scale/200} (so: very little white noise).}
 to 1.5. The higher, the smoother the process. Evaluation of the covariance
 function becomes numerically unstable for large (>20) \code{order}, use
 "squareexp".}
+
+\item{domain}{of the generated functions. If not provided, the range of the
+supplied \code{arg} values.}
 }
 \value{
 an \code{tfd}-vector of length \code{n}
@@ -54,6 +59,10 @@ covariance \eqn{Cov(x(t), x(t')) =
 \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
 + \sigma^2 \delta_{t}(t')}
 }
+}
+\examples{
+(x1 <- tf_rgp(10, cov = "squareexp", nugget = 0))
+tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34))))
 }
 \seealso{
 Other tidyfun RNG functions: 
