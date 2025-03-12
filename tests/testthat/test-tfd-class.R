@@ -39,6 +39,13 @@ test_that("tfd.numeric works", {
     expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
     expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
   }
+
+  # evaluations must be inside the domain
+  x <- 1:10
+  expect_no_error(tfd(x, domain = c(1, 10)))
+  expect_error(tfd(x, domain = c(2, 10)), "Evaluations must be inside the domain.")
+  expect_error(tfd(x, domain = c(1, 9)), "Evaluations must be inside the domain.")
+  expect_error(tfd(x, domain = c(2, 9)), "Evaluations must be inside the domain.")
 })
 
 test_that("tfd works consistently for partially missing data", {

@@ -103,7 +103,7 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
   spec_object <- smooth.construct(s_spec,
-    data = data_frame(arg = arg, .name_repair = "minimal"),
+    data = data_frame0(arg = arg),
     knots = NULL
   )
   eps <- min(diff(arg)) / 1000
