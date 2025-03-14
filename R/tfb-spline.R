@@ -283,7 +283,7 @@ tfb_spline.matrix <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is.null(arg)) arg <- unlist(find_arg(data, arg), use.names = FALSE)
+  arg <- arg %||% unlist(find_arg(data, arg), use.names = FALSE)
   names_data <- rownames(data)
 
   data <- mat_2_df(data, arg)
@@ -390,6 +390,31 @@ tfb_spline.list <- function(
   )
 }
 
+#' @export
+tfb_spline.fdSmooth <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  penalized = TRUE,
+  global = FALSE,
+  verbose = TRUE,
+  ...
+) {
+  domain <- domain %||% data$fd$basis$rangeval
+  arg <- arg %||% as.numeric(data$argvals)
+  k <- data$fd$basis$nbasis
+  data <- mat_2_df(t(data$y), arg)
+
+  new_tfb_spline(
+    data,
+    domain = domain,
+    penalized = penalized,
+    global = global,
+    verbose = verbose,
+    k = k,
+    ...
+  )
+}
 
 #' @export
 #' @describeIn tfb_spline convert `tfd` (raw functional data)
@@ -450,7 +475,7 @@ tfb_spline.tfb <- function(
   } else {
     data <- tf_2_df(data, arg = arg)
     do.call(
-      "tfb_spline",
+      tfb_spline,
       c(
         list(data),
         domain = domain,
