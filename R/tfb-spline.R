@@ -283,7 +283,7 @@ tfb_spline.matrix <- function(
   verbose = TRUE,
   ...
 ) {
-  arg <- arg %||% unlist(find_arg(data, arg), use.names = FALSE)
+  if (is.null(arg)) arg <- unlist(find_arg(data, arg), use.names = FALSE)
   names_data <- rownames(data)
 
   data <- mat_2_df(data, arg)
