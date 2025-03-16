@@ -400,6 +400,9 @@ tfb_spline.fdSmooth <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!identical(data$fd$basis$type, "bspline")) {
+    cli::cli_abort("Only implemented for bspline basis.")
+  }
   domain <- domain %||% data$fd$basis$rangeval
   arg <- arg %||% as.numeric(data$argvals)
   k <- data$fd$basis$nbasis
