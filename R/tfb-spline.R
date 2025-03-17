@@ -391,6 +391,7 @@ tfb_spline.list <- function(
 }
 
 #' @export
+#' @describeIn tfb_spline convert `fdSmooth`
 tfb_spline.fdSmooth <- function(
   data,
   arg = NULL,

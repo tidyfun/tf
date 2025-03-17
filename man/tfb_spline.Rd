@@ -6,6 +6,7 @@
 \alias{tfb_spline.matrix}
 \alias{tfb_spline.numeric}
 \alias{tfb_spline.list}
+\alias{tfb_spline.fdSmooth}
 \alias{tfb_spline.tfd}
 \alias{tfb_spline.tfb}
 \alias{tfb_spline.default}
@@ -46,6 +47,16 @@ tfb_spline(data, ...)
 )
 
 \method{tfb_spline}{list}(
+  data,
+  arg = NULL,
+  domain = NULL,
+  penalized = TRUE,
+  global = FALSE,
+  verbose = TRUE,
+  ...
+)
+
+\method{tfb_spline}{fdSmooth}(
   data,
   arg = NULL,
   domain = NULL,
@@ -181,6 +192,8 @@ data for all curves simultaneously is likely to yield better results, this is
 \item \code{tfb_spline(numeric)}: convert matrices
 
 \item \code{tfb_spline(list)}: convert lists
+
+\item \code{tfb_spline(fdSmooth)}: convert \code{fdSmooth}
 
 \item \code{tfb_spline(tfd)}: convert \code{tfd} (raw functional data)
 
