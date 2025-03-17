@@ -413,7 +413,6 @@ as.tfd.default <- function(data, ...) {
 #' @export
 as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 
-#' @import purrr
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
