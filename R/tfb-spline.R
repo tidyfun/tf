@@ -359,10 +359,10 @@ tfb_spline.list <- function(
       ))
     }
     if (is.null(arg)) {
-      cli::cli_abort("'arg' must be supplied.")
+      cli::cli_abort("{.arg arg} must be supplied.")
     }
     if (length(arg) != length(data) || any(lengths(arg) != lens)) {
-      cli::cli_abort("length of 'arg' does not match 'data'.")
+      cli::cli_abort("length of {.arg arg} does not match {.arg data}.")
     }
     data <- map2(arg, data, \(x, y) data_frame0(arg = x, value = y))
   }
