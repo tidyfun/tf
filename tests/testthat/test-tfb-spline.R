@@ -37,6 +37,7 @@ test_that("tfb_spline works for fda::fdSmooth input", {
       expect_s3_class(tfb_, "tfb_spline")
       expect_length(tfb_, i)
       expect_identical(attr(tfb_, "basis_args")$k, k)
+      expect_identical(attr(tfb_, "basis_args")$bs, "bs")
       expect_identical(tf_domain(tfb_), c(0, 10))
       expect_message(tfb_spline(smoo_fda))
     }

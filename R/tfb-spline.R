@@ -415,6 +415,7 @@ tfb_spline.fdSmooth <- function(
     global = global,
     verbose = verbose,
     k = k,
+    bs = "bs",
     ...
   )
 }
