@@ -67,23 +67,6 @@ test_that("tfb_spline works for fda::fdSmooth input", {
     tolerance = 1e-4,
     ignore_attr = TRUE
   )
-
-  # more trouble than it's worth to define a test for this since fda interface
-  # is soooo baaad.
-  # # only allowed bases
-  # data <- sin(arg) + rnorm(length(arg), 0, 0.1)
-  # for (fn in list(
-  #   fda::create.constant.basis,
-  #   fda::create.monomial.basis,
-  #   fda::create.power.basis
-  # )) {
-  #   basis <-f do.call(fn, list(rangeval = c(0, 10)))
-  #   smoo_fda <- fda::smooth.basis(arg, data, basis)
-  #   expect_warning(
-  #     tfb_spline(smoo_fda, verbose = FALSE),
-  #     "Only implemented for bspline basis."
-  #   )
-  # }
 })
 
 test_that("tfb_spline defaults work for all kinds of irregular input", {

@@ -402,15 +402,16 @@ tfb_spline.fdSmooth <- function(
   verbose = TRUE,
   ...
 ) {
+  rlang::check_installed("fda")
   bs <- switch(
     data$fd$basis$type,
-    "bspline" = "bs",
-    "fourier" = "fourier",
+    bspline = "bs",
+    fourier = "fourier",
     {
       cli::cli_warn(c(
         "exact {.cls fdSmooth} conversion not implemented for this {.pkg fda} basis type.",
-        "x" = "Using {.pkg mgcv} basis 'bs', original basis type was '{data$fd$basis$type}'.",
-        "i" = "Only {.pkg fda}-compatible B-Spline and Fourier bases are implemented in {.pkg tf}."
+        x = "Using {.pkg mgcv} basis 'bs', original basis type was {.val data$fd$basis$type}.",
+        i = "Only {.pkg fda}-compatible B-Spline and Fourier bases are implemented in {.pkg tf}."
       ))
       "bs"
     }

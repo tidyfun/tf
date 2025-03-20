@@ -6,25 +6,17 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
 
   # enforce odd bs.dim
   bs.dim <- object$bs.dim
-  if (bs.dim <= 0) stop("fourier basis needs a positive bs.dim")
-  if ((bs.dim %% 2) == 0) {
-    message("fourier basis dimension is even, incrementing by 1 to enforce odd")
+  if (bs.dim <= 0) cli::cli_abort("fourier basis needs a positive bs.dim")
+  if (bs.dim %% 2 == 0) {
+    cli::cli_inform("fourier basis dimension is even, incrementing by 1 to enforce odd")
     bs.dim <- bs.dim + 1
   }
   object$bs.dim <- bs.dim
 
   # figure out range, period
   #   store them so Predict.matrix can replicate
-  rng <- if (!is.null(object$xt$rangeval)) {
-    object$xt$rangeval
-  } else {
-    range(x)
-  }
-  period <- if (!is.null(object$xt$period)) {
-    object$xt$period
-  } else {
-    diff(rng)
-  }
+  rng <- object$xt$rangeval %||% range(x)
+  period <- object$xt$period %||% diff(rng)
 
   # build design matrix
   # column 1 = constant, then sine/cosine pairs
@@ -39,8 +31,8 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
   X[, j]     <- sin(args)
   X[, j + 1] <- cos(args)
   # rescale as in fda
-  X[, 1] <- 1/sqrt(2)
-  X <- X/sqrt(period/2)
+  X[, 1] <- 1 / sqrt(2)
+  X <- X / sqrt(period / 2)
 
   # store design, no penalty
   object$X <- X # rescale as in fda
@@ -59,7 +51,7 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
       pen_val <- (period / 2) * (kj^4)
       # sin gets index: 2 + 2*(j-1)
       # cos gets index: 3 + 2*(j-1)
-      sin_idx <- 2 + 2*(j-1)
+      sin_idx <- 2 + 2 * (j - 1)
       cos_idx <- sin_idx + 1
       S[sin_idx, sin_idx] <- pen_val
       S[cos_idx, cos_idx] <- pen_val
@@ -106,8 +98,8 @@ Predict.matrix.fourier.smooth <- function(object, data) {
   X[, j]     <- sin(args)
   X[, j + 1] <- cos(args)
   # rescale as in fda
-  X[, 1] <- 1/sqrt(2)
-  X <- X/sqrt(period/2)
+  X[, 1] <- 1 / sqrt(2)
+  X <- X / sqrt(period / 2)
   X
 }
 
