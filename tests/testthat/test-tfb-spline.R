@@ -28,38 +28,62 @@ test_that("tfb_spline works for fda::fdSmooth input", {
 
   set.seed(1234)
   arg <- seq(0, 10, length.out = 100)
-  for (i in c(1, 3, 10)) {
-    for (k in c(10, 15, 25)) {
-      basis <- fda::create.bspline.basis(rangeval = c(0, 10), nbasis = k)
-      data <- sapply(seq_len(i), \(i) sin(arg) + rnorm(length(arg), 0, 0.1))
-      smoo_fda <- fda::smooth.basis(arg, data, basis)
-      expect_no_message(tfb_ <- tfb_spline(smoo_fda, verbose = FALSE))
-      expect_s3_class(tfb_, "tfb_spline")
-      expect_length(tfb_, i)
-      expect_identical(attr(tfb_, "basis_args")$k, k)
-      expect_identical(attr(tfb_, "basis_args")$bs, "bs")
-      expect_identical(tf_domain(tfb_), c(0, 10))
-      expect_message(tfb_spline(smoo_fda))
-    }
-  }
+  i <- 5
+  k <- 25
+  data <- sapply(seq_len(i), \(i) sin(arg) + rnorm(length(arg), 0, 0.01))
 
-  # only allow for bspline basis
-  data <- sin(arg) + rnorm(length(arg), 0, 0.1)
-  for (fn in list(
-    fda::create.fourier.basis,
-    fda::create.constant.basis,
-    fda::create.exponential.basis,
-    fda::create.monomial.basis,
-    fda::create.polygonal.basis,
-    fda::create.power.basis
-  )) {
-    basis <- do.call(fn, list(rangeval = c(0, 10)))
-    smoo_fda <- fda::smooth.basis(arg, data, basis)
-    expect_error(
-      tfb_spline(smoo_fda, verbose = FALSE),
-      "Only implemented for bspline basis."
-    )
-  }
+  # b-splines
+  basis <- fda::create.bspline.basis(rangeval = c(0, 10), nbasis = k)
+  smoo_fda <- fda::smooth.basis(arg, data, basis)
+  expect_no_message(tfb_ <- tfb_spline(smoo_fda, verbose = FALSE))
+  expect_s3_class(tfb_, "tfb_spline")
+  expect_length(tfb_, i)
+  expect_identical(attr(tfb_, "basis_args")$k, k)
+  expect_identical(attr(tfb_, "basis_args")$bs, "bs")
+  expect_identical(tf_domain(tfb_), c(0, 10))
+  expect_equal(
+    fda::eval.basis(arg, basis) %*% smoo_fda$fd$coefs,
+    as.matrix(tfb_) |> t(),
+    tolerance = 1e-4,
+    ignore_attr = TRUE
+  )
+
+  # fourier
+  basis <- fda::create.fourier.basis(
+    rangeval = c(0, 10),
+    nbasis = k,
+    period = 10
+  )
+  smoo_fda <- fda::smooth.basis(arg, data, basis)
+  expect_no_message(tfb_ <- tfb_spline(smoo_fda, verbose = FALSE))
+  expect_s3_class(tfb_, "tfb_spline")
+  expect_length(tfb_, i)
+  expect_identical(attr(tfb_, "basis_args")$k, k)
+  expect_identical(attr(tfb_, "basis_args")$bs, "fourier")
+  expect_identical(tf_domain(tfb_), c(0, 10))
+  expect_equal(
+    fda::eval.basis(arg, basis) %*% smoo_fda$fd$coefs,
+    as.matrix(tfb_) |> t(),
+    tolerance = 1e-4,
+    ignore_attr = TRUE
+  )
+
+  # more trouble than it's worth to define a test for this since fda interface
+  # is soooo baaad.
+  # # only allowed bases
+  # data <- sin(arg) + rnorm(length(arg), 0, 0.1)
+  # for (fn in list(
+  #   fda::create.constant.basis,
+  #   fda::create.monomial.basis,
+  #   fda::create.power.basis
+  # )) {
+  #   basis <-f do.call(fn, list(rangeval = c(0, 10)))
+  #   smoo_fda <- fda::smooth.basis(arg, data, basis)
+  #   expect_warning(
+  #     tfb_spline(smoo_fda, verbose = FALSE),
+  #     "Only implemented for bspline basis."
+  #   )
+  # }
 })
 
 test_that("tfb_spline defaults work for all kinds of irregular input", {

@@ -1,27 +1,34 @@
 test_that("fourier basis matches fda::create.fourier.basis for same specs", {
-  library(mgcv)
-  library(fda)
+  skip_if_not_installed("fda")
 
   # define test range
   rng <- c(0, 10)
-  nbasis <- 5  # odd -> okay
+  nbasis <- 5 # odd -> okay
   period <- 8
-  xvals <- seq(rng[1], rng[2], length.out=50)
+  xvals <- seq(rng[1], rng[2], length.out = 50)
 
   # fda basis
-  fda_fourier <- create.fourier.basis(rangeval=rng, nbasis=nbasis, period=period)
-  fda_mat <- eval.basis(xvals, fda_fourier)
+  fda_fourier <- fda::create.fourier.basis(
+    rangeval = rng,
+    nbasis = nbasis,
+    period = period
+  )
+  fda_mat <- fda::eval.basis(xvals, fda_fourier)
 
   # mgcv spec
-  fourier_spec <- s(x, bs="fourier", k=nbasis,
-                    xt=list(period=period, rangeval=rng))
+  fourier_spec <- mgcv::s(
+    x,
+    bs = "fourier",
+    k = nbasis,
+    xt = list(period = period, rangeval = rng)
+  )
   dat <- data.frame(x = xvals)
 
   # manually construct basis
-  sm <- smoothCon(fourier_spec, data=dat, knots=NULL)[[1]]
-  mgcv_mat <- PredictMat(sm, dat)
+  sm <- mgcv::smoothCon(fourier_spec, data = dat, knots = NULL)[[1]]
+  mgcv_mat <- mgcv::PredictMat(sm, dat)
 
-  expect_equal(mgcv_mat, fda_mat, tolerance=1e-7, ignore_attr = TRUE)
+  expect_equal(mgcv_mat, fda_mat, tolerance = 1e-7, ignore_attr = TRUE)
 })
 
 test_that("fourier basis useable in tfb", {
@@ -32,24 +39,29 @@ test_that("fourier basis useable in tfb", {
 
   expect_class(
     tfb(x, bs = "fourier", verbose = FALSE) |> suppressMessages(),
-    "tfb_spline")
+    "tfb_spline"
+  )
   expect_class(
     tfb(x_sp, bs = "fourier", verbose = FALSE) |> suppressMessages(),
-    "tfb_spline")
+    "tfb_spline"
+  )
 
   # check penalization:
   x_u <- tfb(x, bs = "fourier", penalized = FALSE, k = 25, verbose = FALSE) |>
-    suppressMessages() |> as.matrix()
+    suppressMessages() |>
+    as.matrix()
   x_p <- tfb(x, bs = "fourier", sp = .05, k = 25, verbose = FALSE) |>
-    suppressWarnings() |> suppressMessages() |> as.matrix()
+    suppressWarnings() |>
+    suppressMessages() |>
+    as.matrix()
   x_c <- tfb(x, bs = "fourier", sp = 1e10, k = 25, verbose = FALSE) |>
-    suppressWarnings() |> suppressMessages() |> as.matrix()
+    suppressWarnings() |>
+    suppressMessages() |>
+    as.matrix()
   x_mat <- as.matrix(x)
   u_error <- sum(abs(x_mat - x_u))
   p_error <- sum(abs(x_mat - x_p))
   c_error <- sum(abs(x_mat - x_c))
   expect_true(u_error < p_error)
   expect_true(p_error < c_error)
-
-
 })

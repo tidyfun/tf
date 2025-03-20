@@ -60,7 +60,7 @@ tfb_spline(data, ...)
   data,
   arg = NULL,
   domain = NULL,
-  penalized = TRUE,
+  penalized = FALSE,
   global = FALSE,
   verbose = TRUE,
   ...
@@ -193,7 +193,8 @@ data for all curves simultaneously is likely to yield better results, this is
 
 \item \code{tfb_spline(list)}: convert lists
 
-\item \code{tfb_spline(fdSmooth)}: convert \code{fdSmooth}
+\item \code{tfb_spline(fdSmooth)}: convert \code{fdSmooth} objects. Almost exact re-representation for
+objects using Fourier- or B-spline bases, other \code{fda}-style bases are not implemented here.
 
 \item \code{tfb_spline(tfd)}: convert \code{tfd} (raw functional data)
 
