@@ -1,4 +1,3 @@
-
 x <- tf_rgp(150) |> tfb_fpc()
 
 y <- tf_rgp(15, arg = 21L) |> tf_sparsify()
@@ -9,8 +8,7 @@ layout(t(1:2))
 plot(y, lwd = 2)
 plot(y_xbase, lty = 2, col = 2)
 
-all.equal(tf_basis(y_xbase, as_tfd = TRUE),
-          tf_basis(x, as_tfd = TRUE))
+all.equal(tf_basis(y_xbase, as_tfd = TRUE), tf_basis(x, as_tfd = TRUE))
 
 
 #------------------------------------------------------------------------------
@@ -42,7 +40,8 @@ lines(y_pc_rebase[1:10], col = 2, lty = 2)
 y <- tf_rgp(50, arg = 51L)
 y_pc <- tfb_fpc(y, pve = 1)
 y_pc_sparse <- tfb_fpc(y |> tf_jiggle(), pve = 1)
-y_pc_sparse_impute <- y |> tf_jiggle(dropout = .3) |>
+y_pc_sparse_impute <- y |>
+  tf_jiggle(dropout = .3) |>
   tf_interpolate(arg = tf_arg(y), evaluator = tf_approx_fill_extend) |>
   tfb_fpc(pve = 1)
 y_pc_rebase <- tf_rebase(y |> tf_jiggle() |> tfd(domain = tf_domain(y)), y_pc)
@@ -63,16 +62,19 @@ g <- 201
 n <- 50
 
 arg <- seq(0, 1, l = g)
-basis <- cbind(sin(2 * pi * arg), cos(2 * pi * arg),
-               sin(4 * pi * arg), cos(4 * pi * arg))
+basis <- cbind(
+  sin(2 * pi * arg),
+  cos(2 * pi * arg),
+  sin(4 * pi * arg),
+  cos(4 * pi * arg)
+)
 norms <- tfd(t(basis))^2 |> tf_integrate() |> sqrt()
-basis <- basis/norms
+basis <- basis / norms
 
 true_scores <- t(mvtnorm::rmvnorm(n, mean = rep(0, 4), sigma = diag((4:1)^2)))
 
 data <- t(basis %*% true_scores)
-data[rbinom(n*g, 1, .3)] <- NA
-
+data[rbinom(n * g, 1, .3)] <- NA
 
 
 delta <- c(0, diff(arg))
@@ -83,7 +85,6 @@ w_mat <- matrix(weights, ncol = length(arg), nrow = nrow(data), byrow = TRUE)
 w_mat[is.na(data)] <- 0
 data[is.na(data)] <- 0
 data_wc <- t((t(data) - mean) * sqrt(t(w_mat)))
-
 
 
 pc <- svd(data_wc, nu = 0, nv = min(dim(data)))
