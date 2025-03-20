@@ -4,14 +4,17 @@
 #' accepts user-defined covariance functions (without "nugget" effect, see
 #' `cov`), The implemented defaults with `scale` parameter \eqn{\phi}, `order`
 #' \eqn{o} and `nugget` effect variance \eqn{\sigma^2} are:
-#' - *squared exponential* covariance \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
+#' - *squared exponential*: \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
 #' \delta_{t}(t')}.
-#' - *Wiener* process covariance \eqn{Cov(x(t), x(t')) =
+#' - *Wiener* process: \eqn{Cov(x(t), x(t')) =
 #' \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition)
-#' covariance \eqn{Cov(x(t), x(t')) =
+#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition):
+#' \eqn{Cov(x(t), x(t')) =
 #' \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
 #' + \sigma^2 \delta_{t}(t')}
+#' -  [*Brownian Bridge* process](https://en.wikipedia.org/wiki/Brownian_bridge) for
+#' \eqn{t, t' \in [a, b]}:
+#' \eqn{Cov(x(t), x(t')) =  \frac{(b - \max(s,t))(\min(s, t) - a)}{\phi (b - a)} + \sigma^2 \delta_{t}(t')}
 #'
 #' @param n how many realizations to draw
 #' @param arg vector of evaluation points (`arg` of the return object). Defaults
@@ -40,22 +43,27 @@
 #' (x1 <- tf_rgp(10, cov = "squareexp", nugget = 0))
 #  plot(x1)
 #' tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34))))
-tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern"),
+tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern", "brown_bridge"),
                    scale = diff(domain) / 10, nugget = scale / 200, order = 1.5,
                    domain = NULL) {
   if (!is.function(cov)) {
     cov <- match.arg(cov)
-    f_cov <- switch(cov,
-      wiener = function(s, t) pmin(s, t) / scale,
-      squareexp = function(s, t) exp(-(s - t)^2 / scale),
-      matern = function(s, t) {
-        r <- sqrt(2 * order) * abs(s - t) / scale
-        cov <- 2^(1 - order) / gamma(order) * r^order *
-          base::besselK(r, nu = order)
-        cov[s == t] <- 1
-        cov
-      }
-    )
+    f_cov <-
+      switch(cov,
+             wiener = function(s, t) pmin(s, t) / scale,
+             squareexp = function(s, t) exp(-(s - t)^2 / scale),
+             matern = function(s, t) {
+               r <- sqrt(2 * order) * abs(s - t) / scale
+               cov <- 2^(1 - order) / gamma(order) * r^order *
+                 base::besselK(r, nu = order)
+               cov[s == t] <- 1
+               cov
+             },
+             brown_bridge = function(s, t) {
+              r <- (domain[2] - pmax(s, t)) * (pmin(s, t) - domain[1]) / scale
+              r / diff(domain)
+             }
+      )
   } else {
     assert_function(cov, nargs = 2)
     f_cov <- cov
@@ -124,7 +132,7 @@ tf_jiggle <- function(f, amount = 0.4, ...) {
   new_args <- map(tf_arg(f), tf_jiggle_args, amount = amount)
   evaluator <- attr(f, "evaluator_name")
   ret <- tfd(map2(new_args, tf_evaluations(f), cbind),
-      domain = tf_domain(f), ...)
+             domain = tf_domain(f), ...)
   tf_evaluator(ret) <- evaluator
   ret
 }
@@ -136,8 +144,8 @@ tf_jiggle_args <- function(arg, amount) {
   # push left/right at most (amount*100)% of distance to adjacent gridpoint
   push_left_right <- sample(c(-1, 1), g - 2, replace = TRUE)
   use_diffs <- ifelse(push_left_right == -1,
-    diffs[1:(g - 2)],
-    diffs[2:(g - 1)]
+                      diffs[1:(g - 2)],
+                      diffs[2:(g - 1)]
   )
   tf_jiggle <- runif(g - 2, 0, amount) * use_diffs * push_left_right
   new_args <- arg[2:(g - 1)] + tf_jiggle
@@ -158,7 +166,7 @@ tf_sparsify <- function(f, dropout = 0.5) {
   tf_args <- ensure_list(tf_arg(f))
   tf_args <- map2(tf_args, nas, \(x, y) x[!y])
   ret <- tfd.list(tf_evals, tf_args,
-    domain = tf_domain(f)
+                  domain = tf_domain(f)
   )
   if (is_tfd(f)) {
     evaluator <- attr(f, "evaluator_name")
