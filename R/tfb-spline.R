@@ -410,7 +410,7 @@ tfb_spline.fdSmooth <- function(
     {
       cli::cli_warn(c(
         "exact {.cls fdSmooth} conversion not implemented for this {.pkg fda} basis type.",
-        x = "Using {.pkg mgcv} basis 'bs', original basis type was {.val data$fd$basis$type}.",
+        x = "Using {.pkg mgcv} basis 'bs', original basis type was {.val {data$fd$basis$type}}.",
         i = "Only {.pkg fda}-compatible B-Spline and Fourier bases are implemented in {.pkg tf}."
       ))
       "bs"
