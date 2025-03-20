@@ -66,6 +66,7 @@ Collate:
     'convert.R'
     'depth.R'
     'evaluate.R'
+    'fda-connectors.R'
     'fwise.R'
     'globals.R'
     'graphics.R'
