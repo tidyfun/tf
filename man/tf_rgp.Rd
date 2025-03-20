@@ -7,7 +7,7 @@
 tf_rgp(
   n,
   arg = 51L,
-  cov = c("squareexp", "wiener", "matern"),
+  cov = c("squareexp", "wiener", "matern", "brown_bridge"),
   scale = diff(domain)/10,
   nugget = scale/200,
   order = 1.5,
@@ -50,14 +50,17 @@ accepts user-defined covariance functions (without "nugget" effect, see
 \code{cov}), The implemented defaults with \code{scale} parameter \eqn{\phi}, \code{order}
 \eqn{o} and \code{nugget} effect variance \eqn{\sigma^2} are:
 \itemize{
-\item \emph{squared exponential} covariance \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
+\item \emph{squared exponential}: \eqn{Cov(x(t), x(t')) = \exp(-(t-t')^2)/\phi) + \sigma^2
 \delta_{t}(t')}.
-\item \emph{Wiener} process covariance \eqn{Cov(x(t), x(t')) =
+\item \emph{Wiener} process: \eqn{Cov(x(t), x(t')) =
 \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matèrn} process}
-covariance \eqn{Cov(x(t), x(t')) =
+\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matèrn} process}:
+\eqn{Cov(x(t), x(t')) =
 \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
 + \sigma^2 \delta_{t}(t')}
+\item \href{https://en.wikipedia.org/wiki/Brownian_bridge}{\emph{Brownian Bridge} process} for
+\eqn{t, t' \in [a, b]}:
+\eqn{Cov(x(t), x(t')) =  \frac{(b - \max(s,t))(\min(s, t) - a)}{\phi (b - a)} + \sigma^2 \delta_{t}(t')}
 }
 }
 \examples{
