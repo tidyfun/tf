@@ -39,9 +39,12 @@ get_resolution <- function(arg) {
   .min_diff <- function(x) {
     suppressWarnings(ifelse(length(x) - 1, min(abs(diff(x))), NA))
   }
-  min_diff <- map_dbl(ensure_list(arg),
-                      possibly(.f = .min_diff, otherwise = NA)) |>
-    min(na.rm = TRUE) |> suppressWarnings()
+  min_diff <- map_dbl(
+    ensure_list(arg),
+    possibly(.f = .min_diff, otherwise = NA)
+  ) |>
+    min(na.rm = TRUE) |>
+    suppressWarnings()
   if (min_diff < .Machine$double.eps * 10) {
     cli::cli_abort("(Almost) non-unique {.arg arg} values detected.")
   }
@@ -108,8 +111,12 @@ all_args <- function(e1, e2) {
 #-------------------------------------------------------------------------------
 #  compatibility
 
-compare_tf_attribs <- function(e1, e2,
-                               ignore = c("names", "id"), check_attrib = TRUE) {
+compare_tf_attribs <- function(
+  e1,
+  e2,
+  ignore = c("names", "id"),
+  check_attrib = TRUE
+) {
   # TODO: better way to check evaluator/basis functions?
   a1 <- attributes(e1)
   a2 <- attributes(e2)
@@ -144,8 +151,12 @@ same_basis <- function(x, y) {
   if (!(is_tfb(x) && is_tfb(y))) {
     return(FALSE)
   }
-  all.equal(attr(x, "basis_matrix"), attr(y, "basis_matrix"),
-            check.attributes = FALSE) |> isTRUE()
+  all.equal(
+    attr(x, "basis_matrix"),
+    attr(y, "basis_matrix"),
+    check.attributes = FALSE
+  ) |>
+    isTRUE()
 }
 
 #-------------------------------------------------------------------------------

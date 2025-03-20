@@ -66,7 +66,9 @@ test_that("multiple arg-vectors work for tfb", {
   expect_equal(
     unlist(tf_evaluate(fb, as.list(c(0, 0.5, 1)))),
     unlist(c(
-      tf_evaluate(fb[1], 0), tf_evaluate(fb[2], 0.5), tf_evaluate(fb[3], 1)
+      tf_evaluate(fb[1], 0),
+      tf_evaluate(fb[2], 0.5),
+      tf_evaluate(fb[3], 1)
     ))
   )
 })

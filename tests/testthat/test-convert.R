@@ -20,9 +20,12 @@ test_that("as.data.frame.tf works", {
   set.seed(1312)
   x <- tf_rgp(3)
   df <- as.data.frame(x, unnest = TRUE)
-  expect_data_frame(df,
+  expect_data_frame(
+    df,
     types = c("factor", "numeric", "numeric"),
-    nrows = 153, ncols = 3, row.names = "named"
+    nrows = 153,
+    ncols = 3,
+    row.names = "named"
   )
   expect_named(df, c("id", "arg", "value"))
   expect_identical(df$id, as.factor(rep(1:3, each = 51)))
@@ -32,9 +35,12 @@ test_that("as.data.frame.tf works", {
 
   x <- tf_sparsify(x)
   df <- as.data.frame(x, unnest = TRUE)
-  expect_data_frame(df,
+  expect_data_frame(
+    df,
     types = c("factor", "numeric", "numeric"),
-    nrow = 74, ncol = 3, row.names = "named"
+    nrow = 74,
+    ncol = 3,
+    row.names = "named"
   )
   expect_named(df, c("id", "arg", "value"))
   expect_factor(df$id)
@@ -64,7 +70,8 @@ test_that("as.matrix.tf works", {
   expect_identical(row.names(mat), as.character(1:3))
   arg <- tf_arg(x_irreg) |> sort_unique(simplify = TRUE)
   expect_identical(
-    colnames(mat), as.character(arg)
+    colnames(mat),
+    as.character(arg)
   )
   expect_identical(attr(mat, "arg"), arg)
 
@@ -74,7 +81,8 @@ test_that("as.matrix.tf works", {
   expect_identical(row.names(mat), as.character(1:3))
   arg <- tf_arg(x_irreg) |> sort_unique(simplify = TRUE)
   expect_identical(
-    colnames(mat), as.character(arg)
+    colnames(mat),
+    as.character(arg)
   )
   expect_identical(attr(mat, "arg"), arg)
 

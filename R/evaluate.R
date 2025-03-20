@@ -32,8 +32,12 @@ tf_evaluate.default <- function(object, arg, ...) .NotYetImplemented()
 
 #' @export
 #' @rdname tf_evaluate
-tf_evaluate.tfd <- function(object, arg,
-                            evaluator = tf_evaluator(object), ...) {
+tf_evaluate.tfd <- function(
+  object,
+  arg,
+  evaluator = tf_evaluator(object),
+  ...
+) {
   if (missing(arg) || is.null(arg)) {
     return(tf_evaluations(object))
   }
@@ -43,7 +47,10 @@ tf_evaluate.tfd <- function(object, arg,
     list(arg, ensure_list(tf_arg(object)), tf_evaluations(object)),
     function(x, y, z) {
       evaluate_tfd_once(
-        new_arg = x, arg = y, evaluations = z, evaluator = evaluator
+        new_arg = x,
+        arg = y,
+        evaluations = z,
+        evaluator = evaluator
       )
     }
   )
@@ -51,8 +58,13 @@ tf_evaluate.tfd <- function(object, arg,
   setNames(ret, names(object))
 }
 
-evaluate_tfd_once <- function(new_arg, arg,
-                              evaluations, evaluator, resolution) {
+evaluate_tfd_once <- function(
+  new_arg,
+  arg,
+  evaluations,
+  evaluator,
+  resolution
+) {
   if (isTRUE(all.equal(new_arg, arg))) return(evaluations)
   seen <- match(new_arg, arg)
   seen_index <- na.omit(seen)
@@ -92,7 +104,9 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       list(arg, ensure_list(tf_arg(object)), coef(object)),
       function(x, y, z) {
         evaluate_tfb_once(
-          x = x, arg = y, coefs = z,
+          x = x,
+          arg = y,
+          coefs = z,
           basis = attr(object, "basis"),
           X = attr(object, "basis_matrix")
         )
@@ -115,4 +129,3 @@ evaluate_tfb_once <- function(x, arg, coefs, basis, X, resolution) {
   Xnew[!seen, ] <- basis(x[!seen])
   drop(Xnew %*% coefs)
 }
-

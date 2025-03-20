@@ -59,8 +59,12 @@
 #' tf_anywhere(f, value > 1)
 #' @family tidyfun query-functions
 #' @export
-tf_where <- function(f, cond,
-                     return = c("all", "first", "last", "range", "any"), arg) {
+tf_where <- function(
+  f,
+  cond,
+  return = c("all", "first", "last", "range", "any"),
+  arg
+) {
   if (missing(arg)) {
     arg <- tf_arg(f)
   }
@@ -86,10 +90,11 @@ tf_where <- function(f, cond,
       setNames(c("begin", "end"))
     return(where_at)
   }
-  where_at <- switch(return,
-    any   = map_lgl(where_at, \(x) !all(is.na(x))),
+  where_at <- switch(
+    return,
+    any = map_lgl(where_at, \(x) !all(is.na(x))),
     first = map_dbl(where_at, min),
-    last  = map_dbl(where_at, max)
+    last = map_dbl(where_at, max)
   )
   where_at
 }
@@ -99,6 +104,7 @@ tf_where <- function(f, cond,
 tf_anywhere <- function(f, cond, arg) {
   call <- match.call()
   call[[1]] <- tf_where
-  call$return <- "any"
+  call$
+  return <- "any"
   eval(call, parent.frame())
 }

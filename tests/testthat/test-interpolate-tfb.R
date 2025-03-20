@@ -14,7 +14,10 @@ test_that("tf_interpolate.tfb works", {
 
 test_that("tf_interpolate.tfb_fpc works", {
   x <- tf_rgp(4) |> tfb_fpc()
-  expect_s3_class(tf_interpolate(x, arg = seq(0, 1, length.out = 11)), "tfb_fpc")
+  expect_s3_class(
+    tf_interpolate(x, arg = seq(0, 1, length.out = 11)),
+    "tfb_fpc"
+  )
   expect_identical(
     tf_interpolate(x, arg = seq(0, 1, length.out = 11)) |>
       tf_interpolate(seq(0, 1, length.out = 31)),

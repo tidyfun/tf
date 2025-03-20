@@ -1,6 +1,6 @@
 set.seed(11331)
 x <- suppressMessages({
-  tf_rgp(5,  arg = 301L) |>
+  tf_rgp(5, arg = 301L) |>
     tf_smooth() |>
     tfd(evaluator = tf_approx_fill_extend) |>
     setNames(letters[1:5])
@@ -40,8 +40,10 @@ for (i in seq_along(l)) {
 
 
 set.seed(1133111)
-x <- tf_rgp(5,  arg = 301L) |> tf_smooth() |>
-  tfd(evaluator = tf_approx_fill_extend) |> suppressMessages()
+x <- tf_rgp(5, arg = 301L) |>
+  tf_smooth() |>
+  tfd(evaluator = tf_approx_fill_extend) |>
+  suppressMessages()
 names(x) <- letters[1:5]
 b <- tfb(x, k = 45, verbose = FALSE)
 
@@ -57,29 +59,36 @@ l <- list(
 )
 
 for (i in seq_along(l)) {
-  test_that(paste0("tf_rebase.tfb_spline preserves args & evals and transfers attributes for l[", i, "]"), {
-    x_rebase <- tf_rebase(b, l[[i]], verbose = FALSE)
-    expect_equal(
-      x_rebase |> tf_evaluations(),
-      l[[i]] |> tf_evaluations(),
-      tolerance = 0.01
-    )
-    expect_equal(
-      x_rebase |> tf_arg(),
-      l[[i]] |> tf_arg()
-    )
-    expect_named(x_rebase, names(x))
-    skip_on_cran() # to avoid non-reproducible BS-error on Fedora 36 - MKL
-    expect_true(
-      compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
-    )
-  })
+  test_that(
+    paste0(
+      "tf_rebase.tfb_spline preserves args & evals and transfers attributes for l[",
+      i,
+      "]"
+    ),
+    {
+      x_rebase <- tf_rebase(b, l[[i]], verbose = FALSE)
+      expect_equal(
+        x_rebase |> tf_evaluations(),
+        l[[i]] |> tf_evaluations(),
+        tolerance = 0.01
+      )
+      expect_equal(
+        x_rebase |> tf_arg(),
+        l[[i]] |> tf_arg()
+      )
+      expect_named(x_rebase, names(x))
+      skip_on_cran() # to avoid non-reproducible BS-error on Fedora 36 - MKL
+      expect_true(
+        compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
+      )
+    }
+  )
 }
 
 
 set.seed(1133111)
 x <- suppressMessages({
-  tf_rgp(5,  arg = 301L) |>
+  tf_rgp(5, arg = 301L) |>
     tf_smooth() |>
     tfd(evaluator = tf_approx_fill_extend) |>
     setNames(letters[1:5])

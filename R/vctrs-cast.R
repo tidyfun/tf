@@ -2,8 +2,12 @@ same_args <- function(x, to) {
   arg_x <- tf_arg(x)
   arg_to <- tf_arg(to)
   min_resolution <- c(get_resolution(arg_x), get_resolution(arg_to)) |> min()
-  all.equal(tf_arg(to),  tf_arg(x),
-            check.attributes = FALSE, tolerance = min_resolution) |>
+  all.equal(
+    tf_arg(to),
+    tf_arg(x),
+    check.attributes = FALSE,
+    tolerance = min_resolution
+  ) |>
     isTRUE()
 }
 
@@ -101,23 +105,37 @@ vec_cast.tfd_irreg.tfb_fpc <- vec_cast.tfd_irreg.tfd_reg
 
 vec_cast_tfb_tfb <- function(x, to, ...) {
   assert_same_domains(x, to)
-  same_basis <- isTRUE(all.equal(tf_basis(to)(tf_arg(x)),
-                                 attr(x, "basis_matrix"),
-                                 check.attributes = FALSE))
+  same_basis <- isTRUE(all.equal(
+    tf_basis(to)(tf_arg(x)),
+    attr(x, "basis_matrix"),
+    check.attributes = FALSE
+  ))
   if (same_basis) return(x)
-  maybe_lossy_cast(tf_rebase(x, to, arg = tf_arg(x)),
-                   x, to, lossy = TRUE, locations = 1:vec_size(x),
-                   x_arg = "", to_arg = "",
-                   loss_type = "precision",
-                   message = "result represented in new basis")
+  maybe_lossy_cast(
+    tf_rebase(x, to, arg = tf_arg(x)),
+    x,
+    to,
+    lossy = TRUE,
+    locations = 1:vec_size(x),
+    x_arg = "",
+    to_arg = "",
+    loss_type = "precision",
+    message = "result represented in new basis"
+  )
 }
 
 vec_cast_tfb_tfd <- function(x, to, ...) {
-  maybe_lossy_cast(tf_rebase(x, to, arg = tf_arg(x)),
-                   x, to, lossy = TRUE, locations = 1:vec_size(x),
-                   x_arg = "", to_arg = "",
-                   loss_type = "precision",
-                   message = "result represented in new basis")
+  maybe_lossy_cast(
+    tf_rebase(x, to, arg = tf_arg(x)),
+    x,
+    to,
+    lossy = TRUE,
+    locations = 1:vec_size(x),
+    x_arg = "",
+    to_arg = "",
+    loss_type = "precision",
+    message = "result represented in new basis"
+  )
 }
 
 #' @rdname vctrs

@@ -37,7 +37,10 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
         object = spec,
         data = data_frame0(arg = arg_interleave)
       )
-      apply(X, 2, function(arg, x) cumsum(quad_trapez(arg, x)),
+      apply(
+        X,
+        2,
+        function(arg, x) cumsum(quad_trapez(arg, x)),
         arg = arg_interleave
       )[new_args, ]
     }
@@ -48,8 +51,14 @@ smooth_spec_wrapper <- function(spec, deriv = 0, eps = 1e-6) {
 
 #----------------- Unpenalized LS fits -----------------------------------------
 
-fit_unpenalized <- function(data, spec_object, gam_args, arg_u, regular,
-                            ls_fit) {
+fit_unpenalized <- function(
+  data,
+  spec_object,
+  gam_args,
+  arg_u,
+  regular,
+  ls_fit
+) {
   if (ls_fit) {
     return(fit_unpenalized_ls(data, spec_object, arg_u, regular))
   }
@@ -64,19 +73,27 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
     coef_list <- qr.coef(qr = qr_basis, y = eval_matrix)
     coef_list <- split(coef_list, col(coef_list))
     # TODO: set PVE to 1 if var = 0
-    pve <- 1 - apply(qr.resid(
-      qr = qr_basis,
-      y = eval_matrix
-    ), 2, var) / apply(eval_matrix, 2, var)
+    pve <- 1 -
+      apply(
+        qr.resid(
+          qr = qr_basis,
+          y = eval_matrix
+        ),
+        2,
+        var
+      ) /
+        apply(eval_matrix, 2, var)
   } else {
     index_list <- split(attr(arg_u, "index"), data$id)
     coef_list <- map2(
-      index_list, eval_list,
+      index_list,
+      eval_list,
       \(x, y) qr.coef(qr = qr(spec_object$X[x, ]), y = y)
     )
     # TODO: set PVE to 1 where var = 0
     pve <- map2_dbl(
-      index_list, eval_list,
+      index_list,
+      eval_list,
       \(x, y) 1 - var(qr.resid(qr = qr(spec_object$X[x, ]), y = y)) / var(y)
       # -> -Inf if var(y)=0 and var(resid)<1e-<large no> ...
     )
@@ -89,19 +106,28 @@ fit_unpenalized_ls <- function(data, spec_object, arg_u, regular) {
 
 # utility functions for penalized spline representation:
 # global fit, curve-specific LS, curve-specific GLM
-fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
-                          ls_fit) {
+fit_penalized <- function(
+  data,
+  spec_object,
+  gam_args,
+  arg_u,
+  regular,
+  global,
+  ls_fit
+) {
   if (global && gam_args$sp == -1) {
     # find a suitable global level of smoothing based on a pilot estimate
     # uses 10% of curves, at most 100, at least 5
     # uses median of the smothing parameters on this pilot sample.
     pilot_id <- round(seq(
-      from = 1, to = nlevels(data$id),
+      from = 1,
+      to = nlevels(data$id),
       length.out = max(
         1,
         min(max(5, 0.1 * nlevels(data$id)), 100)
       )
-    )) |> unique()
+    )) |>
+      unique()
     pilot_id <- levels(data$id)[pilot_id]
     arg_u_pilot <- arg_u
     attr(arg_u_pilot, "index") <-
@@ -110,23 +136,35 @@ fit_penalized <- function(data, spec_object, gam_args, arg_u, regular, global,
     if (!ls_fit) {
       pilot_sp <-
         fit_ml(
-          data_pilot, spec_object, gam_args, arg_u_pilot,
+          data_pilot,
+          spec_object,
+          gam_args,
+          arg_u_pilot,
           penalized = TRUE
         )$sp
     } else {
       pilot_sp <-
         fit_penalized_ls(
-          data_pilot, spec_object, arg_u_pilot, gam_args, regular
+          data_pilot,
+          spec_object,
+          arg_u_pilot,
+          gam_args,
+          regular
         )$sp
     }
     gam_args$sp <- exp(mean(log(pilot_sp))) # median?
   }
   if (!ls_fit) {
     return(
-      fit_ml(data, spec_object, gam_args, arg_u,
-             penalized = TRUE,
-             sp = gam_args$sp
-      ))
+      fit_ml(
+        data,
+        spec_object,
+        gam_args,
+        arg_u,
+        penalized = TRUE,
+        sp = gam_args$sp
+      )
+    )
   }
   fit_penalized_ls(data, spec_object, arg_u, gam_args, regular)
 }
@@ -136,9 +174,11 @@ fit_penalized_ls <- function(data, spec_object, arg_u, gam_args, regular) {
   index_list <- split(attr(arg_u, "index"), data$id)
   gam_args <- gam_args[names(gam_args) %in% names(formals(magic))]
   ret <- map2(
-    index_list, eval_list,
+    index_list,
+    eval_list,
     function(x, y) {
-      possibly(magic_smooth_coef,
+      possibly(
+        magic_smooth_coef,
         quiet = FALSE,
         otherwise = list(
           coef = rep(NA_real_, ncol(spec_object$X)),
@@ -185,9 +225,7 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   }
   gam_prep <- do.call(
     gam,
-    c(list(formula = x ~ 0 + X, data = arg_u),
-      fit = FALSE, gam_args
-    )
+    c(list(formula = x ~ 0 + X, data = arg_u), fit = FALSE, gam_args)
   )
   gam_prep$sig2 <- -1 # GCV switch --
   # needs to be set explicitly so magic does not get NA
@@ -206,9 +244,11 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
     gam_prep$pP$sp[1] <- sp
   }
   ret <- map2(
-    index_list, eval_list,
+    index_list,
+    eval_list,
     function(x, y) {
-      possibly(fit_ml_once,
+      possibly(
+        fit_ml_once,
         quiet = FALSE,
         otherwise = list(
           coef = rep(NA_real_, ncol(spec_object$X)),
@@ -222,7 +262,9 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   coef <- map(ret, "coef")
   failed <- keep(coef, anyNA)
   if (length(failed) > 0) {
-    cli::cli_abort("Basis representation failed for entries: {.val {toString(unname(failed))}}.")
+    cli::cli_abort(
+      "Basis representation failed for entries: {.val {toString(unname(failed))}}."
+    )
   }
   list(
     coef = coef,

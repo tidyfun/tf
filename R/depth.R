@@ -29,16 +29,26 @@ tf_depth <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
 
 #' @export
 #' @rdname tf_depth
-tf_depth.matrix <- function(x, arg, depth = c("MBD", "MEI"), na.rm = TRUE, ...) {
+tf_depth.matrix <- function(
+  x,
+  arg,
+  depth = c("MBD", "MEI"),
+  na.rm = TRUE,
+  ...
+) {
   if (missing(arg)) arg <- unlist(find_arg(x, arg = NULL), use.names = FALSE)
-  assert_numeric(arg, finite = TRUE, any.missing = FALSE, len = ncol(x),
-                 unique = TRUE, sorted = TRUE)
+  assert_numeric(
+    arg,
+    finite = TRUE,
+    any.missing = FALSE,
+    len = ncol(x),
+    unique = TRUE,
+    sorted = TRUE
+  )
 
   depth <- match.arg(depth)
   # TODO: this ignores na.rm -- should it?
-  switch(depth,
-         MBD = mbd(x, arg),
-         MEI = mei(x, arg))
+  switch(depth, MBD = mbd(x, arg), MEI = mei(x, arg))
 }
 
 #' @export
@@ -47,9 +57,11 @@ tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
   if (!missing(arg)) assert_arg_vector(arg, x)
   # TODO: warn if irreg?
   if (na.rm) x <- x[!is.na(x)]
-  tf_depth(as.matrix(x, arg = arg, interpolate = TRUE),
+  tf_depth(
+    as.matrix(x, arg = arg, interpolate = TRUE),
     depth = depth,
-    na.rm = na.rm, ...
+    na.rm = na.rm,
+    ...
   )
 }
 
@@ -76,8 +88,7 @@ mbd <- function(x, arg = seq_len(ncol(x))) {
 
 # modified epigraph index
 # adapted from roahd:::MEI.default
-mei <- function(x, arg = seq_len(ncol(x)))
-{
+mei <- function(x, arg = seq_len(ncol(x))) {
   if (nrow(x) == 1) return(0.5)
   n <- nrow(x)
   weights <- {
@@ -98,15 +109,29 @@ mei <- function(x, arg = seq_len(ncol(x)))
 #' @inheritParams stats::quantile
 #' @family tidyfun ordering and ranking functions
 #' @export
-quantile.tf <- function(x, probs = seq(0, 1, 0.25), na.rm = FALSE,
-                        names = TRUE, type = 7, ...) {
+quantile.tf <- function(
+  x,
+  probs = seq(0, 1, 0.25),
+  na.rm = FALSE,
+  names = TRUE,
+  type = 7,
+  ...
+) {
   # TODO: functional quantiles will need (a lot) more thought,
   # cf. Serfling, R., & Wijesuriya, U. (2017).
   # Depth-based nonparametric description of functional data,
   #   with emphasis on use of spatial depth.
-  cli::cli_inform(c(i = "Only pointwise, non-functional quantiles implemented for {.cls tf}s."))
-  summarize_tf(x,
-               probs = probs, na.rm = na.rm, names = names,
-               type = type, op = "quantile", eval = is_tfd(x), ...
+  cli::cli_inform(c(
+    i = "Only pointwise, non-functional quantiles implemented for {.cls tf}s."
+  ))
+  summarize_tf(
+    x,
+    probs = probs,
+    na.rm = na.rm,
+    names = names,
+    type = type,
+    op = "quantile",
+    eval = is_tfd(x),
+    ...
   )
 }

@@ -1,5 +1,6 @@
 bibentries <- c(
-  sun2012exact = bibentry("article",
+  sun2012exact = bibentry(
+    "article",
     title = "Exact fast computation of band depth for large functional datasets: How quickly can one million curves be ranked?",
     author = "Sun, Ying and Genton, Marc G and Nychka, Douglas W",
     journal = "Stat",
@@ -9,7 +10,8 @@ bibentries <- c(
     year = "2012",
     publisher = "Wiley Online Library"
   ),
-  lopez2009concept = bibentry("article",
+  lopez2009concept = bibentry(
+    "article",
     title = "On the concept of depth for functional data",
     author = "L\u00f3pez-Pintado, Sara and Romo, Juan",
     journal = "Journal of the American Statistical Association",
@@ -19,7 +21,8 @@ bibentries <- c(
     year = "2009",
     publisher = "Taylor & Francis"
   ),
-  lopez2011half = bibentry("article",
+  lopez2011half = bibentry(
+    "article",
     title = "A half-region depth for functional data",
     author = "L\u00f3pez-Pintado, Sara and Romo, Juan",
     journal = "Computational Statistics & Data Analysis",
@@ -29,7 +32,8 @@ bibentries <- c(
     year = "2011",
     publisher = "Elsevier"
   ),
-  mazumder2010 = bibentry("article",
+  mazumder2010 = bibentry(
+    "article",
     title = "Spectral regularization algorithms for learning large incomplete matrices",
     author = "Mazumder, Rahul and Hastie, Trevor and Tibshirani, Robert",
     journal = "The Journal of Machine Learning Research",
@@ -37,20 +41,23 @@ bibentries <- c(
     pages = "2287-2322",
     year = "2010"
   ),
-  softimpute = bibentry("manual",
+  softimpute = bibentry(
+    "manual",
     title = "\\code{softImpute}: Matrix Completion via Iterative Soft-Thresholded SVD",
     author = "Trevor Hastie and Rahul Mazumder",
     year = "2021",
     note = "R package version 1.4-1",
     url = "https://CRAN.R-project.org/package=softImpute"
   ),
-  meng2023mogsa = bibentry("manual",
+  meng2023mogsa = bibentry(
+    "manual",
     title = "\\code{mogsa}: Multiple omics data integrative clustering and gene set analysis",
     author = "Chen Meng",
     year = "2023",
     url = "https://bioconductor.org/packages/mogsa"
   ),
-  swihart2010lasagna = bibentry("article",
+  swihart2010lasagna = bibentry(
+    "article",
     title = "Lasagna plots: a saucy alternative to spaghetti plots",
     author = "Swihart, Bruce J and Caffo, Brian and James, Bryan D and Strand, Matthew and Schwartz, Brian S and Punjabi, Naresh M",
     journal = "Epidemiology (Cambridge, Mass.)",

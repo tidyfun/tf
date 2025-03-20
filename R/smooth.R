@@ -67,48 +67,69 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
 #' lines(f_median, col = "red", alpha = 0.2) # note constant extrapolation at both ends!
 #' plot(f, points = FALSE, main = "orginal and\n savgol (red)")
 #' lines(f_sg, col = "red")
-tf_smooth.tfd <- function(x,
-                          method = c("lowess", "rollmean", "rollmedian", "savgol"),
-                          verbose = TRUE, ...) {
+tf_smooth.tfd <- function(
+  x,
+  method = c("lowess", "rollmean", "rollmedian", "savgol"),
+  verbose = TRUE,
+  ...
+) {
   method <- match.arg(method)
   smoother <- get(method, mode = "function")
   dots <- list(...)
   # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose && !is_equidist(x)) {
-      cli::cli_inform(c(x = "Non-equidistant arg-values in {.arg x} ignored by {.val {method}}."))
+      cli::cli_inform(c(
+        x = "Non-equidistant arg-values in {.arg x} ignored by {.val {method}}."
+      ))
     }
     if (startsWith(method, "rollm")) {
       if (is.null(dots$k)) {
         dots$k <- ceiling(0.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
-        if (verbose) cli::cli_inform("Using {.code k = {dots$k}} observations for rolling data window.")
+        if (verbose)
+          cli::cli_inform(
+            "Using {.code k = {dots$k}} observations for rolling data window."
+          )
       }
       if (is.null(dots$fill)) {
-        if (verbose) cli::cli_inform("Setting {.code fill = 'extend'} for start/end values.")
+        if (verbose)
+          cli::cli_inform(
+            "Setting {.code fill = 'extend'} for start/end values."
+          )
         dots$fill <- "extend"
       }
     } else if (is.null(dots$fl)) {
       dots$fl <- ceiling(0.15 * min(tf_count(x)))
       dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
-      if (verbose) cli::cli_inform("Using {.code fl = {dots$fl}} observations for rolling data window.")
+      if (verbose)
+        cli::cli_inform(
+          "Using {.code fl = {dots$fl}} observations for rolling data window."
+        )
     }
     smoothed <- map(
-      tf_evaluations(x), \(x) do.call(smoother, append(list(x), dots))
+      tf_evaluations(x),
+      \(x) do.call(smoother, append(list(x), dots))
     )
   }
   # nocov end
   if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- 0.15
-      if (verbose) cli::cli_inform("Using {.code f = {dots$f}} as smoother span for {.val lowess}.")
+      if (verbose)
+        cli::cli_inform(
+          "Using {.code f = {dots$f}} as smoother span for {.val lowess}."
+        )
     }
     smoothed <- map(
-      tf_evaluations(x), \(x) do.call(smoother, append(list(x), dots))$y
+      tf_evaluations(x),
+      \(x) do.call(smoother, append(list(x), dots))$y
     )
   }
 
-  tfd(smoothed, tf_arg(x),
+  tfd(
+    smoothed,
+    tf_arg(x),
     evaluator = !!attr(x, "evaluator_name"),
     domain = tf_domain(x)
   )

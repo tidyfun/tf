@@ -32,13 +32,21 @@ tf_rebase.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 }
 
 #' @export
-tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
+tf_rebase.tfd.tfd <- function(
+  object,
+  basis_from,
+  arg = tf_arg(basis_from),
+  ...
+) {
   assert_domain_x_in_to(x = object, to = basis_from)
 
   default_arg <- identical(arg, tf_arg(basis_from))
 
-  if (is_irreg(basis_from) && vec_size(basis_from) != 0 &&
-        vec_size(basis_from) != vec_size(object)) {
+  if (
+    is_irreg(basis_from) &&
+      vec_size(basis_from) != 0 &&
+      vec_size(basis_from) != vec_size(object)
+  ) {
     if (vec_size(object) != 1) {
       cli::cli_abort(
         "Can't rebase regular {.cls tfd} with irregular {.cls tfd} of incompatible size."
@@ -48,7 +56,9 @@ tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
     # basis_from by default
     if (default_arg) {
       arg <- sort_unique(arg, simplify = TRUE)
-      cli::cli_inform("Using all {length(arg)} unique time points for new {.arg arg}.")
+      cli::cli_inform(
+        "Using all {length(arg)} unique time points for new {.arg arg}."
+      )
       default_arg <- FALSE
     }
   }
@@ -64,31 +74,52 @@ tf_rebase.tfd.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...)
 }
 
 #' @export
-tf_rebase.tfd.tfb_spline <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
+tf_rebase.tfd.tfb_spline <- function(
+  object,
+  basis_from,
+  arg = tf_arg(basis_from),
+  ...
+) {
   assert_same_domains(object, basis_from)
   # extract evals from object
   data <- as.data.frame(object, unnest = TRUE)
   dots <- list(...)
-  dots$penalized <- dots$penalized %||% !(is.na(attr(basis_from, "basis_args")$sp))
+  dots$penalized <- dots$penalized %||%
+    !(is.na(attr(basis_from, "basis_args")$sp))
   basis_args <- attr(basis_from, "basis_args")
   basis_args <- basis_args[names(basis_args) != "sp"]
-  do.call(new_tfb_spline,
-          c(list(data = data,
-                 domain = tf_domain(basis_from),
-                 arg = arg,
-                 sp = attr(basis_from, "basis_args")$sp,
-                 family = attr(basis_from, "family")),
-            basis_args, dots)
-         )
+  do.call(
+    new_tfb_spline,
+    c(
+      list(
+        data = data,
+        domain = tf_domain(basis_from),
+        arg = arg,
+        sp = attr(basis_from, "basis_args")$sp,
+        family = attr(basis_from, "family")
+      ),
+      basis_args,
+      dots
+    )
+  )
 }
 
 #' @export
-tf_rebase.tfd.tfb_fpc <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
+tf_rebase.tfd.tfb_fpc <- function(
+  object,
+  basis_from,
+  arg = tf_arg(basis_from),
+  ...
+) {
   assert_same_domains(object, basis_from)
   data <- tf_interpolate(object, arg = arg) |> as.data.frame(unnest = TRUE)
-  new_tfb_fpc(data = data, basis_from = basis_from,
-              domain = tf_domain(basis_from),
-              arg = arg, ...)
+  new_tfb_fpc(
+    data = data,
+    basis_from = basis_from,
+    domain = tf_domain(basis_from),
+    arg = arg,
+    ...
+  )
 }
 
 #-------------------------------------------------------------------------------
@@ -101,16 +132,28 @@ tf_rebase.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
 }
 
 #' @export
-tf_rebase.tfb.tfd <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
+tf_rebase.tfb.tfd <- function(
+  object,
+  basis_from,
+  arg = tf_arg(basis_from),
+  ...
+) {
   assert_domain_x_in_to(x = object, to = basis_from)
-  tfd_args <- list(domain = tf_domain(basis_from),
-                   evaluator = attr(basis_from, "evaluator_name"))
+  tfd_args <- list(
+    domain = tf_domain(basis_from),
+    evaluator = attr(basis_from, "evaluator_name")
+  )
   tfd_args <- modifyList(tfd_args, list(...))
   do.call(tfd, append(tfd_args, list(data = object, arg = arg, ...)))
 }
 
 #' @export
-tf_rebase.tfb.tfb <- function(object, basis_from, arg = tf_arg(basis_from), ...) {
+tf_rebase.tfb.tfb <- function(
+  object,
+  basis_from,
+  arg = tf_arg(basis_from),
+  ...
+) {
   assert_same_domains(object, basis_from) # no extrapolation of basis
   tf_rebase(tfd(object), basis_from, arg = arg, ...)
 }

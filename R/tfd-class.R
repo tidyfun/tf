@@ -61,7 +61,9 @@ new_tfd <- function(
     )
     n_evals <- map(datalist, \(x) length(x$value))
     if (any(n_evals == 0)) {
-      cli::cli_warn("{sum(n_evals == 0)} {.code NA} entries (empty functions) created.")
+      cli::cli_warn(
+        "{sum(n_evals == 0)} {.code NA} entries (empty functions) created."
+      )
     }
     datalist <- map_if(
       datalist,

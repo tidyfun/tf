@@ -28,7 +28,8 @@ test_that("MBD works", {
   # weighting by interval length:
   # increases importance of last point -> lower tf_depth
   expect_gt(
-    tail(tf_depth(spike_regular), 1), tail(tf_depth(spike_irregular), 1)
+    tail(tf_depth(spike_regular), 1),
+    tail(tf_depth(spike_irregular), 1)
   )
 })
 

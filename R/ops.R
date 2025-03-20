@@ -83,45 +83,48 @@ vec_arith.tfd.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tfd tfd
 vec_arith.tfd.tfd <- function(op, x, y, ...) {
-  switch(op,
-         `+`   = ,
-         `-`   = ,
-         `*`   = ,
-         `/`   = ,
-         `^`   = ,
-         `%%`  = ,
-         `%/%` = tfd_op_tfd(op, x, y),
-         stop_incompatible_op(op, x, y)
+  switch(
+    op,
+    `+` = ,
+    `-` = ,
+    `*` = ,
+    `/` = ,
+    `^` = ,
+    `%%` = ,
+    `%/%` = tfd_op_tfd(op, x, y),
+    stop_incompatible_op(op, x, y)
   )
 }
 
 #' @export
 #' @method vec_arith.tfd numeric
 vec_arith.tfd.numeric <- function(op, x, y, ...) {
-  switch(op,
-         `+`   = ,
-         `-`   = ,
-         `*`   = ,
-         `/`   = ,
-         `^`   = ,
-         `%%`  = ,
-         `%/%` = tfd_op_numeric(op, x, y),
-         stop_incompatible_op(op, x, y)
+  switch(
+    op,
+    `+` = ,
+    `-` = ,
+    `*` = ,
+    `/` = ,
+    `^` = ,
+    `%%` = ,
+    `%/%` = tfd_op_numeric(op, x, y),
+    stop_incompatible_op(op, x, y)
   )
 }
 
 #' @export
 #' @method vec_arith.numeric tfd
 vec_arith.numeric.tfd <- function(op, x, y, ...) {
-  switch(op,
-         `+`   = ,
-         `-`   = ,
-         `*`   = ,
-         `/`   = ,
-         `^`   = ,
-         `%%`  = ,
-         `%/%` = numeric_op_tfd(op, x, y),
-         stop_incompatible_op(op, x, y)
+  switch(
+    op,
+    `+` = ,
+    `-` = ,
+    `*` = ,
+    `/` = ,
+    `^` = ,
+    `%%` = ,
+    `%/%` = numeric_op_tfd(op, x, y),
+    stop_incompatible_op(op, x, y)
   )
 }
 
@@ -147,45 +150,48 @@ vec_arith.tfb.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tfb tfb
 vec_arith.tfb.tfb <- function(op, x, y, ...) {
-  switch(op,
-         `+` = ,
-         `-` = tfb_plusminus_tfb(op, x, y),
-         `*`   = ,
-         `/`   = ,
-         `^`   = ,
-         `%%`  = ,
-         `%/%` = tfb_op_tfb(op, x, y),
-         stop_incompatible_op(op, x, y)
+  switch(
+    op,
+    `+` = ,
+    `-` = tfb_plusminus_tfb(op, x, y),
+    `*` = ,
+    `/` = ,
+    `^` = ,
+    `%%` = ,
+    `%/%` = tfb_op_tfb(op, x, y),
+    stop_incompatible_op(op, x, y)
   )
 }
 
 #' @export
 #' @method vec_arith.tfb numeric
 vec_arith.tfb.numeric <- function(op, x, y, ...) {
-  switch(op,
-         `/`   = ,
-         `*`   = tfb_multdiv_numeric(op, x, y),
-         `+`   = ,
-         `-`   = ,
-         `^`   = ,
-         `%%`  = ,
-         `%/%` = tfb_op_numeric(op, x, y),
-         stop_incompatible_op(op, x, y)
+  switch(
+    op,
+    `/` = ,
+    `*` = tfb_multdiv_numeric(op, x, y),
+    `+` = ,
+    `-` = ,
+    `^` = ,
+    `%%` = ,
+    `%/%` = tfb_op_numeric(op, x, y),
+    stop_incompatible_op(op, x, y)
   )
 }
 
 #' @export
 #' @method vec_arith.numeric tfb
 vec_arith.numeric.tfb <- function(op, x, y, ...) {
-  switch(op,
-         `*` = tfb_multdiv_numeric(op, y, x),
-         `+`   = ,
-         `-`   = ,
-         `/`   = ,
-         `^`   = ,
-         `%%`  = ,
-         `%/%` = numeric_op_tfb(op, x, y),
-         stop_incompatible_op(op, x, y)
+  switch(
+    op,
+    `*` = tfb_multdiv_numeric(op, y, x),
+    `+` = ,
+    `-` = ,
+    `/` = ,
+    `^` = ,
+    `%%` = ,
+    `%/%` = numeric_op_tfb(op, x, y),
+    stop_incompatible_op(op, x, y)
   )
 }
 
@@ -200,17 +206,24 @@ vec_arith.tfb.MISSING <- function(op, x, y, ...) {
 tfd_op_tfd <- function(op, x, y) {
   assert_compatible_size(op, x, y)
   # TODO: could be more lenient -- allow is one domain is subset of the other?
-  same_domain <- all.equal(tf_domain(x), tf_domain(y), check.attributes = FALSE) |>
+  same_domain <- all.equal(
+    tf_domain(x),
+    tf_domain(y),
+    check.attributes = FALSE
+  ) |>
     isTRUE()
   same_arg <- all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE) |>
     isTRUE()
   if (!same_domain || !same_arg) {
     message <- c(
-      glue::glue("<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  not permitted for different",
-                 "{ifelse(same_domain, '', ' domains')}",
-                 "{ifelse(!same_domain & !same_arg, ' and', '')}",
-                 "{ifelse(same_arg, '', ' argument values')}"),
-        "-- use tf_rebase first.") |>
+      glue::glue(
+        "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  not permitted for different",
+        "{ifelse(same_domain, '', ' domains')}",
+        "{ifelse(!same_domain & !same_arg, ' and', '')}",
+        "{ifelse(same_arg, '', ' argument values')}"
+      ),
+      "-- use tf_rebase first."
+    ) |>
       paste(collapse = "\n")
     stop_incompatible_op(op, x, y, message = message)
   }
@@ -321,20 +334,23 @@ tfb_plusminus_tfb <- function(op, x, y) {
   }
   # dispatch to general operator implementation (i.e. cast to tfd and back)
   # if link functions are involved
-  if (!all(c(attributes(x)$family$link, attributes(y)$family$link) == "identity")) {
+  if (
+    !all(c(attributes(x)$family$link, attributes(y)$family$link) == "identity")
+  ) {
     return(tfb_op_tfb(op, x, y))
   }
-  ret <- map2(vec_data(x), vec_data(y), \(x, y) do.call(op, list(e1 = x, e2 = y)))
-  attributes(ret) <- if (vec_size(x) >= vec_size(y)) attributes(x) else attributes(y)
+  ret <- map2(
+    vec_data(x),
+    vec_data(y),
+    \(x, y) do.call(op, list(e1 = x, e2 = y))
+  )
+  attributes(ret) <- if (vec_size(x) >= vec_size(y)) attributes(x) else
+    attributes(y)
   ret
 }
 
 #-------------------------------------------------------------------------------
 
 tf_op_missing <- function(op, x, y, ...) {
-  switch(op,
-         `-` = x * -1,
-         `+` = x,
-         stop_incompatible_op(op, x, y)
-  )
+  switch(op, `-` = x * -1, `+` = x, stop_incompatible_op(op, x, y))
 }

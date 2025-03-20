@@ -8,7 +8,9 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
   bs.dim <- object$bs.dim
   if (bs.dim <= 0) cli::cli_abort("fourier basis needs a positive bs.dim")
   if (bs.dim %% 2 == 0) {
-    cli::cli_inform("fourier basis dimension is even, incrementing by 1 to enforce odd")
+    cli::cli_inform(
+      "fourier basis dimension is even, incrementing by 1 to enforce odd"
+    )
     bs.dim <- bs.dim + 1
   }
   object$bs.dim <- bs.dim
@@ -24,11 +26,11 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
   X <- matrix(0, n, bs.dim)
 
   # adapted from fda::fourier
-  omega  <- 2 * pi / period
+  omega <- 2 * pi / period
   omega_x <- omega * x
   j <- seq(2, bs.dim - 1, 2)
   args <- outer(omega_x, j / 2)
-  X[, j]     <- sin(args)
+  X[, j] <- sin(args)
   X[, j + 1] <- cos(args)
   # rescale as in fda
   X[, 1] <- 1 / sqrt(2)
@@ -36,7 +38,6 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
 
   # store design, no penalty
   object$X <- X # rescale as in fda
-
 
   if (!object$fixed) {
     # construct penalty
@@ -91,11 +92,11 @@ Predict.matrix.fourier.smooth <- function(object, data) {
 
   X <- matrix(0, n, bs.dim)
 
-  omega  <- 2 * pi / period
+  omega <- 2 * pi / period
   omega_x <- omega * x
   j <- seq(2, bs.dim - 1, by = 2)
   args <- outer(omega_x, j / 2)
-  X[, j]     <- sin(args)
+  X[, j] <- sin(args)
   X[, j + 1] <- cos(args)
   # rescale as in fda
   X[, 1] <- 1 / sqrt(2)

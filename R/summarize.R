@@ -11,17 +11,17 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
   # - not done here for transparency reasons.
   m <- suppressWarnings(as.matrix(funs))
   value <- apply(m, 2, op_call) |> unname() |> list()
-  args <- c(value,
-            arg = list(attr(m, "arg")),
-            domain = list(tf_domain(funs))
-  )
+  args <- c(value, arg = list(attr(m, "arg")), domain = list(tf_domain(funs)))
   if (eval) {
     ret <- do.call(tfd, c(args, evaluator = attr(funs, "evaluator_name")))
     if (is_irreg(funs) && !is_irreg(ret)) ret <- as.tfd_irreg(ret)
     if (!is_irreg(funs) && is_irreg(ret)) ret <- as.tfd(ret)
     return(ret)
   }
-  do.call(tfb, c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args")))
+  do.call(
+    tfb,
+    c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args"))
+  )
 }
 #-------------------------------------------------------------------------------
 
@@ -68,7 +68,9 @@ median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
   tf_depths <- tf_depth(x, depth = depth)
   med <- x[tf_depths == max(tf_depths)]
   if (length(med) > 1) {
-    cli::cli_inform(c(x = "{length(med)} observations with maximal depth, returning their mean."))
+    cli::cli_inform(c(
+      x = "{length(med)} observations with maximal depth, returning their mean."
+    ))
     mean(med)
   } else {
     med
@@ -116,9 +118,11 @@ summary.tf <- function(object, ...) {
   central <- which(tf_depths >= median(tf_depths))
   central_half <- range(object[central])
   c(
-    mean = mean(object), var = var(object),
+    mean = mean(object),
+    var = var(object),
     median = object[which.max(tf_depths)] |> unname(),
-    upper_mid =  central_half[1], lower_mid =  central_half[2]
+    upper_mid = central_half[1],
+    lower_mid = central_half[2]
   )
 }
 

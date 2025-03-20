@@ -43,21 +43,32 @@ test_that("tfd.numeric works", {
   # evaluations must be inside the domain
   x <- 1:10
   expect_no_error(tfd(x, domain = c(1, 10)))
-  expect_error(tfd(x, domain = c(2, 10)), "Evaluations must be inside the domain.")
-  expect_error(tfd(x, domain = c(1, 9)), "Evaluations must be inside the domain.")
-  expect_error(tfd(x, domain = c(2, 9)), "Evaluations must be inside the domain.")
+  expect_error(
+    tfd(x, domain = c(2, 10)),
+    "Evaluations must be inside the domain."
+  )
+  expect_error(
+    tfd(x, domain = c(1, 9)),
+    "Evaluations must be inside the domain."
+  )
+  expect_error(
+    tfd(x, domain = c(2, 9)),
+    "Evaluations must be inside the domain."
+  )
 })
 
 test_that("tfd works consistently for partially missing data", {
   x <- tf_rgp(10)
-  x_df <- x|> tf:::tf_2_df()
+  x_df <- x |> tf:::tf_2_df()
   x_df[x_df$id == "2", "value"] <- NA
-  x_mat <- x|> as.matrix()
+  x_mat <- x |> as.matrix()
   x_mat[2, ] <- NA
   expect_warning(tfd(x_df), "NA")
   expect_class(tfd(x_df) |> suppressWarnings(), "tfd_reg")
-  expect_equal(tfd(x_df) |> suppressWarnings(),
-               tfd(x_mat)|> suppressWarnings())
+  expect_equal(
+    tfd(x_df) |> suppressWarnings(),
+    tfd(x_mat) |> suppressWarnings()
+  )
 
   x <- tf_rgp(10) |> tf_sparsify(0.8)
   x_df <- x |> tf:::tf_2_df()
@@ -66,6 +77,8 @@ test_that("tfd works consistently for partially missing data", {
   x_mat[2, ] <- NA
   expect_warning(tfd(x_df), "NA")
   expect_class(tfd(x_df) |> suppressWarnings(), "tfd_irreg")
-  expect_equal(tfd(x_df) |> suppressWarnings(),
-               tfd(x_mat)|> suppressWarnings())
+  expect_equal(
+    tfd(x_df) |> suppressWarnings(),
+    tfd(x_mat) |> suppressWarnings()
+  )
 })

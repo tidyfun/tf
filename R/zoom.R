@@ -50,8 +50,12 @@ prep_tf_zoom_args <- function(f, begin, end) {
 
 #' @rdname tf_zoom
 #' @export
-tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
-                        ...) {
+tf_zoom.tfd <- function(
+  f,
+  begin = tf_domain(f)[1],
+  end = tf_domain(f)[2],
+  ...
+) {
   args <- prep_tf_zoom_args(f, begin, end)
   arg <- NULL
   ret <- pmap(
@@ -61,7 +65,10 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
   if (is_irreg(f) || !args$regular) {
     nas <- map_int(ret, nrow) == 0
     if (all(nas)) cli::cli_abort("No data in zoom region.")
-    if (any(nas)) cli::cli_warn("{.code NA}s created by re-evaluating on new grid in {.fn tf_zoom}.")
+    if (any(nas))
+      cli::cli_warn(
+        "{.code NA}s created by re-evaluating on new grid in {.fn tf_zoom}."
+      )
     for (n in which(nas)) {
       ret[[n]] <- data_frame0(arg = unname(args$dom[1]), value = NA_real_)
     }
@@ -75,11 +82,17 @@ tf_zoom.tfd <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
 
 #' @rdname tf_zoom
 #' @export
-tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
-                        ...) {
+tf_zoom.tfb <- function(
+  f,
+  begin = tf_domain(f)[1],
+  end = tf_domain(f)[2],
+  ...
+) {
   args <- prep_tf_zoom_args(f, begin, end)
   if (!args$regular) {
-    cli::cli_inform(c(x = "{.fn tf_zoom} was called with varying start or end points - converting to {.code tfd}."))
+    cli::cli_inform(c(
+      x = "{.fn tf_zoom} was called with varying start or end points - converting to {.code tfd}."
+    ))
     return(tf_zoom(tfd(f), begin, end))
   }
   use <- tf_arg(f) >= args$dom[1] & tf_arg(f) <= args$dom[2]
@@ -93,8 +106,12 @@ tf_zoom.tfb <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
 
 #' @rdname tf_zoom
 #' @export
-tf_zoom.tfb_fpc <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2],
-                            ...) {
+tf_zoom.tfb_fpc <- function(
+  f,
+  begin = tf_domain(f)[1],
+  end = tf_domain(f)[2],
+  ...
+) {
   cli::cli_warn("FPC basis no longer orthonormal on sub-domain.")
   NextMethod()
 }

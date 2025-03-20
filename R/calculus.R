@@ -52,9 +52,13 @@ tf_derive.default <- function(f, arg, order = 1, ...) .NotYetImplemented()
 #' @describeIn tf_derive row-wise finite differences
 tf_derive.matrix <- function(f, arg, order = 1, ...) {
   if (missing(arg)) arg <- unlist(find_arg(f), use.names = FALSE)
-  assert_numeric(arg,
-    any.missing = FALSE, finite = TRUE, len = ncol(f),
-    sorted = TRUE, unique = TRUE
+  assert_numeric(
+    arg,
+    any.missing = FALSE,
+    finite = TRUE,
+    len = ncol(f),
+    sorted = TRUE,
+    unique = TRUE
   )
   ret <- derive_matrix(data = f, order = order, arg = arg)
   structure(ret[[1]], arg = ret[[2]])
@@ -67,13 +71,17 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
   # (slightly), for now. this is necessary so that we don't get NAs when trying
   # to evaluate derivs over their default domain etc.
   if (is_irreg(f)) {
-    cli::cli_inform(c(x = "Differentiating over irregular grids can be unstable."))
+    cli::cli_inform(c(
+      x = "Differentiating over irregular grids can be unstable."
+    ))
   }
   assert_count(order)
   data <- as.matrix(f, arg, interpolate = TRUE)
   arg <- as.numeric(colnames(data))
   derived <- derive_matrix(data, arg, order)
-  ret <- tfd(derived$data, derived$arg,
+  ret <- tfd(
+    derived$data,
+    derived$arg,
     domain = range(derived$arg) # !! shorter
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
@@ -102,12 +110,17 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
   s_args <- attr(f, "basis_args")
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
-  spec_object <- smooth.construct(s_spec,
+  spec_object <- smooth.construct(
+    s_spec,
     data = data_frame0(arg = arg),
     knots = NULL
   )
   eps <- min(diff(arg)) / 1000
-  basis_constructor <- smooth_spec_wrapper(spec_object, deriv = order, eps = eps)
+  basis_constructor <- smooth_spec_wrapper(
+    spec_object,
+    deriv = order,
+    eps = eps
+  )
   attr(f, "basis") <- basis_constructor
   attr(f, "basis_label") <- deparse(s_call, width.cutoff = 60)[1]
   attr(f, "basis_args") <- s_args
@@ -168,9 +181,14 @@ tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
 
 #' @rdname tf_integrate
 #' @export
-tf_integrate.tfd <- function(f, arg,
-                             lower = tf_domain(f)[1], upper = tf_domain(f)[2],
-                             definite = TRUE, ...) {
+tf_integrate.tfd <- function(
+  f,
+  arg,
+  lower = tf_domain(f)[1],
+  upper = tf_domain(f)[2],
+  definite = TRUE,
+  ...
+) {
   if (missing(arg)) {
     arg <- tf_arg(f)
   }
@@ -185,7 +203,8 @@ tf_integrate.tfd <- function(f, arg,
     limits <- limits |> split(seq_len(nrow(limits)))
   }
   arg <- map2(
-    arg, ensure_list(limits),
+    arg,
+    ensure_list(limits),
     \(x, y) c(y[1], x[x > y[1] & x < y[2]], y[2])
   )
   evaluations <- tf_evaluate(f, arg)
@@ -196,7 +215,9 @@ tf_integrate.tfd <- function(f, arg,
     data_list <- map(quads, cumsum)
     names(data_list) <- names(f)
     tfd(
-      data = data_list, arg = unlist(arg, use.names = FALSE), domain = as.numeric(limits),
+      data = data_list,
+      arg = unlist(arg, use.names = FALSE),
+      domain = as.numeric(limits),
       evaluator = !!attr(f, "evaluator_name")
     )
   }
@@ -210,9 +231,14 @@ tf_integrate.tfd <- function(f, arg,
 
 #' @rdname tf_integrate
 #' @export
-tf_integrate.tfb <- function(f, arg,
-                             lower = tf_domain(f)[1], upper = tf_domain(f)[2],
-                             definite = TRUE, ...) {
+tf_integrate.tfb <- function(
+  f,
+  arg,
+  lower = tf_domain(f)[1],
+  upper = tf_domain(f)[2],
+  definite = TRUE,
+  ...
+) {
   if (missing(arg)) {
     arg <- tf_arg(f)
   }
@@ -220,15 +246,18 @@ tf_integrate.tfb <- function(f, arg,
   assert_limit(lower, f)
   assert_limit(upper, f)
   if (definite) {
-    return(tf_integrate(tfd(f, arg = arg),
-      lower = lower, upper = upper,
+    return(tf_integrate(
+      tfd(f, arg = arg),
+      lower = lower,
+      upper = upper,
       arg = arg
     ))
   }
   limits <- cbind(lower, upper)
   if (nrow(limits) > 1) .NotYetImplemented() # needs vd-data
   arg <- c(
-    limits[1], arg[arg > limits[1] & arg < limits[2]],
+    limits[1],
+    arg[arg > limits[1] & arg < limits[2]],
     limits[2]
   )
   tf_derive(f, order = -1, arg = arg, lower = lower, upper = upper)

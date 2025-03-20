@@ -130,7 +130,9 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
   assert_tf(x)
   assert_tf(y)
   if (length(x) != length(y) && length(x) != 1 && length(y) != 1) {
-    cli::cli_abort("{.arg x} or {.arg y} must have length 1 or the same lengths.")
+    cli::cli_abort(
+      "{.arg x} or {.arg y} must have length 1 or the same lengths."
+    )
   }
   assert_arg(arg = arg, x = x)
   assert_true(identical(tf_domain(x), tf_domain(y)))

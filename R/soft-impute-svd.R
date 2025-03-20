@@ -15,8 +15,15 @@ frob <- function(Uold, Dsqold, Vold, U, Dsq, V) {
 #  - no warm starts, no returned call, no attributes
 # inputs: x matrix of weighted (w/ integration weights) & centered (!) function evaluations, with NAs
 # output: (regularized) SVD of x
-simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxit = 100,
-                        trace.it = FALSE, ...) {
+simpute_svd <- function(
+  x,
+  J = min(dim(x)) - 1,
+  thresh = 1e-05,
+  lambda = 0,
+  maxit = 100,
+  trace.it = FALSE,
+  ...
+) {
   n <- dim(x)
   m <- n[2]
   n <- n[1]
@@ -38,8 +45,12 @@ simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxi
     xfill[xnas] <- xhat[xnas]
     svd.xfill <- svd(xfill)
     ratio <- frob(
-      svd.old$u[, seq(J)], d[seq(J)], svd.old$v[, seq(J)],
-      svd.xfill$u[, seq(J)], pmax(svd.xfill$d - lambda, 0)[seq(J)], svd.xfill$v[, seq(J)]
+      svd.old$u[, seq(J)],
+      d[seq(J)],
+      svd.old$v[, seq(J)],
+      svd.xfill$u[, seq(J)],
+      pmax(svd.xfill$d - lambda, 0)[seq(J)],
+      svd.xfill$v[, seq(J)]
     )
     if (trace.it) {
       obj <- (0.5 * sum((xfill - xhat)[!xnas]^2) + lambda * sum(d)) / nz
@@ -48,9 +59,15 @@ simpute_svd <- function(x, J = min(dim(x)) - 1, thresh = 1e-05, lambda = 0, maxi
   }
   d <- pmax(svd.xfill$d[seq(J)] - lambda, 0)
   J <- min(sum(d > 0) + 1, J)
-  svd.xfill <- list(u = svd.xfill$u[, seq(J)], d = d[seq(J)], v = svd.xfill$v[, seq(J)])
+  svd.xfill <- list(
+    u = svd.xfill$u[, seq(J)],
+    d = d[seq(J)],
+    v = svd.xfill$v[, seq(J)]
+  )
   if (iter == maxit) {
-    cli::cli_warn("Convergence not achieved in {maxit} iterations for incomplete-data SVD.")
+    cli::cli_warn(
+      "Convergence not achieved in {maxit} iterations for incomplete-data SVD."
+    )
   }
   svd.xfill
 }

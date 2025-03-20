@@ -20,12 +20,16 @@
 #' tf_split(x, splits = c(20, 80), include = "right")
 tf_split <- function(x, splits, include = c("both", "left", "right")) {
   assert_tf(x)
-  assert_numeric(splits,
-                 lower = tf_domain(x)[1],
-                 upper = tf_domain(x)[2],
-                 any.missing = FALSE, sorted = TRUE, unique = TRUE)
+  assert_numeric(
+    splits,
+    lower = tf_domain(x)[1],
+    upper = tf_domain(x)[2],
+    any.missing = FALSE,
+    sorted = TRUE,
+    unique = TRUE
+  )
   include <- match.arg(include)
-  resolution_x <-  get_resolution(tf_arg(x))
+  resolution_x <- get_resolution(tf_arg(x))
   # if user supplied domain limit(s), remove
   if (splits[1] == tf_domain(x)[1]) {
     splits <- splits[-1]
@@ -45,7 +49,6 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
 
   map2(start, end, \(a, b) tf_zoom(x, begin = a, end = b))
 }
-
 
 
 #' @description
@@ -102,30 +105,37 @@ tf_combine <- function(..., strict = FALSE) {
     min_overlap <- apply(arg_mins, 1, \(x) is.unsorted(as.numeric(x)))
     max_overlap <- apply(arg_maxs, 1, \(x) is.unsorted(as.numeric(x)))
     if (any(min_overlap) || any(max_overlap)) {
-      cli::cli_abort("{.fun tf_arg}-ranges of input data are not strictly ordered.")
+      cli::cli_abort(
+        "{.fun tf_arg}-ranges of input data are not strictly ordered."
+      )
     }
   }
 
   domains <- do.call(rbind, map(tfs, tf_domain))
   new_domain <- c(min(domains[, 1]), max(domains[, 2]))
-  tfs <- map(tfs,
-             function(x) {
-               suppressWarnings(tf_domain(x) <- new_domain)
-               x
-             })
+  tfs <- map(tfs, function(x) {
+    suppressWarnings(tf_domain(x) <- new_domain)
+    x
+  })
   # TODO: add check for names and reuse for output if identical?  map(tfs, names) |> reduce(identical)
-  tfs_data <- do.call(rbind,
-                      map(tfs, \(x) {
-                        names(x) <- seq_along(x)
-                        tf_2_df(x)
-                      }))
+  tfs_data <- do.call(
+    rbind,
+    map(tfs, \(x) {
+      names(x) <- seq_along(x)
+      tf_2_df(x)
+    })
+  )
 
   duplicates <- which(duplicated(tfs_data[, -3])) #check for multiple values at some id&arg
   if (length(duplicates)) {
     if (strict) {
-      cli::cli_abort("can't combine functions with multiple values at same argument.")
+      cli::cli_abort(
+        "can't combine functions with multiple values at same argument."
+      )
     }
-    cli::cli_alert_warning("removing {length(duplicates)} duplicated points from input data.")
+    cli::cli_alert_warning(
+      "removing {length(duplicates)} duplicated points from input data."
+    )
     tfs_data <- tfs_data[-duplicates, ]
   }
 

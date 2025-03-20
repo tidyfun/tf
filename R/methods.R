@@ -85,7 +85,13 @@ tf_domain <- function(f) {
 #' @export
 `tf_domain<-` <- function(x, value) {
   assert_tf(x)
-  assert_numeric(value, any.missing = FALSE, len = 2, unique = TRUE, sorted = TRUE)
+  assert_numeric(
+    value,
+    any.missing = FALSE,
+    len = 2,
+    unique = TRUE,
+    sorted = TRUE
+  )
   cli::cli_warn(c(
     x = "This changes the functions' domain but not their argument values!",
     i = "To restrict functions to a part of their domain, use {.fn tf_zoom}."
@@ -184,7 +190,9 @@ tf_basis <- function(f, as_tfd = FALSE) {
     )
   }
   if (length(ensure_list(value)) != 1) {
-    cli::cli_abort("Can't assign irregular argument list to {.cls class(x)[1]}.")
+    cli::cli_abort(
+      "Can't assign irregular argument list to {.cls class(x)[1]}."
+    )
   }
 
   attr(x, "arg") <- ensure_list(value)

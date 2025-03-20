@@ -10,7 +10,8 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   arg <- ensure_list(arg)
   assert_arg(arg, tf)
 
-  tmp <- do.call(rbind,
+  tmp <- do.call(
+    rbind,
     args = tf[, arg, matrix = FALSE, interpolate = interpolate]
   )
   n_evals <- lengths(arg)
@@ -42,7 +43,8 @@ df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   } else {
     binvalues <- bins
     bins <- c(
-      (1 - 0.001 * sign(bins[1])) * bins[1], bins[-length(bins)],
+      (1 - 0.001 * sign(bins[1])) * bins[1],
+      bins[-length(bins)],
       (1 + 0.001 * sign(bins[length(bins)])) * bins[length(bins)]
     )
     if (bins[1] == 0) {

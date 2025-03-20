@@ -59,13 +59,20 @@
 `[.tf` <- function(x, i, j, interpolate = TRUE, matrix = TRUE) {
   if (!interpolate && is_tfb(x)) {
     interpolate <- TRUE
-    cli::cli_inform("{.arg interpolate} ignored for data in basis representation.")
+    cli::cli_inform(
+      "{.arg interpolate} ignored for data in basis representation."
+    )
   }
   # handle i
   if (missing(i)) {
     i <- seq_along(x)
   } else {
-    i <- vec_as_location(i, n = vec_size(x), names = names(x), missing = "error")
+    i <- vec_as_location(
+      i,
+      n = vec_size(x),
+      names = names(x),
+      missing = "error"
+    )
   }
   x <- vec_slice(x, i)
   if (missing(j)) {
@@ -74,11 +81,15 @@
 
   # handle j
   if (matrix && is.list(j)) {
-    cli::cli_abort("Need a single vector-valued {.arg j} if {.code matrix = TRUE}.")
+    cli::cli_abort(
+      "Need a single vector-valued {.arg j} if {.code matrix = TRUE}."
+    )
   }
   j <- ensure_list(j)
   if (!(length(j) %in% c(1, length(i)))) {
-    cli::cli_abort("Unsuitable {.arg j} -- must be a single vector or a list of length {length(i)}.")
+    cli::cli_abort(
+      "Unsuitable {.arg j} -- must be a single vector or a list of length {length(i)}."
+    )
   }
   evals <- tf_evaluate(x, arg = j)
   if (!interpolate) {
@@ -92,7 +103,6 @@
     evals <- map2(evals, new_j, \(x, y) ifelse(y, NA, x))
   }
 
-
   if (matrix) {
     ret <- do.call(rbind, evals)
     j <- unlist(j, use.names = FALSE)
@@ -102,8 +112,11 @@
   }
 
   map2(
-    j, evals, \(x, y) data_frame0(arg = x, value = y)
-  ) |> setNames(names(x))
+    j,
+    evals,
+    \(x, y) data_frame0(arg = x, value = y)
+  ) |>
+    setNames(names(x))
 }
 
 #' @param value `tf` object for subassignment. This is typed more strictly
@@ -123,7 +136,11 @@
   if (!identical(vec_ptype(x), cast_to)) {
     stop_incompatible_type(x = x, y = value, x_arg = "", y_arg = "")
   }
-  needs_cast <- !identical(vec_ptype(value), cast_to, ignore.environment = FALSE)
+  needs_cast <- !identical(
+    vec_ptype(value),
+    cast_to,
+    ignore.environment = FALSE
+  )
   if (needs_cast) {
     value <- vec_cast(value, vec_ptype2(value, x)) |> allow_lossy_cast()
   }

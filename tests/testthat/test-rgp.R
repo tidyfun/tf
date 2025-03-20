@@ -1,6 +1,8 @@
 test_that("irregular data generation works", {
-  expect_class(tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34)))),
-               "tfd_irreg")
+  expect_class(
+    tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34)))),
+    "tfd_irreg"
+  )
   expect_error(tf_rgp(2, arg = list(runif(25), sort(runif(34)))))
   expect_error(tf_rgp(2, arg = list(runif(25))))
 })

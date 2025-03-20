@@ -1,16 +1,24 @@
-new_tfb_fpc <- function(data, domain = NULL,
-                        method = NULL, basis_from = NULL, ...) {
+new_tfb_fpc <- function(
+  data,
+  domain = NULL,
+  method = NULL,
+  basis_from = NULL,
+  ...
+) {
   if (all(dim(data) == 0)) {
     ret <- new_vctr(
       data,
       domain = domain %||% numeric(2),
       arg = numeric(),
       score_variance = numeric(),
-      class = c("tfb_fpc", "tfb", "tf"))
+      class = c("tfb_fpc", "tfb", "tf")
+    )
     return(ret)
   }
   if (!is.null(method) && !is.null(basis_from)) {
-    cli::cli_abort("Can't specify both {.arg method} *and* {.arg basis_from} for {.fn new_tfb_fpc}.")
+    cli::cli_abort(
+      "Can't specify both {.arg method} *and* {.arg basis_from} for {.fn new_tfb_fpc}."
+    )
   }
   arg <- uniquecombs(data$arg, ordered = TRUE) |> unlist(use.names = FALSE)
 
@@ -35,23 +43,26 @@ new_tfb_fpc <- function(data, domain = NULL,
   } else {
     basis_matrix <- tf_basis(basis_from)(arg) |> as.matrix()
     basis_label <- attr(basis_from, "basis_label")
-    score_variance <-  attr(basis_from, "score_variance")
+    score_variance <- attr(basis_from, "score_variance")
     scoring_function <- attr(basis_from, "scoring_function")
 
     # trapezoid integration weights: #TODO generally appropriate or just for wsvd?
     delta <- c(0, diff(arg))
     weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
-    scores <- scoring_function(df_2_mat(data),
-                               basis_matrix[, -1], basis_matrix[, 1], weights) #!!
+    scores <- scoring_function(
+      df_2_mat(data),
+      basis_matrix[, -1],
+      basis_matrix[, 1],
+      weights
+    ) #!!
   }
-  fpc_basis <- tfd(t(basis_matrix),
-                   arg = arg, domain = domain)
+  fpc_basis <- tfd(t(basis_matrix), arg = arg, domain = domain)
   fpc_constructor <- fpc_wrapper(fpc_basis)
   coef_list <- split(cbind(1, scores), row(cbind(1, scores)))
   names(coef_list) <- levels(as.factor(data$id))
 
-
-  new_vctr(coef_list,
+  new_vctr(
+    coef_list,
     domain = domain,
     basis = fpc_constructor,
     basis_label = basis_label,
@@ -156,16 +167,28 @@ tfb_fpc <- function(data, ...) UseMethod("tfb_fpc")
 #' x_pc <- tfb_fpc(x_df, method = fpca_sc_wrapper)
 #' lines(x_pc, col = 2, lty = 2)
 #' }
-tfb_fpc.data.frame <- function(data, id = 1, arg = 2, value = 3,
-                               domain = NULL, method = fpc_wsvd, ...) {
+tfb_fpc.data.frame <- function(
+  data,
+  id = 1,
+  arg = 2,
+  value = 3,
+  domain = NULL,
+  method = fpc_wsvd,
+  ...
+) {
   data <- df_2_df(data, id, arg, value)
   new_tfb_fpc(data, domain = domain, method = method, ...)
 }
 
 #' @rdname tfb_fpc
 #' @export
-tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL,
-                           method = fpc_wsvd, ...) {
+tfb_fpc.matrix <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  method = fpc_wsvd,
+  ...
+) {
   arg <- unlist(find_arg(data, arg), use.names = FALSE)
   names_data <- rownames(data)
   data <- mat_2_df(data, arg)
@@ -175,8 +198,13 @@ tfb_fpc.matrix <- function(data, arg = NULL, domain = NULL,
 
 #' @rdname tfb_fpc
 #' @export
-tfb_fpc.numeric <- function(data, arg = NULL, domain = NULL,
-                            method = fpc_wsvd, ...) {
+tfb_fpc.numeric <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  method = fpc_wsvd,
+  ...
+) {
   data <- t(as.matrix(data))
   tfb_fpc(data = data, arg = arg, method = method, domain = domain, ...)
 }
@@ -191,7 +219,8 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
   ret <- tfb_fpc(
     tf_2_df(data, arg = arg),
     method = method,
-    domain = tf_domain(data), ...
+    domain = tf_domain(data),
+    ...
   )
   setNames(ret, names_data)
 }
@@ -199,13 +228,19 @@ tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
 #' @export
 #' @describeIn tfb_fpc convert `tfb`: default method, returning prototype when
 #'   data is NULL
-tfb_fpc.default <- function(data, arg = NULL, domain = NULL, method = fpc_wsvd,
-                            ...) {
+tfb_fpc.default <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  method = fpc_wsvd,
+  ...
+) {
   if (!missing(data)) {
-    cli::cli_inform("Input {.arg data} not recognized class; returning prototype of length 0.")
+    cli::cli_inform(
+      "Input {.arg data} not recognized class; returning prototype of length 0."
+    )
   }
 
   data <- data_frame0()
-  new_tfb_spline(data = data, arg = arg, method = method, domain = domain,
-                 ...)
+  new_tfb_spline(data = data, arg = arg, method = method, domain = domain, ...)
 }

@@ -43,33 +43,41 @@
 #' (x1 <- tf_rgp(10, cov = "squareexp", nugget = 0))
 #  plot(x1)
 #' tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34))))
-tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern", "brown_bridge"),
-                   scale = diff(domain) / 10, nugget = scale / 200, order = 1.5,
-                   domain = NULL) {
+tf_rgp <- function(
+  n,
+  arg = 51L,
+  cov = c("squareexp", "wiener", "matern", "brown_bridge"),
+  scale = diff(domain) / 10,
+  nugget = scale / 200,
+  order = 1.5,
+  domain = NULL
+) {
   if (!is.function(cov)) {
     cov <- match.arg(cov)
     f_cov <-
-      switch(cov,
-             wiener = function(s, t) pmin(s, t) / scale,
-             squareexp = function(s, t) exp(-(s - t)^2 / scale),
-             matern = function(s, t) {
-               r <- sqrt(2 * order) * abs(s - t) / scale
-               cov <- 2^(1 - order) / gamma(order) * r^order *
-                 base::besselK(r, nu = order)
-               cov[s == t] <- 1
-               cov
-             },
-             brown_bridge = function(s, t) {
-              r <- (domain[2] - pmax(s, t)) * (pmin(s, t) - domain[1]) / scale
-              r / diff(domain)
-             }
+      switch(
+        cov,
+        wiener = function(s, t) pmin(s, t) / scale,
+        squareexp = function(s, t) exp(-(s - t)^2 / scale),
+        matern = function(s, t) {
+          r <- sqrt(2 * order) * abs(s - t) / scale
+          cov <- 2^(1 - order) /
+            gamma(order) *
+            r^order *
+            base::besselK(r, nu = order)
+          cov[s == t] <- 1
+          cov
+        },
+        brown_bridge = function(s, t) {
+          r <- (domain[2] - pmax(s, t)) * (pmin(s, t) - domain[1]) / scale
+          r / diff(domain)
+        }
       )
   } else {
     assert_function(cov, nargs = 2)
     f_cov <- cov
   }
   assert_int(n, lower = 1)
-
 
   if (!is.list(arg) && length(arg) == 1) {
     assert_int(arg, lower = 1)
@@ -80,16 +88,29 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern", "brown
     arg <- replicate(n, arg, simplify = FALSE)
   } else {
     assert_true(length(arg) == n)
-    map(arg,
-        \(x) assert_numeric(x, any.missing = FALSE, unique = TRUE, sorted = TRUE,
-                            .var.name = "arg")
+    map(
+      arg,
+      \(x)
+        assert_numeric(
+          x,
+          any.missing = FALSE,
+          unique = TRUE,
+          sorted = TRUE,
+          .var.name = "arg"
+        )
     )
   }
 
   if (is.null(domain)) {
     domain <- range(unlist(arg))
   } else {
-    assert_numeric(domain, len = 2, any.missing = FALSE, unique = TRUE, sorted = TRUE)
+    assert_numeric(
+      domain,
+      len = 2,
+      any.missing = FALSE,
+      unique = TRUE,
+      sorted = TRUE
+    )
     assert_true(domain[1] <= min(unlist(arg)))
     assert_true(domain[2] >= max(unlist(arg)))
   }
@@ -99,9 +120,9 @@ tf_rgp <- function(n, arg = 51L, cov = c("squareexp", "wiener", "matern", "brown
 
   ret <- map(arg, \(.arg) {
     cov <- outer(.arg, .arg, f_cov) + diag(0 * .arg + nugget)
-    cbind(.arg,
-          t(rmvnorm(1, mean = 0 * .arg, sigma = cov)))
-  }) |> tfd()
+    cbind(.arg, t(rmvnorm(1, mean = 0 * .arg, sigma = cov)))
+  }) |>
+    tfd()
   names(ret) <- 1:n
   ret
 }
@@ -131,8 +152,11 @@ tf_jiggle <- function(f, amount = 0.4, ...) {
   f <- as.tfd_irreg(f)
   new_args <- map(tf_arg(f), tf_jiggle_args, amount = amount)
   evaluator <- attr(f, "evaluator_name")
-  ret <- tfd(map2(new_args, tf_evaluations(f), cbind),
-             domain = tf_domain(f), ...)
+  ret <- tfd(
+    map2(new_args, tf_evaluations(f), cbind),
+    domain = tf_domain(f),
+    ...
+  )
   tf_evaluator(ret) <- evaluator
   ret
 }
@@ -143,15 +167,13 @@ tf_jiggle_args <- function(arg, amount) {
 
   # push left/right at most (amount*100)% of distance to adjacent gridpoint
   push_left_right <- sample(c(-1, 1), g - 2, replace = TRUE)
-  use_diffs <- ifelse(push_left_right == -1,
-                      diffs[1:(g - 2)],
-                      diffs[2:(g - 1)]
-  )
+  use_diffs <- ifelse(push_left_right == -1, diffs[1:(g - 2)], diffs[2:(g - 1)])
   tf_jiggle <- runif(g - 2, 0, amount) * use_diffs * push_left_right
   new_args <- arg[2:(g - 1)] + tf_jiggle
 
   c(
-    runif(1, arg[1], new_args[1]), new_args,
+    runif(1, arg[1], new_args[1]),
+    new_args,
     runif(1, new_args[g - 2], arg[g])
   )
 }
@@ -165,9 +187,7 @@ tf_sparsify <- function(f, dropout = 0.5) {
   tf_evals <- map2(tf_evaluations(f), nas, \(x, y) x[!y])
   tf_args <- ensure_list(tf_arg(f))
   tf_args <- map2(tf_args, nas, \(x, y) x[!y])
-  ret <- tfd.list(tf_evals, tf_args,
-                  domain = tf_domain(f)
-  )
+  ret <- tfd.list(tf_evals, tf_args, domain = tf_domain(f))
   if (is_tfd(f)) {
     evaluator <- attr(f, "evaluator_name")
     tf_evaluator(ret) <- evaluator

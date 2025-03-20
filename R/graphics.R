@@ -50,9 +50,15 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @family tidyfun visualization
 #' @export
 #' @references `r format_bib("swihart2010lasagna")`
-plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
-                    type = c("spaghetti", "lasagna"),
-                    alpha = min(1, max(0.05, 2 / length(x))), ...) {
+plot.tf <- function(
+  x,
+  y,
+  n_grid = 50,
+  points = is_irreg(x),
+  type = c("spaghetti", "lasagna"),
+  alpha = min(1, max(0.05, 2 / length(x))),
+  ...
+) {
   type <- match.arg(type)
   assert_logical(points)
   assert_number(n_grid, na.ok = TRUE)
@@ -71,8 +77,12 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
   if (type == "spaghetti") {
     args <- modifyList(
       list(
-        x = drop(attr(m, "arg")), y = t(m), type = "l",
-        ylab = deparse1(substitute(x)), xlab = "", lty = 1,
+        x = drop(attr(m, "arg")),
+        y = t(m),
+        type = "l",
+        ylab = deparse1(substitute(x)),
+        xlab = "",
+        lty = 1,
         col = rgb(0, 0, 0, alpha)
       ),
       list(...)
@@ -82,8 +92,11 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
       pointsargs <- modifyList(
         list(
           x = x,
-          n_grid = NA, points = TRUE, interpolate = FALSE,
-          pch = 19, ol = rgb(0, 0, 0, alpha)
+          n_grid = NA,
+          points = TRUE,
+          interpolate = FALSE,
+          pch = 19,
+          ol = rgb(0, 0, 0, alpha)
         ),
         list(...)
       )
@@ -93,9 +106,13 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
   if (type == "lasagna") {
     args <- modifyList(
       list(
-        x = drop(attr(m, "arg")), y = seq_len(nrow(m)),
-        z = t(m), col = heat.colors(25),
-        ylab = "id", xlab = "", yaxt = "n"
+        x = drop(attr(m, "arg")),
+        y = seq_len(nrow(m)),
+        z = t(m),
+        col = heat.colors(25),
+        ylab = "id",
+        xlab = "",
+        yaxt = "n"
       ),
       list(...)
     )
@@ -107,9 +124,15 @@ plot.tf <- function(x, y, n_grid = 50, points = is_irreg(x),
 }
 
 #' @importFrom graphics matlines
-linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
-                           alpha = min(1, max(0.05, 2 / length(x))),
-                           interpolate = TRUE, ...) {
+linespoints_tf <- function(
+  x,
+  arg,
+  n_grid = 50,
+  points = TRUE,
+  alpha = min(1, max(0.05, 2 / length(x))),
+  interpolate = TRUE,
+  ...
+) {
   assert_number(n_grid, na.ok = TRUE)
   if (missing(arg)) {
     arg <- prep_plotting_arg(x, n_grid)
@@ -125,8 +148,12 @@ linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
   }
   args <- modifyList(
     list(
-      x = drop(attr(m, "arg")), y = t(m), type = ifelse(points, "p", "l"),
-      lty = 1, col = rgb(0, 0, 0, alpha), pch = 19
+      x = drop(attr(m, "arg")),
+      y = t(m),
+      type = ifelse(points, "p", "l"),
+      lty = 1,
+      col = rgb(0, 0, 0, alpha),
+      pch = 19
     ),
     list(...)
   )
@@ -136,12 +163,20 @@ linespoints_tf <- function(x, arg, n_grid = 50, points = TRUE,
 #' @export
 #' @rdname tfviz
 #' @family tidyfun visualization
-lines.tf <- function(x, arg, n_grid = 50,
-                     alpha = min(1, max(0.05, 2 / length(x))), ...) {
-  args <- c(modifyList(
-    head(formals(lines.tf), -1),
-    as.list(match.call())[-1]
-  ), points = FALSE)
+lines.tf <- function(
+  x,
+  arg,
+  n_grid = 50,
+  alpha = min(1, max(0.05, 2 / length(x))),
+  ...
+) {
+  args <- c(
+    modifyList(
+      head(formals(lines.tf), -1),
+      as.list(match.call())[-1]
+    ),
+    points = FALSE
+  )
   # eval here so pipe finds it later
   args$x <- x
   do.call(linespoints_tf, args)
@@ -155,13 +190,21 @@ lines.tf <- function(x, arg, n_grid = 50,
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for arg for which no original data is available? Only relevant for
 #'   tfd, defaults to FALSE
-points.tf <- function(x, arg, n_grid = NA,
-                      alpha = min(1, max(0.05, 2 / length(x))),
-                      interpolate = FALSE, ...) {
-  args <- c(modifyList(
-    head(formals(points.tf), -1),
-    as.list(match.call())[-1]
-  ), points = TRUE)
+points.tf <- function(
+  x,
+  arg,
+  n_grid = NA,
+  alpha = min(1, max(0.05, 2 / length(x))),
+  interpolate = FALSE,
+  ...
+) {
+  args <- c(
+    modifyList(
+      head(formals(points.tf), -1),
+      as.list(match.call())[-1]
+    ),
+    points = TRUE
+  )
   # eval here so pipe finds it later
   args$x <- x
   do.call(linespoints_tf, args)

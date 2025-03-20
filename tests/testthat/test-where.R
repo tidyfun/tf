@@ -1,5 +1,6 @@
 test_that("tf_where basics work", {
-  lin <- 1:2 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11)) +
+  lin <- 1:2 *
+    tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11)) +
     c(0, 0.1)
   expect_equal(
     tf_where(lin, value %inr% c(-1, -0.5)),
