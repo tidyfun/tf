@@ -58,21 +58,8 @@ get_resolution <- function(arg) {
   10^(floor(log10(min_diff)) - 1)
 }
 
-adjust_resolution <- function(arg, f, unique = TRUE) {
-  resolution <- resolution(f)
-  .adjust_resolution(arg, resolution, unique = unique)
-}
-
-.adjust_resolution <- function(arg, resolution, unique = TRUE) {
-  u <- if (unique) base::unique else function(x) x
-  if (is.list(arg)) {
-    map(arg, \(x) u(round_resolution(x, resolution)))
-  } else {
-    u(round_resolution(arg, resolution))
-  }
-}
-
 # "quantize" the values in arg to the given resolution
+# always rounding up/down for positive/negative `updown`
 round_resolution <- function(arg, resolution, updown = 0) {
   if (updown == 0) {
     round(arg / resolution) * resolution

@@ -165,7 +165,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @export
 `tf_arg<-` <- function(x, value) {
   cli::cli_warn(c(
-    x = "This changes arguments (and resolution) without changing the corresponding function values!",
+    x = "This changes arguments without changing the corresponding function values!",
     i = "In order to re-evaluate functions on a new grid, use {.fn tf_interpolate}."
   ))
   UseMethod("tf_arg<-")

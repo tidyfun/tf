@@ -62,8 +62,7 @@ evaluate_tfd_once <- function(
   new_arg,
   arg,
   evaluations,
-  evaluator,
-  resolution
+  evaluator
 ) {
   if (isTRUE(all.equal(new_arg, arg))) return(evaluations)
   seen <- match(new_arg, arg)
@@ -119,7 +118,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   setNames(ret, names(object))
 }
 
-evaluate_tfb_once <- function(x, arg, coefs, basis, X, resolution) {
+evaluate_tfb_once <- function(x, arg, coefs, basis, X) {
   seen <- match(x, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
