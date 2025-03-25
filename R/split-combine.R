@@ -11,7 +11,7 @@
 #'
 #' @return for `tf_split`: a list of `tf` objects
 #' @export
-#' @rdname tfsplitcombine
+#' @rdname tf_splitcombine
 #'
 #' @examples
 #' x <- tfd(1:100, arg = 1:100)
@@ -56,12 +56,13 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
 #' @param ... `tf`-objects of identical lengths to combine
 #' @param strict only combine functions whose argument ranges do not overlap,
 #'   are given in the correct order & contain no duplicate values at identical arguments?
-#'   defaults to `FALSE`. By default, only the first function value at duplicate locations
+#'   defaults to `FALSE`. If `strict == FALSE`, only the first function values at duplicate locations
 #'   are used, the rest are discarded (with a warning).
 #'
 #' @return for `tf_combine`: a `tfd` with the combined subfunctions on the union of the input `tf_arg`-values
 #' @export
-#' @rdname tfsplitcombine
+#' @rdname tf_splitcombine
+#' @aliases tf_splitcombine
 #'
 #' @examples
 #'   x <- tf_rgp(5)

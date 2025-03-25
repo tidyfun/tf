@@ -1,8 +1,8 @@
-#' Summarize each `tf` in a vector
+#' Summarize each `tf` in a vector (function-wise)
 #'
 #' These functions extract (user-specified) **function-wise** summary statistics
-#' from each entry in a  `tf`-vector. To summarize a vector of functions at each
-#' argument value, see `?tfsummaries`. Note that these will tend to yield lots
+#' from every entry in a  `tf`-vector. To summarize a vector of functions at each
+#' argument value, see `?tfsummaries`. Note that most of these will tend to yield lots
 #' of `NA`s for irregular `tfd` unless you set a [tf_evaluator()]-function
 #' that does inter- and extrapolation for them beforehand.
 #'

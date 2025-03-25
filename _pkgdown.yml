@@ -18,18 +18,18 @@ reference:
   - tfb_fpc
   - fpc_wsvd
   - tf_rebase
-- title: Evaluation and indexing
-  desc: Accessing, appending, evaluating and splitting functional data objects
+- title: Evaluating, indexing & re-arranging
+  desc: Accessing, appending, evaluating, splitting & combining functional data objects
   contents:
   - tfbrackets
   - tf_approx_linear
   - tf_evaluate
   - tf_interpolate
-  - tfsplitcombine
+  - tf_splitcombine
 - title: Arithmetic, logical and summary functions
   desc: Functionality for computing with and comparing functional data
   contents:
-  - Ops.tf
+  - tfgroupgenerics
   - tfsummaries
   - functionwise
   - tf_depth
@@ -58,8 +58,8 @@ reference:
   contents:
   - tf_rgp
   - tf_jiggle
-- title: Utilities
-  desc: Utility functions
+- title: Accessories
+  desc: Tooling functions
   contents:
   - in_range
   - ensure_list

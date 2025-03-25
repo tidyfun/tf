@@ -12,7 +12,7 @@
 \alias{tf_fsd}
 \alias{tf_crosscov}
 \alias{tf_crosscor}
-\title{Summarize each \code{tf} in a vector}
+\title{Summarize each \code{tf} in a vector (function-wise)}
 \usage{
 tf_fwise(x, .f, arg = tf_arg(x), ...)
 
@@ -58,8 +58,8 @@ summaries
 }
 \description{
 These functions extract (user-specified) \strong{function-wise} summary statistics
-from each entry in a  \code{tf}-vector. To summarize a vector of functions at each
-argument value, see \code{?tfsummaries}. Note that these will tend to yield lots
+from every entry in a  \code{tf}-vector. To summarize a vector of functions at each
+argument value, see \code{?tfsummaries}. Note that most of these will tend to yield lots
 of \code{NA}s for irregular \code{tfd} unless you set a \code{\link[=tf_evaluator]{tf_evaluator()}}-function
 that does inter- and extrapolation for them beforehand.
 }

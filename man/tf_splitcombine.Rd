@@ -3,6 +3,7 @@
 \name{tf_split}
 \alias{tf_split}
 \alias{tf_combine}
+\alias{tf_splitcombine}
 \title{Split / Combine functional fragments}
 \usage{
 tf_split(x, splits, include = c("both", "left", "right"))
@@ -22,7 +23,7 @@ of the resulting split functions. Defaults to \code{"both"}, other options are "
 
 \item{strict}{only combine functions whose argument ranges do not overlap,
 are given in the correct order & contain no duplicate values at identical arguments?
-defaults to \code{FALSE}. By default, only the first function value at duplicate locations
+defaults to \code{FALSE}. If \code{strict == FALSE}, only the first function values at duplicate locations
 are used, the rest are discarded (with a warning).}
 }
 \value{
