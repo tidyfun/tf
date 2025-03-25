@@ -3,15 +3,20 @@
 #' These methods and operators mostly work `arg`-value-wise on `tf` objects, see
 #' [vctrs::vec_arith()] etc. for implementation details.
 #'
-#' See examples below. Equality checks of functional objects are even more iffy
-#' than usual for computer math and not very reliable. Note that `max` and `min`
-#' are not guaranteed to be maximal/minimal over the entire domain, only on the
-#' evaluation grid used for computation. With the exception of addition and
+#' - Operations on `tfd`-objects do not extrapolate functions on a common grid first,
+#' they operate on the function at argument values that both objects have in
+#' common.
+#' - With the exception of addition and
 #' multiplication, operations on `tfb`-objects first evaluate the data on their
 #' `arg`, perform computations on these evaluations and then convert back to an
 #' `tfb`- object, so a loss of precision should be expected -- especially so for
 #' small spline bases and/or very wiggly data.
+#' - Equality checks of functional objects are even more iffy
+#' than usual for computer math and not very reliable.
+#' - Note that `max` and `min` are not guaranteed to be maximal/minimal over the
+#'  entire domain, only at the argument values used for computation.
 #'
+#' See examples below, many more are in `tests/testthat/test-ops.R`.
 #'
 #' @param x a `tf` or `numeric` object
 #' @param y a `tf` or `numeric` object
@@ -205,7 +210,14 @@ vec_arith.tfb.MISSING <- function(op, x, y, ...) {
 
 tfd_op_tfd <- function(op, x, y) {
   assert_compatible_size(op, x, y)
-  # TODO: could be more lenient -- allow is one domain is subset of the other?
+
+  if (!domains_overlap(x, y)) {
+    message <- glue::glue(
+      "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  not permitted for non-overlapping domains"
+    )
+    stop_incompatible_op(op, x, y, message = message)
+  }
+
   same_domain <- all.equal(
     tf_domain(x),
     tf_domain(y),
@@ -214,36 +226,82 @@ tfd_op_tfd <- function(op, x, y) {
     isTRUE()
   same_arg <- all.equal(tf_arg(x), tf_arg(y), check.attributes = FALSE) |>
     isTRUE()
-  if (!same_domain || !same_arg) {
-    message <- c(
-      glue::glue(
-        "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  not permitted for different",
-        "{ifelse(same_domain, '', ' domains')}",
-        "{ifelse(!same_domain & !same_arg, ' and', '')}",
-        "{ifelse(same_arg, '', ' argument values')}"
-      ),
-      "-- use tf_rebase first."
-    ) |>
-      paste(collapse = "\n")
-    stop_incompatible_op(op, x, y, message = message)
+
+  if (same_arg) {
+    arg_ret <- tf_arg(x) |> ensure_list()
+    x_ <- tf_evaluations(x)
+    y_ <- tf_evaluations(y)
+  } else {
+    arg_ret <- common_args(x, y) |> ensure_list()
+    if (all(lengths(arg_ret) == 0)) {
+      message <- glue::glue(
+        "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}> not possible: no common argument values."
+      )
+      cli::cli_abort(c(
+        message,
+        "i" = "Use {.fun tf_rebase} or {.fun tf_interpolate} to change argument values."
+      ))
+    }
+    use_x <- map2(
+      ensure_list(tf_arg(x)),
+      arg_ret,
+      \(arg, grid) which(arg %in% grid)
+    )
+    use_y <- map2(
+      ensure_list(tf_arg(y)),
+      arg_ret,
+      \(arg, grid) which(arg %in% grid)
+    )
+    x_ <- map2(tf_evaluations(x), use_x, `[`)
+    y_ <- map2(tf_evaluations(y), use_y, `[`)
   }
 
-  attr_ret <- if (vec_size(x) >= vec_size(y)) attributes(x) else attributes(y)
-  arg_ret <- tf_arg(y)
-  x_ <- tf_evaluations(x)
-  y_ <- tf_evaluations(y)
-  ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+  domain_ret <- c(
+    min(tf_domain(x), tf_domain(y)),
+    max(tf_domain(x), tf_domain(y))
+  )
 
-  if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
-    cli::cli_inform(c(
-      x = "Inputs have different evaluators, result has {.val {attr_ret$evaluator_name}}."
+  if (!same_domain || !same_arg) {
+    message <- glue::glue(
+      "Attempting <{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  for different",
+      "{ifelse(same_domain, '', ' domains')}",
+      "{ifelse(!same_domain & !same_arg, ' and', '')}",
+      "{ifelse(same_arg, '', ' argument values')}"
+    )
+    cli::cli_warn(c(
+      message,
+      "i" = "Use {.fun tf_rebase} or {.fun tf_interpolate} to adjust argument values first if necessary."
     ))
   }
-  if ("tfd_irreg" %in% attr_ret$class) {
-    ret <- map2(arg_ret, ret, \(x, y) list(arg = x, value = y))
+
+  evals_ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+  if (vec_size(x) >= vec_size(y)) {
+    names(evals_ret) <- names(x)
+  } else {
+    names(evals_ret) <- names(y)
   }
-  attributes(ret) <- attr_ret
-  ret
+
+  evaluator_ret <- ifelse(
+    vec_size(x) >= vec_size(y),
+    attr(x, "evaluator_name"),
+    attr(y, "evaluator_name")
+  ) |>
+    rlang::sym()
+  if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
+    cli::cli_inform(c(
+      "!" = "Inputs have different evaluators, result has {.val {evaluator_ret}}."
+    ))
+  }
+
+  do.call(
+    tfd,
+    list(
+      data = evals_ret,
+      arg = arg_ret,
+      domain = domain_ret,
+      evaluator = evaluator_ret
+    )
+  )
 }
 
 tfd_op_numeric <- function(op, x, y, ...) {

@@ -7,7 +7,6 @@ x <- suppressMessages({
 })
 
 l <- list(
-  x_2 = tfd(as.matrix(x), resolution = tf_resolution(x) * 2),
   x_sp = tf_sparsify(x, dropout = 0.1),
   x_ir = tf_sparsify(x, dropout = 0.1) |> tf_jiggle(amount = 0.05),
   b = tfb(x, k = 45, verbose = FALSE),
@@ -38,6 +37,7 @@ for (i in seq_along(l)) {
   })
 }
 
+#-------------------------------------------------------------------------------
 
 set.seed(1133111)
 x <- tf_rgp(5, arg = 301L) |>
@@ -85,6 +85,7 @@ for (i in seq_along(l)) {
   )
 }
 
+#-------------------------------------------------------------------------------
 
 set.seed(1133111)
 x <- suppressMessages({

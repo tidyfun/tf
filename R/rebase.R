@@ -49,7 +49,7 @@ tf_rebase.tfd.tfd <- function(
   ) {
     if (vec_size(object) != 1) {
       cli::cli_abort(
-        "Can't rebase regular {.cls tfd} with irregular {.cls tfd} of incompatible size."
+        "Can't rebase {.cls tfd} with irregular {.cls tfd} of incompatible size."
       )
     }
     # if <object> is length 1, extrapolate it to *all* eval points of
@@ -57,7 +57,7 @@ tf_rebase.tfd.tfd <- function(
     if (default_arg) {
       arg <- sort_unique(arg, simplify = TRUE)
       cli::cli_inform(
-        "Using all {length(arg)} unique time points for new {.arg arg}."
+        "Using all {length(arg)} unique time points from {.arg basis_from} for new {.arg arg}."
       )
       default_arg <- FALSE
     }

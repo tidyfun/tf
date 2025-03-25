@@ -76,14 +76,22 @@ These methods and operators mostly work \code{arg}-value-wise on \code{tf} objec
 \code{\link[vctrs:vec_arith]{vctrs::vec_arith()}} etc. for implementation details.
 }
 \details{
-See examples below. Equality checks of functional objects are even more iffy
-than usual for computer math and not very reliable. Note that \code{max} and \code{min}
-are not guaranteed to be maximal/minimal over the entire domain, only on the
-evaluation grid used for computation. With the exception of addition and
+\itemize{
+\item Operations on \code{tfd}-objects do not extrapolate functions on a common grid first,
+they operate on the function at argument values that both objects have in
+common.
+\item With the exception of addition and
 multiplication, operations on \code{tfb}-objects first evaluate the data on their
 \code{arg}, perform computations on these evaluations and then convert back to an
 \code{tfb}- object, so a loss of precision should be expected -- especially so for
 small spline bases and/or very wiggly data.
+\item Equality checks of functional objects are even more iffy
+than usual for computer math and not very reliable.
+\item Note that \code{max} and \code{min} are not guaranteed to be maximal/minimal over the
+entire domain, only at the argument values used for computation.
+}
+
+See examples below, many more are in \code{tests/testthat/test-ops.R}.
 }
 \examples{
 set.seed(1859)

@@ -33,6 +33,13 @@ find_arg <- function(data, arg) {
   list(arg)
 }
 
+domains_overlap <- function(x, y) {
+  dom_x <- tf_domain(x)
+  dom_y <- tf_domain(y)
+  (dom_x[1] %inr% dom_y || dom_x[2] %inr% dom_y) ||
+    (dom_y[1] %inr% dom_x || dom_y[2] %inr% dom_x)
+}
+
 # default resolution is ~ smallest observed interval/10
 # rounded down to the nearest decimal
 get_resolution <- function(arg) {

@@ -41,7 +41,7 @@ test_that("tfd arithmetic operations with other tfd", {
   expect_equal((x - 2) + 2, x)
 
   x_i <- tf_jiggle(x)
-  expect_error(x + x_i)
+  expect_error(x + x_i, "no common argument values")
   expect_equal(x_i + x_i, x_i * 2)
   expect_equal((x_i - 2) + 2, x_i)
   expect_equal(
@@ -52,7 +52,18 @@ test_that("tfd arithmetic operations with other tfd", {
     as.matrix(2^x_i) |> suppressWarnings(),
     2^as.matrix(x_i) |> suppressWarnings()
   )
-  expect_error(x_i + tf_jiggle(x_i))
+  expect_error(
+    x_i + tf_jiggle(x_i),
+    "no common argument values"
+  )
+
+  # "tolerant" ops for irregular tfd
+  x_sp <- tf_sparsify(x)
+  expect_warning(x + x_sp, "different argument values")
+  expect_equal(
+    (x + x_sp) |> suppressWarnings(),
+    2 * x_sp
+  )
 
   y <- tf_rgp(3)
   expect_equal(
@@ -62,7 +73,7 @@ test_that("tfd arithmetic operations with other tfd", {
 
   # no recycling
   expect_no_error(x + x[1])
-  expect_error(x + tf_rgp(4))
+  expect_error(x + tf_rgp(4), "incompatible vector sizes")
 })
 
 test_that("tfb_spline arithmetic operations with numeric", {
