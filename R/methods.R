@@ -228,7 +228,7 @@ rev.tf <- function(x) {
 #' @rdname tfmethods
 #' @export
 is.na.tf <- function(x) {
-  map_lgl(unclass(x), \(x) is.na(x)[1])
+  map_lgl(unclass(x), \(x) is.na(x)[1] || is.null(x))
 }
 
 #' @rdname tfmethods

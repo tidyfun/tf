@@ -41,6 +41,17 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
   map_if(str, grepl("NULL", str, fixed = TRUE), \(x) "NA")
 }
 
+# create a spark_bar representation for x
+spark_rep_tf <- function(x, ...) {
+  evals <- tf_evaluations(x)
+  rng <- range(unlist(evals))
+  scaled <- map(evals, \(x) (x - rng[1]) / diff(rng))
+  sparks <- map(scaled, cli::spark_bar)
+  sparks[is.na(x)] <- "NA"
+  sparks
+}
+
+
 #-------------------------------------------------------------------------------
 
 #' Pretty printing and formatting for functional data
@@ -53,16 +64,22 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
 #' @export
 #' @family tidyfun print
 print.tf <- function(x, n = 5, ...) {
+  domain <- tf_domain(x) |> sapply(format, ...)
+  range <- range(tf_evaluations(x)) |> sapply(format, ...)
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
     class(x)[2],
     "[",
     length(x),
-    "] on (",
-    tf_domain(x)[1],
+    "]: [",
+    domain[1],
     ",",
-    tf_domain(x)[2],
-    ")"
+    domain[2],
+    "] -> [",
+    range[1],
+    ",",
+    range[2],
+    "]"
   ))
   invisible(x)
 }
@@ -150,13 +167,18 @@ format.tf <- function(
   }
   resolution <- get_resolution(tf_arg(x))
   signif_arg <- abs(floor(log10(resolution)))
-  str <- string_rep_tf(
-    x,
-    signif_arg = if (signif_arg == 0) 1 else signif_arg,
-    digits = digits,
-    nsmall = nsmall,
-    ...
-  )
+  if (is_irreg(x) || !cli::is_utf8_output()) {
+    str <- string_rep_tf(
+      x,
+      signif_arg = if (signif_arg == 0) 1 else signif_arg,
+      digits = digits,
+      nsmall = nsmall,
+      ...
+    )
+  } else {
+    str <- spark_rep_tf(x, ...)
+  }
+
   if (prefix) {
     prefix <- if (!is.null(names(x)) && all(nzchar(names(x), keepNA = TRUE))) {
       names(x)[seq_along(str)]
