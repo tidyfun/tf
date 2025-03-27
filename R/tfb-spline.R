@@ -1,5 +1,5 @@
 new_tfb_spline <- function(
-  data,
+  data, # data.frame with id, arg, value
   domain = NULL,
   arg = NULL,
   penalized = TRUE,
@@ -81,11 +81,16 @@ new_tfb_spline <- function(
   ls_fit <- gam_args$family$family == "gaussian" &
     gam_args$family$link == "identity"
 
+  underdetermined <- n_evaluations <= spec_object$bs.dim
   if (!penalized) {
-    underdetermined <- n_evaluations <= spec_object$bs.dim
     if (any(underdetermined)) {
       cli::cli_abort(
-        "At least as many basis functions as evaluations for {sum(underdetermined)} functions. Use {.code penalized = TRUE} or reduce k for spline interpolation."
+        c(
+          "Can't compute spline coefficients for too sparse data: At least as many basis functions as evaluations for {sum(underdetermined)} of {vec_size(underdetermined)} entries in
+        input data.",
+          ">" = "Use {.code penalized = TRUE} or reduce {.arg k} for spline interpolation.",
+          "i" = "Affected entries: {names(n_evaluations[underdetermined])}"
+        )
       )
     }
     fit <-
@@ -98,6 +103,15 @@ new_tfb_spline <- function(
         ls_fit = ls_fit
       )
   } else {
+    if (any(underdetermined)) {
+      cli::cli_warn(
+        c(
+          "Sparse data: Spline interpolation may be unreliable/infeasible for functions with fewer evaluations than basis functions, {sum(underdetermined)} of {vec_size(underdetermined)} entries affected.",
+          ">" = "Check results and consider reducing {.arg k} for spline interpolation.",
+          "i" = "Affected entries: {names(n_evaluations[underdetermined])}"
+        )
+      )
+    }
     fit <-
       fit_penalized(
         data = data,
