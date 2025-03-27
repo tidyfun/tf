@@ -163,6 +163,7 @@ format.tf <- function(
 ) {
   long <- length(x) > n
   if (long && width > 0 && width <= 30) {
+    #TODO: why this?
     x <- head(x, n)
   }
   resolution <- get_resolution(tf_arg(x))
@@ -176,6 +177,8 @@ format.tf <- function(
       ...
     )
   } else {
+    #TODO: uses range of shortened vector (1:n) if called like this --
+    #  should probably determine value-range of whole vector first, then do this.
     str <- spark_rep_tf(x, ...)
   }
 

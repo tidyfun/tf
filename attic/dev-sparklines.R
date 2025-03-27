@@ -13,3 +13,6 @@ sincos
 
 options(width = 40, digits = 2)
 sincos
+
+tfb(tidyfun::dti_df$rcst[1:10])
+tidyfun::chf_df$activity[1:10]
