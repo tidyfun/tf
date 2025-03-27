@@ -43,7 +43,7 @@ new_tfd <- function(
     any.missing = FALSE,
     sorted = TRUE,
     len = 2,
-    unique = if (vec_size(datalist) == 1) FALSE else TRUE
+    unique = TRUE
   )
   u_args <- unlist(arg, use.names = FALSE)
   if (domain[1] > min(u_args) || max(u_args) > domain[2]) {
