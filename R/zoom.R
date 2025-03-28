@@ -57,18 +57,18 @@ tf_zoom.tfd <- function(
   ...
 ) {
   args <- prep_tf_zoom_args(f, begin, end)
-  arg <- NULL
   ret <- pmap(
     list(f[, tf_arg(f), matrix = FALSE], args$begin, args$end),
-    \(x, y, z) subset(x, arg >= y & arg <= z)
+    \(x, y, z) x[x$arg >= y & x$arg <= z, ]
   )
   if (is_irreg(f) || !args$regular) {
     nas <- map_int(ret, nrow) == 0
     if (all(nas)) cli::cli_abort("No data in zoom region.")
-    if (any(nas))
+    if (any(nas)) {
       cli::cli_warn(
         "{.code NA}s created by re-evaluating on new grid in {.fn tf_zoom}."
       )
+    }
     for (n in which(nas)) {
       ret[[n]] <- data_frame0(arg = unname(args$dom[1]), value = NA_real_)
     }

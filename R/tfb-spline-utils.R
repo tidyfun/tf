@@ -132,7 +132,7 @@ fit_penalized <- function(
     arg_u_pilot <- arg_u
     attr(arg_u_pilot, "index") <-
       attr(arg_u_pilot, "index")[data$id %in% pilot_id]
-    data_pilot <- subset(data, data$id %in% pilot_id) |> droplevels()
+    data_pilot <- data[data$id %in% pilot_id, ] |> droplevels()
     if (!ls_fit) {
       pilot_sp <-
         fit_ml(
