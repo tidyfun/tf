@@ -41,11 +41,21 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
   map_if(str, grepl("NULL", str, fixed = TRUE), \(x) "NA")
 }
 
-# create a spark_bar representation for x
-spark_rep_tf <- function(x, ...) {
-  evals <- tf_evaluations(x)
-  rng <- range(unlist(evals))
-  scaled <- map(evals, \(x) (x - rng[1]) / diff(rng))
+# create a (binned) sparkline representation for a tfd_reg or tfb on equidistant grids
+spark_rep_tf <- function(x, bins = -1, range_x = range(unlist(evals)), ...) {
+  arg <- tf_arg(x)
+  if (bins < 0) {
+    evals <- tf_evaluations(x)
+  } else {
+    binwidth <- ceiling(length(arg) / bins)
+    new_arg <- arg[ceiling(seq(binwidth, length(arg), length = bins))]
+    evals <- x |>
+      tf_smooth(method = "rollmean", k = binwidth, align = "right") |>
+      tfd(arg = new_arg) |>
+      tf_evaluations() |>
+      suppressMessages()
+  }
+  scaled <- map(evals, \(x) (x - range_x[1]) / diff(range_x))
   sparks <- map(scaled, cli::spark_bar)
   sparks[is.na(x)] <- "NA"
   sparks
@@ -168,6 +178,8 @@ format.tf <- function(
   }
   resolution <- get_resolution(tf_arg(x))
   signif_arg <- abs(floor(log10(resolution)))
+  # TODO: right now this makes a loong string or sparkline we then shorten,
+  #  should just create the short thing in the first place in string_rep, etc...
   if (is_irreg(x) || !cli::is_utf8_output()) {
     str <- string_rep_tf(
       x,
@@ -194,6 +206,7 @@ format.tf <- function(
     map_if(
       str,
       \(x) nchar(x) > width,
+      #TODO: do this in string_rep directly, don't print all (arg, val).
       \(x) paste0(substr(x, 1, width - 3), "...")
     ),
     use.names = FALSE

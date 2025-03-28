@@ -70,21 +70,22 @@ round_resolution <- function(arg, resolution, updown = 0) {
   }
 }
 
-is_equidist <- function(f) {
+# grids are "equidistant" if their distances deviate less
+# than tol * resolution (by default: by less than 10%)
+is_equidist <- function(f, tol = 1) {
   if (is_irreg(f)) {
     return(FALSE)
   }
-  unique_diffs <- map_lgl(
-    ensure_list(tf_arg(f)),
+  arg <- tf_arg(f)
+  f_resolution <- get_resolution(arg) * tol
+  equidist <- map_lgl(
+    ensure_list(arg),
     function(x) {
-      round_resolution(x, attr(f, "resolution")) |>
-        diff() |>
-        duplicated() |>
-        tail(-1) |>
-        all()
+      deviate <- diff(x) |> diff() |> abs() |> max()
+      deviate < f_resolution
     }
   )
-  all(unique_diffs)
+  all(equidist)
 }
 
 # get intersection of arg vectors
