@@ -41,21 +41,30 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
   map_if(str, grepl("NULL", str, fixed = TRUE), \(x) "NA")
 }
 
-# create a (binned) sparkline representation for a tfd_reg or tfb on equidistant grids
-spark_rep_tf <- function(x, bins = -1, range_x = range(unlist(evals)), ...) {
+# create a (binned) sparkline representation for a tfd_reg or tfb on
+# equidistant grids
+spark_rep_tf <- function(x, bins = -1, scale_x = range(unlist(evals))) {
   arg <- tf_arg(x)
-  if (bins < 0) {
+  gridlength <- length(arg)
+  if (bins < 0 || bins >= gridlength) {
     evals <- tf_evaluations(x)
   } else {
-    binwidth <- ceiling(length(arg) / bins)
-    new_arg <- arg[ceiling(seq(binwidth, length(arg), length = bins))]
+    binwidth <- ceiling(gridlength / bins)
+    use_index <- seq(binwidth, gridlength, length = bins) |>
+      round() |>
+      unique()
     evals <- x |>
       tf_smooth(method = "rollmean", k = binwidth, align = "right") |>
-      tfd(arg = new_arg) |>
       tf_evaluations() |>
+      map(`[`, use_index) |>
       suppressMessages()
   }
-  scaled <- map(evals, \(x) (x - range_x[1]) / diff(range_x))
+  scaled <- map(evals, function(x) {
+    ((x - scale_x[1]) / diff(scale_x)) |>
+      # avoid floating point errors that show up as gaps in sparkline:
+      pmin(1) |>
+      pmax(0)
+  })
   sparks <- map(scaled, cli::spark_bar)
   sparks[is.na(x)] <- "NA"
   sparks
@@ -102,7 +111,9 @@ print.tfd_reg <- function(x, n = 5, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    cat(format(x[seq_len(min(n, len))], ...), sep = "\n")
+    scl_x <- range(tf_evaluations(x))
+    format(x[seq_len(min(n, len))], n = n, scale_x = scl_x, ...) |>
+      cat(sep = "\n")
     if (n < len) {
       cat(paste0("    [....]   (", len - n, " not shown)\n"))
     }
@@ -132,7 +143,8 @@ print.tfd_irreg <- function(x, n = 5, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    cat(format(x[seq_len(min(n, len))], ...), sep = "\n")
+    format(x[seq_len(min(n, len))], n = n, ...) |>
+      cat(sep = "\n")
     if (n < len) {
       cat(paste0("    [....]   (", len - n, " not shown)\n"))
     }
@@ -147,8 +159,10 @@ print.tfb <- function(x, n = 5, ...) {
   cat(" in basis representation")
   len <- length(x)
   if (len > 0) {
+    scl_x <- range(tf_evaluations(x))
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
-    cat(format(x[seq_len(min(n, len))], ...), sep = "\n")
+    format(x[seq_len(min(n, len))], n = n, scale_x = scl_x, ...) |>
+      cat(sep = "\n")
     if (n < len) {
       cat(paste0("    [....]   (", len - n, " not shown)\n"))
     }
@@ -171,27 +185,23 @@ format.tf <- function(
   prefix = TRUE,
   ...
 ) {
-  long <- length(x) > n
-  if (long && width > 0 && width <= 30) {
-    #TODO: why this?
-    x <- head(x, n)
-  }
-  resolution <- get_resolution(tf_arg(x))
-  signif_arg <- abs(floor(log10(resolution)))
-  # TODO: right now this makes a loong string or sparkline we then shorten,
-  #  should just create the short thing in the first place in string_rep, etc...
   if (is_irreg(x) || !cli::is_utf8_output()) {
+    resolution <- get_resolution(tf_arg(x))
+    signif_arg <- abs(floor(log10(resolution)))
     str <- string_rep_tf(
-      x,
+      x[1:min(n, length(x))],
       signif_arg = if (signif_arg == 0) 1 else signif_arg,
       digits = digits,
       nsmall = nsmall,
       ...
     )
   } else {
-    #TODO: uses range of shortened vector (1:n) if called like this --
-    #  should probably determine value-range of whole vector first, then do this.
-    str <- spark_rep_tf(x, ...)
+    str <- spark_rep_tf(
+      x[1:min(n, length(x))],
+      # bins default: 5 chars to the left of sparkline for unnamed vectors
+      bins = list(...)$bins %||% (width - 5),
+      scale_x = list(...)$scale_x %||% range(tf_evaluations(x))
+    )
   }
 
   if (prefix) {
@@ -206,7 +216,6 @@ format.tf <- function(
     map_if(
       str,
       \(x) nchar(x) > width,
-      #TODO: do this in string_rep directly, don't print all (arg, val).
       \(x) paste0(substr(x, 1, width - 3), "...")
     ),
     use.names = FALSE
@@ -214,4 +223,20 @@ format.tf <- function(
 }
 
 # dynamically exported in zzz.R:
-format_glimpse.tf <- format.tf
+format_glimpse.tf <- function(
+  x,
+  digits = 2,
+  nsmall = 0,
+  n = 5,
+  prefix = TRUE,
+  ...
+) {
+  format.tf(
+    x,
+    digits = digits,
+    nsmall = nsmall,
+    n = n,
+    width = 10,
+    prefix = FALSE
+  ) #more compact by default
+}
