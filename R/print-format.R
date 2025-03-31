@@ -43,30 +43,30 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
 
 # create a (binned) sparkline representation for a tfd_reg or tfb on
 # equidistant grids
-spark_rep_tf <- function(x, bins = -1, scale_x = range(unlist(evals))) {
-  arg <- tf_arg(x)
+spark_rep_tf <- function(f, bins = -1, scale_f = range(unlist(evals))) {
+  arg <- tf_arg(f)
   gridlength <- length(arg)
   if (bins < 0 || bins >= gridlength) {
-    evals <- tf_evaluations(x)
+    evals <- tf_evaluations(f)
   } else {
     binwidth <- ceiling(gridlength / bins)
     use_index <- seq(binwidth, gridlength, length = bins) |>
       round() |>
       unique()
-    evals <- x |>
+    evals <- f |>
       tf_smooth(method = "rollmean", k = binwidth, align = "right") |>
       tf_evaluations() |>
       map(`[`, use_index) |>
       suppressMessages()
   }
   scaled <- map(evals, function(x) {
-    ((x - scale_x[1]) / diff(scale_x)) |>
+    ((x - scale_f[1]) / diff(scale_f)) |>
       # avoid floating point errors that show up as gaps in sparkline:
       pmin(1) |>
       pmax(0)
   })
   sparks <- map(scaled, cli::spark_bar)
-  sparks[is.na(x)] <- "NA"
+  sparks[is.na(f)] <- "NA"
   sparks
 }
 
@@ -75,13 +75,39 @@ spark_rep_tf <- function(x, bins = -1, scale_x = range(unlist(evals))) {
 
 #' Pretty printing and formatting for functional data
 #'
-#' Print/format `tf`-objects.
+#' Prints and formats `tf`-objects for display. See Details / examples for options that
+#' give finer control.
 #'
+#' By default, `tf` objects on regular grids are shown as
+#' [sparklines](cli::spark_bar), set `sparkline = FALSE` for a text
+#' representation.
+#'
+#' Sparklines are based on running mean values of the function values, but
+#' these don't check for non-equidistant grids, so the visual impression will be
+#' misleading for very unequal grid distances.
+#'
+#' Sparklines use
+#' `options()$width/3` bins for printing/formatting by default, use `bins`
+#' argument to set the number of bins explicitly.
+#' For [tibble::glimpse()], we use 8 bins by default for compact display.
 #' @rdname tfdisplay
-#' @param n how many elements of `x` to print out
-#' @returns prints out `x` and returns it invisibly
+#' @param n how many elements of `x` to print out at most
+#' @param ... handed over to [format.tf()]
+#' @returns **`print`**: prints out `x` and returns it invisibly
 #' @export
 #' @family tidyfun print
+#' @examples
+#' t <- seq(0, 1, l = 201)
+#' cosine <- lapply(1:4, \(i) cos(i * pi * t)) |> tfd(arg = t)
+#' cosine
+#' tf_sparsify(cosine, dropout = .8)
+#'
+#' format(cosine, sparkline = FALSE)
+#' format(cosine, bins = 5)
+#' format(cosine, bins = 40)
+#'
+#' #! very non-equidistant grids --> sparklines can mislead about actual shapes:
+#' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 5, ...) {
   domain <- tf_domain(x) |> sapply(format, ...)
   range <- range(tf_evaluations(x)) |> sapply(format, ...)
@@ -111,8 +137,8 @@ print.tfd_reg <- function(x, n = 5, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    scl_x <- range(tf_evaluations(x))
-    format(x[seq_len(min(n, len))], n = n, scale_x = scl_x, ...) |>
+    scale_ <- range(tf_evaluations(x))
+    format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
       cat(paste0("    [....]   (", len - n, " not shown)\n"))
@@ -143,7 +169,7 @@ print.tfd_irreg <- function(x, n = 5, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    format(x[seq_len(min(n, len))], n = n, ...) |>
+    format(x[seq_len(min(n, len))], prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
       cat(paste0("    [....]   (", len - n, " not shown)\n"))
@@ -159,9 +185,9 @@ print.tfb <- function(x, n = 5, ...) {
   cat(" in basis representation")
   len <- length(x)
   if (len > 0) {
-    scl_x <- range(tf_evaluations(x))
+    scale_ <- range(tf_evaluations(x))
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
-    format(x[seq_len(min(n, len))], n = n, scale_x = scl_x, ...) |>
+    format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
       cat(paste0("    [....]   (", len - n, " not shown)\n"))
@@ -174,22 +200,25 @@ print.tfb <- function(x, n = 5, ...) {
 
 #' @rdname tfdisplay
 #' @inheritParams base::format.default
-#' @param prefix used internally.
+#' @param prefix prefix with names / index positions? defaults to `FALSE`
+#' @param sparkline use a sparkline representation? defaults to `TRUE`
+#'   (not available for irregular data)
+#' @returns a character representation of `x`
 #' @export
 format.tf <- function(
   x,
   digits = 2,
   nsmall = 0,
   width = options()$width,
-  n = 5,
-  prefix = TRUE,
+  sparkline = TRUE,
+  prefix = FALSE,
   ...
 ) {
-  if (is_irreg(x) || !cli::is_utf8_output()) {
+  if (is_irreg(x) || !cli::is_utf8_output() || !sparkline) {
     resolution <- get_resolution(tf_arg(x))
     signif_arg <- abs(floor(log10(resolution)))
     str <- string_rep_tf(
-      x[1:min(n, length(x))],
+      x,
       signif_arg = if (signif_arg == 0) 1 else signif_arg,
       digits = digits,
       nsmall = nsmall,
@@ -197,10 +226,9 @@ format.tf <- function(
     )
   } else {
     str <- spark_rep_tf(
-      x[1:min(n, length(x))],
-      # bins default: 5 chars to the left of sparkline for unnamed vectors
-      bins = list(...)$bins %||% (width - 5),
-      scale_x = list(...)$scale_x %||% range(tf_evaluations(x))
+      x,
+      bins = list(...)$bins %||% floor(width / 3),
+      scale_f = list(...)$scale_f %||% range(tf_evaluations(x))
     )
   }
 
@@ -227,16 +255,15 @@ format_glimpse.tf <- function(
   x,
   digits = 2,
   nsmall = 0,
-  n = 5,
-  prefix = TRUE,
+  prefix = FALSE,
   ...
 ) {
-  format.tf(
-    x,
-    digits = digits,
-    nsmall = nsmall,
-    n = n,
-    width = 10,
-    prefix = FALSE
-  ) #more compact by default
+  dots <- list(...)
+  if (is.null(dots$bins)) {
+    dots$bins <- 8 #compact display by default
+  }
+  do.call(
+    format.tf,
+    c(list(x, digits = digits, nsmall = nsmall, prefix = FALSE), dots)
+  )
 }

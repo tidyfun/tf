@@ -1,4 +1,5 @@
 # tf 0.3.5
+* use sparklines for `print()/format()` for regular functional data
 * `tfd_irreg`-arithmetic now operates on intersection of arg-values instead of failing
   if arg-values are not identical
 * added `fda::fdSmooth` converter to `tfb`, implemented mgcv-style Fourier basis

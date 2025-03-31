@@ -1,19 +1,28 @@
 library("tf")
 options(width = 80)
 
-t <- seq(0, 1, l = 301)
-sincos <- purrr::map(1:5, \(i) cos(2 * pi * i * t)) |> tfd(arg = t)
-sincos
+t <- seq(0, 1, l = 101)
+cosine <- purrr::map(1:5, \(i) cos(2 * pi * i * t)) |> tfd(arg = t)
+cosine
 
-tfb(sincos)
+format(cosine, sparkline = FALSE)
+format(cosine, bins = 5)
+format(cosine, bins = 40)
 
-sincos |> tf_sparsify()
+#! very non-equidistant grids --> sparklines can mislead
+cosine_2 <- tfd(cosine, arg = t^3)
+format(cosine_2, bins = 40)
 
-sincos[1] <- NA
-sincos
+
+tfb(cosine)
+
+cosine |> tf_sparsify()
+
+cosine[1] <- NA
+cosine
 
 options(width = 40)
-sincos
+cosine
 
 tfb(tidyfun::dti_df$rcst[1:10])
 # if names are (too) long, rightmost edges get cut off :(
@@ -25,6 +34,9 @@ min_max <- tfd(rep(1, 20)) / 2^seq(-3, 3, l = 10)
 print(min_max, n = 3)
 print(min_max, n = 10)
 print(rev(min_max), n = 3)
+
+# check: sparkline work for non-equidistant grids
+cosine_g <- tfd(cosine, arg = t^3)
 
 # --------
 
@@ -54,10 +66,10 @@ tidyfun:::pillar_shaft.tf(tidyfun::chf_df$activity)
 # ---------
 
 microbenchmark::microbenchmark(
-  string = tf:::string_rep_tf(sincos),
-  nobin = tf:::spark_rep_tf(sincos),
-  bin30 = tf:::spark_rep_tf(sincos, bins = 30),
-  bin100 = tf:::spark_rep_tf(sincos, bins = 100)
+  string = tf:::string_rep_tf(cosine),
+  nobin = tf:::spark_rep_tf(cosine),
+  bin30 = tf:::spark_rep_tf(cosine, bins = 30),
+  bin100 = tf:::spark_rep_tf(cosine, bins = 100)
 )
 
 
@@ -77,19 +89,9 @@ microbenchmark::microbenchmark(
 
 #------------------------------------------------------------------------------
 
-# !! not working (well) in print.tbl_df:
+# working in print.tbl_df as well
 
-# does work in principle:
 tibble::tibble(a = 1:10, b = tf_rgp(10, arg = 5))
+
 # but not for real data:
 tidyfun::chf_df[, 7:8]
-tidyfun::chf_df[, 8:7]
-
-# reason (probably): since the default width of the format.tf output is
-# options()$width, pillar:::ctl_colonnade always detects overflowing lines for
-# the table body and omits these columns (and all columns after them):
-options(width = 1500)
-tidyfun::chf_df[, 7:8]
-
-# !! need to figure out a way to use more aggressive binning when called from pillar --
-# this seems to not be calling tidyfun:::pillar_shaft.tf but format.tf for some reason ...
