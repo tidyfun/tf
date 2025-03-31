@@ -79,7 +79,7 @@ spark_rep_tf <- function(f, bins = -1, scale_f = range(unlist(evals))) {
 #' give finer control.
 #'
 #' By default, `tf` objects on regular grids are shown as
-#' [sparklines](cli::spark_bar), set `sparkline = FALSE` for a text
+#' "sparklines" ([cli::spark_bar()]), set `sparkline = FALSE` for a text
 #' representation.
 #'
 #' Sparklines are based on running mean values of the function values, but

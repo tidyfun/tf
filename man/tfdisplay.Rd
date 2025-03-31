@@ -59,7 +59,7 @@
 \item{prefix}{prefix with names / index positions? defaults to \code{FALSE}}
 }
 \value{
-prints out \code{x} and returns it invisibly
+\strong{\code{print}}: prints out \code{x} and returns it invisibly
 
 a character representation of \code{x}
 }
@@ -69,7 +69,7 @@ give finer control.
 }
 \details{
 By default, \code{tf} objects on regular grids are shown as
-\href{cli::spark_bar}{sparklines}, set \code{sparkline = FALSE} for a text
+"sparklines" (\code{\link[cli:spark_bar]{cli::spark_bar()}}), set \code{sparkline = FALSE} for a text
 representation.
 
 Sparklines are based on running mean values of the function values, but
@@ -82,16 +82,16 @@ argument to set the number of bins explicitly.
 For \code{\link[tibble:reexports]{tibble::glimpse()}}, we use 8 bins by default for compact display.
 }
 \examples{
-t <- seq(0, 1, l = 101)
-cosine <- purrr::map(1:5, \(i) cos(2 * pi * i * t)) |> tfd(arg = t)
+t <- seq(0, 1, l = 201)
+cosine <- lapply(1:4, \(i) cos(i * pi * t)) |> tfd(arg = t)
 cosine
 tf_sparsify(cosine, dropout = .8)
 
 format(cosine, sparkline = FALSE)
 format(cosine, bins = 5)
 format(cosine, bins = 40)
-#! very non-equidistant grids --> sparklines can mislead
-cosine_2 <- tfd(cosine, arg = t^3)
-format(cosine_2, bins = 40)
+
+#! very non-equidistant grids --> sparklines can mislead about actual shapes:
+tfd(cosine, arg = t^3)
 }
 \concept{tidyfun print}
