@@ -21,17 +21,17 @@
   digits = 2,
   nsmall = 0,
   width = options()$width,
-  n = 5,
-  prefix = TRUE,
+  sparkline = TRUE,
+  prefix = FALSE,
   ...
 )
 }
 \arguments{
 \item{x}{any \R object (conceptually); typically numeric.}
 
-\item{n}{how many elements of \code{x} to print out}
+\item{n}{how many elements of \code{x} to print out at most}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{...}{handed over to \code{\link[=format.tf]{format.tf()}}}
 
 \item{digits}{a positive integer indicating how many significant digits
     are to be used for
@@ -53,12 +53,45 @@
     objects.  \code{NULL} corresponds to the default \code{12}.
   }
 
-\item{prefix}{used internally.}
+\item{sparkline}{use a sparkline representation? defaults to \code{TRUE}
+(not available for irregular data)}
+
+\item{prefix}{prefix with names / index positions? defaults to \code{FALSE}}
 }
 \value{
-prints out \code{x} and returns it invisibly
+\strong{\code{print}}: prints out \code{x} and returns it invisibly
+
+a character representation of \code{x}
 }
 \description{
-Print/format \code{tf}-objects.
+Prints and formats \code{tf}-objects for display. See Details / examples for options that
+give finer control.
+}
+\details{
+By default, \code{tf} objects on regular grids are shown as
+"sparklines" (\code{\link[cli:spark_bar]{cli::spark_bar()}}), set \code{sparkline = FALSE} for a text
+representation.
+
+Sparklines are based on running mean values of the function values, but
+these don't check for non-equidistant grids, so the visual impression will be
+misleading for very unequal grid distances.
+
+Sparklines use
+\code{options()$width/3} bins for printing/formatting by default, use \code{bins}
+argument to set the number of bins explicitly.
+For \code{\link[tibble:reexports]{tibble::glimpse()}}, we use 8 bins by default for compact display.
+}
+\examples{
+t <- seq(0, 1, l = 201)
+cosine <- lapply(1:4, \(i) cos(i * pi * t)) |> tfd(arg = t)
+cosine
+tf_sparsify(cosine, dropout = .8)
+
+format(cosine, sparkline = FALSE)
+format(cosine, bins = 5)
+format(cosine, bins = 40)
+
+#! very non-equidistant grids --> sparklines can mislead about actual shapes:
+tfd(cosine, arg = t^3)
 }
 \concept{tidyfun print}

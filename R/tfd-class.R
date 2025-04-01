@@ -43,7 +43,7 @@ new_tfd <- function(
     any.missing = FALSE,
     sorted = TRUE,
     len = 2,
-    unique = if (vec_size(datalist) == 1) FALSE else TRUE
+    unique = TRUE
   )
   u_args <- unlist(arg, use.names = FALSE)
   if (domain[1] > min(u_args) || max(u_args) > domain[2]) {
@@ -246,13 +246,15 @@ tfd.list <- function(
   ...
 ) {
   evaluator <- as_name(enexpr(evaluator))
-  vectors <- map_lgl(data, \(x) is.numeric(x) & !is.array(x))
+  vectors <- map_lgl(data, \(x) is.null(x) || (is.numeric(x) & !is.array(x)))
   if (all(vectors)) {
     where_na <- map(data, is.na)
     data <- map2(data, where_na, \(x, y) x[!y])
     lens <- lengths(data)
-    regular <- all(lens == lens[1]) &
-      (is.numeric(arg) || all(duplicated(arg)[-1])) # duplicated(NULL) == TRUE!
+    empty <- lens != 0
+    regular <- all(lens[!empty] == lens[!empty][1]) &
+      (is.numeric(arg) || all(duplicated(arg)[-1]))
+    # duplicated(NULL) == TRUE!
     if (!regular) {
       if (is.null(arg)) {
         cli::cli_abort("{.arg arg} cannot be NULL")
@@ -262,7 +264,7 @@ tfd.list <- function(
           "length of {.arg arg}-list does not match {.arg data}-list"
         )
       }
-      if (any(lengths(arg) != lengths(where_na))) {
+      if (any(lengths(arg)[!empty] != lengths(where_na)[!empty])) {
         cli::cli_abort(
           "lengths of {.arg arg}-vectors do not match lengths of {.arg data}-list entries"
         )

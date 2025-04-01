@@ -70,22 +70,43 @@ test_that("tfb_spline works for fda::fdSmooth input", {
 })
 
 test_that("tfb_spline defaults work for all kinds of irregular input", {
-  expect_s3_class(tfb_spline(irr, verbose = FALSE), "tfb_spline")
-  expect_message(tfb_spline(irr), "100")
-  expect_length(tfb_spline(irr, verbose = FALSE), length(irr))
-  expect_message(tfb_spline(irr_df), "100")
-
-  irr_tfb_ <- tfb_spline(irr_list, arg = tf_arg(irr), verbose = FALSE)
-  expect_s3_class(irr_tfb_, "tfb_spline")
-  expect_length(irr_tfb_, length(irr))
+  expect_warning(
+    tfb_spline(irr, verbose = FALSE),
+    "Sparse data"
+  )
+  expect_s3_class(
+    tfb_spline(irr, verbose = FALSE) |> suppressWarnings(),
+    "tfb_spline"
+  )
+  irr_tfb_1 <- tfb_spline(irr, verbose = FALSE) |> suppressWarnings()
+  expect_length(irr_tfb_1, length(irr))
   expect_equal(
-    tf_evaluate(irr_tfb_, tf_arg(irr)),
+    tf_evaluations(irr_tfb_1),
+    tfb_spline(irr_df, verbose = FALSE) |>
+      tf_evaluations() |>
+      suppressWarnings()
+  )
+
+  expect_warning(
+    tfb_spline(irr_list, arg = tf_arg(irr), verbose = FALSE),
+    "Sparse data"
+  )
+  irr_tfb_2 <- tfb_spline(irr_list, arg = tf_arg(irr), verbose = FALSE) |>
+    suppressWarnings()
+  expect_s3_class(irr_tfb_2, "tfb_spline")
+  expect_length(irr_tfb_2, length(irr))
+  expect_equal(
+    tf_evaluate(irr_tfb_2, tf_arg(irr)),
     tf_evaluations(irr),
     tolerance = 1e-1
   )
 
   for (dat in list(irr_matrix, irr_df)) {
-    irr_tfb_ <- tfb_spline(dat, verbose = FALSE)
+    expect_warning(
+      tfb_spline(dat, verbose = FALSE),
+      "Sparse data"
+    )
+    irr_tfb_ <- tfb_spline(dat, verbose = FALSE) |> suppressWarnings()
     expect_s3_class(irr_tfb_, "tfb_spline")
     expect_length(irr_tfb_, length(irr))
     expect_equal(
@@ -100,7 +121,7 @@ test_that("tfb_spline defaults work for all kinds of irregular input", {
 test_that("unpenalized tfb_spline works", {
   expect_error(
     tfb_spline(narrow, k = 11, penalized = FALSE, verbose = FALSE),
-    "reduce k"
+    "too sparse"
   )
   expect_s3_class(
     tfb_spline(narrow, k = 8, penalized = FALSE, verbose = FALSE),

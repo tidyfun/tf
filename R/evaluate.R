@@ -46,6 +46,9 @@ tf_evaluate.tfd <- function(
   ret <- pmap(
     list(arg, ensure_list(tf_arg(object)), tf_evaluations(object)),
     function(x, y, z) {
+      if (!length(z)) {
+        return(rep(NA_real_, length(x)))
+      }
       evaluate_tfd_once(
         new_arg = x,
         arg = y,
@@ -102,6 +105,9 @@ tf_evaluate.tfb <- function(object, arg, ...) {
     ret <- pmap(
       list(arg, ensure_list(tf_arg(object)), coef(object)),
       function(x, y, z) {
+        if (!length(z) || any(is.na(z))) {
+          return(rep(NA_real_, length(x)))
+        }
         evaluate_tfb_once(
           x = x,
           arg = y,

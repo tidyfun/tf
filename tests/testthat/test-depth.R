@@ -16,7 +16,7 @@ lin_irreg <- {
   tfd(m, evaluator = tf_approx_linear)
 }
 
-lin_b <- tfb(lin, verbose = FALSE)
+lin_b <- tfb(lin, verbose = FALSE) |> suppressWarnings()
 
 test_that("MBD works", {
   ranks <- c(1.5, 3.5, 5.5, 7, 5.5, 3.5, 1.5)

@@ -74,7 +74,7 @@ test_that("tf_combine works as expected", {
 
   tfs <- tf_split(x, splits = c(0.2, 0.6), include = "left")
   tfs2_sparse <- tf_sparsify(tfs[[2]])
-  tfs3_spline <- tfb(tfs[[3]], verbose = FALSE)
+  tfs3_spline <- tfb(tfs[[3]], verbose = FALSE) |> suppressWarnings()
   expect_class(tf_combine(tfs[[1]], tfs2_sparse, tfs3_spline), "tfd_irreg")
   expect_equal(
     tf_combine(tfs[[1]], tfs2_sparse, tfs3_spline) |> tf_domain(),
