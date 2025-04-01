@@ -5,9 +5,21 @@ new_tfd <- function(
   domain = NULL,
   evaluator
 ) {
-  # FIXME: names weirdness- tfd  objects will ALWAYS be named if they were
-  # created from an (intermediate) data.frame, but may be unnamed for different
-  # provenance....
+  # evaluator argument parsing needs to deal with indirection/lazy evals:
+  # 1) evaluator given as bare/quoted function name:
+  evaluator_f <- try(
+    get(evaluator, mode = "function", envir = parent.frame()),
+    silent = TRUE
+  )
+  if (!inherits(evaluator_f, "try-error")) {
+    # turn bare into quoted name if necessary
+    if (!is.character(evaluator)) evaluator <- deparse(evaluator)
+  } else {
+    # 2) given as string (x <- "tf_approx_bla") that's name of a function
+    evaluator <- get(evaluator, parent.frame())
+    evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
+  }
+
   if (
     vec_size(datalist) == 0 || all(is.na(unlist(datalist, use.names = FALSE)))
   ) {
@@ -20,7 +32,7 @@ new_tfd <- function(
       datalist,
       arg = arg,
       domain = domain,
-      evaluator = get(evaluator, mode = "function", envir = parent.frame()),
+      evaluator = evaluator_f,
       evaluator_name = evaluator,
       class = c(subclass, "tfd", "tf")
     )
@@ -28,7 +40,6 @@ new_tfd <- function(
   }
 
   assert_string(evaluator)
-  evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
   assert_function(evaluator_f, args = c("x", "arg", "evaluations"), nargs = 3)
 
   # sort args and values by arg:
