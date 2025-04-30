@@ -203,7 +203,7 @@ print.tfb <- function(x, n = 5, ...) {
 #' @param prefix prefix with names / index positions? defaults to `FALSE`
 #' @param sparkline use a sparkline representation? defaults to `TRUE`
 #'   (not available for irregular data)
-#' @returns a character representation of `x`
+#' @returns **format**: a sparkline or text representation of `x`
 #' @export
 format.tf <- function(
   x,
@@ -266,4 +266,9 @@ format_glimpse.tf <- function(
     format.tf,
     c(list(x, digits = digits, nsmall = nsmall, prefix = FALSE), dots)
   )
+}
+
+#' @export
+as.character.tf <- function(x, ...) {
+  string_rep_tf(x) |> unlist()
 }

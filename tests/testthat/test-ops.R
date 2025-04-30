@@ -52,7 +52,7 @@ test_that("tfd arithmetic operations with other tfd", {
   x_i <- tf_jiggle(x)
   expect_error(x + x_i, "no common argument values")
   expect_equal(x_i + x_i, x_i * 2)
-  
+
   expect_error(
     x_i + tf_jiggle(x_i),
     "no common argument values"
@@ -74,7 +74,7 @@ test_that("tfd arithmetic operations with other tfd", {
 
   # (no) recycling
   expect_no_error(x + x[1])
-  expect_equal((x + x[1])[2], x[2] + x[1] )
+  expect_equal((x + x[1])[2], x[2] + x[1])
   expect_error(x + tf_rgp(4), "incompatible vector sizes")
 })
 

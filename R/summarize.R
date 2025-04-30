@@ -32,6 +32,12 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
 #' (e.g. `tf_fmean` for means, `tf_fmax` for max. values) of each entry
 #' in a `tf`-vector.
 #'
+#' Note that `range.tf` works differently from other `Summary`-type functions:
+#'  it actually returns the interval in which all function values lie
+#'  (not two functions containing the pointwise min/max of all functions in the vector),
+#'  to ensure compatibility of `tf`-objects with the `ggplot2` library.
+#' Use `c(min(x), max(x))` for the functional range / envelope of the functions in `x`.
+
 #' @param x a `tf` object
 #' @param ... optional additional arguments.
 #' @returns a `tf` object with the computed result.\cr
@@ -77,6 +83,14 @@ median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
   }
 }
 
+#' @export
+#' @rdname tfsummaries
+range.tf <- function(..., na.rm = FALSE, finite = TRUE) {
+  evals <- map(list(...), tf_evaluations) |> unlist()
+  range(evals, na.rm = na.rm, finite = finite)
+}
+
+
 #' @inheritParams stats::sd
 #' @export
 #' @rdname tfsummaries
@@ -116,13 +130,12 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 summary.tf <- function(object, ...) {
   tf_depths <- tf_depth(object, ...)
   central <- which(tf_depths >= median(tf_depths))
-  central_half <- range(object[central])
   c(
     mean = mean(object),
     var = var(object),
     median = object[which.max(tf_depths)] |> unname(),
-    upper_mid = central_half[1],
-    lower_mid = central_half[2]
+    upper_mid = max(central_half),
+    lower_mid = min(central_half)
   )
 }
 

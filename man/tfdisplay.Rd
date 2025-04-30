@@ -61,7 +61,7 @@
 \value{
 \strong{\code{print}}: prints out \code{x} and returns it invisibly
 
-a character representation of \code{x}
+\strong{format}: a sparkline or text representation of \code{x}
 }
 \description{
 Prints and formats \code{tf}-objects for display. See Details / examples for options that

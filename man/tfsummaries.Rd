@@ -4,6 +4,7 @@
 \alias{tfsummaries}
 \alias{mean.tf}
 \alias{median.tf}
+\alias{range.tf}
 \alias{sd}
 \alias{sd.default}
 \alias{sd.tf}
@@ -16,6 +17,8 @@
 \method{mean}{tf}(x, ...)
 
 \method{median}{tf}(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...)
+
+\method{range}{tf}(..., na.rm = FALSE, finite = TRUE)
 
 sd(x, na.rm = FALSE)
 
@@ -66,6 +69,13 @@ These will return a \code{tf} object containing the respective \emph{functional}
 statistic. See \code{\link[=tf_fwise]{tf_fwise()}} for scalar summaries
 (e.g. \code{tf_fmean} for means, \code{tf_fmax} for max. values) of each entry
 in a \code{tf}-vector.
+}
+\details{
+Note that \code{range.tf} works differently from other \code{Summary}-type functions:
+it actually returns the interval in which all function values lie
+(not two functions containing the pointwise min/max of all functions in the vector),
+to ensure compatibility of \code{tf}-objects with the \code{ggplot2} library.
+Use \code{c(min(x), max(x))} for the functional range / envelope of the functions in \code{x}.
 }
 \seealso{
 \code{\link[=tf_fwise]{tf_fwise()}}
