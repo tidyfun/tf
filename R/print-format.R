@@ -120,7 +120,9 @@ spark_rep_tf <- function(
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> sapply(format, ...)
-  range <- range(tf_evaluations(x), na.rm = TRUE) |> sapply(format, ...)
+  range <- range(tf_evaluations(x), na.rm = TRUE) |>
+    sapply(format, ...) |>
+    suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
     class(x)[2],
@@ -193,7 +195,7 @@ print.tfd_irreg <- function(x, n = 6, ...) {
 print.tfb <- function(x, n = 5, ...) {
   NextMethod()
   cat(" in basis representation")
-  len <- length(x)
+  len <- vec_size(x)
   if (len > 0) {
     scale_ <- range(tf_evaluations(x), na.rm = TRUE)
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
