@@ -63,12 +63,18 @@ spark_rep_tf <- function(
       map(`[`, use_index) |>
       suppressMessages()
   }
-  scaled <- map(evals, function(x) {
-    ((x - scale_f[1]) / diff(scale_f)) |>
-      # avoid floating point errors that show up as gaps in sparkline:
-      pmin(1) |>
-      pmax(0)
-  })
+  # handle constant functions
+  range_f <- diff(scale_f)
+  if (range_f == 0) {
+    scaled <- map(evals, function(x) rep(0.5, length(x)))
+  } else {
+    scaled <- map(evals, function(x) {
+      ((x - scale_f[1]) / range_f) |>
+        # avoid floating point errors that show up as gaps in sparkline:
+        pmin(1) |>
+        pmax(0)
+    })
+  }
   sparks <- map(scaled, cli::spark_bar)
   sparks[is.na(f)] <- "NA"
   sparks
