@@ -101,7 +101,7 @@ spark_rep_tf <- function(
 #' argument to set the number of bins explicitly.
 #' For [tibble::glimpse()], we use 8 bins by default for compact display.
 #' @rdname tfdisplay
-#' @param n how many elements of `x` to print out at most
+#' @param n how many elements of `x` to print out at most, defaults to 6
 #' @param ... handed over to [format.tf()]
 #' @returns **`print`**: prints out `x` and returns it invisibly
 #' @export
@@ -118,7 +118,7 @@ spark_rep_tf <- function(
 #'
 #' #! very non-equidistant grids --> sparklines can mislead about actual shapes:
 #' tfd(cosine, arg = t^3)
-print.tf <- function(x, n = 5, ...) {
+print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> sapply(format, ...)
   range <- range(tf_evaluations(x), na.rm = TRUE) |> sapply(format, ...)
   cat(paste0(
@@ -141,7 +141,7 @@ print.tf <- function(x, n = 5, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfd_reg <- function(x, n = 5, ...) {
+print.tfd_reg <- function(x, n = 6, ...) {
   NextMethod()
   cat(" based on", length(tf_arg(x)), "evaluations each\n")
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
@@ -159,7 +159,7 @@ print.tfd_reg <- function(x, n = 5, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfd_irreg <- function(x, n = 5, ...) {
+print.tfd_irreg <- function(x, n = 6, ...) {
   NextMethod()
   nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
   n_evals <- tf_count(x[!nas])
@@ -248,7 +248,9 @@ format.tf <- function(
     } else {
       paste0("[", seq_along(str), "]")
     }
-    str <- map2(prefix, str, \(x, y) paste0(x, ": ", y))
+    max_length <- max(nchar(prefix))
+    str <- format(prefix, justify = "left") |>
+      map2(str, \(x, y) paste0(x, ": ", y))
   }
   unlist(
     map_if(
