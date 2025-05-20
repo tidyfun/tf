@@ -63,12 +63,18 @@ spark_rep_tf <- function(
       map(`[`, use_index) |>
       suppressMessages()
   }
-  scaled <- map(evals, function(x) {
-    ((x - scale_f[1]) / diff(scale_f)) |>
-      # avoid floating point errors that show up as gaps in sparkline:
-      pmin(1) |>
-      pmax(0)
-  })
+  # handle constant functions
+  range_f <- diff(scale_f)
+  if (range_f == 0) {
+    scaled <- map(evals, function(x) rep(0.5, length(x)))
+  } else {
+    scaled <- map(evals, function(x) {
+      ((x - scale_f[1]) / range_f) |>
+        # avoid floating point errors that show up as gaps in sparkline:
+        pmin(1) |>
+        pmax(0)
+    })
+  }
   sparks <- map(scaled, cli::spark_bar)
   sparks[is.na(f)] <- "NA"
   sparks
@@ -95,7 +101,7 @@ spark_rep_tf <- function(
 #' argument to set the number of bins explicitly.
 #' For [tibble::glimpse()], we use 8 bins by default for compact display.
 #' @rdname tfdisplay
-#' @param n how many elements of `x` to print out at most
+#' @param n how many elements of `x` to print out at most, defaults to 6
 #' @param ... handed over to [format.tf()]
 #' @returns **`print`**: prints out `x` and returns it invisibly
 #' @export
@@ -112,9 +118,11 @@ spark_rep_tf <- function(
 #'
 #' #! very non-equidistant grids --> sparklines can mislead about actual shapes:
 #' tfd(cosine, arg = t^3)
-print.tf <- function(x, n = 5, ...) {
+print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> sapply(format, ...)
-  range <- range(tf_evaluations(x), na.rm = TRUE) |> sapply(format, ...)
+  range <- range(tf_evaluations(x), na.rm = TRUE) |>
+    sapply(format, ...) |>
+    suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
     class(x)[2],
@@ -135,7 +143,7 @@ print.tf <- function(x, n = 5, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfd_reg <- function(x, n = 5, ...) {
+print.tfd_reg <- function(x, n = 6, ...) {
   NextMethod()
   cat(" based on", length(tf_arg(x)), "evaluations each\n")
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
@@ -153,7 +161,7 @@ print.tfd_reg <- function(x, n = 5, ...) {
 
 #' @rdname tfdisplay
 #' @export
-print.tfd_irreg <- function(x, n = 5, ...) {
+print.tfd_irreg <- function(x, n = 6, ...) {
   NextMethod()
   nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
   n_evals <- tf_count(x[!nas])
@@ -187,7 +195,7 @@ print.tfd_irreg <- function(x, n = 5, ...) {
 print.tfb <- function(x, n = 5, ...) {
   NextMethod()
   cat(" in basis representation")
-  len <- length(x)
+  len <- vec_size(x)
   if (len > 0) {
     scale_ <- range(tf_evaluations(x), na.rm = TRUE)
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
@@ -242,7 +250,9 @@ format.tf <- function(
     } else {
       paste0("[", seq_along(str), "]")
     }
-    str <- map2(prefix, str, \(x, y) paste0(x, ": ", y))
+    max_length <- max(nchar(prefix))
+    str <- format(prefix, justify = "left") |>
+      map2(str, \(x, y) paste0(x, ": ", y))
   }
   unlist(
     map_if(

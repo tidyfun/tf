@@ -8,11 +8,11 @@
 \alias{format.tf}
 \title{Pretty printing and formatting for functional data}
 \usage{
-\method{print}{tf}(x, n = 5, ...)
+\method{print}{tf}(x, n = 6, ...)
 
-\method{print}{tfd_reg}(x, n = 5, ...)
+\method{print}{tfd_reg}(x, n = 6, ...)
 
-\method{print}{tfd_irreg}(x, n = 5, ...)
+\method{print}{tfd_irreg}(x, n = 6, ...)
 
 \method{print}{tfb}(x, n = 5, ...)
 
@@ -29,7 +29,7 @@
 \arguments{
 \item{x}{any \R object (conceptually); typically numeric.}
 
-\item{n}{how many elements of \code{x} to print out at most}
+\item{n}{how many elements of \code{x} to print out at most, defaults to 6}
 
 \item{...}{handed over to \code{\link[=format.tf]{format.tf()}}}
 
