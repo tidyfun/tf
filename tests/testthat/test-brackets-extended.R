@@ -49,7 +49,7 @@ test_that("[.tf works with all indexing types", {
   # Test numeric indexing
   expect_equal(length(data$tfd_reg[1:3]), 3)
   expect_equal(length(data$tfd_reg[c(1, 3, 5)]), 3)
-  expect:equal(names(data$tfd_reg[1:3]), names(data$tfd_reg)[1:3])
+  expect_equal(names(data$tfd_reg[1:3]), names(data$tfd_reg)[1:3])
 
   # Test negative indexing
   expect_identical(data$tfd_reg[-1], data$tfd_reg[2:8])
@@ -273,7 +273,7 @@ test_that("[<-.tf handles type casting and warnings", {
   x_reg <- data$tfd_reg[1:3]
   # This may or may not warn depending on the internal casting behavior
   expect_warning(x_reg[1] <- data$tfb_spl[1], "casting")
-  x_reg[1] <- suppressWarnings(data$tfb_spl[1])
+  suppressWarnings(x_reg[1] <- data$tfb_spl[1])
   expect_s3_class(x_reg, "tfd_reg")
 })
 
