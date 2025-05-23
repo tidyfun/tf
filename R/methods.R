@@ -234,7 +234,7 @@ is.na.tf <- function(x) {
 #' @rdname tfmethods
 #' @export
 is.na.tfd_irreg <- function(x) {
-  map_lgl(unclass(x), \(x) is.null(x) || is.na(x$value[1]))
+  map_lgl(unclass(x), \(x) is.null(x$value) || is.na(x$value[1]))
 }
 
 #-------------------------------------------------------------------------------

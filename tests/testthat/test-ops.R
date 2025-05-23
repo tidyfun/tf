@@ -32,6 +32,15 @@ test_that("tfd arithmetic operations with numeric", {
   expect_equal(2 * x_i, x_i * 2)
   expect_equal(tf_evaluations(x_i - 2), tf_evaluations(-2 + x))
   expect_equal(tf_evaluations(x_i / 2), tf_evaluations(x / 2))
+  expect_equal((x_i - 2) + 2, x_i)
+  expect_equal(
+    as.matrix(x_i^2) |> suppressWarnings(),
+    as.matrix(x_i)^2 |> suppressWarnings()
+  )
+  expect_equal(
+    as.matrix(2^x_i) |> suppressWarnings(),
+    2^as.matrix(x_i) |> suppressWarnings()
+  )
 })
 
 test_that("tfd arithmetic operations with other tfd", {
@@ -43,15 +52,7 @@ test_that("tfd arithmetic operations with other tfd", {
   x_i <- tf_jiggle(x)
   expect_error(x + x_i, "no common argument values")
   expect_equal(x_i + x_i, x_i * 2)
-  expect_equal((x_i - 2) + 2, x_i)
-  expect_equal(
-    as.matrix(x_i^2) |> suppressWarnings(),
-    as.matrix(x_i)^2 |> suppressWarnings()
-  )
-  expect_equal(
-    as.matrix(2^x_i) |> suppressWarnings(),
-    2^as.matrix(x_i) |> suppressWarnings()
-  )
+  
   expect_error(
     x_i + tf_jiggle(x_i),
     "no common argument values"
@@ -71,8 +72,9 @@ test_that("tfd arithmetic operations with other tfd", {
     (as.matrix(x) + as.matrix(y)) |> suppressWarnings()
   )
 
-  # no recycling
+  # (no) recycling
   expect_no_error(x + x[1])
+  expect_equal((x + x[1])[2], x[2] + x[1] )
   expect_error(x + tf_rgp(4), "incompatible vector sizes")
 })
 
@@ -134,7 +136,7 @@ test_that("tfb_spline arithmetic operations with numeric", {
   )
 
   # no recycling
-  expect_error(x * 1:2)
+  expect_error(x * 1:2, "recycle")
 })
 
 test_that("tfb arithmetic operations with other tfb", {

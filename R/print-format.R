@@ -43,7 +43,11 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
 
 # create a (binned) sparkline representation for a tfd_reg or tfb on
 # equidistant grids
-spark_rep_tf <- function(f, bins = -1, scale_f = range(unlist(evals))) {
+spark_rep_tf <- function(
+  f,
+  bins = -1,
+  scale_f = range(unlist(evals), na.rm = TRUE)
+) {
   arg <- tf_arg(f)
   gridlength <- length(arg)
   if (bins < 0 || bins >= gridlength) {
@@ -110,7 +114,7 @@ spark_rep_tf <- function(f, bins = -1, scale_f = range(unlist(evals))) {
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 5, ...) {
   domain <- tf_domain(x) |> sapply(format, ...)
-  range <- range(tf_evaluations(x)) |> sapply(format, ...)
+  range <- range(tf_evaluations(x), na.rm = TRUE) |> sapply(format, ...)
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
     class(x)[2],
@@ -137,7 +141,7 @@ print.tfd_reg <- function(x, n = 5, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    scale_ <- range(tf_evaluations(x))
+    scale_ <- range(tf_evaluations(x), na.rm = TRUE)
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
@@ -185,7 +189,7 @@ print.tfb <- function(x, n = 5, ...) {
   cat(" in basis representation")
   len <- length(x)
   if (len > 0) {
-    scale_ <- range(tf_evaluations(x))
+    scale_ <- range(tf_evaluations(x), na.rm = TRUE)
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
@@ -228,7 +232,7 @@ format.tf <- function(
     str <- spark_rep_tf(
       x,
       bins = list(...)$bins %||% floor(width / 3),
-      scale_f = list(...)$scale_f %||% range(tf_evaluations(x))
+      scale_f = list(...)$scale_f %||% range(tf_evaluations(x), na.rm = TRUE)
     )
   }
 

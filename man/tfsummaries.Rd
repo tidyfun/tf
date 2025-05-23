@@ -56,10 +56,10 @@ the median. One of the functional data depths available via \code{\link[=tf_dept
 }
 \value{
 a \code{tf} object with the computed result.\cr
-\strong{\code{summary.tf}} returns a \code{tf}-vector with the mean function, the
-variance function, the functional median, and the functional range
-(i.e., the \emph{pointwise} min/max) of the central half of the functions,
-as defined by \code{\link[=tf_depth]{tf_depth()}}.
+\strong{\code{summary.tf}} returns a \code{tf}-vector with the mean function, the functional
+median, the \emph{pointwise} min and max of \code{x}, and the \emph{pointwise} min and max
+of the central half of the functions in \code{x}, as defined by MBD (see
+\code{\link[=tf_depth]{tf_depth()}}).
 }
 \description{
 These will return a \code{tf} object containing the respective \emph{functional}

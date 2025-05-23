@@ -1,6 +1,6 @@
 # used for Summary group generics and stats-methods...
 # op has to be a string!
-summarize_tf <- function(..., op = NULL, eval = FALSE) {
+summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
   dots <- list(...)
   funs <- map_lgl(dots, is_tf)
   op_args <- dots[!funs]
@@ -11,17 +11,38 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
   # - not done here for transparency reasons.
   m <- suppressWarnings(as.matrix(funs))
   value <- apply(m, 2, op_call) |> unname() |> list()
+
   args <- c(value, arg = list(attr(m, "arg")), domain = list(tf_domain(funs)))
   if (eval) {
     ret <- do.call(tfd, c(args, evaluator = attr(funs, "evaluator_name")))
+    empty <- length(ret) == 0
+    if (empty) ret <- c(ret, NA)
+
     if (is_irreg(funs) && !is_irreg(ret)) ret <- as.tfd_irreg(ret)
     if (!is_irreg(funs) && is_irreg(ret)) ret <- as.tfd(ret)
-    return(ret)
+
+    na_rm <- dots$na.rm %||% FALSE
+    if ((empty | is_irreg(ret) & !na_rm) & verbose) {
+      if (empty) {
+        warn_text <- "NA created."
+      } else {
+        warn_text <- "Returning irregular {.cls tfd}."
+      }
+      cli::cli_warn(
+        message = c(
+          x = warn_text,
+          i = "{round(mean(is.na(unlist(value))),2)*100}% of results of argument-wise {.code {op}} were {.code NA}",
+          `>` = "Set {.code na.rm = TRUE} and/or interpolate irregular inputs to a regular grid first."
+        )
+      )
+    }
+    return(unname(ret))
   }
-  do.call(
+  ret <- do.call(
     tfb,
     c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args"))
-  )
+  ) |>
+    unname()
 }
 #-------------------------------------------------------------------------------
 
@@ -35,10 +56,10 @@ summarize_tf <- function(..., op = NULL, eval = FALSE) {
 #' @param x a `tf` object
 #' @param ... optional additional arguments.
 #' @returns a `tf` object with the computed result.\cr
-#' **`summary.tf`** returns a `tf`-vector with the mean function, the
-#' variance function, the functional median, and the functional range
-#' (i.e., the *pointwise* min/max) of the central half of the functions,
-#' as defined by [tf_depth()].
+#' **`summary.tf`** returns a `tf`-vector with the mean function, the functional
+#'   median, the *pointwise* min and max of `x`, and the *pointwise* min and max
+#'   of the central half of the functions in `x`, as defined by MBD (see
+#'   [tf_depth()]).
 #' @name tfsummaries
 #' @family tidyfun summary functions
 #' @seealso [tf_fwise()]
@@ -71,10 +92,11 @@ median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
     cli::cli_inform(c(
       x = "{length(med)} observations with maximal depth, returning their mean."
     ))
-    mean(med)
+    ret <- mean(med)
   } else {
-    med
+    ret <- med
   }
+  unname(ret)
 }
 
 #' @inheritParams stats::sd
@@ -109,25 +131,29 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
   summarize_tf(x, na.rm = na.rm, op = "var", eval = is_tfd(x))
 }
 
-# cov / cor # needs image class/fpca methods
 #' @param object a `tfd` object
 #' @export
 #' @rdname tfsummaries
 summary.tf <- function(object, ...) {
+  if (length(object) == 0) {
+    ret <- c(object, rep(NA, 6))
+    names(ret) <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+    return(ret)
+  }
   tf_depths <- tf_depth(object, ...)
   central <- which(tf_depths >= median(tf_depths))
-  central_half <- range(object[central])
+
   c(
-    mean = mean(object),
-    var = var(object),
-    median = object[which.max(tf_depths)] |> unname(),
-    upper_mid = central_half[1],
-    lower_mid = central_half[2]
+    min = min(object, na.rm = TRUE),
+    lower_mid = min(object[central], na.rm = TRUE),
+    median = median(object, na.rm = TRUE),
+    mean = mean(object, na.rm = TRUE),
+    upper_mid = max(object[central], na.rm = TRUE),
+    max = max(object, na.rm = TRUE)
   )
 }
 
 #-------------------------------------------------------------------------------
-# nocov start
 #' @rdname tfgroupgenerics
 #' @export
 Summary.tf <- function(...) {
@@ -186,4 +212,3 @@ cumsum.tfb <- function(...) {
 cumprod.tfb <- function(...) {
   summarize_tf(..., op = "cumprod", eval = FALSE)
 }
-# nocov end
