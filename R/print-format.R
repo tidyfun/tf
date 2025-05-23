@@ -114,7 +114,9 @@ spark_rep_tf <- function(
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 5, ...) {
   domain <- tf_domain(x) |> sapply(format, ...)
-  range <- range(tf_evaluations(x), na.rm = TRUE) |> sapply(format, ...)
+  range <- range(tf_evaluations(x), na.rm = TRUE) |>
+    suppressWarnings() |> # avoid for empty functions / NAs
+    sapply(format, ...)
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
     class(x)[2],

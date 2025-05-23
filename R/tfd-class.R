@@ -43,6 +43,7 @@ new_tfd <- function(
   assert_function(evaluator_f, args = c("x", "arg", "evaluations"), nargs = 3)
 
   # sort args and values by arg:
+  arg <- ensure_list(arg)
   arg_o <- map(arg, order)
   arg <- map2(arg, arg_o, \(x, y) x[y])
   datalist <- map2(datalist, arg_o, \(x, y) unname(x[y]))
@@ -257,7 +258,10 @@ tfd.list <- function(
   ...
 ) {
   evaluator <- as_name(enexpr(evaluator))
-  vectors <- map_lgl(data, \(x) is.null(x) || (is.numeric(x) & !is.array(x)))
+  vectors <- map_lgl(
+    data,
+    \(x) is.null(x) || all(is.na(x)) || (is.numeric(x) & !is.array(x))
+  )
   if (all(vectors)) {
     where_na <- map(data, is.na)
     data <- map2(data, where_na, \(x, y) x[!y])

@@ -74,7 +74,9 @@ tf_smooth.tfd <- function(
   ...
 ) {
   method <- match.arg(method)
-  smoother <- get(method, mode = "function")
+  # wrap to catch NA entries etc in x:
+  smoother <- get(method, mode = "function") |>
+    purrr::possibly(otherwise = NA_real_, quiet = FALSE)
   dots <- list(...)
   # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
