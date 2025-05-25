@@ -44,10 +44,11 @@ Imports:
     stats,
     vctrs (>= 0.2.4),
     zoo
-Suggests: 
+Suggests:
     covr,
     dplyr,
     fda,
+    fdasrvf,
     knitr,
     refund,
     testthat (>= 3.0.0)
@@ -76,6 +77,7 @@ Collate:
     'methods.R'
     'print-format.R'
     'rebase.R'
+    'register.R'
     'rng.R'
     'smooth.R'
     'soft-impute-svd.R'

@@ -31,7 +31,10 @@ assert_same_domains <- function(x, to) {
   )
 }
 
-assert_arg <- function(arg, x, check_unique = TRUE) {
+assert_arg <- function(arg, x, check_unique = TRUE, null_ok = FALSE) {
+  if (null_ok && is.null(arg)) {
+    return()
+  }
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
     walk(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
@@ -44,11 +47,11 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
   domain_x <- tf_domain(x)
   assert_numeric(
     arg,
+    lower = domain_x[1],
+    upper = domain_x[2],
     any.missing = FALSE,
     unique = check_unique,
-    sorted = TRUE,
-    lower = domain_x[1],
-    upper = domain_x[2]
+    sorted = TRUE
   )
 }
 
@@ -67,7 +70,9 @@ assert_compatible_size <- function(op, x, y) {
 
 assert_tf <- function(x) assert_class(x, "tf")
 
-assert_tfd <- function(x) assert_class(x, "tfd")
+assert_tfd <- function(x, null_ok = FALSE) {
+  assert_class(x, "tfd", null.ok = null_ok)
+}
 
 assert_tfb <- function(x) assert_class(x, "tfb")
 
