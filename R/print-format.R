@@ -237,10 +237,11 @@ format.tf <- function(
       ...
     )
   } else {
+    dots <- list(...)
     str <- spark_rep_tf(
       x,
-      bins = list(...)$bins %||% floor(width / 3),
-      scale_f = list(...)$scale_f %||% range(tf_evaluations(x), na.rm = TRUE)
+      bins = dots$bins %||% floor(width / 3),
+      scale_f = dots$scale_f %||% range(tf_evaluations(x), na.rm = TRUE)
     )
   }
 

@@ -129,10 +129,7 @@ tf_evaluator_expr <- function(f) {
   }
   evaluator <- get(value, mode = "function", envir = parent.frame())
   assert_tfd(x)
-  assert_set_equal(
-    names(formals(evaluator)),
-    c("x", "arg", "evaluations")
-  )
+  assert_set_equal(formalArgs(evaluator), c("x", "arg", "evaluations"))
   attr(x, "evaluator_name") <- value
   attr(x, "evaluator") <- evaluator
   x
