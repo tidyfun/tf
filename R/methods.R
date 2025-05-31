@@ -45,7 +45,7 @@ tf_evaluations.tfd_irreg <- function(f) {
 #' @export
 tf_evaluations.tfb <- function(f) {
   evals <- map(f, \(x) drop(attr(f, "basis_matrix") %*% x) |> unname())
-  if (!is_tfb_fpc(f) & vec_size(f) > 0) {
+  if (!is_tfb_fpc(f) && vec_size(f) > 0) {
     evals <- map(evals, attr(f, "family")$linkinv)
   }
   evals

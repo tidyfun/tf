@@ -22,7 +22,7 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
     if (!is_irreg(funs) && is_irreg(ret)) ret <- as.tfd(ret)
 
     na_rm <- dots$na.rm %||% FALSE
-    if ((empty | is_irreg(ret) & !na_rm) & verbose) {
+    if ((empty || is_irreg(ret) && !na_rm) && verbose) {
       if (empty) {
         warn_text <- "NA created."
       } else {
