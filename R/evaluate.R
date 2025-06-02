@@ -105,7 +105,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
     ret <- pmap(
       list(arg, ensure_list(tf_arg(object)), coef(object)),
       function(x, y, z) {
-        if (!length(z) || any(is.na(z))) {
+        if (!length(z) || anyNA(z)) {
           return(rep(NA_real_, length(x)))
         }
         evaluate_tfb_once(

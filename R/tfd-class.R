@@ -84,7 +84,7 @@ new_tfd <- function(
     arg <- numeric(0)
     class <- "tfd_irreg"
   } else {
-    nas <- map_lgl(datalist, \(x) any(is.na(x)))
+    nas <- map_lgl(datalist, anyNA)
     if (any(nas)) {
       cli::cli_warn("{sum(nas)} {.code NA} entries (empty functions) created.")
     }
