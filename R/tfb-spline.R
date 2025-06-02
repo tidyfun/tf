@@ -405,6 +405,68 @@ tfb_spline.list <- function(
 }
 
 #' @export
+#' @describeIn tfb_spline convert `fd` objects. Almost exact re-representation for
+#'    objects using Fourier- or B-spline bases, other `fda`-style bases are not implemented here.
+tfb_spline.fd <- function(
+  data,
+  arg = NULL,
+  domain = NULL,
+  penalized = FALSE,
+  global = FALSE,
+  verbose = TRUE,
+  ...
+) {
+  rlang::check_installed("fda")
+  bs <- switch(
+    data$basis$type,
+    bspline = "bs",
+    fourier = "fourier",
+    {
+      cli::cli_warn(c(
+        "exact {.cls fd} conversion not implemented for this {.pkg fda} basis type.",
+        x = "Using {.pkg mgcv} basis 'bs', original basis type was {.val {data$basis$type}}.",
+        i = "Only {.pkg fda}-compatible B-Spline and Fourier bases are implemented in {.pkg tf}."
+      ))
+      "bs"
+    }
+  )
+  xt <- list()
+  if (bs == "fourier") {
+    xt$period <- data$basis$params
+  }
+  domain <- domain %||% data$basis$rangeval
+  if (is.null(arg)) {
+    arg <- seq(domain[1], domain[2], length.out = 100)
+    if (verbose) {
+      cli::cli_inform(
+        "No {.arg arg} provided, using {length(arg)} equally spaced points over domain [{domain[1]}, {domain[2]}]"
+      )
+    }
+  }
+  k <- data$basis$nbasis
+  if (bs == "bs" && k < 4) {
+    k <- 4
+    cli::cli_warn(
+      "no. of basis functions {.arg k} set to 4 (was {data$basis$nbasis})"
+    )
+  }
+  # use (unpenalized) fit to *smoothed* data by default, not to data$y!
+  smoothed <- mat_2_df(t(fda::eval.basis(arg, data$basis) %*% data$coefs), arg)
+
+  new_tfb_spline(
+    smoothed,
+    domain = domain,
+    penalized = penalized,
+    global = global,
+    verbose = verbose,
+    k = k,
+    bs = bs,
+    xt = xt,
+    ...
+  )
+}
+
+#' @export
 #' @describeIn tfb_spline convert `fdSmooth` objects. Almost exact re-representation for
 #'    objects using Fourier- or B-spline bases, other `fda`-style bases are not implemented here.
 tfb_spline.fdSmooth <- function(
@@ -416,48 +478,14 @@ tfb_spline.fdSmooth <- function(
   verbose = TRUE,
   ...
 ) {
-  rlang::check_installed("fda")
-  bs <- switch(
-    data$fd$basis$type,
-    bspline = "bs",
-    fourier = "fourier",
-    {
-      cli::cli_warn(c(
-        "exact {.cls fdSmooth} conversion not implemented for this {.pkg fda} basis type.",
-        x = "Using {.pkg mgcv} basis 'bs', original basis type was {.val {data$fd$basis$type}}.",
-        i = "Only {.pkg fda}-compatible B-Spline and Fourier bases are implemented in {.pkg tf}."
-      ))
-      "bs"
-    }
-  )
-  xt <- list()
-  if (bs == "fourier") {
-    xt$period <- data$fd$basis$params
-  }
-  domain <- domain %||% data$fd$basis$rangeval
   arg <- arg %||% as.numeric(data$argvals)
-  k <- data$fd$basis$nbasis
-  if (bs == "bs" && k < 4) {
-    k <- 4
-    cli::cli_warn(
-      "no. of basis functions {.arg k} set to 4 (was {data$fd$basis$nbasis})"
-    )
-  }
-  # use (unpenalized) fit to *smoothed* data by default, not to data$y!
-  smoothed <- mat_2_df(
-    t(fda::eval.basis(arg, data$fd$basis) %*% data$fd$coefs),
-    arg
-  )
-
-  new_tfb_spline(
-    smoothed,
+  tfb_spline.fd(
+    data = data$fd,
+    arg = arg,
     domain = domain,
     penalized = penalized,
     global = global,
     verbose = verbose,
-    k = k,
-    bs = bs,
-    xt = xt,
     ...
   )
 }

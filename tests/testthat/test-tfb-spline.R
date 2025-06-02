@@ -23,7 +23,7 @@ test_that("tfb_spline defaults work for all kinds of regular input", {
   }
 })
 
-test_that("tfb_spline works for fda::fdSmooth input", {
+test_that("tfb_spline works for fda::fd input", {
   skip_if_not_installed("fda")
 
   set.seed(1234)
@@ -34,15 +34,15 @@ test_that("tfb_spline works for fda::fdSmooth input", {
 
   # b-splines
   basis <- fda::create.bspline.basis(rangeval = c(0, 10), nbasis = k)
-  smoo_fda <- fda::smooth.basis(arg, data, basis)
-  expect_no_message(tfb_ <- tfb_spline(smoo_fda, verbose = FALSE))
+  smoo_fda <- fda::smooth.basis(arg, data, basis)$fd
+  expect_no_message(tfb_ <- tfb_spline(smoo_fda, arg = arg, verbose = FALSE))
   expect_s3_class(tfb_, "tfb_spline")
   expect_length(tfb_, i)
   expect_identical(attr(tfb_, "basis_args")$k, k)
   expect_identical(attr(tfb_, "basis_args")$bs, "bs")
   expect_identical(tf_domain(tfb_), c(0, 10))
   expect_equal(
-    fda::eval.basis(arg, basis) %*% smoo_fda$fd$coefs,
+    fda::eval.basis(arg, basis) %*% smoo_fda$coefs,
     as.matrix(tfb_) |> t(),
     tolerance = 1e-4,
     ignore_attr = TRUE
@@ -54,19 +54,46 @@ test_that("tfb_spline works for fda::fdSmooth input", {
     nbasis = k,
     period = 10
   )
-  smoo_fda <- fda::smooth.basis(arg, data, basis)
-  expect_no_message(tfb_ <- tfb_spline(smoo_fda, verbose = FALSE))
+  smoo_fda <- fda::smooth.basis(arg, data, basis)$fd
+  expect_no_message(tfb_ <- tfb_spline(smoo_fda, arg = arg, verbose = FALSE))
   expect_s3_class(tfb_, "tfb_spline")
   expect_length(tfb_, i)
   expect_identical(attr(tfb_, "basis_args")$k, k)
   expect_identical(attr(tfb_, "basis_args")$bs, "fourier")
   expect_identical(tf_domain(tfb_), c(0, 10))
   expect_equal(
-    fda::eval.basis(arg, basis) %*% smoo_fda$fd$coefs,
+    fda::eval.basis(arg, basis) %*% smoo_fda$coefs,
     as.matrix(tfb_) |> t(),
     tolerance = 1e-4,
     ignore_attr = TRUE
   )
+})
+
+test_that("tfb_spline works for fda::fdSmooth input", {
+  skip_if_not_installed("fda")
+
+  set.seed(1234)
+  arg <- seq(0, 10, length.out = 100)
+  i <- 5
+  k <- 25
+  data <- sapply(seq_len(i), \(i) sin(arg) + rnorm(length(arg), 0, 0.01))
+
+  basis <- fda::create.bspline.basis(rangeval = c(0, 10), nbasis = k)
+  smoo_fda <- fda::smooth.basis(arg, data, basis)
+  tfb_fdsmooth <- tfb_spline(smoo_fda, verbose = FALSE)
+  tfb_fd <- tfb_spline(smoo_fda$fd, arg = arg, verbose = FALSE)
+  expect_identical(tfb_fdsmooth, tfb_fd)
+
+  # custom arg vector
+  expect_message(
+    tfb_smooth <- tfb_spline(
+      smoo_fda,
+      arg = seq(0, 10, length.out = 50),
+      verbose = TRUE
+    )
+  )
+  expect_s3_class(tfb_smooth, "tfb_spline")
+  expect_length(tf_arg(tfb_smooth), 50)
 })
 
 test_that("tfb_spline defaults work for all kinds of irregular input", {
