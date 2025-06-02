@@ -38,7 +38,7 @@ new_tfb_spline <- function(
   data$id <- factor(data$id, unique(as.character(data$id)))
 
   dots <- list(...)
-  s_args <- dots[names(dots) %in% names(formals(s))]
+  s_args <- dots[names(dots) %in% formalArgs(s)]
   if (!has_name(s_args, "bs")) s_args$bs <- "cr"
   if (s_args$bs == "ad") {
     cli::cli_warn(c(
@@ -48,7 +48,7 @@ new_tfb_spline <- function(
     s_args$bs <- "cr"
   }
   if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
-  gam_args <- dots[names(dots) %in% c(names(formals(gam)), names(formals(bam)))]
+  gam_args <- dots[names(dots) %in% c(formalArgs(gam), formalArgs(bam))]
   if (!has_name(gam_args, "sp")) gam_args$sp <- -1
 
   n_evaluations <- table(data$id)
@@ -500,9 +500,10 @@ tfb_spline.tfb <- function(
 ) {
   arg <- arg %||% tf_arg(data)
   domain <- domain %||% tf_domain(data)
+  dots <- list(...)
   s_args <- modifyList(
     attr(data, "basis_args"),
-    list(...)[names(list(...)) %in% names(formals(s))]
+    dots[names(dots) %in% formalArgs(s)]
   )
   names_data <- names(data)
   if (vec_size(data) == 0) {

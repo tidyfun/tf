@@ -172,7 +172,7 @@ fit_penalized <- function(
 fit_penalized_ls <- function(data, spec_object, arg_u, gam_args, regular) {
   eval_list <- split(data$value, data$id)
   index_list <- split(attr(arg_u, "index"), data$id)
-  gam_args <- gam_args[names(gam_args) %in% names(formals(magic))]
+  gam_args <- gam_args[names(gam_args) %in% formalArgs(magic)]
   ret <- map2(
     index_list,
     eval_list,

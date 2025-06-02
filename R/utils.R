@@ -180,7 +180,7 @@ in_range <- function(f, r) {
 `%inr%` <- function(f, r) in_range(f, r)
 
 get_args <- function(args, f) {
-  args[names(args) %in% names(formals(f))]
+  args[names(args) %in% formalArgs(f)]
 }
 
 #' Turns any object into a list

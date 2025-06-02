@@ -25,6 +25,7 @@
 #' @import vctrs
 #' @importFrom mgcv s Predict.matrix magic uniquecombs gam bam smooth.construct PredictMat scat
 #' @importFrom rlang as_name enexpr has_name
+#' @importFrom methods formalArgs
 #' @importFrom stats setNames na.omit complete.cases lowess
 #' @importFrom utils head tail modifyList
 #' @importFrom zoo zoo coredata rollmean rollmedian na.fill na.spline na.approx na.locf
