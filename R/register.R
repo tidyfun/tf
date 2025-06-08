@@ -1,15 +1,15 @@
+#' Register a tf vector
+#'
+#' @param x a tf vector to register.
+#' @param arg the arg vector.
+#' @param verbose print progress messages?
+#' @returns `list()` containing: registered tf vector `x` and warping functions `warp`.
 #' @export
-tf_register <- function(x, ...) {
+tf_register <- function(x, arg, verbose = FALSE, ...) {
   rlang::check_dots_used()
   UseMethod("tf_register")
 }
 
-#' Register a tf vector
-#'
-#' @param x a tf vector to register.
-#' @param arg
-#' @param verbose print progress messages?
-#' @returns `list()` containing: registered tf vector `x` and warping functions `warp`.
 #' @export
 tf_register.tfd <- function(x, arg = NULL, verbose = FALSE, ...) {
   rlang::check_installed("fdasrvf")
@@ -23,15 +23,12 @@ tf_register.tfd <- function(x, arg = NULL, verbose = FALSE, ...) {
     reg <- suppressMessages(fdasrvf::time_warping(f = x, time = arg))
   }
   list(
-    x = as.tfd(t(reg$fn), arg = arg),
-    warp = as.tfd(t(reg$warping_functions), arg = arg)
+    x = tfd(t(reg$fn), arg = arg),
+    warp = tfd(
+      t(reg$warping_functions),
+      arg = seq(0, 1, length.out = length(arg))
+    )
   )
-}
-
-#' @export
-tf_warp <- function(x, warp, keep_arg = FALSE, ...) {
-  rlang::check_dots_used()
-  UseMethod("tf_warp")
 }
 
 #' Warp a tf vector
@@ -47,24 +44,31 @@ tf_warp <- function(x, warp, keep_arg = FALSE, ...) {
 #' @param ... additional arguments passed to [tfd()].
 #' @returns the warped tf vector, i.e. the unregistered functions.
 #' @export
+tf_warp <- function(x, warp, keep_arg = FALSE, ...) {
+  rlang::check_dots_used()
+  UseMethod("tf_warp")
+}
+
+#' @export
 tf_warp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
   assert_tfd(warp)
   assert_flag(keep_arg)
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
+  if (!is_reg(warp)) {
+    cli::cli_abort("{.arg warp} must be of {.cls tfd_reg} vector.")
+  }
 
-  warped <- tfd(x, arg = as.list(warp), ...)
+  arg <- tf_arg(x)
+  lwr <- arg[[1]]
+  upr <- arg[[length(arg)]]
+  new_arg <- map(tf_evaluations(warp), \(h) (upr - lwr) * h + lwr)
+  warped <- tfd(x, arg = new_arg, ...)
   if (!keep_arg) {
-    warped <- tfd(warped, arg = tf_arg(x))
+    warped <- tfd(warped, arg = arg)
   }
   warped
-}
-
-#' @export
-tf_unwarp <- function(x, align, keep_arg = FALSE, ...) {
-  rlang::check_dots_used()
-  UseMethod("tf_unwarp")
 }
 
 #' Unwarp a tf vector
@@ -73,25 +77,49 @@ tf_unwarp <- function(x, align, keep_arg = FALSE, ...) {
 #' functional data: $x(t) \to x(h^{-1}(t)) = x(s)$.
 #'
 #' @param x tf vector of unregistered functions.
-#' @param align tf vector of aligning functions.
+#' @param warp tf vector of aligning functions.
 #' @param keep_arg re-eval on original arg after warping or return (irregular)
 #'   tf on warped arg (default)?
-#' @param ...
+#' @param ... arguements passed to further methods.
 #' @returns the unwarped tf vector, i.e. the registered functions.
 #' @export
-tf_unwarp.tfd <- function(x, align, keep_arg = FALSE, ...) {
-  assert_tfd(align)
-  assert_flag(keep_arg)
-  if (length(x) != length(align)) {
-    cli::cli_abort("{.arg x} and {.arg align} must have the same length.")
-  }
-  .NotYetImplemented()
+tf_unwarp <- function(x, warp, keep_arg = FALSE, ...) {
+  rlang::check_dots_used()
+  UseMethod("tf_unwarp")
 }
 
-#' @details
-#' - by finding aligning functions that minimize L2 distances of $srs(x(h^{-1}(t)))$ to the SRSF of the template
-#' c.f. Srivastava/Klassen Ch. 4.8.2 (explicit DP algo provided -- check/adapt `fdasrvf` source code)
-#' and/or using dynamic time warping (DTW), with suitable constraints to avoid pinching etc
+#' @export
+tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
+  assert_tfd(warp)
+  assert_flag(keep_arg)
+  if (length(x) != length(warp)) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
+  }
+  if (!is_reg(warp)) {
+    cli::cli_abort("{.arg warp} must be of {.cls tfd_reg} vector.")
+  }
+
+  arg <- tf_arg(x)
+  lwr <- arg[[1]]
+  upr <- arg[[length(arg)]]
+
+  inv_warp <- map(tf_evaluations(warp), function(h) {
+    stats::approx(
+      x = (upr - lwr) * h + lwr,
+      y = arg,
+      xout = arg,
+      method = "linear"
+    )$y
+  })
+
+  ret <- tfd(x, arg = inv_warp, ...)
+  if (!keep_arg) {
+    ret <- tfd(ret, arg = arg)
+  }
+  ret
+}
+
+#' Register a tf vector against a template function
 #'
 #' @param x a tf vector of functions to register.
 #' @param template a tf vector of a template function to register against.
@@ -107,12 +135,16 @@ tf_register_template <- function(x, template = NULL, method = "srvf", ...) {
 
     # Karcher mean
     if (is.null(template)) {
-      res <- suppressMessages(fdasrvf::time_warping(
+      ret <- suppressMessages(fdasrvf::time_warping(
         f = t(as.matrix(x)),
         time = arg,
         ...
       ))
-      return(as.tfd(t(res$warping_functions), arg = arg))
+      warp <- tfd(
+        t(ret$warping_functions),
+        arg = seq(0, 1, length.out = length(arg))
+      )
+      return(warp)
     }
 
     x <- as.matrix(x)
@@ -126,7 +158,7 @@ tf_register_template <- function(x, template = NULL, method = "srvf", ...) {
         ...
       )$gam
     }
-    return(as.tfd(warp, arg = arg))
+    return(tfd(warp, arg = seq(0, 1, length.out = length(arg))))
   }
 
   if (method == "fda") {
@@ -145,10 +177,10 @@ tf_register_template <- function(x, template = NULL, method = "srvf", ...) {
     if (is.null(template)) {
       y0fd <- do.call(fda::mean.fd, list(yfd))
     }
-    res <- fda::register.fd(y0fd = y0fd, yfd = yfd, ...)
-    res <- fd_to_matrix(res$warpfd, tf_count(x))
-    res <- as.tfd(t(res), arg = tf_arg(x))
-    res
+    ret <- fda::register.fd(y0fd = y0fd, yfd = yfd, ...)
+    ret <- fd_to_matrix(ret$warpfd, tf_count(x))
+    ret <- tfd(t(ret), arg = tf_arg(x))
+    ret
   }
 }
 
