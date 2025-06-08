@@ -4,10 +4,12 @@
 \alias{tf_register}
 \title{Register a tf vector}
 \usage{
-tf_register(x, arg, verbose = FALSE, ...)
+tf_register(x, ..., arg = NULL, verbose = FALSE)
 }
 \arguments{
 \item{x}{a tf vector to register.}
+
+\item{...}{additional arguments passed to \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}.}
 
 \item{arg}{the arg vector.}
 

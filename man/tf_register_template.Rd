@@ -4,12 +4,16 @@
 \alias{tf_register_template}
 \title{Register a tf vector against a template function}
 \usage{
-tf_register_template(x, template = NULL, method = "srvf", ...)
+tf_register_template(x, ..., template = NULL, method = "srvf")
 }
 \arguments{
 \item{x}{a tf vector of functions to register.}
 
+\item{...}{additional arguments passed to further methods.}
+
 \item{template}{a tf vector of a template function to register against.}
+
+\item{method}{the implementation method to choose.}
 }
 \value{
 tf vector of the aligning functions, i.e. the warping functions.

@@ -4,17 +4,17 @@
 \alias{tf_unwarp}
 \title{Unwarp a tf vector}
 \usage{
-tf_unwarp(x, warp, keep_arg = FALSE, ...)
+tf_unwarp(x, warp, ..., keep_arg = FALSE)
 }
 \arguments{
 \item{x}{tf vector of unregistered functions.}
 
 \item{warp}{tf vector of aligning functions.}
 
+\item{...}{additional arguments passed to \code{\link[=tfd]{tfd()}}.}
+
 \item{keep_arg}{re-eval on original arg after warping or return (irregular)
 tf on warped arg (default)?}
-
-\item{...}{arguements passed to further methods.}
 }
 \value{
 the unwarped tf vector, i.e. the registered functions.

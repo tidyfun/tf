@@ -1,26 +1,27 @@
 #' Register a tf vector
 #'
 #' @param x a tf vector to register.
+#' @param ... additional arguments passed to [fdasrvf::time_warping()].
 #' @param arg the arg vector.
 #' @param verbose print progress messages?
 #' @returns `list()` containing: registered tf vector `x` and warping functions `warp`.
 #' @export
-tf_register <- function(x, arg, verbose = FALSE, ...) {
+tf_register <- function(x, ..., arg = NULL, verbose = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_register")
 }
 
 #' @export
-tf_register.tfd <- function(x, arg = NULL, verbose = FALSE, ...) {
+tf_register.tfd <- function(x, ..., arg = NULL, verbose = FALSE) {
   rlang::check_installed("fdasrvf")
   arg <- assert_arg(arg, x, null_ok = TRUE) %||% tf_arg(x)
   assert_flag(verbose)
 
   x <- t(as.matrix(x))
   if (verbose) {
-    reg <- fdasrvf::time_warping(f = x, time = arg)
+    reg <- fdasrvf::time_warping(f = x, time = arg, ...)
   } else {
-    reg <- suppressMessages(fdasrvf::time_warping(f = x, time = arg))
+    reg <- suppressMessages(fdasrvf::time_warping(f = x, time = arg, ...))
   }
   list(
     x = tfd(t(reg$fn), arg = arg),
@@ -36,18 +37,18 @@ tf_register.tfd <- function(x, arg = NULL, verbose = FALSE, ...) {
 #'
 #' @param x tf vector of (registered) functions.
 #' @param warp tf vector of warping functions.
+#' @param ... additional arguments passed to [tfd()].
 #' @param keep_arg re-evaluate on warped arg values after un-warping or return
 #'   tf on un-warped arg-vals (default)?
-#' @param ... additional arguments passed to [tfd()].
 #' @returns the warped tf vector, i.e. the unregistered functions.
 #' @export
-tf_warp <- function(x, warp, keep_arg = FALSE, ...) {
+tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_warp")
 }
 
 #' @export
-tf_warp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
+tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   assert_tfd(warp)
   assert_flag(keep_arg)
   if (length(x) != length(warp)) {
@@ -63,7 +64,7 @@ tf_warp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
   new_arg <- map(tf_evaluations(warp), \(h) (upr - lwr) * h + lwr)
   warped <- tfd(x, arg = new_arg, ...)
   if (!keep_arg) {
-    warped <- tfd(warped, arg = arg)
+    warped <- tfd(warped, arg = arg, ...)
   }
   warped
 }
@@ -75,12 +76,12 @@ tf_warp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
 #'
 #' @param x tf vector of unregistered functions.
 #' @param warp tf vector of aligning functions.
+#' @param ... additional arguments passed to [tfd()].
 #' @param keep_arg re-eval on original arg after warping or return (irregular)
 #'   tf on warped arg (default)?
-#' @param ... arguements passed to further methods.
 #' @returns the unwarped tf vector, i.e. the registered functions.
 #' @export
-tf_unwarp <- function(x, warp, keep_arg = FALSE, ...) {
+tf_unwarp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_unwarp")
 }
@@ -111,7 +112,7 @@ tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
 
   ret <- tfd(x, arg = inv_warp, ...)
   if (!keep_arg) {
-    ret <- tfd(ret, arg = arg)
+    ret <- tfd(ret, arg = arg, ...)
   }
   ret
 }
@@ -119,10 +120,12 @@ tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
 #' Register a tf vector against a template function
 #'
 #' @param x a tf vector of functions to register.
+#' @param ... additional arguments passed to further methods.
 #' @param template a tf vector of a template function to register against.
+#' @param method the implementation method to choose.
 #' @returns tf vector of the aligning functions, i.e. the warping functions.
 #' @export
-tf_register_template <- function(x, template = NULL, method = "srvf", ...) {
+tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
   assert_tfd(x)
   assert_choice(method, c("srvf", "fda"))
 

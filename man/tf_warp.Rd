@@ -4,17 +4,17 @@
 \alias{tf_warp}
 \title{Warp a tf vector}
 \usage{
-tf_warp(x, warp, keep_arg = FALSE, ...)
+tf_warp(x, warp, ..., keep_arg = FALSE)
 }
 \arguments{
 \item{x}{tf vector of (registered) functions.}
 
 \item{warp}{tf vector of warping functions.}
 
+\item{...}{additional arguments passed to \code{\link[=tfd]{tfd()}}.}
+
 \item{keep_arg}{re-evaluate on warped arg values after un-warping or return
 tf on un-warped arg-vals (default)?}
-
-\item{...}{additional arguments passed to \code{\link[=tfd]{tfd()}}.}
 }
 \value{
 the warped tf vector, i.e. the unregistered functions.
