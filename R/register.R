@@ -24,10 +24,7 @@ tf_register.tfd <- function(x, arg = NULL, verbose = FALSE, ...) {
   }
   list(
     x = tfd(t(reg$fn), arg = arg),
-    warp = tfd(
-      t(reg$warping_functions),
-      arg = seq(0, 1, length.out = length(arg))
-    )
+    warp = tfd(t(reg$warping_functions), arg = unit_seq(length(arg)))
   )
 }
 
@@ -140,10 +137,7 @@ tf_register_template <- function(x, template = NULL, method = "srvf", ...) {
         time = arg,
         ...
       ))
-      warp <- tfd(
-        t(ret$warping_functions),
-        arg = seq(0, 1, length.out = length(arg))
-      )
+      warp <- tfd(t(ret$warping_functions), arg = unit_seq(length(arg)))
       return(warp)
     }
 
@@ -158,7 +152,7 @@ tf_register_template <- function(x, template = NULL, method = "srvf", ...) {
         ...
       )$gam
     }
-    return(tfd(warp, arg = seq(0, 1, length.out = length(arg))))
+    return(tfd(warp, arg = unit_seq(length(arg))))
   }
 
   if (method == "fda") {
@@ -193,3 +187,5 @@ tf_register_landmark <- function(x, landmarks, ...) {
   # - landmarks will contain collected result of calls like tf_where(x, value == 0, "first") etc. this can probably not be automated since landmark definitions will be specific for each dataset but adding some syntactic sugar for common tf_where operations (find all zero crossings / local extrema, etc) should make creating this array much easier.
   # - aligning functions simply move landmark times of for each function to the respective mean/median of landmark times (and interpolate linearly in-between)
 }
+
+unit_seq <- function(n) seq(0, 1, length.out = n)
