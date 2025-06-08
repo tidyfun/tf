@@ -3,13 +3,13 @@
 #' `tf_split` separates each function into a vector of functions defined on a sub-interval of
 #' its domain, either with overlap at the cut points or without.
 #'
-#' @param x a `tf` object
-#' @param splits numeric vector containing `arg`-values at which to split
+#' @param x a `tf` object.
+#' @param splits numeric vector containing `arg`-values at which to split.
 #' @param include which of the end points defined by `splits` to include in each
 #'  of the resulting split functions. Defaults to `"both"`, other options are "`left`" or
 #'   "`right`". See examples.
 #'
-#' @return for `tf_split`: a list of `tf` objects
+#' @return for `tf_split`: a list of `tf` objects.
 #' @export
 #' @rdname tf_splitcombine
 #'

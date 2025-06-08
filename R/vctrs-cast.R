@@ -44,7 +44,7 @@ same_args <- function(x, to) {
 #' @name vctrs
 #' @family tidyfun vctrs
 #' @inheritParams vctrs::vec_cast
-#' @param y Vectors to cast.
+#' @param y vectors to cast.
 #' @returns for `vec_cast`: the casted `tf`-vector, for `vec_ptype2`: the common prototype
 #' @seealso [vctrs::vec_cast()], [vctrs::vec_ptype2()]
 NULL

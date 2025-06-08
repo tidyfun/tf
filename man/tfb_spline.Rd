@@ -113,7 +113,7 @@ tfb_spline(data, ...)
 
 \item{...}{arguments to the calls to \code{\link[mgcv:s]{mgcv::s()}} setting up the basis (and
 to \code{\link[mgcv:magic]{mgcv::magic()}} or \code{\link[mgcv:gam.fit]{mgcv::gam.fit()}} if \code{penalized = TRUE}). Uses \code{k = 25} cubic regression spline basis functions (\code{bs = "cr"}) by default, but
-should be set appropriately by the user. See Details and examples in the
+should be set appropriately by the user. See details and examples in the
 vignettes.}
 
 \item{id}{The name or number of the column defining which data belong to
@@ -139,7 +139,7 @@ ordinary least squares / ML estimates for basis coefficients. \code{FALSE} is
 much faster but will overfit for noisy data if \code{k} is (too) large.}
 
 \item{global}{Defaults to \code{FALSE}. If \code{TRUE} and \code{penalized = TRUE}, all
-functions share the same smoothing parameter (see Details).}
+functions share the same smoothing parameter (see details).}
 
 \item{verbose}{\code{TRUE} (default) outputs statistics about the fit achieved by
 the basis and other diagnostic messages.}

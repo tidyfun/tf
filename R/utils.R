@@ -162,10 +162,10 @@ same_basis <- function(x, y) {
 #' `in_range` and its infix-equivalent `%inr%` return `TRUE` for all values in
 #'  the numeric vector `f` that are within the range of values in `r`.
 #'
-#' @param f a numeric vector
+#' @param f a numeric vector.
 #' @param r numeric vector used to specify a range, only the minimum and maximum
 #'   of `r` are used.
-#' @returns a `logical` vector of the same length as `f`
+#' @returns a `logical` vector of the same length as `f`.
 #' @family tidyfun utility functions
 #' @export
 in_range <- function(f, r) {
@@ -186,7 +186,7 @@ get_args <- function(args, f) {
 #' Turns any object into a list
 #'
 #' See above.
-#' @param x any input
+#' @param x any input.
 #' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools
@@ -197,7 +197,7 @@ ensure_list <- function(x) {
 #' Make syntactically valid unique names
 #'
 #' See above.
-#' @param x any input
+#' @param x any input.
 #' @returns `x` turned into a list.
 #' @export
 #' @family tidyfun developer tools

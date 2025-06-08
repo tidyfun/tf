@@ -12,7 +12,7 @@
 #' of the usual `dplyr` tricks are available as well, see examples.\cr
 #' Any `cond`ition evaluates to `NA` on `NA`-entries in `f`.
 #'
-#' @param f a `tf` object
+#' @param f a `tf` object.
 #' @param cond a logical expression about `value` (and/or `arg`) that defines a
 #'   condition about the functions, see examples and details.
 #' @param return for each entry in `f`, `tf_where` either returns *all* `arg`

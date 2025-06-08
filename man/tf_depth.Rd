@@ -13,13 +13,13 @@ tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
 \method{tf_depth}{tf}(x, arg, depth = "MBD", na.rm = TRUE, ...)
 }
 \arguments{
-\item{x}{\code{tf} (or a matrix of evaluations)}
+\item{x}{\code{tf} (or a matrix of evaluations).}
 
-\item{arg}{grid of evaluation points}
+\item{arg}{grid of evaluation points.}
 
-\item{depth}{currently available: "MBD", i.e. modified 2-band depth, and "MEI"}
+\item{depth}{currently available: \code{"MBD"}, i.e. modified 2-band depth, and \code{"MEI"}.}
 
-\item{na.rm}{TRUE remove missing observations?}
+\item{na.rm}{remove missing observations? Defaults to \code{TRUE}.}
 
 \item{...}{further arguments handed to the function computing the respective
 tf_depth.}

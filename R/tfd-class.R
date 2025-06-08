@@ -136,12 +136,12 @@ new_tfd <- function(
 #'
 #' @param data a `matrix`, `data.frame` or `list` of suitable shape, or another
 #'   `tf`-object. when this argument is `NULL` (i.e. when calling `tfd()`) this
-#'   returns a prototype of class `tfd`
+#'   returns a prototype of class `tfd`.
 #' @param ... not used in `tfd`, except for `tfd.tf` -- specify `arg` and
 #'   `ìnterpolate = TRUE` to turn an irregular `tfd` into a regular one, see
 #'   examples.
 #' @returns an `tfd`-object (or a `data.frame`/`matrix` for the conversion
-#'   functions, obviously.)
+#'   functions, obviously).
 #' @family tfd-class
 #' @export
 tfd <- function(data, ...) UseMethod("tfd")

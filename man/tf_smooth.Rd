@@ -18,14 +18,14 @@ tf_smooth(x, ...)
 )
 }
 \arguments{
-\item{x}{a \code{tf} object containing functional data}
+\item{x}{a \code{tf} object containing functional data.}
 
-\item{...}{arguments for the respective \code{method}. See Details.}
+\item{...}{arguments for the respective \code{method}. See details.}
 
-\item{verbose}{give lots of diagnostic messages? Defaults to TRUE}
+\item{verbose}{give lots of diagnostic messages? Defaults to \code{TRUE}.}
 
-\item{method}{one of "lowess" (see \code{\link[stats:lowess]{stats::lowess()}}), "rollmean",
-"rollmedian" (see \code{\link[zoo:rollmean]{zoo::rollmean()}}) or "savgol" (see \code{\link[pracma:savgol]{pracma::savgol()}})}
+\item{method}{one of \code{"lowess"} (see \code{\link[stats:lowess]{stats::lowess()}}), \code{"rollmean"},
+\code{"rollmedian"} (see \code{\link[zoo:rollmean]{zoo::rollmean()}}) or \code{"savgol"} (see \code{\link[pracma:savgol]{pracma::savgol()}}).}
 }
 \value{
 a smoothed version of the input. For some methods/options, the

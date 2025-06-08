@@ -17,11 +17,11 @@
 #'   - **`savgol`** uses a window size of `k` = $<$number of
 #'   grid points$>$/10 (i.e., the nearest odd integer to that).
 #'
-#' @param x a `tf` object containing functional data
-#' @param method one of "lowess" (see [stats::lowess()]), "rollmean",
-#'   "rollmedian" (see [zoo::rollmean()]) or "savgol" (see [pracma::savgol()])
-#' @param verbose give lots of diagnostic messages? Defaults to TRUE
-#' @param ... arguments for the respective `method`. See Details.
+#' @param x a `tf` object containing functional data.
+#' @param method one of `"lowess"` (see [stats::lowess()]), `"rollmean"`,
+#'   `"rollmedian"` (see [zoo::rollmean()]) or `"savgol"` (see [pracma::savgol()]).
+#' @param verbose give lots of diagnostic messages? Defaults to `TRUE`.
+#' @param ... arguments for the respective `method`. See details.
 #' @returns a smoothed version of the input. For some methods/options, the
 #'   smoothed functions may be shorter than the original ones (at both ends).
 #' @export

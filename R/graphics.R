@@ -1,9 +1,9 @@
 #' Preprocess evaluation grid for plotting
 #'
 #' (internal function exported for re-use in upstream packages)
-#' @param f a `tf`-object
-#' @param n_grid length of evaluation grid
-#' @returns a semi-regular grid rounded down to appropriate resolution
+#' @param f a `tf`-object.
+#' @param n_grid length of evaluation grid.
+#' @returns a semi-regular grid rounded down to appropriate resolution.
 #' @export
 #' @family tidyfun developer tools
 prep_plotting_arg <- function(f, n_grid) {
@@ -31,18 +31,18 @@ prep_plotting_arg <- function(f, n_grid) {
 #' data for `tfd`-objects without inter-/extrapolation, use `n_grid < 1` or
 #' `n_grid = NA`.
 #'
-#' @param x an `tf` object
+#' @param x an `tf` object.
 #' @param y (optional) numeric vector to be used as `arg`
-#'   (i.e., for the **x**-axis...!)
+#'   (i.e., for the **x**-axis...!).
 #' @param n_grid minimal size of equidistant grid used for plotting,
-#'   defaults to 50. See details.
+#'   defaults to `50`. See details.
 #' @param points should the original evaluation points be marked by points?
-#'   Defaults to `TRUE` for irregular `tfd` and FALSE for all others
-#' @param type "spaghetti": line plots, "lasagna": heat maps.
+#'   Defaults to `TRUE` for irregular `tfd` and `FALSE` for all others.
+#' @param type `"spaghetti"`: line plots, `"lasagna"`: heat maps.
 #' @param alpha alpha-value (see[grDevices::rgb()]) for noodle transparency.
 #'   Defaults to 2/(no. of observations). Lower is more transparent.
 #' @param ... additional arguments for [matplot()] ("spaghetti") or
-#'   [image()] ("lasagna")
+#'   [image()] ("lasagna").
 #' @returns the plotted `tf`-object, invisibly.
 #' @importFrom graphics matplot image axis
 #' @importFrom grDevices heat.colors rgb
@@ -186,10 +186,10 @@ lines.tf <- function(
 #' @export
 #' @rdname tfviz
 #' @family tidyfun visualization
-#' @param arg evaluation grid (vector)
+#' @param arg evaluation grid (vector).
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for arg for which no original data is available? Only relevant for
-#'   tfd, defaults to FALSE
+#'   tfd, defaults to `FALSE`.
 points.tf <- function(
   x,
   arg,

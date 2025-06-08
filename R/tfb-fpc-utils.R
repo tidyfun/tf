@@ -22,9 +22,9 @@
 #' see last example for [tfb_fpc()]
 #'
 #' @param data numeric matrix of function evaluations
-#'   (each row is one curve, no NAs)
-#' @param arg numeric vector of argument values
-#' @param pve percentage of variance explained
+#'   (each row is one curve, no NAs).
+#' @param arg numeric vector of argument values.
+#' @param pve percentage of variance explained.
 #' @returns a list with entries
 #' - `mu` estimated mean function (numeric vector)
 #' - `efunctions` estimated FPCs (numeric matrix, columns represent FPCs)

@@ -10,7 +10,7 @@ tf_where(f, cond, return = c("all", "first", "last", "range", "any"), arg)
 tf_anywhere(f, cond, arg)
 }
 \arguments{
-\item{f}{a \code{tf} object}
+\item{f}{a \code{tf} object.}
 
 \item{cond}{a logical expression about \code{value} (and/or \code{arg}) that defines a
 condition about the functions, see examples and details.}

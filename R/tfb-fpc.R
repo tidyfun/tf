@@ -98,15 +98,15 @@ new_tfb_fpc <- function(
 #' @export
 #' @param method the function to use that computes eigenfunctions and scores.
 #'   Defaults to [fpc_wsvd()], which is quick and easy but returns completely
-#'   unsmoothed eigenfunctions unlikely to be suited for noisy data. See Details.
+#'   unsmoothed eigenfunctions unlikely to be suited for noisy data. See details.
 #' @param ... arguments to the `method` which computes the
-#'  (regularized/smoothed) FPCA - see e.g. [fpc_wsvd()].
-#'  Unless set by the user, uses proportion of variance explained
-#'  `pve = 0.995` to determine the truncation levels.
+#'   (regularized/smoothed) FPCA - see e.g. [fpc_wsvd()].
+#'   Unless set by the user, uses proportion of variance explained
+#'   `pve = 0.995` to determine the truncation levels.
 #' @inheritParams tfb
 #' @returns an object of class `tfb_fpc`, inheriting from `tfb`.
-#'    The basis used by `tfb_fpc` is a `tfd`-vector containing the estimated
-#'    mean and eigenfunctions.
+#'   The basis used by `tfb_fpc` is a `tfd`-vector containing the estimated
+#'   mean and eigenfunctions.
 #' @seealso [fpc_wsvd()] for FPCA options.
 #' @rdname tfb_fpc
 #' @export

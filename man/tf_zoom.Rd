@@ -16,7 +16,7 @@ tf_zoom(f, begin, end, ...)
 \method{tf_zoom}{tfb_fpc}(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...)
 }
 \arguments{
-\item{f}{a \code{tf}-object}
+\item{f}{a \code{tf}-object.}
 
 \item{begin}{numeric vector of length 1 or \code{length(f)}.
 Defaults to the lower limit of the domain of \code{f}.}
@@ -29,7 +29,7 @@ Defaults to the upper limit of the domain of \code{f}.}
 \value{
 an object like \code{f} on a new domain (potentially).
 Note that regular functional data and functions in basis representation will
-be turned into irregular \code{tfd}-objects iff \code{begin} or \code{end} are not scalar.
+be turned into irregular \code{tfd}-objects if \code{begin} or \code{end} are not scalar.
 }
 \description{
 These are used to redefine or restrict the \code{domain} of \code{tf} objects.

@@ -10,10 +10,10 @@
 #' `tf_rebase.tfd.tfb_spline`, `tf_rebase.tfd.tfb_fpc`, `tf_rebase.tfb.tfd`,
 #' `tf_rebase.tfb.tfb` that dispatch on `object_from`.
 #'
-#' @param object a `tf` object whose representation should be changed
+#' @param object a `tf` object whose representation should be changed.
 #' @param basis_from  the `tf` object with the desired basis, `arg`, `evaluator`, etc.
-#' @param arg optional new `arg` values, defaults to those of `basis_from`
-#' @param ... forwarded to the `tfb` or `tfd` constructors
+#' @param arg optional new `arg` values, defaults to those of `basis_from`.
+#' @param ... forwarded to the `tfb` or `tfd` constructors.
 #' @returns a `tf`-vector containing the data of `object` in the same representation
 #'   as `basis_from` (potentially modified by the arguments given in `...`).
 #'

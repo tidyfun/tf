@@ -79,9 +79,9 @@ is_tfb_spline(x)
 is_tfb_fpc(x)
 }
 \arguments{
-\item{f}{an \code{tf} object}
+\item{f}{an \code{tf} object.}
 
-\item{x}{an \code{tf} object}
+\item{x}{an \code{tf} object.}
 
 \item{value}{\strong{for \verb{tf_evaluator<-}:} (bare or quoted) name of a function
 that can be used to interpolate an \code{tfd}. Needs to accept vector arguments

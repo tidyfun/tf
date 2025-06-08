@@ -13,12 +13,12 @@
 \method{as.function}{tf}(x, ...)
 }
 \arguments{
-\item{x}{a \code{tf} object}
+\item{x}{a \code{tf} object.}
 
 \item{row.names}{\code{NULL} or a character vector giving the row
     names for the data frame.  Missing values are not allowed.}
 
-\item{optional}{not used}
+\item{optional}{not used.}
 
 \item{unnest}{if \code{TRUE}, the function will return a data.frame with the
 evaluated functions.}

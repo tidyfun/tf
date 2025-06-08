@@ -21,7 +21,7 @@ tf_evaluate(object, arg, ...)
 \item{arg}{optional evaluation grid (vector or list of vectors).
 Defaults to \code{tf_arg(object)}, implicitly.}
 
-\item{...}{not used}
+\item{...}{not used.}
 
 \item{evaluator}{optional. The function to use for inter/extrapolating the
 \code{tfd}. Defaults to \code{tf_evaluator(object)}.

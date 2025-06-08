@@ -13,13 +13,13 @@ tf_rebase(object, basis_from, arg = tf_arg(basis_from), ...)
 \method{tf_rebase}{tfb}(object, basis_from, arg = tf_arg(basis_from), ...)
 }
 \arguments{
-\item{object}{a \code{tf} object whose representation should be changed}
+\item{object}{a \code{tf} object whose representation should be changed.}
 
 \item{basis_from}{the \code{tf} object with the desired basis, \code{arg}, \code{evaluator}, etc.}
 
-\item{arg}{optional new \code{arg} values, defaults to those of \code{basis_from}}
+\item{arg}{optional new \code{arg} values, defaults to those of \code{basis_from}.}
 
-\item{...}{forwarded to the \code{tfb} or \code{tfd} constructors}
+\item{...}{forwarded to the \code{tfb} or \code{tfd} constructors.}
 }
 \value{
 a \code{tf}-vector containing the data of \code{object} in the same representation
