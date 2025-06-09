@@ -211,10 +211,7 @@ unique_id <- function(x) {
   x
 }
 
-na_to_0 <- function(x) {
-  x[is.na(x)] <- 0
-  x
-}
+na_to_0 <- function(x) replace(x, is.na(x), 0)
 
 n_distinct <- function(x) length(unique(x))
 

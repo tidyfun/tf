@@ -127,6 +127,7 @@ tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
 #' @export
 tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
   assert_tfd(x)
+  assert_tfd(template, null_ok = TRUE)
   assert_choice(method, c("srvf", "fda"))
 
   if (method == "srvf") {
@@ -160,17 +161,7 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
 
   if (method == "fda") {
     rlang::check_installed("fda")
-    # TODO: implement proper tf -> fda conversion
-    basis <- fda::create.bspline.basis(
-      rangeval = tf_domain(x),
-      nbasis = 25,
-      norder = 4
-    )
-    yfd <- fda::smooth.basis(
-      tf_arg(x),
-      t(as.matrix(x)),
-      fda::fdPar(basis, lambda = 1)
-    )$fd
+    yfd <- as.fd(x)
     if (is.null(template)) {
       y0fd <- do.call(fda::mean.fd, list(yfd))
     }
@@ -181,14 +172,22 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
   }
 }
 
-tf_register_landmark <- function(x, landmarks, ...) {
-  # x, # a tf vector of length n
-  # landmarks # an n x L array of timepoints of L landmark times for the entries in x
-  # - returns data frame with aligned functions in x and their aligning functions
-  # ... # see fda::landmarkreg; settings for warping functions, grid size, etc
-  # - should also work for irregular or basis-represented data as well.
-  # - landmarks will contain collected result of calls like tf_where(x, value == 0, "first") etc. this can probably not be automated since landmark definitions will be specific for each dataset but adding some syntactic sugar for common tf_where operations (find all zero crossings / local extrema, etc) should make creating this array much easier.
-  # - aligning functions simply move landmark times of for each function to the respective mean/median of landmark times (and interpolate linearly in-between)
+#' @export
+as.fd.tfd <- function(x, nbasis = NULL, lambda = 0, ...) {
+  rlang::check_installed("fda")
+
+  domain <- tf_domain(x)
+  arg <- tf_arg(x)
+  y_mat <- t(as.matrix(x))
+  nbasis <- nbasis %||% min(25, round(length(arg) / 4))
+
+  basis <- fda::create.bspline.basis(
+    rangeval = domain,
+    nbasis = nbasis,
+    norder = 4
+  )
+  param <- fda::fdPar(basis, lambda = lambda)
+  fda::smooth.basis(argvals = arg, y = y_mat, fdParobj = param, ...)$fd
 }
 
 unit_seq <- function(n) seq(0, 1, length.out = n)
