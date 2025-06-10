@@ -32,7 +32,7 @@ var(x, y = NULL, na.rm = FALSE, use)
 \method{summary}{tf}(object, ...)
 }
 \arguments{
-\item{x}{a \code{tf} object}
+\item{x}{a \code{tf} object.}
 
 \item{...}{optional additional arguments.}
 

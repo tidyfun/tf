@@ -29,9 +29,9 @@
 \arguments{
 \item{x}{any \R object (conceptually); typically numeric.}
 
-\item{n}{how many elements of \code{x} to print out at most, defaults to 6}
+\item{n}{how many elements of \code{x} to print out at most, defaults to \code{6}.}
 
-\item{...}{handed over to \code{\link[=format.tf]{format.tf()}}}
+\item{...}{handed over to \code{\link[=format.tf]{format.tf()}}.}
 
 \item{digits}{a positive integer indicating how many significant digits
     are to be used for
@@ -54,17 +54,17 @@
   }
 
 \item{sparkline}{use a sparkline representation? defaults to \code{TRUE}
-(not available for irregular data)}
+(not available for irregular data).}
 
-\item{prefix}{prefix with names / index positions? defaults to \code{FALSE}}
+\item{prefix}{prefix with names / index positions? defaults to \code{FALSE}.}
 }
 \value{
-\strong{\code{print}}: prints out \code{x} and returns it invisibly
+\strong{\code{print}}: prints out \code{x} and returns it invisibly.
 
-a character representation of \code{x}
+a character representation of \code{x}.
 }
 \description{
-Prints and formats \code{tf}-objects for display. See Details / examples for options that
+Prints and formats \code{tf}-objects for display. See details / examples for options that
 give finer control.
 }
 \details{

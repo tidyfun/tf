@@ -41,7 +41,7 @@ as.tfd_irreg(data, ...)
 \arguments{
 \item{data}{a \code{matrix}, \code{data.frame} or \code{list} of suitable shape, or another
 \code{tf}-object. when this argument is \code{NULL} (i.e. when calling \code{tfd()}) this
-returns a prototype of class \code{tfd}}
+returns a prototype of class \code{tfd}.}
 
 \item{...}{not used in \code{tfd}, except for \code{tfd.tf} -- specify \code{arg} and
 \code{ìnterpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
@@ -69,7 +69,7 @@ evaluations.}
 }
 \value{
 an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
-functions, obviously.)
+functions, obviously).
 }
 \description{
 Various constructor methods for \code{tfd}-objects.

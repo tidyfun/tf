@@ -240,13 +240,13 @@ new_tfb_spline <- function(
 #'   ordinary least squares / ML estimates for basis coefficients. `FALSE` is
 #'   much faster but will overfit for noisy data if `k` is (too) large.
 #' @param global Defaults to `FALSE`. If `TRUE` and `penalized = TRUE`, all
-#'   functions share the same smoothing parameter (see Details).
+#'   functions share the same smoothing parameter (see details).
 #' @param verbose `TRUE` (default) outputs statistics about the fit achieved by
 #'   the basis and other diagnostic messages.
 #' @param ...  arguments to the calls to [mgcv::s()] setting up the basis (and
 #'   to [mgcv::magic()] or [mgcv::gam.fit()] if `penalized = TRUE`). Uses `k =
 #'   25` cubic regression spline basis functions (`bs = "cr"`) by default, but
-#'   should be set appropriately by the user. See Details and examples in the
+#'   should be set appropriately by the user. See details and examples in the
 #'   vignettes.
 #' @inheritParams tfb
 #' @returns a `tfb`-object

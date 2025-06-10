@@ -12,10 +12,10 @@
 #' MBD is \eqn{-2(MEI - 0.5)^2 + .5}.
 #
 #'
-#' @param x `tf` (or a matrix of evaluations)
-#' @param depth currently available: "MBD", i.e. modified 2-band depth, and "MEI"
-#' @param arg grid of evaluation points
-#' @param na.rm TRUE remove missing observations?
+#' @param x `tf` (or a matrix of evaluations).
+#' @param depth currently available: `"MBD"`, i.e. modified 2-band depth, and `"MEI"`.
+#' @param arg grid of evaluation points.
+#' @param na.rm remove missing observations? Defaults to `TRUE`.
 #' @param ... further arguments handed to the function computing the respective
 #'   tf_depth.
 #' @returns vector of tf_depth values

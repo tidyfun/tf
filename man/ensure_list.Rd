@@ -7,7 +7,7 @@
 ensure_list(x)
 }
 \arguments{
-\item{x}{any input}
+\item{x}{any input.}
 }
 \value{
 \code{x} turned into a list.

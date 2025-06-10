@@ -2,15 +2,15 @@
 #'
 #' These are used to redefine or restrict the `domain` of `tf` objects.
 #'
-#' @param f a `tf`-object
+#' @param f a `tf`-object.
 #' @param begin numeric vector of length 1 or `length(f)`.
-#'  Defaults to the lower limit of the domain of `f`.
+#'   Defaults to the lower limit of the domain of `f`.
 #' @param end numeric vector of length 1 or `length(f)`.
-#'  Defaults to the upper limit of the domain of `f`.
+#'   Defaults to the upper limit of the domain of `f`.
 #' @param ... not used
 #' @returns an object like `f` on a new domain (potentially).
-#' Note that regular functional data and functions in basis representation will
-#'   be turned into irregular `tfd`-objects iff `begin` or `end` are not scalar.
+#'   Note that regular functional data and functions in basis representation will
+#'   be turned into irregular `tfd`-objects if `begin` or `end` are not scalar.
 #' @family tidyfun utility functions
 #' @export
 #' @examples

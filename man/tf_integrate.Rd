@@ -30,21 +30,21 @@ tf_integrate(f, arg, lower, upper, ...)
 )
 }
 \arguments{
-\item{f}{a \code{tf}-object}
+\item{f}{a \code{tf}-object.}
 
 \item{arg}{(optional) grid to use for the quadrature.}
 
-\item{lower}{lower limits of the integration range. For \code{definite=TRUE}, this
+\item{lower}{lower limits of the integration range. For \code{definite = TRUE}, this
 can be a vector of the same length as \code{f}.}
 
 \item{upper}{upper limits of the integration range (but see \code{definite} arg /
-Description). For \code{definite=TRUE}, this can be a vector of the same length
+description). For \code{definite = TRUE}, this can be a vector of the same length
 as \code{f}.}
 
 \item{...}{not used}
 
 \item{definite}{should the definite integral  be returned (default) or the
-antiderivative. See Description.}
+antiderivative. See description.}
 }
 \value{
 For \code{definite = TRUE}, the definite integrals of the functions in

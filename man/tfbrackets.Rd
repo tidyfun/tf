@@ -11,10 +11,10 @@
 \method{[}{tf}(x, i) <- value
 }
 \arguments{
-\item{x}{an \code{tf}}
+\item{x}{an \code{tf}.}
 
 \item{i}{index of the observations (\code{integer}ish, \code{character} or \code{logical},
-usual R rules apply)}
+usual R rules apply).}
 
 \item{j}{The \code{arg} used to evaluate the functions. A (list of) \code{numeric}
 vectors. \emph{NOT} interpreted as a column number but as the argument value of
@@ -48,7 +48,7 @@ represents one \code{argval} as given in argument \code{j}, with an attribute
 \description{
 These functions access, subset, replace and evaluate \code{tf} objects.
 For more information on creating \code{tf} objects and converting them to/from
-\code{list}, \code{data.frame} or \code{matrix}, see \code{\link[=tfd]{tfd()}} and \code{\link[=tfb]{tfb()}}. See Details.\cr
+\code{list}, \code{data.frame} or \code{matrix}, see \code{\link[=tfd]{tfd()}} and \code{\link[=tfb]{tfb()}}. See details.\cr
 }
 \details{
 Note that these break certain (terrible) R conventions for vector-like objects:\cr

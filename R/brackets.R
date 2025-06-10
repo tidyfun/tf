@@ -2,7 +2,7 @@
 #'
 #' These functions access, subset, replace and evaluate `tf` objects.
 #' For more information on creating `tf` objects and converting them to/from
-#' `list`, `data.frame` or `matrix`, see [tfd()] and [tfb()]. See Details.\cr
+#' `list`, `data.frame` or `matrix`, see [tfd()] and [tfb()]. See details.\cr
 #'
 #' Note that these break certain (terrible) R conventions for vector-like objects:\cr
 #'
@@ -13,9 +13,9 @@
 #'
 #' All of the above will trigger errors.
 #'
-#' @param x an `tf`
+#' @param x an `tf`.
 #' @param i index of the observations (`integer`ish, `character` or `logical`,
-#'   usual R rules apply)
+#'   usual R rules apply).
 #' @param j The `arg` used to evaluate the functions. A (list of) `numeric`
 #'   vectors. *NOT* interpreted as a column number but as the argument value of
 #'   the respective functional datum.
@@ -120,11 +120,11 @@
 }
 
 #' @param value `tf` object for subassignment. This is typed more strictly
-#' than concatenation:  subassignment only happens if the common type of
-#' `value` and `x` is the same as the type of `x`,
-#' so subassignment never changes the type of `x` but may do a
-#' potentially lossy cast of `value` to the type of `x` (with a warning).
-#'@rdname tfbrackets
+#'   than concatenation:  subassignment only happens if the common type of
+#'   `value` and `x` is the same as the type of `x`,
+#'   so subassignment never changes the type of `x` but may do a
+#'   potentially lossy cast of `value` to the type of `x` (with a warning).
+#' @rdname tfbrackets
 #' @family tidyfun bracket-operator
 #' @export
 `[<-.tf` <- function(x, i, value) {

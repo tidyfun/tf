@@ -34,13 +34,13 @@ quad_trapez <- function(arg, evaluations) {
 #' limits of the functions' domain due to these boundary constraints. Basis
 #' `"bs"` does not have this problem for sufficiently high orders, but tends to
 #' yield slightly less stable fits.
-#' @param f a `tf`-object
+#' @param f a `tf`-object.
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
 #' @param arg grid to use for the finite differences.
-#'   Not the `arg` of the returned object for `tfd`-inputs, see Details.
+#'   Not the `arg` of the returned object for `tfd`-inputs, see details.
 #' @param ... not used
 #' @returns a `tf` (with slightly different `arg` or `basis` for the
-#'   derivatives, see Details)
+#'   derivatives, see details).
 #' @export
 #' @family tidyfun calculus functions
 tf_derive <- function(f, arg, order = 1, ...) UseMethod("tf_derive")
@@ -159,13 +159,13 @@ tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
 #' \int^{t}_{lower}f(s)ds}, for \eqn{t \in}`[lower, upper]`, is returned.
 #' @inheritParams tf_derive
 #' @param arg (optional) grid to use for the quadrature.
-#' @param lower lower limits of the integration range. For `definite=TRUE`, this
+#' @param lower lower limits of the integration range. For `definite = TRUE`, this
 #'   can be a vector of the same length as `f`.
 #' @param upper upper limits of the integration range (but see `definite` arg /
-#'   Description). For `definite=TRUE`, this can be a vector of the same length
+#'   description). For `definite = TRUE`, this can be a vector of the same length
 #'   as `f`.
 #' @param definite should the definite integral  be returned (default) or the
-#'   antiderivative. See Description.
+#'   antiderivative. See description.
 #' @returns For `definite = TRUE`, the definite integrals of the functions in
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives

@@ -13,16 +13,16 @@ tf_interpolate(object, arg, ...)
 \method{tf_interpolate}{tfd}(object, arg, ...)
 }
 \arguments{
-\item{object}{an object inheriting from \code{tf}}
+\item{object}{an object inheriting from \code{tf}.}
 
 \item{arg}{a vector of argument values on which to evaluate the functions in
-\code{object}}
+\code{object}.}
 
 \item{...}{additional arguments handed over to \code{tfd} or \code{tfb}, for the
-construction of the returned object}
+construction of the returned object.}
 }
 \value{
-a \code{tfd} or \code{tfb} object on the new grid given by \code{arg}
+a \code{tfd} or \code{tfb} object on the new grid given by \code{arg}.
 }
 \description{
 Change the internal representation of a \code{tf}-object so that it

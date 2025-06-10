@@ -6,20 +6,20 @@
 #' of `NA`s for irregular `tfd` unless you set a [tf_evaluator()]-function
 #' that does inter- and extrapolation for them beforehand.
 #'
-#' @param x  a `tf` object
-#' @param y  a `tf` object
-#' @param arg defaults to standard argument values of `x`
-#' @param ... additional arguments for [purrr::as_mapper()]
+#' @param x  a `tf` object.
+#' @param y  a `tf` object.
+#' @param arg defaults to standard argument values of `x`.
+#' @param ... additional arguments for [purrr::as_mapper()].
 #' @name functionwise
 #' @family tidyfun summary functions
 #' @return a list (or vector) of the same length as `x` with the respective
-#'   summaries
+#'   summaries.
 NULL
 
 #' @export
 #' @describeIn functionwise User-specified function-wise summary statistics
 #' @param .f a function or formula that is applied to each entry of `x`, see
-#'   [purrr::as_mapper()] and Details.
+#'   [purrr::as_mapper()] and details.
 #' @details `tf_fwise` turns `x` into a list of data.frames with columns `arg`
 #' and `values` internally, so the function/formula in `.f` gets a data.frame
 #' `.x` with these columns, see examples below or source code for [tf_fmin()],

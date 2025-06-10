@@ -10,19 +10,19 @@ tf_jiggle(f, amount = 0.4, ...)
 tf_sparsify(f, dropout = 0.5)
 }
 \arguments{
-\item{f}{a \code{tfd} object}
+\item{f}{a \code{tfd} object.}
 
 \item{amount}{how far away from original grid points can the jiggled grid points
 lie, at most (relative to original distance to neighboring grid points).
 Defaults to at most 40\% (0.4) of the original grid distances. Must be lower
-than 0.5}
+than 0.5.}
 
-\item{...}{additional args for the returned \code{tfd} in \code{tf_jiggle}}
+\item{...}{additional args for the returned \code{tfd} in \code{tf_jiggle}.}
 
 \item{dropout}{what proportion of values of \code{f} to drop, on average. Defaults to half.}
 }
 \value{
-an (irregular) \code{tfd} object
+an (irregular) \code{tfd} object.
 }
 \description{
 Randomly create some irregular functional data from regular ones.

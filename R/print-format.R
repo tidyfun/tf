@@ -85,7 +85,7 @@ spark_rep_tf <- function(
 
 #' Pretty printing and formatting for functional data
 #'
-#' Prints and formats `tf`-objects for display. See Details / examples for options that
+#' Prints and formats `tf`-objects for display. See details / examples for options that
 #' give finer control.
 #'
 #' By default, `tf` objects on regular grids are shown as
@@ -101,9 +101,9 @@ spark_rep_tf <- function(
 #' argument to set the number of bins explicitly.
 #' For [tibble::glimpse()], we use 8 bins by default for compact display.
 #' @rdname tfdisplay
-#' @param n how many elements of `x` to print out at most, defaults to 6
-#' @param ... handed over to [format.tf()]
-#' @returns **`print`**: prints out `x` and returns it invisibly
+#' @param n how many elements of `x` to print out at most, defaults to `6`.
+#' @param ... handed over to [format.tf()].
+#' @returns **`print`**: prints out `x` and returns it invisibly.
 #' @export
 #' @family tidyfun print
 #' @examples
@@ -212,10 +212,10 @@ print.tfb <- function(x, n = 5, ...) {
 
 #' @rdname tfdisplay
 #' @inheritParams base::format.default
-#' @param prefix prefix with names / index positions? defaults to `FALSE`
+#' @param prefix prefix with names / index positions? defaults to `FALSE`.
 #' @param sparkline use a sparkline representation? defaults to `TRUE`
-#'   (not available for irregular data)
-#' @returns a character representation of `x`
+#'   (not available for irregular data).
+#' @returns a character representation of `x`.
 #' @export
 format.tf <- function(
   x,

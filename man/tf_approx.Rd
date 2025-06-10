@@ -22,11 +22,11 @@ tf_approx_locf(x, arg, evaluations)
 tf_approx_nocb(x, arg, evaluations)
 }
 \arguments{
-\item{x}{new \code{arg} values to approximate/interpolate/extrapolate the function for}
+\item{x}{new \code{arg} values to approximate/interpolate/extrapolate the function for.}
 
-\item{arg}{the \code{arg} values of the \code{evaluations}}
+\item{arg}{the \code{arg} values of the \code{evaluations}.}
 
-\item{evaluations}{the function values at \code{arg}}
+\item{evaluations}{the function values at \code{arg}.}
 }
 \value{
 a vector of values of the function defined by the given

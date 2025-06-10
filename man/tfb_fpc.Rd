@@ -57,7 +57,7 @@ evaluations.}
 
 \item{method}{the function to use that computes eigenfunctions and scores.
 Defaults to \code{\link[=fpc_wsvd]{fpc_wsvd()}}, which is quick and easy but returns completely
-unsmoothed eigenfunctions unlikely to be suited for noisy data. See Details.}
+unsmoothed eigenfunctions unlikely to be suited for noisy data. See details.}
 }
 \value{
 an object of class \code{tfb_fpc}, inheriting from \code{tfb}.

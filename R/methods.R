@@ -2,10 +2,11 @@
 #'
 #' A bunch of methods & utilities that do what they say: get or set the
 #' respective attributes of a `tf`-object.
-#' @param f an `tf` object
-#' @param x an `tf` object
+#'
+#' @param f an `tf` object.
+#' @param x an `tf` object.
 #' @returns either the respective attribute or, for setters (assignment functions),
-#'  the input object with modified properties.
+#'   the input object with modified properties.
 #' @rdname tfmethods
 #' @family tidyfun utility functions
 #' @export

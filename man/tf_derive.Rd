@@ -19,10 +19,10 @@ tf_derive(f, arg, order = 1, ...)
 \method{tf_derive}{tfb_fpc}(f, arg, order = 1, ...)
 }
 \arguments{
-\item{f}{a \code{tf}-object}
+\item{f}{a \code{tf}-object.}
 
 \item{arg}{grid to use for the finite differences.
-Not the \code{arg} of the returned object for \code{tfd}-inputs, see Details.}
+Not the \code{arg} of the returned object for \code{tfd}-inputs, see details.}
 
 \item{order}{order of differentiation. Maximal value for \code{tfb_spline} is 2.}
 
@@ -30,7 +30,7 @@ Not the \code{arg} of the returned object for \code{tfd}-inputs, see Details.}
 }
 \value{
 a \code{tf} (with slightly different \code{arg} or \code{basis} for the
-derivatives, see Details)
+derivatives, see details).
 }
 \description{
 Derivatives of \code{tf}-objects use finite differences of the evaluations for

@@ -15,7 +15,7 @@ tf_rgp(
 )
 }
 \arguments{
-\item{n}{how many realizations to draw}
+\item{n}{how many realizations to draw.}
 
 \item{arg}{vector of evaluation points (\code{arg} of the return object). Defaults
 to (0, 0.02, 0.04, ..., 1). If given as a single \strong{integer} (don't forget
@@ -23,11 +23,11 @@ the \strong{\code{L}}...), creates a  regular grid of that length over (0,1).
 If given as a \code{n}-long list of vectors, irregular functional data are created.}
 
 \item{cov}{type of covariance function to use. Implemented defaults are
-\code{"squareexp"}, \code{"wiener"}, \code{"matern"}, see Description. Can also be any
+\code{"squareexp"}, \code{"wiener"}, \code{"matern"}, see description. Can also be any
 vectorized function returning \eqn{Cov(x(t), x(t'))} \emph{without nugget
 effect} for pairs of inputs t and t'.}
 
-\item{scale}{scale parameter (see Description). Defaults to the width of the
+\item{scale}{scale parameter (see description). Defaults to the width of the
 domain divided by 10.}
 
 \item{nugget}{nugget effect for additional white noise / unstructured
@@ -42,7 +42,7 @@ function becomes numerically unstable for large (>20) \code{order}, use
 supplied \code{arg} values.}
 }
 \value{
-an \code{tfd}-vector of length \code{n}
+an \code{tfd}-vector of length \code{n}.
 }
 \description{
 Generates \code{n} realizations of a zero-mean Gaussian process. The function also

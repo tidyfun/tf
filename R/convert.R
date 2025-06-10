@@ -5,10 +5,10 @@
 #'
 #' @rdname converters
 #' @inheritParams base::as.data.frame
-#' @param optional not used
+#' @param optional not used.
 #' @param unnest if `TRUE`, the function will return a data.frame with the
 #'   evaluated functions.
-#' @param x a `tf` object
+#' @param x a `tf` object.
 #' @returns **for `as.data.frame.tf`:** if `unnest` is `FALSE` (default), a
 #'   one-column `data.frame` with a `tf`-column containing `x`. if `unnest` is
 #'   `TRUE`, a 3-column data frame with columns `id` for the (unique) names of

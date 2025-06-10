@@ -11,9 +11,9 @@ tf_split(x, splits, include = c("both", "left", "right"))
 tf_combine(..., strict = FALSE)
 }
 \arguments{
-\item{x}{a \code{tf} object}
+\item{x}{a \code{tf} object.}
 
-\item{splits}{numeric vector containing \code{arg}-values at which to split}
+\item{splits}{numeric vector containing \code{arg}-values at which to split.}
 
 \item{include}{which of the end points defined by \code{splits} to include in each
 of the resulting split functions. Defaults to \code{"both"}, other options are "\code{left}" or
@@ -27,7 +27,7 @@ defaults to \code{FALSE}. If \code{strict == FALSE}, only the first function val
 are used, the rest are discarded (with a warning).}
 }
 \value{
-for \code{tf_split}: a list of \code{tf} objects
+for \code{tf_split}: a list of \code{tf} objects.
 
 for \code{tf_combine}: a \code{tfd} with the combined subfunctions on the union of the input \code{tf_arg}-values
 }

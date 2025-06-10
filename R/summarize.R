@@ -53,10 +53,10 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
 #' (e.g. `tf_fmean` for means, `tf_fmax` for max. values) of each entry
 #' in a `tf`-vector.
 #'
-#' @param x a `tf` object
+#' @param x a `tf` object.
 #' @param ... optional additional arguments.
 #' @returns a `tf` object with the computed result.\cr
-#' **`summary.tf`** returns a `tf`-vector with the mean function, the functional
+#'   **`summary.tf`** returns a `tf`-vector with the mean function, the functional
 #'   median, the *pointwise* min and max of `x`, and the *pointwise* min and max
 #'   of the central half of the functions in `x`, as defined by MBD (see
 #'   [tf_depth()]).

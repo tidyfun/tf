@@ -17,12 +17,12 @@
 #' you'll be better off doing FPCA-based imputation or other model-based
 #' approaches in most cases.**
 #'
-#' @param object an object inheriting from `tf`
+#' @param object an object inheriting from `tf`.
 #' @param arg a vector of argument values on which to evaluate the functions in
-#'   `object`
+#'   `object`.
 #' @param ...  additional arguments handed over to `tfd` or `tfb`, for the
-#'   construction of the returned object
-#' @returns a `tfd` or `tfb` object on the new grid given by `arg`
+#'   construction of the returned object.
+#' @returns a `tfd` or `tfb` object on the new grid given by `arg`.
 #' @seealso [tf_rebase()], which is more general.
 #' @family tidyfun inter/extrapolation functions
 #' @export

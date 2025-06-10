@@ -20,11 +20,11 @@ as.tfb(data, basis = c("spline", "fpc"), ...)
 (see \code{\link[=tfb_fpc]{tfb_fpc()}}).
 (\code{wavelet} not implemented yet)}
 
-\item{...}{further arguments for \code{\link[=tfb_spline]{tfb_spline()}} or \code{\link[=tfb_fpc]{tfb_fpc()}}}
+\item{...}{further arguments for \code{\link[=tfb_spline]{tfb_spline()}} or \code{\link[=tfb_fpc]{tfb_fpc()}}.}
 }
 \value{
 a \code{tfb}-object (or a \code{data.frame}/\code{matrix} for the conversion
-functions, obviously.)
+functions, obviously).
 }
 \description{
 Various constructors for \code{tfb}-vectors from different kinds of inputs.

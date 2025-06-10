@@ -16,15 +16,15 @@
 #' \eqn{t, t' \in [a, b]}:
 #' \eqn{Cov(x(t), x(t')) =  \frac{(b - \max(s,t))(\min(s, t) - a)}{\phi (b - a)} + \sigma^2 \delta_{t}(t')}
 #'
-#' @param n how many realizations to draw
+#' @param n how many realizations to draw.
 #' @param arg vector of evaluation points (`arg` of the return object). Defaults
 #'   to (0, 0.02, 0.04, ..., 1). If given as a single **integer** (don't forget
 #'   the **`L`**...), creates a  regular grid of that length over (0,1).
 #'   If given as a `n`-long list of vectors, irregular functional data are created.
-#' @param scale scale parameter (see Description). Defaults to the width of the
+#' @param scale scale parameter (see description). Defaults to the width of the
 #'   domain divided by 10.
 #' @param cov type of covariance function to use. Implemented defaults are
-#'   `"squareexp"`, `"wiener"`, `"matern"`, see Description. Can also be any
+#'   `"squareexp"`, `"wiener"`, `"matern"`, see description. Can also be any
 #'   vectorized function returning \eqn{Cov(x(t), x(t'))} *without nugget
 #'   effect* for pairs of inputs t and t'.
 #' @param nugget nugget effect for additional white noise / unstructured
@@ -35,7 +35,7 @@
 #'   "squareexp".
 #' @param domain of the generated functions. If not provided, the range of the
 #'   supplied `arg` values.
-#' @returns an `tfd`-vector of length `n`
+#' @returns an `tfd`-vector of length `n`.
 #' @importFrom mvtnorm rmvnorm
 #' @export
 #' @family tidyfun RNG functions
@@ -135,13 +135,13 @@ tf_rgp <- function(
 #' - **jiggle** it by randomly moving around its `arg`-values inside the intervals defined by its grid neighbors on the original argument grid.
 #' - **sparsify** it by removing (100*`dropout`)% of the function values
 #'
-#' @param f a `tfd` object
+#' @param f a `tfd` object.
 #' @param amount how far away from original grid points can the jiggled grid points
 #'   lie, at most (relative to original distance to neighboring grid points).
 #'   Defaults to at most 40% (0.4) of the original grid distances. Must be lower
-#'   than 0.5
-#' @param ... additional args for the returned `tfd` in `tf_jiggle`
-#' @returns an (irregular) `tfd` object
+#'   than 0.5.
+#' @param ... additional args for the returned `tfd` in `tf_jiggle`.
+#' @returns an (irregular) `tfd` object.
 #' @importFrom stats runif
 #' @export
 #' @rdname tf_jiggle

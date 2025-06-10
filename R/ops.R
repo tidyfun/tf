@@ -18,13 +18,13 @@
 #'
 #' See examples below, many more are in `tests/testthat/test-ops.R`.
 #'
-#' @param x a `tf` or `numeric` object
-#' @param y a `tf` or `numeric` object
-#' @param op An arithmetic operator as a string
-#' @param ... `tf`-objects (not used for `Math` group generic)
-#' @param e1 an `tf` or a numeric vector
-#' @param e2 an `tf` or a numeric vector
-#' @returns a `tf`- or `logical` vector with the computed result
+#' @param x a `tf` or `numeric` object.
+#' @param y a `tf` or `numeric` object.
+#' @param op An arithmetic operator as a string.
+#' @param ... `tf`-objects (not used for `Math` group generic).
+#' @param e1 an `tf` or a numeric vector.
+#' @param e2 an `tf` or a numeric vector.
+#' @returns a `tf`- or `logical` vector with the computed result.
 #' @seealso [tf_fwise()] for scalar summaries of each function in a `tf`-vector
 #' @name tfgroupgenerics
 #' @family tidyfun compute functions

@@ -35,14 +35,14 @@ tf_crosscov(x, y, arg = tf_arg(x))
 tf_crosscor(x, y, arg = tf_arg(x))
 }
 \arguments{
-\item{x}{a \code{tf} object}
+\item{x}{a \code{tf} object.}
 
 \item{.f}{a function or formula that is applied to each entry of \code{x}, see
-\code{\link[purrr:as_mapper]{purrr::as_mapper()}} and Details.}
+\code{\link[purrr:as_mapper]{purrr::as_mapper()}} and details.}
 
-\item{arg}{defaults to standard argument values of \code{x}}
+\item{arg}{defaults to standard argument values of \code{x}.}
 
-\item{...}{additional arguments for \code{\link[purrr:as_mapper]{purrr::as_mapper()}}}
+\item{...}{additional arguments for \code{\link[purrr:as_mapper]{purrr::as_mapper()}}.}
 
 \item{na.rm}{a logical (\code{TRUE} or \code{FALSE}) indicating
     whether missing values should be removed.}
@@ -50,11 +50,11 @@ tf_crosscor(x, y, arg = tf_arg(x))
 \item{finite}{logical, indicating if all non-finite elements should
     be omitted.}
 
-\item{y}{a \code{tf} object}
+\item{y}{a \code{tf} object.}
 }
 \value{
 a list (or vector) of the same length as \code{x} with the respective
-summaries
+summaries.
 }
 \description{
 These functions extract (user-specified) \strong{function-wise} summary statistics

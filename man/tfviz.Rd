@@ -28,30 +28,30 @@
 )
 }
 \arguments{
-\item{x}{an \code{tf} object}
+\item{x}{an \code{tf} object.}
 
 \item{y}{(optional) numeric vector to be used as \code{arg}
-(i.e., for the \strong{x}-axis...!)}
+(i.e., for the \strong{x}-axis...!).}
 
 \item{n_grid}{minimal size of equidistant grid used for plotting,
-defaults to 50. See details.}
+defaults to \code{50}. See details.}
 
 \item{points}{should the original evaluation points be marked by points?
-Defaults to \code{TRUE} for irregular \code{tfd} and FALSE for all others}
+Defaults to \code{TRUE} for irregular \code{tfd} and \code{FALSE} for all others.}
 
-\item{type}{"spaghetti": line plots, "lasagna": heat maps.}
+\item{type}{\code{"spaghetti"}: line plots, \code{"lasagna"}: heat maps.}
 
 \item{alpha}{alpha-value (see\code{\link[grDevices:rgb]{grDevices::rgb()}}) for noodle transparency.
 Defaults to 2/(no. of observations). Lower is more transparent.}
 
 \item{...}{additional arguments for \code{\link[=matplot]{matplot()}} ("spaghetti") or
-\code{\link[=image]{image()}} ("lasagna")}
+\code{\link[=image]{image()}} ("lasagna").}
 
-\item{arg}{evaluation grid (vector)}
+\item{arg}{evaluation grid (vector).}
 
 \item{interpolate}{should functions be evaluated (i.e., inter-/extrapolated)
 for arg for which no original data is available? Only relevant for
-tfd, defaults to FALSE}
+tfd, defaults to \code{FALSE}.}
 }
 \value{
 the plotted \code{tf}-object, invisibly.

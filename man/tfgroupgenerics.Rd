@@ -56,20 +56,20 @@
 \method{cumprod}{tfb}(...)
 }
 \arguments{
-\item{e1}{an \code{tf} or a numeric vector}
+\item{e1}{an \code{tf} or a numeric vector.}
 
-\item{e2}{an \code{tf} or a numeric vector}
+\item{e2}{an \code{tf} or a numeric vector.}
 
-\item{op}{An arithmetic operator as a string}
+\item{op}{An arithmetic operator as a string.}
 
-\item{x}{a \code{tf} or \code{numeric} object}
+\item{x}{a \code{tf} or \code{numeric} object.}
 
-\item{y}{a \code{tf} or \code{numeric} object}
+\item{y}{a \code{tf} or \code{numeric} object.}
 
-\item{...}{\code{tf}-objects (not used for \code{Math} group generic)}
+\item{...}{\code{tf}-objects (not used for \code{Math} group generic).}
 }
 \value{
-a \code{tf}- or \code{logical} vector with the computed result
+a \code{tf}- or \code{logical} vector with the computed result.
 }
 \description{
 These methods and operators mostly work \code{arg}-value-wise on \code{tf} objects, see
