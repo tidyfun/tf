@@ -1,3 +1,5 @@
+## delete below once done
+
 #' Register a tf vector
 #'
 #' @param x a tf vector to register.
@@ -29,6 +31,8 @@ tf_register.tfd <- function(x, ..., arg = NULL, verbose = FALSE) {
   )
 }
 
+## delete above once done
+
 #' Warp a tf vector
 #'
 #' Apply (inverse of given aligning functions)/(given warping functions) to
@@ -54,15 +58,15 @@ tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
-  if (!is_reg(warp)) {
-    cli::cli_abort("{.arg warp} must be of {.cls tfd_reg} vector.")
+  if (all(tf_domain(x) == tf_domain(warp))) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
 
   arg <- tf_arg(x)
-  lwr <- arg[[1]]
+  lwr <- arg[[1]] # not safe for tfd_irreg -- arg[1] is not always domain boundary. should be tf_domain[1] I think?
   upr <- arg[[length(arg)]]
   new_arg <- map(tf_evaluations(warp), \(h) (upr - lwr) * h + lwr)
-  warped <- tfd(x, arg = new_arg, ...)
+  warped <- tfd(x, arg = new_arg, ...) # nope -- only evaluates function on new grid, does not WARP functions!
   if (!keep_arg) {
     warped <- tfd(warped, arg = arg, ...)
   }
@@ -96,11 +100,16 @@ tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
   if (!is_reg(warp)) {
     cli::cli_abort("{.arg warp} must be of {.cls tfd_reg} vector.")
   }
+  if (all(tf_domain(x) == tf_domain(warp))) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
+  }
 
   arg <- tf_arg(x)
   lwr <- arg[[1]]
   upr <- arg[[length(arg)]]
 
+  # FS: every tfd comes with an inter/extrapolation method, why not use that instead
+  # of calling linear stats::approx directly...?
   inv_warp <- map(tf_evaluations(warp), function(h) {
     stats::approx(
       x = (upr - lwr) * h + lwr,
