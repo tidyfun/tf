@@ -1,38 +1,3 @@
-## delete below once done
-
-#' Register a tf vector
-#'
-#' @param x a tf vector to register.
-#' @param ... additional arguments passed to [fdasrvf::time_warping()].
-#' @param arg the arg vector.
-#' @param verbose print progress messages?
-#' @returns `list()` containing: registered tf vector `x` and warping functions `warp`.
-#' @export
-tf_register <- function(x, ..., arg = NULL, verbose = FALSE) {
-  rlang::check_dots_used()
-  UseMethod("tf_register")
-}
-
-#' @export
-tf_register.tfd <- function(x, ..., arg = NULL, verbose = FALSE) {
-  rlang::check_installed("fdasrvf")
-  arg <- assert_arg(arg, x, null_ok = TRUE) %||% tf_arg(x)
-  assert_flag(verbose)
-
-  x <- t(as.matrix(x))
-  if (verbose) {
-    reg <- fdasrvf::time_warping(f = x, time = arg, ...)
-  } else {
-    reg <- suppressMessages(fdasrvf::time_warping(f = x, time = arg, ...))
-  }
-  list(
-    x = tfd(t(reg$fn), arg = arg),
-    warp = tfd(t(reg$warping_functions), arg = unit_seq(length(arg)))
-  )
-}
-
-## delete above once done
-
 #' Warp a tf vector
 #'
 #' Apply (inverse of given aligning functions)/(given warping functions) to
@@ -58,19 +23,18 @@ tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
-  if (all(tf_domain(x) == tf_domain(warp))) {
+  if (!all(tf_domain(x) == tf_domain(warp))) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
-
-  arg <- tf_arg(x)
-  lwr <- arg[[1]] # not safe for tfd_irreg -- arg[1] is not always domain boundary. should be tf_domain[1] I think?
-  upr <- arg[[length(arg)]]
-  new_arg <- map(tf_evaluations(warp), \(h) (upr - lwr) * h + lwr)
-  warped <- tfd(x, arg = new_arg, ...) # nope -- only evaluates function on new grid, does not WARP functions!
-  if (!keep_arg) {
-    warped <- tfd(warped, arg = arg, ...)
+  if (!all(map_lgl(tf_frange(warp), \(x) all(x == tf_domain(warp))))) {
+    cli::cli_abort("{.arg warp} domain and range must be the same.")
   }
-  warped
+
+  ret <- tfd(tf_evaluations(x), arg = tf_evaluations(warp), ...)
+  if (!keep_arg) {
+    ret <- tfd(ret, arg = tf_arg(x), ...)
+  }
+  ret
 }
 
 #' Unwarp a tf vector
@@ -91,7 +55,7 @@ tf_unwarp <- function(x, warp, ..., keep_arg = FALSE) {
 }
 
 #' @export
-tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
+tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   assert_tfd(warp)
   assert_flag(keep_arg)
   if (length(x) != length(warp)) {
@@ -100,28 +64,22 @@ tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
   if (!is_reg(warp)) {
     cli::cli_abort("{.arg warp} must be of {.cls tfd_reg} vector.")
   }
-  if (all(tf_domain(x) == tf_domain(warp))) {
+  if (!all(tf_domain(x) == tf_domain(warp))) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
+  if (!all(map_lgl(tf_frange(warp), \(x) all(x == tf_domain(warp))))) {
+    cli::cli_abort("{.arg warp} domain and range must be the same.")
+  }
 
-  arg <- tf_arg(x)
-  lwr <- arg[[1]]
-  upr <- arg[[length(arg)]]
-
-  # FS: every tfd comes with an inter/extrapolation method, why not use that instead
-  # of calling linear stats::approx directly...?
+  x_arg <- tf_arg(x)
+  warp_arg <- tf_arg(warp)
   inv_warp <- map(tf_evaluations(warp), function(h) {
-    stats::approx(
-      x = (upr - lwr) * h + lwr,
-      y = arg,
-      xout = arg,
-      method = "linear"
-    )$y
+    stats::approx(x = h, y = warp_arg, xout = x_arg, rule = 2)$y
   })
+  ret <- tfd(tf_evaluations(x), arg = inv_warp)
 
-  ret <- tfd(x, arg = inv_warp, ...)
   if (!keep_arg) {
-    ret <- tfd(ret, arg = arg, ...)
+    ret <- tfd(ret, arg = x_arg, ...)
   }
   ret
 }
@@ -135,37 +93,46 @@ tf_unwarp.tfd <- function(x, warp, keep_arg = FALSE, ...) {
 #' @returns tf vector of the aligning functions, i.e. the warping functions.
 #' @export
 tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
+  rlang::check_dots_used()
   assert_tfd(x)
   assert_tfd(template, null_ok = TRUE)
   assert_choice(method, c("srvf", "fda"))
+  # TODO: should we allow length 1 and recycle?
+  if (!is.null(template) && length(x) != length(template)) {
+    cli::cli_abort("{.arg x} and {.arg template} must have the same length.")
+  }
 
   if (method == "srvf") {
     rlang::check_installed("fdasrvf")
     arg <- tf_arg(x)
+    domain <- tf_domain(x)
 
     # Karcher mean
+    # TODO: do we need to remove the NAs for irregular tfd?
+    x <- as.matrix(x)
     if (is.null(template)) {
-      ret <- suppressMessages(fdasrvf::time_warping(
-        f = t(as.matrix(x)),
-        time = arg,
-        ...
-      ))
-      warp <- tfd(t(ret$warping_functions), arg = unit_seq(length(arg)))
-      return(warp)
+      ret <- suppressMessages(fdasrvf::time_warping(f = t(x), time = arg, ...))
+      warp <- t(ret$warping_functions)
+    } else {
+      template <- as.matrix(template)
+      warp <- matrix(nrow = nrow(x), ncol = ncol(x))
+      for (i in seq_len(nrow(x))) {
+        warp[i, ] <- fdasrvf::pair_align_functions(
+          f1 = x[i, ],
+          f2 = template[i, ],
+          time = arg,
+          ...
+        )$gam
+      }
     }
 
-    x <- as.matrix(x)
-    template <- as.matrix(template)
-    warp <- matrix(nrow = nrow(x), ncol = ncol(x))
-    for (i in seq_len(nrow(x))) {
-      warp[i, ] <- fdasrvf::pair_align_functions(
-        f1 = x[i, ],
-        f2 = if (nrow(template) == 1) template[1, ] else template[i, ],
-        time = arg,
-        ...
-      )$gam
+    lwr <- domain[1]
+    upr <- domain[2]
+    for (i in seq_len(nrow(warp))) {
+      warp[i, ] <- lwr + warp[i, ] * (upr - lwr)
     }
-    return(tfd(warp, arg = unit_seq(length(arg))))
+    warp <- tfd(warp, arg = arg)
+    return(warp)
   }
 
   if (method == "fda") {
@@ -182,7 +149,7 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
 }
 
 #' @export
-as.fd.tfd <- function(x, nbasis = NULL, lambda = 0, ...) {
+as.fd.tfd <- function(x, ..., nbasis = NULL, lambda = 0) {
   rlang::check_installed("fda")
 
   domain <- tf_domain(x)
@@ -198,5 +165,3 @@ as.fd.tfd <- function(x, nbasis = NULL, lambda = 0, ...) {
   param <- fda::fdPar(basis, lambda = lambda)
   fda::smooth.basis(argvals = arg, y = y_mat, fdParobj = param, ...)$fd
 }
-
-unit_seq <- function(n) seq(0, 1, length.out = n)
