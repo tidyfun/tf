@@ -107,4 +107,20 @@ test_that("tf_register_template works", {
   expect_identical(tf_domain(warp), domain)
   expect_true(all(tf_fmin(warp) == domain[1]))
   expect_true(all(tf_fmax(warp) == domain[2]))
+
+  # works with fda package
+  warp <- tf_register_template(x, method = "fda")
+  expect_s3_class(warp, "tfd")
+  expect_length(warp, length(x))
+  expect_identical(tf_domain(warp), domain)
+  expect_true(all(tf_fmin(warp) == domain[1]))
+  expect_true(all(tf_fmax(warp) == domain[2]))
+
+  template <- mean(x)
+  warp <- tf_register_template(x, template = template, method = "fda")
+  expect_s3_class(warp, "tfd")
+  expect_length(warp, length(x))
+  expect_identical(tf_domain(warp), domain)
+  expect_true(all(tf_fmin(warp) == domain[1]))
+  expect_true(all(tf_fmax(warp) == domain[2]))
 })

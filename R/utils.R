@@ -229,7 +229,7 @@ fd_to_matrix <- function(fd, n_points = 100) {
   assert_integer(n_points, lower = 1)
   rng <- fd$basis$rangeval
   arg <- seq(rng[1], rng[2], length = n_points)
-  fda::eval.fd(arg, fd)
+  t(fda::eval.fd(arg, fd))
 }
 
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>

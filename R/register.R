@@ -98,17 +98,21 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
   assert_tfd(template, null_ok = TRUE)
   assert_choice(method, c("srvf", "fda"))
   # TODO: should we allow length 1 and recycle?
-  if (!is.null(template) && length(x) != length(template)) {
+  if (
+    !is.null(template) && length(template) != 1 && length(x) != length(template)
+  ) {
     cli::cli_abort("{.arg x} and {.arg template} must have the same length.")
   }
 
+  arg <- tf_arg(x)
+  domain <- tf_domain(x)
+  lwr <- domain[1]
+  upr <- domain[2]
+
   if (method == "srvf") {
     rlang::check_installed("fdasrvf")
-    arg <- tf_arg(x)
-    domain <- tf_domain(x)
 
     # Karcher mean
-    # TODO: do we need to remove the NAs for irregular tfd?
     x <- as.matrix(x)
     if (is.null(template)) {
       ret <- suppressMessages(fdasrvf::time_warping(f = t(x), time = arg, ...))
@@ -119,37 +123,47 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
       for (i in seq_len(nrow(x))) {
         warp[i, ] <- fdasrvf::pair_align_functions(
           f1 = x[i, ],
-          f2 = template[i, ],
+          f2 = if (nrow(template) == 1) template[1, ] else template[i, ],
           time = arg,
           ...
         )$gam
       }
     }
-
-    lwr <- domain[1]
-    upr <- domain[2]
     for (i in seq_len(nrow(warp))) {
       warp[i, ] <- lwr + warp[i, ] * (upr - lwr)
     }
-    warp <- tfd(warp, arg = arg)
-    return(warp)
   }
 
   if (method == "fda") {
     rlang::check_installed("fda")
-    yfd <- as.fd(x)
+    yfd <- as_fd(x)
     if (is.null(template)) {
       y0fd <- do.call(fda::mean.fd, list(yfd))
+    } else {
+      y0fd <- as_fd(template)
     }
-    ret <- fda::register.fd(y0fd = y0fd, yfd = yfd, ...)
-    ret <- fd_to_matrix(ret$warpfd, tf_count(x))
-    ret <- tfd(t(ret), arg = tf_arg(x))
-    ret
+    utils::capture.output(
+      ret <- fda::register.fd(
+        y0fd = y0fd,
+        yfd = yfd,
+        dbglev = 0,
+        ...
+      )
+    )
+    warp <- fd_to_matrix(ret$warpfd, tf_count(x))
+    # TODO: returns values outside the domain
+    # fda::eval.fd() returns values outside the domain
+    for (i in seq_len(nrow(warp))) {
+      h_min <- min(warp[i, ])
+      h_max <- max(warp[i, ])
+      warp[i, ] <- lwr + (warp[i, ] - h_min) / (h_max - h_min) * (upr - lwr)
+    }
   }
+
+  tfd(warp, arg = arg)
 }
 
-#' @export
-as.fd.tfd <- function(x, ..., nbasis = NULL, lambda = 0) {
+as_fd <- function(x, ..., nbasis = NULL, lambda = 0) {
   rlang::check_installed("fda")
 
   domain <- tf_domain(x)
