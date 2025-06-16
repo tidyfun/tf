@@ -111,7 +111,6 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
 
   if (method == "srvf") {
     rlang::check_installed("fdasrvf")
-
     # Karcher mean
     x <- as.matrix(x)
     if (is.null(template)) {
@@ -132,9 +131,7 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
     for (i in seq_len(nrow(warp))) {
       warp[i, ] <- lwr + warp[i, ] * (upr - lwr)
     }
-  }
-
-  if (method == "fda") {
+  } else {
     rlang::check_installed("fda")
     yfd <- as_fd(x)
     if (is.null(template)) {
