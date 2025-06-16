@@ -114,7 +114,7 @@ tf_register <- function(x, ..., template = NULL, method = "srvf") {
 
   switch(
     method,
-    srvf = tf_register_srvf(x, template, , ...),
+    srvf = tf_register_srvf(x, template, ...),
     fda = tf_register_fda(x, template, ...)
   )
 }

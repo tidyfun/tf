@@ -84,10 +84,10 @@ assert_warp <- function(warp, x) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
   domain <- tf_domain(x)
-  if (!identical(domain, tf_domain(x))) {
+  if (!all(domain == tf_domain(x))) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
-  if (!all(map_lgl(tf_frange(warp), \(x) identical(x, domain)))) {
+  if (!all(map_lgl(tf_frange(warp), \(x) all(x == domain)))) {
     cli::cli_abort("{.arg warp} domain and range must be the same.")
   }
   if (!all(map_lgl(tf_evaluations(warp), is_monotonic))) {
