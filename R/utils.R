@@ -224,11 +224,12 @@ sort_unique <- function(x, simplify = FALSE) {
 
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
 
+# FS: better/more general to supply "arg" vector instead (and see below for default)?
 fd_to_matrix <- function(fd, n_points = 100) {
   assert_class(fd, "fd")
   assert_integer(n_points, lower = 1)
   rng <- fd$basis$rangeval
-  arg <- seq(rng[1], rng[2], length = n_points)
+  arg <- seq(rng[1], rng[2], length = n_points) #FS: shouldn't this use fd$fdnames$time?
   t(fda::eval.fd(arg, fd))
 }
 

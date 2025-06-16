@@ -19,6 +19,7 @@ tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   assert_tfd(warp)
+  # FS: assert_warp(warp, x) was checkt dass das für x anwendbare warpings sind (f:domain(x) -> (subset of) domain(x), f monoton) wär gut!
   assert_flag(keep_arg)
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
@@ -31,11 +32,15 @@ tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   }
 
   ret <- tfd(tf_evaluations(x), arg = tf_evaluations(warp), ...)
+  # FS: müsste das nicht tf_evaluations(tfd(warp, arg = tf_arg(x))) sein ?
+  # (oder assert_warp oben muss checken dass tf_arg(warp) und tf_arg(x) gleich sind, was ich zu strikt/impraktikabel fände)
   if (!keep_arg) {
     ret <- tfd(ret, arg = tf_arg(x), ...)
   }
   ret
 }
+
+# FS: TODO tf_warp.tfb
 
 #' Unwarp a tf vector
 #'
@@ -73,6 +78,8 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
 
   x_arg <- tf_arg(x)
   warp_arg <- tf_arg(warp)
+  # FS: fine as is, would be more awesome to implement this as a general, public facing tf_invert() method
+  # for computing function inverses (using the approximator etc that the original function uses)
   inv_warp <- map(tf_evaluations(warp), function(h) {
     stats::approx(x = h, y = warp_arg, xout = x_arg, rule = 2)$y
   })
@@ -93,9 +100,10 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
 #' @returns tf vector of the aligning functions, i.e. the warping functions.
 #' @export
 tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
+  # denke das kann einfach tf_register heißen, und wenn template NULL ist muss die template halt aus x berechnet werden....
   rlang::check_dots_used()
   assert_tfd(x)
-  assert_tfd(template, null_ok = TRUE)
+  assert_tfd(template, null_ok = TRUE) # FS: falls vorhanden mit länge 1 oder länge = länge(x), andere implizite anforderungen (!!) hier bitte auch explizit machen/prüfen
   assert_choice(method, c("srvf", "fda"))
   # TODO: should we allow length 1 and recycle?
   if (
@@ -109,6 +117,8 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
   lwr <- domain[1]
   upr <- domain[2]
 
+  # FS: hier bitte mehr extensibility - ein switch-statement für "method" und das was für srvf
+  #    und fda hier implementiert wird in sub-funktionen abkapseln.
   if (method == "srvf") {
     rlang::check_installed("fdasrvf")
     # Karcher mean
@@ -131,6 +141,7 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
     for (i in seq_len(nrow(warp))) {
       warp[i, ] <- lwr + warp[i, ] * (upr - lwr)
     }
+    # FS: BUG -- das gibt mMn für "if" warping functions und für "else" aligning functions zurück!
   } else {
     rlang::check_installed("fda")
     yfd <- as_fd(x)
@@ -160,6 +171,7 @@ tf_register_template <- function(x, ..., template = NULL, method = "srvf") {
   tfd(warp, arg = arg)
 }
 
+# rename as "tf_2_fd" ? more consistent with other non-public conversion functions like tf_2_df
 as_fd <- function(x, ..., nbasis = NULL, lambda = 0) {
   rlang::check_installed("fda")
 
