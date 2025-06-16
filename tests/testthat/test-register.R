@@ -76,7 +76,7 @@ test_that("tf_unwarp identity works", {
   expect_identical(tf_warp(tf_unwarp(x, w, keep_arg = TRUE), w), x)
 })
 
-test_that("tf_register_template works", {
+test_that("tf_register works", {
   skip_if_not_installed("fdasrvf")
   withr::local_seed(1234)
 
@@ -92,7 +92,7 @@ test_that("tf_register_template works", {
   # with default template function (Karcher mean)
   x <- tfd(t(data))
   domain <- tf_domain(x)
-  warp <- tf_register_template(x)
+  warp <- tf_register(x)
   expect_identical(tf_domain(warp), domain)
   expect_true(all(tf_fmin(warp) == domain[1]))
   expect_true(all(tf_fmax(warp) == domain[2]))
@@ -101,7 +101,7 @@ test_that("tf_register_template works", {
 
   # simple template function
   template <- mean(x)
-  warp <- tf_register_template(x, template = template)
+  warp <- tf_register(x, template = template)
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), domain)
@@ -109,7 +109,7 @@ test_that("tf_register_template works", {
   expect_true(all(tf_fmax(warp) == domain[2]))
 
   # works with fda package
-  warp <- tf_register_template(x, method = "fda")
+  warp <- tf_register(x, method = "fda")
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), domain)
@@ -117,7 +117,7 @@ test_that("tf_register_template works", {
   expect_true(all(tf_fmax(warp) == domain[2]))
 
   template <- mean(x)
-  warp <- tf_register_template(x, template = template, method = "fda")
+  warp <- tf_register(x, template = template, method = "fda")
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), domain)

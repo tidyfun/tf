@@ -25,7 +25,9 @@ find_arg <- function(data, arg) {
       arg <- numeric(0)
     }
   }
-  if (length(arg) == 0) arg <- seq_len(ncol(data))
+  if (length(arg) == 0) {
+    arg <- seq_len(ncol(data))
+  }
   assert_numeric(arg, any.missing = FALSE)
   if (length(arg) != ncol(data)) {
     cli::cli_abort("{.arg arg} must have same length as {.arg data}.")
@@ -116,7 +118,9 @@ compare_tf_attribs <- function(
   a1 <- attributes(e1)
   a2 <- attributes(e2)
   attribs <- union(names(a1), names(a2))
-  if (length(ignore)) attribs <- attribs[!(attribs %in% ignore)]
+  if (length(ignore)) {
+    attribs <- attribs[!(attribs %in% ignore)]
+  }
   .compare <- function(a, b) {
     if (is.null(a) != is.null(b)) {
       return(FALSE)
@@ -206,7 +210,9 @@ unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)
   }
-  if (is.character(x)) x <- sub("$^", "NA", x)
+  if (is.character(x)) {
+    x <- sub("$^", "NA", x)
+  }
   x <- make.names(as.character(x), unique = TRUE)
   x
 }
@@ -227,9 +233,13 @@ data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
 fd_to_matrix <- function(fd, n_points = 100) {
   assert_class(fd, "fd")
   assert_integer(n_points, lower = 1)
-  rng <- fd$basis$rangeval
-  arg <- seq(rng[1], rng[2], length = n_points)
+  arg <- as.numeric(fd$fdnames$time)
   t(fda::eval.fd(arg, fd))
+}
+
+is_monotonic <- function(x) {
+  d <- diff(x)
+  all(d >= 0) || all(d <= 0)
 }
 
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
