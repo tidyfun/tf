@@ -125,6 +125,7 @@ tf_register <- function(x, ..., template = NULL, method = "srvf") {
 
 tf_register_srvf <- function(x, template, ...) {
   rlang::check_installed("fdasrvf")
+
   arg <- tf_arg(x)
   domain <- tf_domain(x)
   lwr <- domain[1]
@@ -156,17 +157,14 @@ tf_register_srvf <- function(x, template, ...) {
 
 tf_register_fda <- function(x, template, ...) {
   rlang::check_installed("fda")
-  arg <- tf_arg(x)
-  domain <- tf_domain(x)
-  lwr <- domain[1]
-  upr <- domain[2]
-  yfd <- tf_2_fd(x)
 
+  yfd <- tf_2_fd(x)
   if (is.null(template)) {
     y0fd <- do.call(fda::mean.fd, list(yfd))
   } else {
     y0fd <- tf_2_fd(template)
   }
+
   utils::capture.output(
     ret <- fda::register.fd(
       y0fd = y0fd,
@@ -175,15 +173,14 @@ tf_register_fda <- function(x, template, ...) {
       ...
     )
   )
-  warp <- fd_to_matrix(ret$warpfd, tf_count(x))
-  # TODO: returns values outside the domain
-  # fda::eval.fd() returns values outside the domain
-  for (i in seq_len(nrow(warp))) {
-    h_min <- min(warp[i, ])
-    h_max <- max(warp[i, ])
-    warp[i, ] <- lwr + (warp[i, ] - h_min) / (h_max - h_min) * (upr - lwr)
-  }
-  tfd(warp, arg = arg)
+  arg <- tf_arg(x)
+  warp <- fda::eval.monfd(arg, ret$Wfd)
+  n <- length(arg)
+  domain <- tf_domain(x)
+  # TODO: check if faster via apply/sweep etc.
+  warp <- domain[1] +
+    (domain[2] - 1) * warp / (matrix(1, nrow = n) %*% warp[n, ])
+  tfd(t(warp), arg = arg)
 }
 
 tf_2_fd <- function(x, ..., nbasis = NULL, lambda = 0) {

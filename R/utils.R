@@ -230,13 +230,6 @@ sort_unique <- function(x, simplify = FALSE) {
 
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
 
-fd_to_matrix <- function(fd, n_points = 100) {
-  assert_class(fd, "fd")
-  assert_integer(n_points, lower = 1)
-  arg <- as.numeric(fd$fdnames$time)
-  t(fda::eval.fd(arg, fd))
-}
-
 is_monotonic <- function(x) {
   d <- diff(x)
   all(d >= 0) || all(d <= 0)
