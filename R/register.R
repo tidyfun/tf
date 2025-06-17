@@ -20,9 +20,13 @@ tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
 tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   assert_warp(warp, x)
   assert_flag(keep_arg)
-  ret <- tfd(tf_evaluations(x), arg = tf_evaluations(warp), ...)
+
+  arg <- tf_arg(x)
+  warp <- tfd(warp, arg = arg)
+  ret <- tfd(tf_evaluations(x), tf_evaluations(warp), ...)
+
   if (!keep_arg) {
-    ret <- tfd(ret, arg = tf_arg(x), ...)
+    ret <- tfd(ret, arg = arg, ...)
   }
   ret
 }
@@ -31,7 +35,6 @@ tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
 tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
   x <- as.tfd(x)
   if (is_tfb(warp)) {
-    # TODO: check if I need to pass any args
     warp <- as.tfd(warp)
   }
   x <- tf_warp(x, warp, ..., keep_arg = keep_arg)
@@ -66,6 +69,7 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   x_arg <- tf_arg(x)
   warp_arg <- tf_arg(warp)
   # TODO: swap w/ tf_invert() once implemented
+  warp <- tfd(warp, arg = x_arg)
   inv_warp <- map(tf_evaluations(warp), function(h) {
     stats::approx(x = h, y = warp_arg, xout = x_arg, rule = 2)$y
   })
