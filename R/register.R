@@ -166,36 +166,14 @@ tf_register_fda <- function(x, template, ...) {
   }
 
   utils::capture.output(
-    ret <- fda::register.fd(
-      y0fd = y0fd,
-      yfd = yfd,
-      dbglev = 0,
-      ...
-    )
+    ret <- fda::register.fd(y0fd = y0fd, yfd = yfd, dbglev = 0, ...)
   )
   arg <- tf_arg(x)
-  warp <- fda::eval.monfd(arg, ret$Wfd)
   n <- length(arg)
   domain <- tf_domain(x)
+  warp <- fda::eval.monfd(arg, ret$Wfd)
   # TODO: check if faster via apply/sweep etc.
   warp <- domain[1] +
     (domain[2] - 1) * warp / (matrix(1, nrow = n) %*% warp[n, ])
   tfd(t(warp), arg = arg)
-}
-
-tf_2_fd <- function(x, ..., nbasis = NULL, lambda = 0) {
-  rlang::check_installed("fda")
-
-  domain <- tf_domain(x)
-  arg <- tf_arg(x)
-  y_mat <- t(as.matrix(x))
-  nbasis <- nbasis %||% min(25, round(length(arg) / 4))
-
-  basis <- fda::create.bspline.basis(
-    rangeval = domain,
-    nbasis = nbasis,
-    norder = 4
-  )
-  param <- fda::fdPar(basis, lambda = lambda)
-  fda::smooth.basis(argvals = arg, y = y_mat, fdParobj = param, ...)$fd
 }
