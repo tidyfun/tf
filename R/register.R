@@ -91,8 +91,17 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
   as.tfb(x)
 }
 
+#' Invert a tf vector
+#'
+#' @param x a tf vector
+#' @export
 tf_invert <- function(x) {
-  .NotYetImplemented()
+  assert_tfd(x)
+  arg <- ensure_list(tf_arg(x))
+  if (length(x) > 1 && length(arg) == 1) {
+    arg <- rep(arg, length(x))
+  }
+  tfd(arg, arg = tf_evaluations(x))
 }
 
 #' Register a tf vector against a template function
