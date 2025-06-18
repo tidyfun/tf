@@ -78,20 +78,27 @@ assert_tfd <- function(x, null_ok = FALSE) {
 
 assert_tfb <- function(x) assert_class(x, "tfb")
 
-assert_warp <- function(warp, x) {
+# "strict" does not allow stretching/compressing or truncation of domain
+# (i.e. strict allows only bijective time transformations)
+assert_warp <- function(warp, x, strict = FALSE) {
   assert_tfd(warp)
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
-  domain <- tf_domain(x)
-  if (!all(domain == tf_domain(x))) {
+  domain_x <- tf_domain(x)
+  domain_warp <- tf_domain(warp)
+  if (!all(domain_x == domain_warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
-  }
-  if (!all(map_lgl(tf_frange(warp), \(x) all(x == domain)))) {
-    cli::cli_abort("{.arg warp} domain and range must be the same.")
   }
   if (!all(map_lgl(tf_evaluations(warp), is_monotonic))) {
     cli::cli_abort("{.arg warp} must be monotonic.")
+    # TODO: more informative error message -- which warp entries are violating
+  }
+  if (strict) {
+    if (!all(map_lgl(tf_frange(warp), \(x) all(x == domain_x)))) {
+      cli::cli_abort("{.arg warp} domain and range must be the same.")
+      # TODO: more informative error message -- which warp entries are violating
+    }
   }
   invisible(warp)
 }
