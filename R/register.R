@@ -68,12 +68,9 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
 
   x_arg <- tf_arg(x)
   warp_arg <- tf_arg(warp)
-  # TODO: swap w/ tf_invert() once implemented
-  warp <- tfd(warp, arg = x_arg)
-  inv_warp <- map(tf_evaluations(warp), function(h) {
-    stats::approx(x = h, y = warp_arg, xout = x_arg, rule = 2)$y
-  })
-  ret <- tfd(tf_evaluations(x), arg = inv_warp)
+
+  inv_warp <- tfd(warp, arg = x_arg) |> tf_invert() |> tfd(arg = x_arg)
+  ret <- tfd(tf_evaluations(x), arg = tf_evaluations(inv_warp))
 
   if (!keep_arg) {
     ret <- tfd(ret, arg = x_arg, ...)
@@ -96,6 +93,11 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' @param x a tf vector
 #' @export
 tf_invert <- function(x) {
+  #TODO: move to calculus.R eventually
+  #TODO: turn into generic w/ methods for tfd, tfb
+  #       for tfb_spline: invert then tf_rebase into original basis
+  #         (unless link function is present...)
+  #       for tfb_fpc: new fpc basis
   assert_tfd(x)
   arg <- ensure_list(tf_arg(x))
   if (length(x) > 1 && length(arg) == 1) {
@@ -157,6 +159,8 @@ tf_register_srvf <- function(x, template, ...) {
         ...
       )$gam
     }
+    #FS pretty sure these <>$gam are aligning functions not warping functions!!
+    # needs another inversion here for return object consistency.....
   }
   for (i in seq_len(nrow(warp))) {
     warp[i, ] <- lwr + warp[i, ] * (upr - lwr)
@@ -183,6 +187,6 @@ tf_register_fda <- function(x, template, ...) {
   warp <- fda::eval.monfd(arg, ret$Wfd)
   # TODO: check if faster via apply/sweep etc.
   warp <- domain[1] +
-    (domain[2] - 1) * warp / (matrix(1, nrow = n) %*% warp[n, ])
+    (domain[2] - domain[1]) * warp / (matrix(1, nrow = n) %*% warp[n, ])
   tfd(t(warp), arg = arg)
 }
