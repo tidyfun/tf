@@ -7,7 +7,9 @@ domain_contains <- function(x, to) {
 assert_domain_x_in_to <- function(x, to) {
   # can (try to) cast losslessly if domain of 'to' contains domain of 'x'
 
-  if (domain_contains(x, to)) return(TRUE)
+  if (domain_contains(x, to)) {
+    return(TRUE)
+  }
 
   stop_incompatible_cast(
     x = x,
@@ -75,6 +77,24 @@ assert_tfd <- function(x, null_ok = FALSE) {
 }
 
 assert_tfb <- function(x) assert_class(x, "tfb")
+
+assert_warp <- function(warp, x) {
+  assert_tfd(warp)
+  if (length(x) != length(warp)) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
+  }
+  domain <- tf_domain(x)
+  if (!all(domain == tf_domain(x))) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
+  }
+  if (!all(map_lgl(tf_frange(warp), \(x) all(x == domain)))) {
+    cli::cli_abort("{.arg warp} domain and range must be the same.")
+  }
+  if (!all(map_lgl(tf_evaluations(warp), is_monotonic))) {
+    cli::cli_abort("{.arg warp} must be monotonic.")
+  }
+  invisible(warp)
+}
 
 check_limit <- function(x, f) {
   domain <- tf_domain(f)
