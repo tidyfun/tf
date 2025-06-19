@@ -90,14 +90,18 @@ assert_warp <- function(warp, x, strict = FALSE) {
   if (!all(domain_x == domain_warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
-  if (!all(map_lgl(tf_evaluations(warp), is_monotonic))) {
-    cli::cli_abort("{.arg warp} must be monotonic.")
-    # TODO: more informative error message -- which warp entries are violating
+  bad_monotonic <- !map_lgl(tf_evaluations(warp), is_monotonic)
+  if (any(bad_monotonic)) {
+    cli::cli_abort(
+      "{.arg warp} must be monotonic. Not monotonic at index: {.val {which(bad_monotonic)}}."
+    )
   }
   if (strict) {
-    if (!all(map_lgl(tf_frange(warp), \(x) all(x == domain_x)))) {
-      cli::cli_abort("{.arg warp} domain and range must be the same.")
-      # TODO: more informative error message -- which warp entries are violating
+    bad_range <- !map_lgl(tf_frange(warp), \(x) all(x == domain_x))
+    if (any(bad_range)) {
+      cli::cli_abort(
+        "{.arg warp} domain and range must be the same. Not equal at index: {.val {which(bad_range)}}."
+      )
     }
   }
   invisible(warp)

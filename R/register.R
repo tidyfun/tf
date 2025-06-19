@@ -93,8 +93,8 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' @param x a tf vector
 #' @export
 tf_invert <- function(x) {
-  #TODO: move to calculus.R eventually
-  #TODO: turn into generic w/ methods for tfd, tfb
+  # TODO: move to calculus.R eventually
+  # TODO: turn into generic w/ methods for tfd, tfb
   #       for tfb_spline: invert then tf_rebase into original basis
   #         (unless link function is present...)
   #       for tfb_fpc: new fpc basis
