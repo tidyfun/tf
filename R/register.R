@@ -90,20 +90,29 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 
 #' Invert a tf vector
 #'
-#' @param x a tf vector
+#' @param x a tf vector.
+#' @returns a tf vector of the inverted functions.
 #' @export
 tf_invert <- function(x) {
+  UseMethod("tf_invert")
+}
+
+#' @export
+tf_invert.tfd <- function(x) {
   # TODO: move to calculus.R eventually
-  # TODO: turn into generic w/ methods for tfd, tfb
-  #       for tfb_spline: invert then tf_rebase into original basis
-  #         (unless link function is present...)
-  #       for tfb_fpc: new fpc basis
   assert_tfd(x)
   arg <- ensure_list(tf_arg(x))
   if (length(x) > 1 && length(arg) == 1) {
     arg <- rep(arg, length(x))
   }
   tfd(arg, arg = tf_evaluations(x))
+}
+
+#' @export
+tf_invert.tfb <- function(x) {
+  # TODO: tfb_spline: invert then tf_rebase into original basis (unless link function is present...)
+  # TODO: tfb_fpc: new fpc basis
+  .NotYetImplemented()
 }
 
 #' Register a tf vector against a template function
