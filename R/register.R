@@ -2,7 +2,7 @@
 #'
 #' Apply (inverse of given aligning functions)/(given warping functions) to
 #' aligned functional data to get back to the original unaligned data:
-#' $x(s) \to x(h(s)) = x(t)$.
+#' \eqn{x(s) \to x(h(s)) = x(t)}.
 #'
 #' @param x tf vector of (registered) functions.
 #' @param warp tf vector of warping functions.
@@ -10,7 +10,13 @@
 #' @param keep_arg re-evaluate on warped arg values after un-warping or return
 #'   tf on un-warped arg-vals (default)?
 #' @returns the warped tf vector, i.e. the unregistered functions.
+#'
 #' @export
+#' @examples
+#' \dontrun{
+#' # TODO: add examples
+#' tf_warp(x, warp)
+#' }
 tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_warp")
@@ -44,7 +50,7 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' Unwarp a tf vector
 #'
 #' Apply (inverse of given warping functions)/(given aligning functions) to
-#' functional data: $x(t) \to x(h^{-1}(t)) = x(s)$.
+#' functional data: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 #'
 #' @param x tf vector of unregistered functions.
 #' @param warp tf vector of aligning functions.
@@ -52,7 +58,13 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' @param keep_arg re-eval on original arg after warping or return (irregular)
 #'   tf on warped arg (default)?
 #' @returns the unwarped tf vector, i.e. the registered functions.
+#'
 #' @export
+#' @examples
+#' \dontrun{
+#' # TODO: add examples
+#' tf_unwarp(x, warp)
+#' }
 tf_unwarp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_unwarp")
@@ -90,9 +102,18 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 
 #' Invert a tf vector
 #'
+#' Computes the functional inverse of each function in the tf vector, such that
+#' if \eqn{y = f(x)}, then \eqn{x = f^{-1}(y)}.
+#'
 #' @param x a tf vector.
 #' @returns a tf vector of the inverted functions.
+#'
 #' @export
+#' @examples
+#' \dontrun{
+#' # TODO: add examples
+#' tf_invert(x)
+#' }
 tf_invert <- function(x) {
   UseMethod("tf_invert")
 }
@@ -117,13 +138,30 @@ tf_invert.tfb <- function(x) {
 
 #' Register a tf vector against a template function
 #'
+#' `tf_register()` performs functional data registration (alignment) by finding
+#' warping functions that optimally align a set of functions to a template function.
+#' Registration removes phase variation (horizontal shifts and stretches) while
+#' preserving amplitude variation, making it easier to analyze the intrinsic
+#' shape characteristics of functional data.
+#'
 #' @param x a tf vector of functions to register.
 #' @param ... additional arguments passed to further methods.
-#' @param template a tf vector of a template function to register against.
-#' @param method the implementation method to choose.
-#' @returns tf vector of the aligning functions, i.e. the warping functions.
+#' @param template an optional tf vector of a template function to register against.
+#'   If `NULL`, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.
+#' @param method the implementation method to choose. Either `"srvf"` or `"fda"`.
+#'   * `srvf`: uses the Square-Root Velocity Function (SRVF) framework for registration.
+#'     For details, see [fdasrvf::time_warping()] and [fdasrvf::pair_align_functions()].
+#'   * `fda`: uses the functional data analysis approach for registration.
+#'     For details, see [fda::register.fd()].
+#' @returns tf vector of the the warping functions with the same length as `x`.
+#'
 #' @references `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
+#' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
+#' \dontrun{
+#' # TODO: add examples
+#' tf_register(x)
+#' }
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(x)

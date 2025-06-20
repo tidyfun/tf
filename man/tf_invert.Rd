@@ -13,5 +13,12 @@ tf_invert(x)
 a tf vector of the inverted functions.
 }
 \description{
-Invert a tf vector
+Computes the functional inverse of each function in the tf vector, such that
+if \eqn{y = f(x)}, then \eqn{x = f^{-1}(y)}.
+}
+\examples{
+\dontrun{
+# TODO: add examples
+tf_invert(x)
+}
 }

@@ -11,15 +11,34 @@ tf_register(x, ..., template = NULL, method = "srvf")
 
 \item{...}{additional arguments passed to further methods.}
 
-\item{template}{a tf vector of a template function to register against.}
+\item{template}{an optional tf vector of a template function to register against.
+If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.}
 
-\item{method}{the implementation method to choose.}
+\item{method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
+\itemize{
+\item \code{srvf}: uses the Square-Root Velocity Function (SRVF) framework for registration.
+For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and \code{\link[fdasrvf:pair_align_functions]{fdasrvf::pair_align_functions()}}.
+\item \code{fda}: uses the functional data analysis approach for registration.
+For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
+}}
 }
 \value{
-tf vector of the aligning functions, i.e. the warping functions.
+tf vector of the the warping functions with the same length as \code{x}.
 }
 \description{
-Register a tf vector against a template function
+\code{tf_register()} performs functional data registration (alignment) by finding
+warping functions that optimally align a set of functions to a template function.
+Registration removes phase variation (horizontal shifts and stretches) while
+preserving amplitude variation, making it easier to analyze the intrinsic
+shape characteristics of functional data.
+}
+\examples{
+\dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontrun{
+# TODO: add examples
+tf_register(x)
+}
+\dontshow{\}) # examplesIf}
 }
 \references{
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
