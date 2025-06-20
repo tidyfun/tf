@@ -34,10 +34,10 @@ shape characteristics of functional data.
 }
 \examples{
 \dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-\dontrun{
-# TODO: add examples
-tf_register(x)
-}
+growth_female <- subset(growth, gender == "female", select = growth, drop = TRUE)
+plot(growth_female)
+growth_female_reg <- tf_register(growth_female)
+plot(growth_female_reg)
 \dontshow{\}) # examplesIf}
 }
 \references{

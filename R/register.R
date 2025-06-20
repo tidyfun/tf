@@ -158,10 +158,10 @@ tf_invert.tfb <- function(x) {
 #' @references `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
 #' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
-#' \dontrun{
-#' # TODO: add examples
-#' tf_register(x)
-#' }
+#' growth_female <- subset(growth, gender == "female", select = growth, drop = TRUE)
+#' plot(growth_female)
+#' growth_female_reg <- tf_register(growth_female)
+#' plot(growth_female_reg)
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(x)
