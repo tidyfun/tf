@@ -165,15 +165,24 @@ tf_invert.tfb <- function(x) {
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(x)
-  # TODO: falls vorhanden mit länge 1 oder länge = länge(x), andere implizite anforderungen (!!) hier bitte auch explizit machen/prüfen
-  assert_tfd(template, null_ok = TRUE)
   assert_choice(method, c("srvf", "fda"))
-  if (
-    !is.null(template) && length(template) != 1 && length(template) != length(x)
-  ) {
-    cli::cli_abort(
-      "{.arg template} must be of length 1 or the same length as {.arg x}."
-    )
+  assert_tfd(template, null_ok = TRUE)
+  if (!is.null(template)) {
+    if (length(template) != 1 && length(template) != length(x)) {
+      cli::cli_abort(
+        "{.arg template} must be of length 1 or the same length as {.arg x}."
+      )
+    }
+    if (!all(tf_domain(x) == tf_domain(template))) {
+      cli::cli_abort("{.arg x} and {.arg template} must have the same domain.")
+    }
+    template_arg <- tf_arg(template)
+    if (is_irreg(x) && length(template) == 1) {
+      template_arg <- rep(ensure_list(template_arg), length(x))
+    }
+    if (!isTRUE(all.equal(tf_arg(x), template_arg))) {
+      cli::cli_abort("{.arg x} and {.arg template} must have the same grid.")
+    }
   }
 
   switch(
