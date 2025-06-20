@@ -122,12 +122,13 @@ tf_invert.tfb <- function(x) {
 #' @param template a tf vector of a template function to register against.
 #' @param method the implementation method to choose.
 #' @returns tf vector of the aligning functions, i.e. the warping functions.
-#' @references `r format_bib("srivastava2011registration", "tucker2013generative")`
+#' @references `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(x)
-  assert_tfd(template, null_ok = TRUE) # TODO: falls vorhanden mit länge 1 oder länge = länge(x), andere implizite anforderungen (!!) hier bitte auch explizit machen/prüfen
+  # TODO: falls vorhanden mit länge 1 oder länge = länge(x), andere implizite anforderungen (!!) hier bitte auch explizit machen/prüfen
+  assert_tfd(template, null_ok = TRUE)
   assert_choice(method, c("srvf", "fda"))
   if (
     !is.null(template) && length(template) != 1 && length(template) != length(x)

@@ -88,5 +88,18 @@ bibentries <- c(
     archivePrefix = "arXiv",
     primaryClass = "math.ST",
     url = "https://arxiv.org/abs/1103.3817",
+  ),
+  ramsay2009functional = bibentry(
+    "book",
+    title = "Functional Data Analysis with R and MATLAB",
+    author = "Ramsay, James O. and Hooker, Giles and Graves, Spencer",
+    year = "2009",
+    edition = "1",
+    publisher = "Springer New York",
+    address = "New York",
+    series = "Use R!",
+    pages = "XII, 202",
+    isbn = "978-0-387-98184-0",
+    doi = "10.1007/978-0-387-98185-7",
   )
 )

@@ -22,6 +22,11 @@ tf vector of the aligning functions, i.e. the warping functions.
 Register a tf vector against a template function
 }
 \references{
+Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
+\emph{Functional Data Analysis with R and MATLAB},  series Use R!, 1 edition.
+Springer New York, New York.
+ISBN 978-0-387-98184-0, \doi{10.1007/978-0-387-98185-7}.
+
 Srivastava A, Wu W, Kurtek S, Klassen E, Marron JS (2011).
 \dQuote{Registration of Functional Data Using Fisher-Rao Metric.}
 1103.3817, \url{https://arxiv.org/abs/1103.3817}.
