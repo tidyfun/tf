@@ -122,11 +122,12 @@ tf_invert.tfb <- function(x) {
 #' @param template a tf vector of a template function to register against.
 #' @param method the implementation method to choose.
 #' @returns tf vector of the aligning functions, i.e. the warping functions.
+#' @references `r format_bib("srivastava2011registration", "tucker2013generative")`
 #' @export
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(x)
-  assert_tfd(template, null_ok = TRUE) # FS: falls vorhanden mit länge 1 oder länge = länge(x), andere implizite anforderungen (!!) hier bitte auch explizit machen/prüfen
+  assert_tfd(template, null_ok = TRUE) # TODO: falls vorhanden mit länge 1 oder länge = länge(x), andere implizite anforderungen (!!) hier bitte auch explizit machen/prüfen
   assert_choice(method, c("srvf", "fda"))
   if (
     !is.null(template) && length(template) != 1 && length(template) != length(x)
@@ -162,14 +163,12 @@ tf_register_srvf <- function(x, template, ...) {
     warp <- matrix(nrow = nrow(x), ncol = ncol(x))
     for (i in seq_len(nrow(x))) {
       warp[i, ] <- fdasrvf::pair_align_functions(
-        f1 = x[i, ],
-        f2 = if (is_single_template) template[1, ] else template[i, ],
+        f1 = if (is_single_template) template[1, ] else template[i, ],
+        f2 = x[i, ],
         time = arg,
         ...
       )$gam
     }
-    #FS pretty sure these <>$gam are aligning functions not warping functions!!
-    # needs another inversion here for return object consistency.....
   }
   for (i in seq_len(nrow(warp))) {
     warp[i, ] <- lwr + warp[i, ] * (upr - lwr)

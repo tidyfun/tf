@@ -21,3 +21,13 @@ tf vector of the aligning functions, i.e. the warping functions.
 \description{
 Register a tf vector against a template function
 }
+\references{
+Srivastava A, Wu W, Kurtek S, Klassen E, Marron JS (2011).
+\dQuote{Registration of Functional Data Using Fisher-Rao Metric.}
+1103.3817, \url{https://arxiv.org/abs/1103.3817}.
+
+Tucker JD, Wu W, Srivastava A (2013).
+\dQuote{Generative models for functional data using phase and amplitude separation.}
+\emph{Computational Statistics & Data Analysis}, \bold{61}, 50-66.
+ISSN 0167-9473, \doi{https://doi.org/10.1016/j.csda.2012.12.001}, \url{https://www.sciencedirect.com/science/article/pii/S0167947312004227}.
+}

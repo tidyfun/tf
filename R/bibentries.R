@@ -66,5 +66,27 @@ bibentries <- c(
     pages = "621--625",
     year = "2010",
     publisher = "NIH Public Access"
+  ),
+  tucker2013generative = bibentry(
+    "article",
+    title = "Generative models for functional data using phase and amplitude separation",
+    author = "J. Derek Tucker and Wei Wu and Anuj Srivastava",
+    journal = "Computational Statistics & Data Analysis",
+    volume = "61",
+    pages = "50-66",
+    year = "2013",
+    issn = "0167-9473",
+    doi = "https://doi.org/10.1016/j.csda.2012.12.001",
+    url = "https://www.sciencedirect.com/science/article/pii/S0167947312004227"
+  ),
+  srivastava2011registration = bibentry(
+    "misc",
+    title = "Registration of Functional Data Using Fisher-Rao Metric",
+    author = "Anuj Srivastava and Wei Wu and Sebastian Kurtek and Eric Klassen and J. S. Marron",
+    year = "2011",
+    eprint = "1103.3817",
+    archivePrefix = "arXiv",
+    primaryClass = "math.ST",
+    url = "https://arxiv.org/abs/1103.3817",
   )
 )
