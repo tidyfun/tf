@@ -35,9 +35,11 @@ shape characteristics of functional data.
 \examples{
 \dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 growth_female <- subset(growth, gender == "female", select = growth, drop = TRUE)
-plot(growth_female)
-growth_female_reg <- tf_register(growth_female)
-plot(growth_female_reg)
+plot(growth_female, xlab = "Age (years)", ylab = "Height (cm)")
+warp <- tf_register(growth_female)
+plot(warp, xlab = "Clock Year", ylab = "Biological Year")
+growth_female_reg <- tf_warp(growth_female, warp)
+plot(growth_female_reg, xlab = "Age (years)", ylab = "Height (cm)")
 \dontshow{\}) # examplesIf}
 }
 \references{
