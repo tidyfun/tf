@@ -14,16 +14,24 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r}
+```{r growth}
 library(tf)
 
-height_f <- subset(growth, gender == "female", select = height, drop = TRUE)
-n <- length(height_f)
-growth_mean <- tf_derive(mean(height_f))
-growth_f <- tf_derive(height_f)
+growth_female <- subset(growth, gender == "female", select = height)
+growth_female$height_mean <- mean(growth_female$height)
+growth_female$velocity_mean <- tf_derive(growth_female$height_mean)
+growth_female$velocity <- tf_derive(growth_female$height)
+growth_female$velocity_warp <- tf_register(growth_female$velocity)
+growth_female$velocity_reg <- tf_unwarp(
+  growth_female$velocity,
+  growth_female$velocity_warp
+)
+
+n <- nrow(growth_female)
+
 par(mfrow = c(1, 1))
 plot(
-  growth_f,
+  growth_female$velocity,
   main = "Female Growth Velocity Trajectories",
   xlab = "Age (years)",
   ylab = "Growth Velocity (cm/year)",
@@ -32,9 +40,9 @@ plot(
   bty = "l",
   las = 1
 )
-warp <- tf_register(growth_f)
+
 plot(
-  warp,
+  growth_female$velocity_warp,
   xlab = "Clock Year",
   ylab = "Biological Year",
   lwd = 1.5,
@@ -44,9 +52,9 @@ plot(
 )
 abline(0, 1, lty = 2)
 grid()
-growth_f_reg <- tf_unwarp(growth_f, warp)
+
 plot(
-  growth_f_reg,
+  growth_female$velocity_reg,
   main = "Registered Female Velocity Curves",
   xlab = "Age (years)",
   ylab = "Growth Velocity (cm/year)",
@@ -59,9 +67,9 @@ grid()
 
 oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
 on.exit(par(oldpar))
-for (i in seq_len(n)) {
+for (i in seq_len(nrow(growth_female))) {
   plot(
-    growth_f[i],
+    growth_female[i, "velocity"],
     xlim = c(0, 18),
     main = paste("Velocity Case", i),
     xlab = "Age (years)",
@@ -71,12 +79,87 @@ for (i in seq_len(n)) {
     bty = "l",
     las = 1
   )
-  lines(growth_mean, lty = 2, col = 2)
-  lines(growth_f_reg[i], col = 3)
+  lines(growth_female$velocity_mean, lty = 2, col = 2)
+  lines(growth_female[i, "velocity_reg"], col = 3)
   plot(
     warp[i],
     xlab = "Clock Year",
     ylab = "Biological Year",
+    lwd = 1.5,
+    bty = "l",
+    las = 1,
+  )
+  abline(0, 1, lty = 2)
+}
+```
+
+```{r gait}
+gait$knee_angle_warp <- tf_register(gait$knee_angle)
+gait$hip_angle_warp <- tf_register(gait$hip_angle)
+gait$knee_angle_reg <- tf_unwarp(gait$knee_angle, gait$knee_angle_warp)
+gait$hip_angle_reg <- tf_unwarp(gait$hip_angle, gait$hip_angle_warp)
+
+n <- nrow(gait)
+
+par(mfrow = c(1, 1))
+plot(
+  gait$hip_angle,
+  main = "Hip Angles During Gait Cycle",
+  xlab = "Gait Cycle (%)",
+  ylab = "Hip Angle (degrees)",
+  lwd = 1.5,
+  col = seq_len(n),
+  bty = "l",
+  las = 1
+)
+grid()
+
+plot(
+  gait$hip_angle_warp,
+  main = "Hip Angle Warping Functions",
+  xlab = "Original Gait Cycle (%)",
+  ylab = "Registered Gait Cycle (%)",
+  lwd = 1.5,
+  col = seq_len(n),
+  bty = "l",
+  las = 1,
+)
+abline(0, 1, lty = 2)
+grid()
+
+plot(
+  gait$hip_angle_reg,
+  main = "Registered Hip Angles",
+  xlab = "Gait Cycle (%)",
+  ylab = "Hip Angle (degrees)",
+  lwd = 1.5,
+  col = seq_len(n),
+  bty = "l",
+  las = 1
+)
+grid()
+
+oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
+on.exit(par(oldpar))
+for (i in seq_len(n)) {
+  plot(
+    gait[i, "hip_angle"],
+    main = paste("Hip Angle Case", i),
+    xlab = "Gait Cycle (%)",
+    ylab = "Hip Angle (degrees)",
+    lwd = 1.5,
+    col = 4,
+    bty = "l",
+    las = 1
+  )
+  lines(gait$hip_mean, lty = 2, col = 2)
+  lines(gait[i, "hip_angle_reg"], col = 3)
+
+  plot(
+    gait[i, "hip_angle_warp"],
+    main = paste("Warping Case", i),
+    xlab = "Original Gait Cycle (%)",
+    ylab = "Registered Gait Cycle (%)",
     lwd = 1.5,
     bty = "l",
     las = 1,
