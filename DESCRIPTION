@@ -54,6 +54,8 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     withr
+VignetteBuilder: 
+    knitr
 Remotes:
     jdtuck/fdasrvf_R
 Config/testthat/edition: 3
@@ -101,4 +103,3 @@ Collate:
     'where.R'
     'zoom.R'
     'zzz.R'
-VignetteBuilder: knitr
