@@ -26,6 +26,7 @@ aligned functional data to get back to the original unaligned data:
 }
 \examples{
 \dontrun{
+# TODO: add examples
 tf_warp(x, warp)
 }
 }

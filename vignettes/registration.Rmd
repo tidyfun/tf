@@ -1,0 +1,86 @@
+---
+title: "registration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{registration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+library(tf)
+
+height_f <- subset(growth, gender == "female", select = height, drop = TRUE)
+n <- length(height_f)
+growth_mean <- tf_derive(mean(height_f))
+growth_f <- tf_derive(height_f)
+par(mfrow = c(1, 1))
+plot(
+  growth_f,
+  main = "Female Growth Velocity Trajectories",
+  xlab = "Age (years)",
+  ylab = "Growth Velocity (cm/year)",
+  lwd = 1.5,
+  col = seq_len(n),
+  bty = "l",
+  las = 1
+)
+warp <- tf_register(growth_f)
+plot(
+  warp,
+  xlab = "Clock Year",
+  ylab = "Biological Year",
+  lwd = 1.5,
+  col = seq_len(n),
+  bty = "l",
+  las = 1,
+)
+abline(0, 1, lty = 2)
+grid()
+growth_f_reg <- tf_unwarp(growth_f, warp)
+plot(
+  growth_f_reg,
+  main = "Registered Female Velocity Curves",
+  xlab = "Age (years)",
+  ylab = "Growth Velocity (cm/year)",
+  lwd = 1.5,
+  col = seq_len(n),
+  bty = "l",
+  las = 1
+)
+grid()
+
+oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
+on.exit(par(oldpar))
+for (i in seq_len(n)) {
+  plot(
+    growth_f[i],
+    xlim = c(0, 18),
+    main = paste("Velocity Case", i),
+    xlab = "Age (years)",
+    ylab = "Growth Velocity (cm/year)",
+    lwd = 1.5,
+    col = 4,
+    bty = "l",
+    las = 1
+  )
+  lines(growth_mean, lty = 2, col = 2)
+  lines(growth_f_reg[i], col = 3)
+  plot(
+    warp[i],
+    xlab = "Clock Year",
+    ylab = "Biological Year",
+    lwd = 1.5,
+    bty = "l",
+    las = 1,
+  )
+  abline(0, 1, lty = 2)
+}
+```

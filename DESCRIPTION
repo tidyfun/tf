@@ -51,6 +51,7 @@ Suggests:
     fdasrvf (>= 2.3.6),
     knitr,
     refund,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
 Remotes:
@@ -100,3 +101,4 @@ Collate:
     'where.R'
     'zoom.R'
     'zzz.R'
+VignetteBuilder: knitr
