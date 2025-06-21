@@ -220,9 +220,7 @@ tf_register_srvf <- function(x, template, ...) {
       )$gam
     }
   }
-  for (i in seq_len(nrow(warp))) {
-    warp[i, ] <- lwr + warp[i, ] * (upr - lwr)
-  }
+  warp <- lwr + (upr - lwr) * warp
   tfd(warp, arg = arg)
 }
 
@@ -242,9 +240,10 @@ tf_register_fda <- function(x, template, ...) {
   arg <- tf_arg(x)
   n <- length(arg)
   domain <- tf_domain(x)
+  lwr <- domain[1]
+  upr <- domain[2]
+
   warp <- fda::eval.monfd(arg, ret$Wfd)
-  # TODO: check if faster via apply/sweep etc.
-  warp <- domain[1] +
-    (domain[2] - domain[1]) * warp / (matrix(1, nrow = n) %*% warp[n, ])
+  warp <- lwr + (upr - lwr) * warp / (matrix(1, nrow = n) %*% warp[n, ])
   tfd(t(warp), arg = arg)
 }
