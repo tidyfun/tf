@@ -19,22 +19,22 @@ library(tf)
 
 growth_female <- subset(growth, gender == "female", select = height)
 growth_female$height_mean <- mean(growth_female$height)
-growth_female$velocity_mean <- tf_derive(growth_female$height_mean)
-growth_female$velocity <- tf_derive(growth_female$height)
-growth_female$velocity_warp <- tf_register(growth_female$velocity)
-growth_female$velocity_reg <- tf_unwarp(
-  growth_female$velocity,
-  growth_female$velocity_warp
+growth_female$growth_mean <- tf_derive(growth_female$height_mean)
+growth_female$growth <- tf_derive(growth_female$height)
+growth_female$growth_warp <- tf_register(growth_female$growth)
+growth_female$growth_reg <- tf_unwarp(
+  growth_female$growth,
+  growth_female$growth_warp
 )
 
 n <- nrow(growth_female)
 
 par(mfrow = c(1, 1))
 plot(
-  growth_female$velocity,
-  main = "Female Growth Velocity Trajectories",
+  growth_female$growth,
+  main = "Female Growth Rate Trajectories",
   xlab = "Age (years)",
-  ylab = "Growth Velocity (cm/year)",
+  ylab = "Growth Rate (cm/year)",
   lwd = 1.5,
   col = seq_len(n),
   bty = "l",
@@ -42,7 +42,7 @@ plot(
 )
 
 plot(
-  growth_female$velocity_warp,
+  growth_female$growth_warp,
   xlab = "Clock Year",
   ylab = "Biological Year",
   lwd = 1.5,
@@ -54,10 +54,10 @@ abline(0, 1, lty = 2)
 grid()
 
 plot(
-  growth_female$velocity_reg,
-  main = "Registered Female Velocity Curves",
+  growth_female$growth_reg,
+  main = "Registered Female Growth Curves",
   xlab = "Age (years)",
-  ylab = "Growth Velocity (cm/year)",
+  ylab = "Growth Rate (cm/year)",
   lwd = 1.5,
   col = seq_len(n),
   bty = "l",
@@ -69,20 +69,20 @@ oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
 on.exit(par(oldpar))
 for (i in seq_len(nrow(growth_female))) {
   plot(
-    growth_female[i, "velocity"],
+    growth_female[i, "growth"],
     xlim = c(0, 18),
-    main = paste("Velocity Case", i),
+    main = paste("Growth Case", i),
     xlab = "Age (years)",
-    ylab = "Growth Velocity (cm/year)",
+    ylab = "Growth Rate (cm/year)",
     lwd = 1.5,
     col = 4,
     bty = "l",
     las = 1
   )
-  lines(growth_female$velocity_mean, lty = 2, col = 2)
-  lines(growth_female[i, "velocity_reg"], col = 3)
+  lines(growth_female$growth_mean, lty = 2, col = 2)
+  lines(growth_female[i, "growth_reg"], col = 3)
   plot(
-    warp[i],
+    growth_female[i, "growth_warp"],
     xlab = "Clock Year",
     ylab = "Biological Year",
     lwd = 1.5,

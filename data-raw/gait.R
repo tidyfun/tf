@@ -1,4 +1,4 @@
-gait <- fda::gait
+gait <- datasets::gait
 knee_angle <- gait[,, "Knee Angle"]
 knee_angle <- tfd(t(knee_angle))
 hip_angle <- gait[,, "Hip Angle"]

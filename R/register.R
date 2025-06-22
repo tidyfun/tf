@@ -160,11 +160,11 @@ tf_invert.tfb <- function(x) {
 #' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
 #' heigth_female <- subset(growth, gender == "female", select = heigth, drop = TRUE)
 #' growth_female <- tf_derive(height_female)
-#' plot(growth_female, xlab = "Age (years)", ylab = "Growth Velocity (cm/year)")
+#' plot(growth_female, xlab = "Age (years)", ylab = "Growth Rate (cm/year)")
 #' warp <- tf_register(growth_female)
 #' plot(warp, xlab = "Clock Year", ylab = "Biological Year")
 #' growth_female_reg <- tf_unwarp(growth_female, warp)
-#' plot(growth_female_reg, xlab = "Age (years)", ylab = "Growth Velocity (cm/year)",)
+#' plot(growth_female_reg, xlab = "Age (years)", ylab = "Growth Rate (cm/year)",)
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(x)
