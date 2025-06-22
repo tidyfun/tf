@@ -131,7 +131,7 @@ tf_invert.tfd <- function(x) {
 
 #' @export
 tf_invert.tfb <- function(x) {
-  # TODO: tfb_spline: invert then tf_rebase into original basis (unless link function is present...)
+  # TODO: tfb_spline: invert then tf_rebase into original basis (unless link function is present ...)
   # TODO: tfb_fpc: new fpc basis
   .NotYetImplemented()
 }

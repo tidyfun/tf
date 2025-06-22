@@ -14,6 +14,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Growth Data
+
 ```{r growth}
 library(tf)
 
@@ -91,7 +93,14 @@ for (i in seq_len(nrow(growth_female))) {
   )
   abline(0, 1, lty = 2)
 }
+
+var_pre <- tf_fvar(growth_female$growth)
+var_post <- tf_fvar(growth_female$growth_reg)
+var_red <- sum(var_post) / sum(var_pre)
+print(sprintf("Variance reduction: %.2f%%", 100 * (1 - var_red)))
 ```
+
+## Gait Data
 
 ```{r gait}
 gait$knee_angle_warp <- tf_register(gait$knee_angle)
@@ -166,4 +175,14 @@ for (i in seq_len(n)) {
   )
   abline(0, 1, lty = 2)
 }
+
+var_pre <- tf_fvar(gait$hip_angle)
+var_post <- tf_fvar(gait$hip_angle_reg)
+var_red <- sum(var_post) / sum(var_pre)
+print(sprintf("Variance reduction hip angle: %.2f%%", 100 * (1 - var_red)))
+
+var_pre <- tf_fvar(gait$knee_angle)
+var_post <- tf_fvar(gait$knee_angle_reg)
+var_red <- sum(var_post) / sum(var_pre)
+print(sprintf("Variance reduction knee angle: %.2f%%", 100 * (1 - var_red)))
 ```
