@@ -21,5 +21,11 @@ the unwarped tf vector, i.e. the registered functions.
 }
 \description{
 Apply (inverse of given warping functions)/(given aligning functions) to
-functional data: $x(t) \to x(h^{-1}(t)) = x(s)$.
+functional data: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
+}
+\examples{
+\dontrun{
+# TODO: add examples
+tf_unwarp(x, warp)
+}
 }

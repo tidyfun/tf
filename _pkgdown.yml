@@ -38,6 +38,13 @@ reference:
   - tf_derive
   - tf_integrate
   - tf_smooth
+- title: Registering, aligning and warping
+  desc: Functions for registering, aligning and warping functional data
+  contents:
+  - tf_register
+  - tf_warp
+  - tf_unwarp
+  - tf_invert
 - title: Visualization & Display
   desc: Graphics functions and print formats
   contents:

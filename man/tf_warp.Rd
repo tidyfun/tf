@@ -22,5 +22,11 @@ the warped tf vector, i.e. the unregistered functions.
 \description{
 Apply (inverse of given aligning functions)/(given warping functions) to
 aligned functional data to get back to the original unaligned data:
-$x(s) \to x(h(s)) = x(t)$.
+\eqn{x(s) \to x(h(s)) = x(t)}.
+}
+\examples{
+\dontrun{
+# TODO: add examples
+tf_warp(x, warp)
+}
 }

@@ -51,8 +51,11 @@ Suggests:
     fdasrvf,
     knitr,
     refund,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true

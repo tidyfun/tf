@@ -11,13 +11,50 @@ tf_register(x, ..., template = NULL, method = "srvf")
 
 \item{...}{additional arguments passed to further methods.}
 
-\item{template}{a tf vector of a template function to register against.}
+\item{template}{an optional tf vector of a template function to register against.
+If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.}
 
-\item{method}{the implementation method to choose.}
+\item{method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
+\itemize{
+\item \code{srvf}: uses the Square-Root Velocity Function (SRVF) framework for registration.
+For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and \code{\link[fdasrvf:pair_align_functions]{fdasrvf::pair_align_functions()}}.
+\item \code{fda}: uses the functional data analysis approach for registration.
+For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
+}}
 }
 \value{
-tf vector of the aligning functions, i.e. the warping functions.
+tf vector of the the warping functions with the same length as \code{x}.
 }
 \description{
-Register a tf vector against a template function
+\code{tf_register()} performs functional data registration (alignment) by finding
+warping functions that optimally align a set of functions to a template function.
+Registration removes phase variation (horizontal shifts and stretches) while
+preserving amplitude variation, making it easier to analyze the intrinsic
+shape characteristics of functional data.
+}
+\examples{
+\dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+heigth_female <- subset(growth, gender == "female", select = heigth, drop = TRUE)
+growth_female <- tf_derive(height_female)
+plot(growth_female, xlab = "Age (years)", ylab = "Growth Rate (cm/year)")
+warp <- tf_register(growth_female)
+plot(warp, xlab = "Clock Year", ylab = "Biological Year")
+growth_female_reg <- tf_unwarp(growth_female, warp)
+plot(growth_female_reg, xlab = "Age (years)", ylab = "Growth Rate (cm/year)",)
+\dontshow{\}) # examplesIf}
+}
+\references{
+Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
+\emph{Functional Data Analysis with R and MATLAB},  series Use R!, 1 edition.
+Springer New York, New York.
+ISBN 978-0-387-98184-0, \doi{10.1007/978-0-387-98185-7}.
+
+Srivastava A, Wu W, Kurtek S, Klassen E, Marron JS (2011).
+\dQuote{Registration of Functional Data Using Fisher-Rao Metric.}
+1103.3817, \url{https://arxiv.org/abs/1103.3817}.
+
+Tucker JD, Wu W, Srivastava A (2013).
+\dQuote{Generative models for functional data using phase and amplitude separation.}
+\emph{Computational Statistics & Data Analysis}, \bold{61}, 50-66.
+ISSN 0167-9473, \doi{https://doi.org/10.1016/j.csda.2012.12.001}, \url{https://www.sciencedirect.com/science/article/pii/S0167947312004227}.
 }
