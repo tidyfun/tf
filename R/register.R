@@ -78,7 +78,7 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   }
 
   arg <- tf_arg(x)
-  inv_warp <- tfd(warp, arg = arg) |> tf_invert() |> tfd(arg = arg)
+  inv_warp <- warp |> tfd(arg = arg) |> tf_invert() |> tfd(arg = arg)
   ret <- tfd(tf_evaluations(x), arg = tf_evaluations(inv_warp))
 
   if (!keep_arg) {
@@ -127,9 +127,13 @@ tf_invert.tfd <- function(x) {
 
 #' @export
 tf_invert.tfb <- function(x) {
-  # TODO: tfb_spline: invert then tf_rebase into original basis (unless link function is present ...)
-  # TODO: tfb_fpc: new fpc basis
-  .NotYetImplemented()
+  basis <- if (is_tfb_spline(x)) "spline" else "fpc"
+  if (basis == "spline" && attr(x, "family")$link != "identity") {
+    cli::cli_abort(
+      "{.cls tfb_spline} with non-identity link function cannot be inverted directly."
+    )
+  }
+  x |> as.tfd() |> tf_invert() |> as.tfb(basis = basis)
 }
 
 #' Register a tf vector against a template function
@@ -199,8 +203,7 @@ tf_register.tfd <- function(x, ..., template = NULL, method = "srvf") {
 
 #' @export
 tf_register.tfb <- function(x, ..., template = NULL, method = "srvf") {
-  # TODO: (by converting to tfd and registering those? return can always be a tfd I think ...)
-  .NotYetImplemented()
+  x |> as.tfd() |> tf_register(template = template, method = method, ...)
 }
 
 tf_register_srvf <- function(x, template, ...) {
