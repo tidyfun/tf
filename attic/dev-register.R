@@ -29,7 +29,7 @@ plot(w, col = 1:10)
 plot(w_est, col = 1:10)
 layout(1)
 
-tf_unwarp(x = warped, warp = w_est) |> plot()
+tf_unwarp(x = warped, warp = w_est) |> plot(col = 1:10)
 lines(f0, col = 2)
 
 
@@ -40,36 +40,32 @@ w_est2 <- tf_register(warped, template = f0)
 
 layout(t(1:2))
 plot(w, col = 1:10)
-# !!
-plot(w_est2, col = 1:10) #!! returns aligning functions not warping functions !!
-# !!
+plot(w_est2, col = 1:10)
 
-tf_unwarp(x = warped, warp = w_est2) |> plot()
-tf_warp(x = warped, warp = w_est2) |> plot()
 layout(1)
+tf_unwarp(x = warped, warp = w_est2) |> plot(col = 1:10)
 
-# (mostly) WORKS :)
-# --> need to fix return object for srvf w/ given template
+#  WORKS :)
 
 w_est3 <- tf_register(warped, method = "fda")
 layout(t(1:2))
-plot(w)
-plot(w_est3) # :(
+plot(w, col = 1:10)
+plot(w_est3, col = 1:10) # :(
 layout(1)
 
-tf_unwarp(x = warped, warp = w_est3) |> plot()
-
+tf_unwarp(x = warped, warp = w_est3) |> plot(col = 1:10)
+# WORKS (badly!)
 
 w_est4 <- tf_register(warped, template = f0, method = "fda")
 
 layout(t(1:2))
-plot(w)
-plot(w_est4)
+plot(w, col = 1:10)
+plot(w_est4, col = 1:10)
 layout(1)
 
-tf_unwarp(x = warped, warp = w_est4) |> plot()
+tf_unwarp(x = warped, warp = w_est4) |> plot(col = 1:10)
 
-# WORKS (kinda...) :)
+# WORKS (even more badly!)
 
 # handrolled landmark registration
 

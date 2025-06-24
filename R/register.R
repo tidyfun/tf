@@ -50,10 +50,12 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' Unwarp a tf vector
 #'
 #' Apply (inverse of given warping functions)/(given aligning functions) to
+# TODO: only the first option ("inverse of given warping") is valid currently, right?
 #' functional data: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 #'
 #' @param x tf vector of unregistered functions.
 #' @param warp tf vector of aligning functions.
+# TODO: but this is a vector of *warping* functions that gets inverted to get the *aligning* functions ...?
 #' @param ... additional arguments passed to [tfd()].
 #' @param keep_arg re-eval on original arg after warping or return (irregular)
 #'   tf on warped arg (default)?
@@ -97,7 +99,7 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
     warp <- as.tfd(warp)
   }
   x <- tf_unwarp(x, warp, ..., keep_arg = keep_arg)
-  as.tfb(x)
+  as.tfb(x) #TODO: please use tf_rebase and apply the original basis settings!
 }
 
 #' Invert a tf vector
@@ -121,6 +123,7 @@ tf_invert <- function(x) {
 #' @export
 tf_invert.tfd <- function(x) {
   # TODO: move to calculus.R eventually
+  # TODO: assert invertibility (i.e. strictly monotone 'x'!)
   assert_tfd(x)
   arg <- ensure_list(tf_arg(x))
   if (length(x) > 1 && length(arg) == 1) {
@@ -141,10 +144,11 @@ tf_invert.tfb <- function(x) {
 #' `tf_register()` performs functional data registration (alignment) by finding
 #' warping functions that optimally align a set of functions to a template function.
 #' Registration removes phase variation (horizontal shifts and stretches) while
-#' preserving amplitude variation, making it easier to analyze the intrinsic
+#' preserving amplitude (i.e., vertical) variation, making it easier to analyze the intrinsic
 #' shape characteristics of functional data.
 #'
 #' @param x a tf vector of functions to register.
+# TODO: please either implement this as a generic that also works for tfb (preferred) or adjust the documentation
 #' @param ... additional arguments passed to further methods.
 #' @param template an optional tf vector of a template function to register against.
 #'   If `NULL`, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.
@@ -152,20 +156,23 @@ tf_invert.tfb <- function(x) {
 #'   * `srvf`: uses the Square-Root Velocity Function (SRVF) framework for registration.
 #'     For details, see [fdasrvf::time_warping()] and [fdasrvf::pair_align_functions()].
 #'   * `fda`: uses the functional data analysis approach for registration.
+#TODO: please make this description more precise -- what is the method `fda` uses?
 #'     For details, see [fda::register.fd()].
 #' @returns tf vector of the the warping functions with the same length as `x`.
 #'
 #' @references `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
 #' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
-#' heigth_female <- subset(growth, gender == "female", select = heigth, drop = TRUE)
+#' height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 #' growth_female <- tf_derive(height_female)
-#' plot(growth_female, xlab = "Age (years)", ylab = "Growth Rate (cm/year)")
+#' plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
 #' warp <- tf_register(growth_female)
 #' plot(warp, xlab = "Clock Year", ylab = "Biological Year")
 #' growth_female_reg <- tf_unwarp(growth_female, warp)
-#' plot(growth_female_reg, xlab = "Age (years)", ylab = "Growth Rate (cm/year)",)
+#' plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)",)
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
+  # TODO: can this be a generic that also works for tfb?
+  #   (by converting to tfd and registering those? return can always be a tfd I think...)
   rlang::check_dots_used()
   assert_tfd(x)
   assert_choice(method, c("srvf", "fda"))
@@ -220,8 +227,6 @@ tf_register_srvf <- function(x, template, ...) {
         ...
       )$gam
     }
-    #FS pretty sure these <>$gam are aligning functions not warping functions!!
-    # needs another inversion here for return object consistency.....
   }
   warp <- lwr + (upr - lwr) * warp
   tfd(warp, arg = arg)
