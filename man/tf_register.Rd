@@ -29,18 +29,18 @@ tf vector of the the warping functions with the same length as \code{x}.
 \code{tf_register()} performs functional data registration (alignment) by finding
 warping functions that optimally align a set of functions to a template function.
 Registration removes phase variation (horizontal shifts and stretches) while
-preserving amplitude variation, making it easier to analyze the intrinsic
+preserving amplitude (i.e., vertical) variation, making it easier to analyze the intrinsic
 shape characteristics of functional data.
 }
 \examples{
 \dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-heigth_female <- subset(growth, gender == "female", select = heigth, drop = TRUE)
+height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 growth_female <- tf_derive(height_female)
-plot(growth_female, xlab = "Age (years)", ylab = "Growth Rate (cm/year)")
+plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
 warp <- tf_register(growth_female)
 plot(warp, xlab = "Clock Year", ylab = "Biological Year")
 growth_female_reg <- tf_unwarp(growth_female, warp)
-plot(growth_female_reg, xlab = "Age (years)", ylab = "Growth Rate (cm/year)",)
+plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
 \dontshow{\}) # examplesIf}
 }
 \references{

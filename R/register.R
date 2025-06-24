@@ -169,7 +169,7 @@ tf_invert.tfb <- function(x) {
 #' warp <- tf_register(growth_female)
 #' plot(warp, xlab = "Clock Year", ylab = "Biological Year")
 #' growth_female_reg <- tf_unwarp(growth_female, warp)
-#' plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)",)
+#' plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
 tf_register <- function(x, ..., template = NULL, method = "srvf") {
   # TODO: can this be a generic that also works for tfb?
   #   (by converting to tfd and registering those? return can always be a tfd I think...)
