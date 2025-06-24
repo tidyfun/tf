@@ -4,23 +4,21 @@
 \alias{tf_register}
 \title{Register a tf vector against a template function}
 \usage{
-tf_register()
+tf_register(.x, ..., .template = NULL, .method = "srvf")
 }
 \arguments{
-\item{x}{a tf vector of functions to register.}
+\item{.x}{a tf vector of functions to register.}
 
 \item{...}{additional arguments passed to further methods.}
 
-\item{template}{an optional tf vector of a template function to register against.
+\item{.template}{an optional tf vector of a template function to register against.
 If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.}
 
-\item{method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
+\item{.method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
 \itemize{
-\item \code{srvf}: Uses the Square-Root Velocity Function (SRVF) framework for registration.
+\item \code{srvf}: Square-Root Velocity Function (SRVF) framework.
 For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and \code{\link[fdasrvf:pair_align_functions]{fdasrvf::pair_align_functions()}}.
-\item \code{fda}: Fits smooth monotonic functions to align functional data by minimizing
-the integrated squared difference between the template and warped functions.
-For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
+\item \code{fda}: continuous‐criterion registration. For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
 }}
 }
 \value{

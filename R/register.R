@@ -144,16 +144,14 @@ tf_invert.tfb <- function(x) {
 #' preserving amplitude (i.e., vertical) variation, making it easier to analyze
 #' the intrinsic shape characteristics of functional data.
 #'
-#' @param x a tf vector of functions to register.
+#' @param .x a tf vector of functions to register.
 #' @param ... additional arguments passed to further methods.
-#' @param template an optional tf vector of a template function to register against.
+#' @param .template an optional tf vector of a template function to register against.
 #'   If `NULL`, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.
-#' @param method the implementation method to choose. Either `"srvf"` or `"fda"`.
-#'   * `srvf`: Uses the Square-Root Velocity Function (SRVF) framework for registration.
+#' @param .method the implementation method to choose. Either `"srvf"` or `"fda"`.
+#'   * `srvf`: Square-Root Velocity Function (SRVF) framework.
 #'     For details, see [fdasrvf::time_warping()] and [fdasrvf::pair_align_functions()].
-#'   * `fda`: Fits smooth monotonic functions to align functional data by minimizing
-#'     the integrated squared difference between the template and warped functions.
-#'     For details, see [fda::register.fd()].
+#'   * `fda`: continuous‐criterion registration. For details, see [fda::register.fd()].
 #' @returns tf vector of the the warping functions with the same length as `x`.
 #'
 #' @references `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
@@ -166,44 +164,44 @@ tf_invert.tfb <- function(x) {
 #' plot(warp, xlab = "Clock Year", ylab = "Biological Year")
 #' growth_female_reg <- tf_unwarp(growth_female, warp)
 #' plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
-tf_register <- function() {
+tf_register <- function(.x, ..., .template = NULL, .method = "srvf") {
   UseMethod("tf_register")
 }
 
 #' @export
-tf_register.tfd <- function(x, ..., template = NULL, method = "srvf") {
+tf_register.tfd <- function(.x, ..., .template = NULL, .method = "srvf") {
   rlang::check_dots_used()
-  assert_tfd(x)
-  assert_choice(method, c("srvf", "fda"))
-  assert_tfd(template, null_ok = TRUE)
-  if (!is.null(template)) {
-    if (length(template) != 1 && length(template) != length(x)) {
+  assert_tfd(.x)
+  assert_choice(.method, c("srvf", "fda"))
+  assert_tfd(.template, null_ok = TRUE)
+  if (!is.null(.template)) {
+    if (length(.template) != 1 && length(.template) != length(.x)) {
       cli::cli_abort(
         "{.arg template} must be of length 1 or the same length as {.arg x}."
       )
     }
-    if (!all(tf_domain(x) == tf_domain(template))) {
+    if (!all(tf_domain(.x) == tf_domain(.template))) {
       cli::cli_abort("{.arg x} and {.arg template} must have the same domain.")
     }
-    template_arg <- tf_arg(template)
-    if (is_irreg(x) && length(template) == 1) {
-      template_arg <- rep(ensure_list(template_arg), length(x))
+    template_arg <- tf_arg(.template)
+    if (is_irreg(.x) && length(.template) == 1) {
+      template_arg <- rep(ensure_list(template_arg), length(.x))
     }
-    if (!isTRUE(all.equal(tf_arg(x), template_arg))) {
+    if (!isTRUE(all.equal(tf_arg(.x), template_arg))) {
       cli::cli_abort("{.arg x} and {.arg template} must have the same grid.")
     }
   }
 
   switch(
-    method,
-    srvf = tf_register_srvf(x, template, ...),
-    fda = tf_register_fda(x, template, ...)
+    .method,
+    srvf = tf_register_srvf(.x, .template, ...),
+    fda = tf_register_fda(.x, .template, ...)
   )
 }
 
 #' @export
-tf_register.tfb <- function(x, ..., template = NULL, method = "srvf") {
-  x |> as.tfd() |> tf_register(template = template, method = method, ...)
+tf_register.tfb <- function(.x, ..., .template = NULL, .method = "srvf") {
+  .x |> as.tfd() |> tf_register(.template = .template, .method = .method, ...)
 }
 
 tf_register_srvf <- function(x, template, ...) {

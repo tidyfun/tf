@@ -101,7 +101,7 @@ test_that("tf_register works", {
 
   # simple template function
   template <- mean(x)
-  warp <- tf_register(x, template = template)
+  warp <- tf_register(x, .template = template)
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), domain)
@@ -109,7 +109,7 @@ test_that("tf_register works", {
   expect_true(all(tf_fmax(warp) <= domain[2]))
 
   # works with fda package
-  warp <- tf_register(x, method = "fda")
+  warp <- tf_register(x, .method = "fda")
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), domain)
@@ -117,7 +117,7 @@ test_that("tf_register works", {
   expect_true(all(tf_fmax(warp) <= domain[2]))
 
   template <- mean(x)
-  warp <- tf_register(x, template = template, method = "fda")
+  warp <- tf_register(x, .template = template, .method = "fda")
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), domain)
