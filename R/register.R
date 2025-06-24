@@ -79,14 +79,12 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
 
-  x_arg <- tf_arg(x)
-  warp_arg <- tf_arg(warp)
-
-  inv_warp <- tfd(warp, arg = x_arg) |> tf_invert() |> tfd(arg = x_arg)
+  arg <- tf_arg(x)
+  inv_warp <- tfd(warp, arg = arg) |> tf_invert() |> tfd(arg = arg)
   ret <- tfd(tf_evaluations(x), arg = tf_evaluations(inv_warp))
 
   if (!keep_arg) {
-    ret <- tfd(ret, arg = x_arg, ...)
+    ret <- tfd(ret, arg = arg, ...)
   }
   ret
 }
@@ -143,8 +141,8 @@ tf_invert.tfb <- function(x) {
 #' `tf_register()` performs functional data registration (alignment) by finding
 #' warping functions that optimally align a set of functions to a template function.
 #' Registration removes phase variation (horizontal shifts and stretches) while
-#' preserving amplitude (i.e., vertical) variation, making it easier to analyze the intrinsic
-#' shape characteristics of functional data.
+#' preserving amplitude (i.e., vertical) variation, making it easier to analyze
+#' the intrinsic shape characteristics of functional data.
 #'
 #' @param x a tf vector of functions to register.
 #' @param ... additional arguments passed to further methods.
@@ -153,8 +151,8 @@ tf_invert.tfb <- function(x) {
 #' @param method the implementation method to choose. Either `"srvf"` or `"fda"`.
 #'   * `srvf`: uses the Square-Root Velocity Function (SRVF) framework for registration.
 #'     For details, see [fdasrvf::time_warping()] and [fdasrvf::pair_align_functions()].
-#'   * `fda`: uses the functional data analysis approach for registration.
-#TODO: please make this description more precise -- what is the method `fda` uses?
+#'   * `fda`: Fits smooth monotonic functions to align functional data by minimizing
+#'     the integrated squared difference between the template and warped functions.
 #'     For details, see [fda::register.fd()].
 #' @returns tf vector of the the warping functions with the same length as `x`.
 #'
@@ -174,8 +172,6 @@ tf_register <- function() {
 
 #' @export
 tf_register.tfd <- function(x, ..., template = NULL, method = "srvf") {
-  # TODO: can this be a generic that also works for tfb?
-  #   (by converting to tfd and registering those? return can always be a tfd I think...)
   rlang::check_dots_used()
   assert_tfd(x)
   assert_choice(method, c("srvf", "fda"))
@@ -207,7 +203,7 @@ tf_register.tfd <- function(x, ..., template = NULL, method = "srvf") {
 
 #' @export
 tf_register.tfb <- function(x, ..., template = NULL, method = "srvf") {
-  # TODO: implement
+  # TODO: (by converting to tfd and registering those? return can always be a tfd I think ...)
   .NotYetImplemented()
 }
 

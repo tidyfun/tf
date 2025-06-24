@@ -18,7 +18,8 @@ If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used
 \itemize{
 \item \code{srvf}: uses the Square-Root Velocity Function (SRVF) framework for registration.
 For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and \code{\link[fdasrvf:pair_align_functions]{fdasrvf::pair_align_functions()}}.
-\item \code{fda}: uses the functional data analysis approach for registration.
+\item \code{fda}: Fits smooth monotonic functions to align functional data by minimizing
+the integrated squared difference between the template and warped functions.
 For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
 }}
 }
@@ -29,8 +30,8 @@ tf vector of the the warping functions with the same length as \code{x}.
 \code{tf_register()} performs functional data registration (alignment) by finding
 warping functions that optimally align a set of functions to a template function.
 Registration removes phase variation (horizontal shifts and stretches) while
-preserving amplitude (i.e., vertical) variation, making it easier to analyze the intrinsic
-shape characteristics of functional data.
+preserving amplitude (i.e., vertical) variation, making it easier to analyze
+the intrinsic shape characteristics of functional data.
 }
 \examples{
 \dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
