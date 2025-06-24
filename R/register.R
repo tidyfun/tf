@@ -50,12 +50,11 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' Unwarp a tf vector
 #'
 #' Apply (inverse of given warping functions)/(given aligning functions) to
-# TODO: only the first option ("inverse of given warping") is valid currently, right?
+#  TODO: only the first option ("inverse of given warping") is valid currently, right?
 #' functional data: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 #'
 #' @param x tf vector of unregistered functions.
-#' @param warp tf vector of aligning functions.
-# TODO: but this is a vector of *warping* functions that gets inverted to get the *aligning* functions ...?
+#' @param warp tf vector of warping functions.
 #' @param ... additional arguments passed to [tfd()].
 #' @param keep_arg re-eval on original arg after warping or return (irregular)
 #'   tf on warped arg (default)?
@@ -148,7 +147,6 @@ tf_invert.tfb <- function(x) {
 #' shape characteristics of functional data.
 #'
 #' @param x a tf vector of functions to register.
-# TODO: please either implement this as a generic that also works for tfb (preferred) or adjust the documentation
 #' @param ... additional arguments passed to further methods.
 #' @param template an optional tf vector of a template function to register against.
 #'   If `NULL`, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.
@@ -170,7 +168,12 @@ tf_invert.tfb <- function(x) {
 #' plot(warp, xlab = "Clock Year", ylab = "Biological Year")
 #' growth_female_reg <- tf_unwarp(growth_female, warp)
 #' plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
-tf_register <- function(x, ..., template = NULL, method = "srvf") {
+tf_register <- function() {
+  UseMethod("tf_register")
+}
+
+#' @export
+tf_register.tfd <- function(x, ..., template = NULL, method = "srvf") {
   # TODO: can this be a generic that also works for tfb?
   #   (by converting to tfd and registering those? return can always be a tfd I think...)
   rlang::check_dots_used()
@@ -200,6 +203,12 @@ tf_register <- function(x, ..., template = NULL, method = "srvf") {
     srvf = tf_register_srvf(x, template, ...),
     fda = tf_register_fda(x, template, ...)
   )
+}
+
+#' @export
+tf_register.tfb <- function(x, ..., template = NULL, method = "srvf") {
+  # TODO: implement
+  .NotYetImplemented()
 }
 
 tf_register_srvf <- function(x, template, ...) {

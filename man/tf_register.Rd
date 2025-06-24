@@ -4,7 +4,7 @@
 \alias{tf_register}
 \title{Register a tf vector against a template function}
 \usage{
-tf_register(x, ..., template = NULL, method = "srvf")
+tf_register()
 }
 \arguments{
 \item{x}{a tf vector of functions to register.}
