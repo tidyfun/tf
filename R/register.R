@@ -39,12 +39,10 @@ tf_warp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
 
 #' @export
 tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
-  x <- as.tfd(x)
   if (is_tfb(warp)) {
     warp <- as.tfd(warp)
   }
-  x <- tf_warp(x, warp, ..., keep_arg = keep_arg)
-  as.tfb(x)
+  x |> as.tfd() |> tf_warp(warp, ..., keep_arg = keep_arg) |> tf_rebase(x)
 }
 
 #' Unwarp a tf vector
@@ -91,12 +89,10 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
 
 #' @export
 tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
-  x <- as.tfd(x)
   if (is_tfb(warp)) {
     warp <- as.tfd(warp)
   }
-  x <- tf_unwarp(x, warp, ..., keep_arg = keep_arg)
-  as.tfb(x) #TODO: please use tf_rebase and apply the original basis settings!
+  x |> as.tfd() |> tf_unwarp(warp, ..., keep_arg = keep_arg) |> tf_rebase(x)
 }
 
 #' Invert a tf vector
@@ -149,7 +145,7 @@ tf_invert.tfb <- function(x) {
 #' @param template an optional tf vector of a template function to register against.
 #'   If `NULL`, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.
 #' @param method the implementation method to choose. Either `"srvf"` or `"fda"`.
-#'   * `srvf`: uses the Square-Root Velocity Function (SRVF) framework for registration.
+#'   * `srvf`: Uses the Square-Root Velocity Function (SRVF) framework for registration.
 #'     For details, see [fdasrvf::time_warping()] and [fdasrvf::pair_align_functions()].
 #'   * `fda`: Fits smooth monotonic functions to align functional data by minimizing
 #'     the integrated squared difference between the template and warped functions.
