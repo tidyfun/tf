@@ -11,6 +11,7 @@
 \alias{var.default}
 \alias{var.tf}
 \alias{summary.tf}
+\alias{range.tf}
 \title{Functions that summarize \code{tf} objects across argument values}
 \usage{
 \method{mean}{tf}(x, ...)
@@ -30,6 +31,8 @@ var(x, y = NULL, na.rm = FALSE, use)
 \method{var}{tf}(x, y = NULL, na.rm = FALSE, use)
 
 \method{summary}{tf}(object, ...)
+
+\method{range}{tf}(..., na.rm = FALSE, functional = FALSE)
 }
 \arguments{
 \item{x}{a \code{tf} object}
@@ -53,6 +56,8 @@ the median. One of the functional data depths available via \code{\link[=tf_dept
     \code{"na.or.complete"}, or \code{"pairwise.complete.obs"}.}
 
 \item{object}{a \code{tfd} object}
+
+\item{functional}{return a vector of pointwise min/max functions instead?}
 }
 \value{
 a \code{tf} object with the computed result.\cr
@@ -63,9 +68,11 @@ of the central half of the functions in \code{x}, as defined by MBD (see
 }
 \description{
 These will return a \code{tf} object containing the respective \emph{functional}
-statistic. See \code{\link[=tf_fwise]{tf_fwise()}} for scalar summaries
-(e.g. \code{tf_fmean} for means, \code{tf_fmax} for max. values) of each entry
-in a \code{tf}-vector.
+statistic. See \code{\link[=tf_fwise]{tf_fwise()}} for scalar summaries (e.g. \code{tf_fmean} for mean
+values, \code{tf_fmax} for max. values) of each entry in a \code{tf}-vector.\cr
+Note that \strong{\code{range.tf}} is an exception here -- it returns the range of
+all function values by default (required for compatibility reasons with
+\code{ggplot2}).
 }
 \seealso{
 \code{\link[=tf_fwise]{tf_fwise()}}

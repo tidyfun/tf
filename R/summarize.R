@@ -49,9 +49,11 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
 #' Functions that summarize `tf` objects across argument values
 #'
 #' These will return a `tf` object containing the respective *functional*
-#' statistic. See [tf_fwise()] for scalar summaries
-#' (e.g. `tf_fmean` for means, `tf_fmax` for max. values) of each entry
-#' in a `tf`-vector.
+#' statistic. See [tf_fwise()] for scalar summaries (e.g. `tf_fmean` for mean
+#' values, `tf_fmax` for max. values) of each entry in a `tf`-vector.\cr
+#' Note that **`range.tf`** is an exception here -- it returns the range of
+#' all function values by default (required for compatibility reasons with
+#' `ggplot2`).
 #'
 #' @param x a `tf` object
 #' @param ... optional additional arguments.
@@ -151,6 +153,19 @@ summary.tf <- function(object, ...) {
     upper_mid = max(object[central], na.rm = TRUE),
     max = max(object, na.rm = TRUE)
   )
+}
+
+#' @export
+#' @param functional return a vector of pointwise min/max functions instead?
+#' @inheritParams base::range.default
+#' @rdname tfsummaries
+#' @exportS3Method base::range
+range.tf <- function(..., na.rm = FALSE, finite = FALSE, functional = FALSE) {
+  x <- do.call(c, list(...))
+  if (functional) {
+    return(c(min(x, na.rm = na.rm), max(x, na.rm = na.rm)))
+  }
+  tf_evaluations(x) |> range(na.rm = na.rm, finite = finite)
 }
 
 #-------------------------------------------------------------------------------
