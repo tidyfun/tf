@@ -14,12 +14,28 @@ knitr::opts_chunk$set(
 )
 ```
 
+Functional data registration is a preprocessing technique that aligns functional
+observations by removing phase variation (timing differences) while preserving amplitude
+variation (shape differences). This process helps reveal the underlying patterns in
+functional data by synchronizing features across observations.
+
+The registration process involves:
+
+1. Computing warping functions using `tf_register()` - these capture the timing differences between functions.
+2. Applying the inverse warping using `tf_unwarp()` - this aligns the functions to a common time scale.
+
+Let's explore this with real-world datasets.
+
 ## Growth Data
 
-```{r growth}
+Growth curves from children often exhibit similar shapes but with different timing of
+growth spurts. Registration can help identify common growth patterns by aligning these
+developmental milestones.
+
+```{r growth-prep}
 library(tf)
 
-growth_female <- subset(growth, gender == "female", select = height)
+growth_female <- subset(tf::growth, gender == "female", select = height)
 growth_female$height_mean <- mean(growth_female$height)
 growth_female$growth_mean <- tf_derive(growth_female$height_mean)
 growth_female$growth <- tf_derive(growth_female$height)
@@ -28,9 +44,15 @@ growth_female$growth_reg <- tf_unwarp(
   growth_female$growth,
   growth_female$growth_warp
 )
-
 n <- nrow(growth_female)
+```
 
+### Original Growth Rate Trajectories
+
+First, let's examine the unregistered growth rate curves. Notice how the timing of growth
+spurts varies significantly across individuals:
+
+```{r growth-original}
 par(mfrow = c(1, 1))
 plot(
   growth_female$growth,
@@ -42,7 +64,13 @@ plot(
   bty = "l",
   las = 1
 )
+```
 
+### Warping Functions
+
+The warping functions show how each individual's chronological age maps to a common "biological age". Deviations from the diagonal line indicate accelerated or delayed development:
+
+```{r growth-warping}
 plot(
   growth_female$growth_warp,
   xlab = "Clock Year",
@@ -54,7 +82,14 @@ plot(
 )
 abline(0, 1, lty = 2)
 grid()
+```
 
+### Registered Growth Curves
+
+After registration, the growth spurts are aligned, revealing the common underlying 
+growth pattern:
+
+```{r growth-aligned}
 plot(
   growth_female$growth_reg,
   main = "Registered Female Growth Curves",
@@ -66,7 +101,13 @@ plot(
   las = 1
 )
 grid()
+```
 
+### Individual Comparisons
+
+Let's examine each case individually to see the effect of registration:
+
+```{r growth-individuals}
 oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
 on.exit(par(oldpar))
 for (i in seq_len(nrow(growth_female))) {
@@ -93,12 +134,20 @@ for (i in seq_len(nrow(growth_female))) {
   )
   abline(0, 1, lty = 2)
 }
+```
 
+### Quantifying Registration Success
+
+Registration effectiveness can be measured by the reduction in functional variance:
+
+```{r growth-variance}
 var_pre <- tf_fvar(growth_female$growth)
 var_post <- tf_fvar(growth_female$growth_reg)
-var_red <- sum(var_post) / sum(var_pre)
-print(sprintf("Variance reduction: %.2f%%", 100 * (1 - var_red)))
+var_red <- 1 - (sum(var_post) / sum(var_pre))
+print(sprintf("Variance reduction: %.2f%%", 100 * var_red))
 ```
+
+A variance reduction of `r round(var_red * 100, 2)`% indicates successful alignment of functional features.
 
 ## Gait Data
 
