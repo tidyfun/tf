@@ -24,17 +24,12 @@ Apply inverse of given warping functions to functional data:
 \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 }
 \examples{
-\dontrun{
-# create unregistered sine functions with different time scales
 arg <- seq(0, 2 * pi, length.out = 100)
-x <- tfd(
-  unname(rbind(sin(arg), sin(1.3 * arg), sin(arg + 0.1 * arg^1.5))),
-  arg = arg
-)
-# define the warping functions that created these time differences
+reg <- rep(tfd(sin(arg), arg = arg), 3)
+# create warping functions with varying phase shifts
 warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
-# apply unwarping to register the functions to common time scale
-reg <- tf_unwarp(x)
+unreg <- tf_warp(reg, warp)
+# apply unwarping to register the functions back to common time scale
+reg <- tf_unwarp(unreg, warp)
 plot(reg)
-}
 }
