@@ -24,8 +24,13 @@ Apply given warping functions to aligned functional data to get back to the
 original unaligned data: \eqn{x(s) \to x(h(s)) = x(t)}.
 }
 \examples{
-\dontrun{
-# TODO: add examples
-tf_warp(x, warp)
-}
+arg <- seq(0, 2 * pi, length.out = 100)
+x <- rep(tfd(sin(arg), arg = arg), 3)
+# create warping functions with varying phase shifts
+warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
+# apply warping to get phase-shifted sine waves
+unreg <- tf_warp(x, warp)
+plot(unreg)
+# or keep the original arg values
+unreg <- tf_warp(x, warp, keep_arg = TRUE)
 }
