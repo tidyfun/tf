@@ -20,9 +20,8 @@ tf on un-warped arg-vals (default)?}
 the warped tf vector, i.e. the unregistered functions.
 }
 \description{
-Apply (inverse of given aligning functions)/(given warping functions) to
-aligned functional data to get back to the original unaligned data:
-\eqn{x(s) \to x(h(s)) = x(t)}.
+Apply given warping functions to aligned functional data to get back to the
+original unaligned data: \eqn{x(s) \to x(h(s)) = x(t)}.
 }
 \examples{
 \dontrun{

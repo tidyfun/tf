@@ -1,8 +1,7 @@
 #' Warp a tf vector
 #'
-#' Apply (inverse of given aligning functions)/(given warping functions) to
-#' aligned functional data to get back to the original unaligned data:
-#' \eqn{x(s) \to x(h(s)) = x(t)}.
+#' Apply given warping functions to aligned functional data to get back to the 
+#' original unaligned data: \eqn{x(s) \to x(h(s)) = x(t)}.
 #'
 #' @param x tf vector of (registered) functions.
 #' @param warp tf vector of warping functions.
@@ -47,9 +46,8 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 
 #' Unwarp a tf vector
 #'
-#' Apply (inverse of given warping functions)/(given aligning functions) to
-#  TODO: only the first option ("inverse of given warping") is valid currently, right?
-#' functional data: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
+#' Apply inverse of given warping functions to functional data: 
+#' \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 #'
 #' @param x tf vector of unregistered functions.
 #' @param warp tf vector of warping functions.
