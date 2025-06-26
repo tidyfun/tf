@@ -19,8 +19,6 @@
 #' # apply warping to get phase-shifted sine waves
 #' unreg <- tf_warp(x, warp)
 #' plot(unreg)
-#' # or keep the original arg values
-#' unreg <- tf_warp(x, warp, keep_arg = TRUE)
 tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_warp")
@@ -64,8 +62,17 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' @export
 #' @examples
 #' \dontrun{
-#' # TODO: add examples
-#' tf_unwarp(x, warp)
+#' # create unregistered sine functions with different time scales
+#' arg <- seq(0, 2 * pi, length.out = 100)
+#' x <- tfd(
+#'   unname(rbind(sin(arg), sin(1.3 * arg), sin(arg + 0.1 * arg^1.5))),
+#'   arg = arg
+#' )
+#' # define the warping functions that created these time differences
+#' warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
+#' # apply unwarping to register the functions to common time scale
+#' reg <- tf_unwarp(x)
+#' plot(reg)
 #' }
 tf_unwarp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
@@ -108,10 +115,12 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' # TODO: add examples
-#' tf_invert(x)
-#' }
+#' arg <- seq(0, 2, length.out = 50)
+#' x <- tfd(rbind(2 * arg, arg^2), arg = arg)
+#' x_inv <- tf_invert(x)
+#' layout(t(1:2))
+#' plot(x, main = "original functions", ylab = "")
+#' plot(x_inv, main = "inverted functions", ylab = "")
 tf_invert <- function(x) {
   UseMethod("tf_invert")
 }
@@ -119,8 +128,9 @@ tf_invert <- function(x) {
 #' @export
 tf_invert.tfd <- function(x) {
   # TODO: move to calculus.R eventually
-  # TODO: assert invertibility (i.e. strictly monotone 'x'!)
   assert_tfd(x)
+  assert_monotonic(x)
+
   arg <- ensure_list(tf_arg(x))
   if (length(x) > 1 && length(arg) == 1) {
     arg <- rep(arg, length(x))

@@ -90,12 +90,7 @@ assert_warp <- function(warp, x, strict = FALSE) {
   if (!all(domain_x == domain_warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
-  bad_monotonic <- !map_lgl(tf_evaluations(warp), is_monotonic)
-  if (any(bad_monotonic)) {
-    cli::cli_abort(
-      "{.arg warp} must be monotonic. Not monotonic at index: {.val {which(bad_monotonic)}}."
-    )
-  }
+  assert_monotonic(warp)
   if (strict) {
     bad_range <- !map_lgl(tf_frange(warp), \(x) all(x == domain_x))
     if (any(bad_range)) {
@@ -105,6 +100,16 @@ assert_warp <- function(warp, x, strict = FALSE) {
     }
   }
   invisible(warp)
+}
+
+assert_monotonic <- function(x, .var.name = vname(x)) {
+  bad <- !map_lgl(tf_evaluations(x), is_monotonic)
+  if (any(bad)) {
+    cli::cli_abort(
+      "{.arg { .var.name}} must be monotonic. Not monotonic at index: {.val {which(bad)}}."
+    )
+  }
+  invisible(x)
 }
 
 check_limit <- function(x, f) {

@@ -17,8 +17,10 @@ Computes the functional inverse of each function in the tf vector, such that
 if \eqn{y = f(x)}, then \eqn{x = f^{-1}(y)}.
 }
 \examples{
-\dontrun{
-# TODO: add examples
-tf_invert(x)
-}
+arg <- seq(0, 2, length.out = 50)
+x <- tfd(rbind(2 * arg, arg^2), arg = arg)
+x_inv <- tf_invert(x)
+layout(t(1:2))
+plot(x, main = "original functions", ylab = "")
+plot(x_inv, main = "inverted functions", ylab = "")
 }

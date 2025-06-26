@@ -31,6 +31,4 @@ warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
 # apply warping to get phase-shifted sine waves
 unreg <- tf_warp(x, warp)
 plot(unreg)
-# or keep the original arg values
-unreg <- tf_warp(x, warp, keep_arg = TRUE)
 }

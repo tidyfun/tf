@@ -64,7 +64,7 @@ PipeOpFDAAlign = R6::R6Class(
       nms = names(dt)
       for (j in nms) {
         x = dt[[j]]
-        warp = invoke(tf::tf_register, x = x, .args = pars)
+        warp = invoke(tf::tf_register, .x = x, .args = pars)
         set(dt, j = j, value = invoke(tf::tf_unwarp, x = x, warp = warp))
       }
       setnames(dt, sprintf("%s_%s", nms, "aligned"))
