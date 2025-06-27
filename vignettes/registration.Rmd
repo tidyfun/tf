@@ -139,24 +139,6 @@ for (i in seq_len(nrow(growth_female))) {
 
 *FS: hier würde ich dann eher nur paar interessant Individuen auswählen, und ne legende für die farben brauchts auch...*
 
-
-### Quantifying Registration Success
-
-Registration effectiveness can be measured by the reduction in functional variance:
-
-```{r growth-variance}
-var_pre <- tf_fvar(growth_female$growth)
-var_post <- tf_fvar(growth_female$growth_reg)
-var_red <- 1 - (sum(var_post) / sum(var_pre))
-print(sprintf("Variance reduction: %.2f%%", 100 * var_red))
-```
-
-A variance reduction of `r round(var_red * 100, 2)`% indicates successful alignment of functional features.
-
-*FS: sehr skeptisch dass das sinn macht / das aussagt was du behauptest ehrlich gesagt -- eher sowas wie
-`tf_integrate(var(growth_female$growth_reg))/tf_integrate(var(growth_female$growth))` 
-(was hier aber auch > 1 ist weil das alignment -- wie man an den plots sieht -- halt auch gar nicht so toll ist..)*
-
 ## Gait Data
 
 ```{r gait}
@@ -310,17 +292,4 @@ plot(
   bty = "l",
   las = 1
 )
-```
-
-```{r pinch-variance}
-var_pre <- tf_fvar(pinch)
-var_post <- tf_fvar(pinch_reg)
-var_red <- 1 - (sum(var_post) / sum(var_pre))
-print(sprintf("Variance reduction: %.2f%%", 100 * var_red))
-# FS: hier sieht man recht klar dass das keinen sinn macht als maß für alignment success --
-# das hier:
-tf_integrate(var(pinch_reg)) / tf_integrate(var(pinch))
-# oder
-tf_integrate(var(pinch_reg) / var(pinch))
-# mMn eher
 ```
