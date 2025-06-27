@@ -33,8 +33,7 @@ growth spurts. Registration can help identify common growth patterns by aligning
 developmental milestones.
 
 ```{r growth-prep}
-# library(tf)
-devtools::load_all(".")
+library(tf)
 
 growth_female <- subset(tf::growth, gender == "female", select = height)
 growth_female$height_mean <- mean(growth_female$height)
@@ -54,7 +53,6 @@ First, let's examine the unregistered growth rate curves. Notice how the timing 
 spurts varies significantly across individuals:
 
 ```{r growth-original}
-par(mfrow = c(1, 1))
 plot(
   growth_female$growth,
   main = "Female Growth Rate Trajectories",
@@ -101,17 +99,49 @@ plot(
   bty = "l",
   las = 1
 )
-grid()
 ```
 
 ### Individual Comparisons
 
-Let's examine each case individually to see the effect of registration:
+We've chosen three cases that demonstrate distinct warping function behaviors and 
+their effects on growth registration:
+
+**Case 37 (Early Developer):**
+
+The warping function curves below the diagonal identity line, indicating accelerated 
+development. This child's growth spurt occurs earlier in chronological time - notice how 
+the original orange curve shows peak growth around age 1-2, while the population mean 
+peaks later. The warping function compresses the early years (steep rise from 0-2 years)
+then gradually catches up to normal timing. Registration successfully aligns this 
+early peak with the population pattern.
+
+**Case 38 (Delayed Developer):** 
+
+The warping function shows a dramatic S-curve pattern, staying well below the 
+identity line until around age 8, then rapidly accelerating. This represents 
+significantly delayed development - the original growth curve shows very little 
+early growth followed by a late, intense growth spurt around age 10-12.
+The warping function reveals how this child's "biological clock" runs much 
+slower initially, requiring substantial time compression during the late growth phase.
+
+**Case 32 (Variable Development):**
+
+This case shows a more complex warping pattern with moderate deviations from the 
+identity line. The warping function indicates slightly delayed early development 
+followed by periods of acceleration and deceleration. The original growth curve 
+shows multiple smaller peaks rather than one dominant spurt, and registration 
+helps align these variable patterns with the smoother population average.
+
+These examples illustrate how registration reveals individual differences in 
+developmental timing while preserving the underlying growth patterns common 
+to all children.
 
 ```{r growth-individuals}
-oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
-on.exit(par(oldpar))
-for (i in seq_len(nrow(growth_female))) {
+green_col <- rgb(0.2, 0.4, 0.1, 0.7)
+blue_col <- rgb(0.3, 0.5, 0.8, 0.7)
+orange_col <- rgb(0.8, 0.4, 0.1, 0.7)
+
+for (i in c(37, 38, 32)) {
   plot(
     growth_female[i, "growth"],
     xlim = c(0, 18),
@@ -119,14 +149,29 @@ for (i in seq_len(nrow(growth_female))) {
     xlab = "Age (years)",
     ylab = "Growth Rate (cm/year)",
     lwd = 1.5,
-    col = 4,
+    col = orange_col,
     bty = "l",
     las = 1
   )
-  lines(growth_female$growth_mean, lty = 2, col = 2)
-  lines(growth_female[i, "growth_reg"], col = 3)
+  lines(growth_female$growth_mean, lty = 2, col = green_col)
+  lines(growth_female[i, "growth_reg"], col = blue_col)
+
+  legend(
+    "topright",
+    legend = c("original", "mean", "registered"),
+    col = c(orange_col, green_col, blue_col),
+    pch = c(16, 17, 15),
+    bty = "n",
+    pt.cex = 1.4,
+    cex = 1.0,
+    text.col = "black",
+    horiz = FALSE,
+    inset = c(-0.1, 0)
+  )
+
   plot(
     growth_female[i, "growth_warp"],
+    main = paste("Warping Function Case", i),
     xlab = "Clock Year",
     ylab = "Biological Year",
     lwd = 1.5,
@@ -136,8 +181,6 @@ for (i in seq_len(nrow(growth_female))) {
   abline(0, 1, lty = 2)
 }
 ```
-
-*FS: hier würde ich dann eher nur paar interessant Individuen auswählen, und ne legende für die farben brauchts auch...*
 
 ## Gait Data
 
@@ -188,7 +231,6 @@ plot(
 grid()
 
 oldpar <- par(mfrow = c(1, 2), pty = "s", ask = FALSE)
-on.exit(par(oldpar))
 for (i in seq_len(n)) {
   plot(
     gait[i, "hip_angle"],
@@ -214,16 +256,7 @@ for (i in seq_len(n)) {
   )
   abline(0, 1, lty = 2)
 }
-
-var_pre <- tf_fvar(gait$hip_angle)
-var_post <- tf_fvar(gait$hip_angle_reg)
-var_red <- sum(var_post) / sum(var_pre)
-print(sprintf("Variance reduction hip angle: %.2f%%", 100 * (1 - var_red)))
-
-var_pre <- tf_fvar(gait$knee_angle)
-var_post <- tf_fvar(gait$knee_angle_reg)
-var_red <- sum(var_post) / sum(var_pre)
-print(sprintf("Variance reduction knee angle: %.2f%%", 100 * (1 - var_red)))
+par(oldpar)
 ```
 
 ## Pinch Data
