@@ -4,10 +4,12 @@
 \alias{tf_invert}
 \title{Invert a tf vector}
 \usage{
-tf_invert(x)
+tf_invert(x, ...)
 }
 \arguments{
 \item{x}{a tf vector.}
+
+\item{...}{optional arguments for the returned object, see \code{\link[=tfd]{tfd()}} / \code{\link[=tfb]{tfb()}}}
 }
 \value{
 a tf vector of the inverted functions.

@@ -19,6 +19,10 @@
 #' # apply warping to get phase-shifted sine waves
 #' unreg <- tf_warp(x, warp)
 #' plot(unreg)
+# FS: puts out "Warning message: ℹ 42 evaluations were `NA`" -- can we do an
+# example that doesn't do that?
+#  also: would it make sense to have the documentation for this and tf_unwarp
+# on one help page? seems redundant otherwise?
 tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_warp")
@@ -69,6 +73,8 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' # apply unwarping to register the functions back to common time scale
 #' reg <- tf_unwarp(unreg, warp)
 #' plot(reg)
+# FS: puts out "Warning message: ℹ 42 evaluations were `NA`" -- can we do an
+# example that doesn't do that?
 tf_unwarp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_unwarp")
@@ -106,6 +112,7 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' if \eqn{y = f(x)}, then \eqn{x = f^{-1}(y)}.
 #'
 #' @param x a tf vector.
+#' @param ... optional arguments for the returned object, see [tfd()] / [tfb()]
 #' @returns a tf vector of the inverted functions.
 #'
 #' @export
@@ -116,12 +123,12 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
 #' layout(t(1:2))
 #' plot(x, main = "original functions", ylab = "")
 #' plot(x_inv, main = "inverted functions", ylab = "")
-tf_invert <- function(x) {
+tf_invert <- function(x, ...) {
   UseMethod("tf_invert")
 }
 
 #' @export
-tf_invert.tfd <- function(x) {
+tf_invert.tfd <- function(x, ...) {
   # TODO: move to calculus.R eventually
   assert_tfd(x)
   assert_monotonic(x)
@@ -130,18 +137,18 @@ tf_invert.tfd <- function(x) {
   if (length(x) > 1 && length(arg) == 1) {
     arg <- rep(arg, length(x))
   }
-  tfd(arg, arg = tf_evaluations(x))
+  tfd(arg, arg = tf_evaluations(x), ...)
 }
 
 #' @export
-tf_invert.tfb <- function(x) {
+tf_invert.tfb <- function(x, ...) {
   basis <- if (is_tfb_spline(x)) "spline" else "fpc"
   if (basis == "spline" && attr(x, "family")$link != "identity") {
     cli::cli_abort(
       "{.cls tfb_spline} with non-identity link function cannot be inverted directly."
     )
   }
-  x |> as.tfd() |> tf_invert() |> as.tfb(basis = basis)
+  x |> as.tfd() |> tf_invert() |> as.tfb(basis = basis, ...)
 }
 
 #' Register a tf vector against a template function
