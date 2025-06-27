@@ -1,3 +1,4 @@
+devtools::load_all()
 set.seed(1312)
 min_t <- 0 # not yet working for -.1 !!
 max_t <- 2 # sollte auch alles mit max_t != 1 funktionieren (... und min_t != 0)
