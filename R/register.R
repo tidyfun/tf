@@ -265,3 +265,13 @@ tf_register_fda <- function(x, template, ...) {
   warp <- lwr + (upr - lwr) * warp / (matrix(1, nrow = n) %*% warp[n, ])
   tfd(t(warp), arg = arg)
 }
+
+tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
+  rlang::check_installed("fdasrvf")
+  n <- assert_count(n, positive = TRUE, coerce = TRUE)
+  arg <- assert_count(arg, positive = TRUE, coerce = TRUE)
+  assert_number(sigma)
+
+  x <- fdasrvf::rgam(N = arg, sigma = sigma, num = n)
+  tfd(x, arg = seq_len(arg))
+}
