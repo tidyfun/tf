@@ -69,6 +69,7 @@ Collate:
     'calculus.R'
     'convert-construct-utils.R'
     'convert.R'
+    'data.R'
     'depth.R'
     'evaluate.R'
     'fda-connectors.R'

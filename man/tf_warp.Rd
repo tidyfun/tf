@@ -2,33 +2,44 @@
 % Please edit documentation in R/register.R
 \name{tf_warp}
 \alias{tf_warp}
-\title{Warp a tf vector}
+\alias{tf_unwarp}
+\title{Warp and unwarp tf vectors}
 \usage{
 tf_warp(x, warp, ..., keep_arg = FALSE)
+
+tf_unwarp(x, warp, ..., keep_arg = FALSE)
 }
 \arguments{
-\item{x}{tf vector of (registered) functions.}
+\item{x}{tf vector of functions. For \code{tf_warp()}, these should be
+registered/aligned functions and unaligned functions for \code{tf_unwarp()}.}
 
-\item{warp}{tf vector of warping functions.}
+\item{warp}{tf vector of warping functions used for transformation.}
 
 \item{...}{additional arguments passed to \code{\link[=tfd]{tfd()}}.}
 
-\item{keep_arg}{re-evaluate on warped arg values after un-warping or return
-tf on un-warped arg-vals (default)?}
+\item{keep_arg}{re-evaluate on warped arg values after (un)warping or return
+tf on (un)warped arg values (default)?}
 }
 \value{
-the warped tf vector, i.e. the unregistered functions.
+\itemize{
+\item \code{tf_warp()}: the warped tf vector (unregistered functions)
+\item \code{tf_unwarp()}: the unwarped tf vector (registered/aligned functions)
+}
 }
 \description{
-Apply given warping functions to aligned functional data to get back to the
-original unaligned data: \eqn{x(s) \to x(h(s)) = x(t)}.
+\code{tf_warp()} applies warping functions to aligned (registered) functional data
+to recover the original unregistered curves: \eqn{x(s) \to x(h(s)) = x(t)}.
+Conversely, \code{tf_unwarp()} applies the inverse warping to unregistered data
+to obtain aligned (registered) functions: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 }
 \examples{
-arg <- seq(0, 2 * pi, length.out = 100)
-x <- rep(tfd(sin(arg), arg = arg), 3)
-# create warping functions with varying phase shifts
-warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
-# apply warping to get phase-shifted sine waves
-unreg <- tf_warp(x, warp)
-plot(unreg)
+# get the warping function from registration
+warp <- tf_register(pinch)
+plot(warp)
+
+# apply the warping to register the data
+pinch_reg <- tf_unwarp(pinch, warp)
+
+# round-trip should be approximately equal to original
+isTRUE(all.equal(pinch, tf_warp(pinch_reg, warp), tolerance = 0.02))
 }

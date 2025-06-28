@@ -101,5 +101,32 @@ bibentries <- c(
     pages = "XII, 202",
     isbn = "978-0-387-98184-0",
     doi = "10.1007/978-0-387-98185-7",
+  ),
+  ramsay2005functional = bibentry(
+    "book",
+    title = "Functional Data Analysis",
+    author = "Ramsay, James O. and Silverman, Bernard W.",
+    year = "2005",
+    edition = "2nd",
+    publisher = "Springer",
+    address = "New York",
+    series = "Springer Series in Statistics",
+    isbn = "978-0-387-40080-8",
+  ),
+  ramsay2002applied = bibentry(
+    "book",
+    title = "Applied Functional Data Analysis",
+    author = "Ramsay, James O. and Silverman, Bernard W.",
+    year = "2002",
+    publisher = "Springer"
+  ),
+  tuddenham1954physical = bibentry(
+    "article",
+    title = "Physical growth of California boys and girls from birth to eighteen years",
+    author = "Tuddenham, Read D",
+    journal = "University of California Publications in Child Development",
+    volume = "1",
+    pages = "183--364",
+    year = "1954"
   )
 )

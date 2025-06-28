@@ -1,28 +1,31 @@
-#' Warp a tf vector
+#' Warp and unwarp tf vectors
 #'
-#' Apply given warping functions to aligned functional data to get back to the
-#' original unaligned data: \eqn{x(s) \to x(h(s)) = x(t)}.
+#' `tf_warp()` applies warping functions to aligned (registered) functional data
+#' to recover the original unregistered curves: \eqn{x(s) \to x(h(s)) = x(t)}.
+#' Conversely, `tf_unwarp()` applies the inverse warping to unregistered data
+#' to obtain aligned (registered) functions: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 #'
-#' @param x tf vector of (registered) functions.
-#' @param warp tf vector of warping functions.
+#' @param x tf vector of functions. For `tf_warp()`, these should be
+#'   registered/aligned functions and unaligned functions for `tf_unwarp()`.
+#' @param warp tf vector of warping functions used for transformation.
 #' @param ... additional arguments passed to [tfd()].
-#' @param keep_arg re-evaluate on warped arg values after un-warping or return
-#'   tf on un-warped arg-vals (default)?
-#' @returns the warped tf vector, i.e. the unregistered functions.
+#' @param keep_arg re-evaluate on warped arg values after (un)warping or return
+#'   tf on (un)warped arg values (default)?
+#' @returns
+#' * `tf_warp()`: the warped tf vector (unregistered functions)
+#' * `tf_unwarp()`: the unwarped tf vector (registered/aligned functions)
 #'
-#' @export
 #' @examples
-#' arg <- seq(0, 2 * pi, length.out = 100)
-#' x <- rep(tfd(sin(arg), arg = arg), 3)
-#' # create warping functions with varying phase shifts
-#' warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
-#' # apply warping to get phase-shifted sine waves
-#' unreg <- tf_warp(x, warp)
-#' plot(unreg)
-# FS: puts out "Warning message: ℹ 42 evaluations were `NA`" -- can we do an
-# example that doesn't do that?
-#  also: would it make sense to have the documentation for this and tf_unwarp
-# on one help page? seems redundant otherwise?
+#' # get the warping function from registration
+#' warp <- tf_register(pinch)
+#' plot(warp)
+#'
+#' # apply the warping to register the data
+#' pinch_reg <- tf_unwarp(pinch, warp)
+#'
+#' # round-trip should be approximately equal to original
+#' isTRUE(all.equal(pinch, tf_warp(pinch_reg, warp), tolerance = 0.02))
+#' @export
 tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_warp")
@@ -51,30 +54,8 @@ tf_warp.tfb <- function(x, warp, ..., keep_arg = FALSE) {
   x |> as.tfd() |> tf_warp(warp, ..., keep_arg = keep_arg) |> tf_rebase(x)
 }
 
-#' Unwarp a tf vector
-#'
-#' Apply inverse of given warping functions to functional data:
-#' \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
-#'
-#' @param x tf vector of unregistered functions.
-#' @param warp tf vector of warping functions.
-#' @param ... additional arguments passed to [tfd()].
-#' @param keep_arg re-eval on original arg after warping or return (irregular)
-#'   tf on warped arg (default)?
-#' @returns the unwarped tf vector, i.e. the registered functions.
-#'
+#' @rdname tf_warp
 #' @export
-#' @examples
-#' arg <- seq(0, 2 * pi, length.out = 100)
-#' reg <- rep(tfd(sin(arg), arg = arg), 3)
-#' # create warping functions with varying phase shifts
-#' warp <- tfd(unname(rbind(arg, arg + 0.3 * arg, arg + 0.1 * arg^1.5)), arg = arg)
-#' unreg <- tf_warp(reg, warp)
-#' # apply unwarping to register the functions back to common time scale
-#' reg <- tf_unwarp(unreg, warp)
-#' plot(reg)
-# FS: puts out "Warning message: ℹ 42 evaluations were `NA`" -- can we do an
-# example that doesn't do that?
 tf_unwarp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_unwarp")
@@ -169,7 +150,8 @@ tf_invert.tfb <- function(x, ...) {
 #'   * `fda`: continuous‐criterion registration. For details, see [fda::register.fd()].
 #' @returns tf vector of the the warping functions with the same length as `x`.
 #'
-#' @references `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
+#' @references
+#' `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
 #' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
 #' height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
