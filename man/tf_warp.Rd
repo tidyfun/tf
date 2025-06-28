@@ -33,6 +33,15 @@ Conversely, \code{tf_unwarp()} applies the inverse warping to unregistered data
 to obtain aligned (registered) functions: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 }
 \examples{
+# generate some random functions
+x <- tf_rgp(10)
+# apply random warping
+warp <- tf_rgam(10)
+reg <- tf_warp(x, warp)
+# or register the functions
+warp <- tf_register(x)
+reg <- tf_warp(x, warp)
+
 # get the warping function from registration
 warp <- tf_register(pinch)
 plot(warp)

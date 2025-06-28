@@ -16,6 +16,15 @@
 #' * `tf_unwarp()`: the unwarped tf vector (registered/aligned functions)
 #'
 #' @examples
+#' # generate some random functions
+#' x <- tf_rgp(10)
+#' # apply random warping
+#' warp <- tf_rgam(10)
+#' reg <- tf_warp(x, warp)
+#' # or register the functions
+#' warp <- tf_register(x)
+#' reg <- tf_warp(x, warp)
+#'
 #' # get the warping function from registration
 #' warp <- tf_register(pinch)
 #' plot(warp)
@@ -255,6 +264,7 @@ tf_register_fda <- function(x, template, ...) {
   tfd(t(warp), arg = arg)
 }
 
+# TODO: does this make sense to include this?
 tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
   rlang::check_installed("fdasrvf")
   n <- assert_count(n, positive = TRUE, coerce = TRUE)
@@ -262,5 +272,5 @@ tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
   assert_number(sigma)
 
   x <- fdasrvf::rgam(N = arg, sigma = sigma, num = n)
-  tfd(x, arg = seq_len(arg))
+  tfd(x, arg = seq(0, 1, length.out = arg))
 }
