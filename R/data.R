@@ -30,7 +30,7 @@
 #'   \item{height}{height in centimeters}
 #' }
 #' @examples
-#' growth
+#' head(growth)
 "growth"
 
 #' Hip and knee angle while walking data
@@ -40,7 +40,7 @@
 #' joints during normal walking gait, captured at evenly spaced time points
 #' throughout the gait cycle.
 #'
-#' Data is also include in the \CRANpkg{fda} package in another format.
+#' Data is also include in the `datasets` package in another format.
 #'
 #' @format A data frame with 39 rows and 3 variables:
 #' \describe{
@@ -49,5 +49,5 @@
 #'   \item{hip_angle}{hip joint angle in degrees}
 #' }
 #' @examples
-#' gait
+#' head(gait)
 "gait"

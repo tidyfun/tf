@@ -22,9 +22,9 @@ joints during normal walking gait, captured at evenly spaced time points
 throughout the gait cycle.
 }
 \details{
-Data is also include in the \CRANpkg{fda} package in another format.
+Data is also include in the \code{datasets} package in another format.
 }
 \examples{
-gait
+head(gait)
 }
 \keyword{datasets}

@@ -23,7 +23,7 @@ time with measurements at 31 different ages that are not equally spaced.'
 Data is also include in the \CRANpkg{fda} package in another format.
 }
 \examples{
-growth
+head(growth)
 }
 \references{
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
