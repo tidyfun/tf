@@ -11,7 +11,12 @@ An object of class \code{tfd_reg} (inherits from \code{tfd}, \code{tf}, \code{vc
 pinch
 }
 \description{
-Pinch force data
+Measurements of pinch force during 20 replications, with 151 observations
+recorded every 2 milliseconds over 300 milliseconds. The data captures the
+dynamics of finger pinch force applied during controlled motor tasks.
+}
+\details{
+Data is also include in the \CRANpkg{fda} package in another format.
 }
 \examples{
 pinch

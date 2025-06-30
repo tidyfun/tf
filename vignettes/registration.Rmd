@@ -63,6 +63,7 @@ plot(
   bty = "l",
   las = 1
 )
+grid(col = "gray90", lty = "solid", lwd = 0.5)
 ```
 
 ### Warping Functions
@@ -80,7 +81,7 @@ plot(
   las = 1,
 )
 abline(0, 1, lty = 2)
-grid()
+grid(col = "gray90", lty = "solid", lwd = 0.5)
 ```
 
 ### Registered Growth Curves
@@ -99,6 +100,7 @@ plot(
   bty = "l",
   las = 1
 )
+grid(col = "gray90", lty = "solid", lwd = 0.5)
 ```
 
 ### Individual Comparisons
@@ -155,7 +157,7 @@ for (i in c(37, 38, 32)) {
   )
   lines(growth_female$growth_mean, lty = 2, col = green_col)
   lines(growth_female[i, "growth_reg"], col = blue_col)
-
+  grid(col = "gray90", lty = "solid", lwd = 0.5)
   legend(
     "topright",
     legend = c("original", "mean", "registered"),
@@ -179,6 +181,7 @@ for (i in c(37, 38, 32)) {
     las = 1,
   )
   abline(0, 1, lty = 2)
+  grid(col = "gray90", lty = "solid", lwd = 0.5)
 }
 ```
 

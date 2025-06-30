@@ -5,13 +5,22 @@
 \alias{growth}
 \title{Berkeley growth study data}
 \format{
-An object of class \code{data.frame} with 93 rows and 2 columns.
+A data frame with 93 rows and 2 variables:
+\describe{
+\item{gender}{sex of the subject (boy/girl)}
+\item{height}{height in centimeters}
+}
 }
 \usage{
 growth
 }
 \description{
-Berkeley growth study data
+Heights of 39 boys and 54 girls measured from age 1 to 18 years as part
+of the Berkeley Growth Study. The data tracks physical development over
+time with measurements at 31 different ages that are not equally spaced.'
+}
+\details{
+Data is also include in the \CRANpkg{fda} package in another format.
 }
 \examples{
 growth
