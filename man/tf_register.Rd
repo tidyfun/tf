@@ -16,7 +16,7 @@ If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used
 
 \item{.method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
 \itemize{
-\item \code{srvf}: Square-Root Velocity Function (SRVF) framework.
+\item \code{srvf}: Square Root Velocity Framework (SRVF) framework.
 For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and \code{\link[fdasrvf:pair_align_functions]{fdasrvf::pair_align_functions()}}.
 \item \code{fda}: continuous‐criterion registration. For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
 }}

@@ -154,7 +154,7 @@ tf_invert.tfb <- function(x, ...) {
 #' @param .template an optional tf vector of a template function to register against.
 #'   If `NULL`, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.
 #' @param .method the implementation method to choose. Either `"srvf"` or `"fda"`.
-#'   * `srvf`: Square-Root Velocity Function (SRVF) framework.
+#'   * `srvf`: Square Root Velocity Framework (SRVF) framework.
 #'     For details, see [fdasrvf::time_warping()] and [fdasrvf::pair_align_functions()].
 #'   * `fda`: continuous‐criterion registration. For details, see [fda::register.fd()].
 #' @returns tf vector of the the warping functions with the same length as `x`.
