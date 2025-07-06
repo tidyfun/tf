@@ -87,3 +87,33 @@ plot(landmark_warps, col = 1:10)
 layout(1)
 
 tf_unwarp(x = warped, warp = landmark_warps) |> plot()
+
+### sanity check for fdasrvf time warping
+
+set.seed(123)
+
+x <- seq(-3, 3, length.out = 51)
+curves <- sapply(1:20, function(i) {
+  phase_shift <- runif(1, -1, 1)
+  amplitude <- runif(1, 0.8, 1.2)
+  baseline <- runif(1, 0, 0.2)
+  amplitude * sin(x + phase_shift) + baseline
+})
+
+res <- fdasrvf::time_warping(curves, time = x)
+tab <- list2DF(list(
+  x = as.tfd(t(curves)),
+  reg = as.tfd(t(res$fn)),
+  warp = as.tfd(t(res$warping_functions))
+))
+tab$tf_warp <- tf_register(tab$x)
+tab$tf_reg <- tf_unwarp(tab$x, warp = tab$tf_warp)
+
+# looks the same
+layout(t(1:2))
+plot(tab$warp)
+plot(tab$tf_warp)
+
+# looks the same
+plot(tab$reg)
+plot(tab$tf_reg)

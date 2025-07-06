@@ -264,15 +264,15 @@ par(oldpar)
 
 ## Pinch Data
 
-The pinch dataset contains biomechanical measurements of force exerted 
-during a brief pinching motion by the thumb and forefinger. In this 
-experiment, subjects maintained a constant background force of 2 newtons and 
-then briefly squeezed to reach a target of 10 newtons before returning to 
+The pinch dataset contains biomechanical measurements of force exerted
+during a brief pinching motion by the thumb and forefinger. In this
+experiment, subjects maintained a constant background force of 2 newtons and
+then briefly squeezed to reach a target of 10 newtons before returning to
 the background level.
 
-This dataset illustrates a common challenge in functional data analysis: the 
-timing of events (in this case, when the pinch begins) varies arbitrarily 
-across observations. Registration can align these force trajectories by 
+This dataset illustrates a common challenge in functional data analysis: the
+timing of events (in this case, when the pinch begins) varies arbitrarily
+across observations. Registration can align these force trajectories by
 synchronizing the timing of the pinching motion.
 
 ```{r pinch-prep}
