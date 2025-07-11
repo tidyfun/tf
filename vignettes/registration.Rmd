@@ -36,13 +36,12 @@ developmental milestones.
 library(tf)
 
 growth_female <- subset(tf::growth, gender == "female", select = height)
-growth_female$height_mean <- mean(growth_female$height)
-growth_female$growth_mean <- tf_derive(growth_female$height_mean)
-growth_female$growth <- tf_derive(growth_female$height)
-growth_female$growth_warp <- tf_register(growth_female$growth)
-growth_female$growth_reg <- tf_unwarp(
-  growth_female$growth,
-  growth_female$growth_warp
+growth_female$accel <- tf_derive(growth_female$height, order = 2)
+growth_female$accel_mean <- mean(growth_female$accel)
+growth_female$accel_warp <- tf_register(growth_female$accel)
+growth_female$accel_reg <- tf_unwarp(
+  growth_female$accel,
+  growth_female$accel_warp
 )
 n <- nrow(growth_female)
 ```
@@ -52,18 +51,19 @@ n <- nrow(growth_female)
 First, let's examine the unregistered growth rate curves. Notice how the timing of growth
 spurts varies significantly across individuals:
 
-```{r growth-original}
+```{r accel-original}
+cols <- hcl(h = 240, c = 70, l = seq(90, 20, length.out = 10))
 plot(
-  growth_female$growth,
-  main = "Female Growth Rate Trajectories",
+  growth_female[1:10, "accel"],
+  ylim = c(-4, 3),
+  main = "Female Acceleration of Height",
   xlab = "Age (years)",
   ylab = "Growth Rate (cm/year)",
   lwd = 1.5,
-  col = seq_len(n),
+  col = cols,
   bty = "l",
   las = 1
 )
-grid(col = "gray90", lty = "solid", lwd = 0.5)
 ```
 
 ### Warping Functions
@@ -72,16 +72,15 @@ The warping functions show how each individual's chronological age maps to a com
 
 ```{r growth-warping}
 plot(
-  growth_female$growth_warp,
+  growth_female[1:10, "accel_warp"],
   xlab = "Clock Year",
   ylab = "Biological Year",
   lwd = 1.5,
-  col = seq_len(n),
+  col = cols,
   bty = "l",
   las = 1,
 )
 abline(0, 1, lty = 2)
-grid(col = "gray90", lty = "solid", lwd = 0.5)
 ```
 
 ### Registered Growth Curves
@@ -91,22 +90,22 @@ growth pattern:
 
 ```{r growth-aligned}
 plot(
-  growth_female$growth_reg,
-  main = "Registered Female Growth Curves",
+  growth_female[1:10, "accel_reg"],
+  ylim = c(-4, 3),
+  main = "Registered Female Height Acceleration",
   xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
+  ylab = "Acceleration (cm/year/year)",
   lwd = 1.5,
-  col = seq_len(n),
+  col = cols,
   bty = "l",
-  las = 1
+  las = 1,
 )
-grid(col = "gray90", lty = "solid", lwd = 0.5)
 ```
 
 ### Individual Comparisons
 
 We've chosen three cases that demonstrate distinct warping function behaviors and 
-their effects on growth registration:
+their effects on height acceleration registration:
 
 **Case 37 (Early Developer):**
 
@@ -145,8 +144,8 @@ orange_col <- rgb(0.8, 0.4, 0.1, 0.7)
 
 for (i in c(37, 38, 32)) {
   plot(
-    growth_female[i, "growth"],
-    xlim = c(0, 18),
+    growth_female[i, "accel"],
+    ylim = c(-4, 3),
     main = paste("Growth Case", i),
     xlab = "Age (years)",
     ylab = "Growth Rate (cm/year)",
@@ -155,9 +154,8 @@ for (i in c(37, 38, 32)) {
     bty = "l",
     las = 1
   )
-  lines(growth_female$growth_mean, lty = 2, col = green_col)
-  lines(growth_female[i, "growth_reg"], col = blue_col)
-  grid(col = "gray90", lty = "solid", lwd = 0.5)
+  lines(growth_female$accel_mean, lty = 2, col = green_col)
+  lines(growth_female[i, "accel_reg"], col = blue_col)
   legend(
     "topright",
     legend = c("original", "mean", "registered"),
@@ -172,7 +170,7 @@ for (i in c(37, 38, 32)) {
   )
 
   plot(
-    growth_female[i, "growth_warp"],
+    growth_female[i, "accel_warp"],
     main = paste("Warping Function Case", i),
     xlab = "Clock Year",
     ylab = "Biological Year",
@@ -181,7 +179,6 @@ for (i in c(37, 38, 32)) {
     las = 1,
   )
   abline(0, 1, lty = 2)
-  grid(col = "gray90", lty = "solid", lwd = 0.5)
 }
 ```
 
@@ -328,107 +325,4 @@ plot(
   bty = "l",
   las = 1
 )
-```
-
-## Simulation Study
-
-```{r simulation-study, eval = FALSE}
-library(checkmate)
-library(dplyr)
-library(purrr)
-library(tf)
-
-#' Integrated Root Mean Squared Error
-#'
-#' @details
-#' The Integrated Root Mean Squared Error is defined as \deqn{
-#'   \sqrt{\int\left(\hat{f}_i(t)-f_i(t)\right)^2 d t}
-#' }
-tf_irmse <- function(truth, response) {
-  assert_class(truth, "tfd")
-  assert_class(response, "tfd")
-  sqrt(tf_integrate((response - truth)^2))
-}
-
-tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
-  rlang::check_installed("fdasrvf")
-  n <- assert_count(n, positive = TRUE, coerce = TRUE)
-  arg <- assert_count(arg, positive = TRUE, coerce = TRUE)
-  assert_number(sigma)
-  x <- fdasrvf::rgam(N = arg, sigma = sigma, num = n)
-  tfd(x, arg = seq(0, 1, length.out = arg))
-}
-
-# DGP 1: only phase variation
-# DGP 2: rank-1 amplitude + phase
-# DGP 3: complex phase (3‐basis mix)
-
-# function recovery
-# step 1. data generating process (20-50 replications)
-# step 2. apply warping to simulated curves
-# step 3. apply registration to warped curves
-# step 4. compute IRMSE between original and registered curves
-
-dgp_phase_only <- function(n = 20L, arg = 51L, sigma = 0.1) {
-  x <- seq(-3, 3, length.out = 51)
-  x <- sapply(seq_len(n), function(i) {
-    amplitude <- runif(1, 0.8, 1.2)
-    baseline <- runif(1, 0, 0.2)
-    amplitude * sin(x) + baseline
-  })
-  x <- as.tfd(t(x))
-
-  domain <- tf_domain(x)
-  warp <- tf_rgam(n, arg = arg, sigma = sigma)
-  warp <- domain[1] + (domain[2] - domain[1]) * warp
-  warp <- tfd(tf_evaluations(warp), arg = tf_arg(x))
-  unreg <- tf_warp(x, warp)
-  list(reg = x, unreg = unreg, warp = warp)
-}
-
-dgp_rank_one <- function() {}
-
-dgp_complex <- function() {}
-
-run_recovery <- function(data, params) {
-  pmap(params, function(...) {
-    pv <- list(...)
-    time <- system.time({
-      warp_pred <- do.call(tf_register, c(list(.x = data$unreg), pv))
-    })
-    x_pred <- tf_unwarp(data$unreg, warp_pred)
-    method <- pv$.method
-    pv$.method <- NULL
-    tibble(
-      method = method,
-      params = list(pv),
-      mean = tf_irmse(mean(data$reg), mean(x_pred)),
-      fn = mean(tf_irmse(data$reg, x_pred)),
-      warp = mean(tf_irmse(data$warp, warp_pred)),
-      time = unname(time["elapsed"])
-    )
-  })
-}
-
-run_benchmark <- function(params, ..., iter = 20L) {
-  sim <- dgp_phase_only(...)
-  bmr <- map(seq_len(iter), function(i) {
-    run_recovery(sim, params) |>
-      list_rbind() |>
-      mutate(iter = i, .before = 1L)
-  })
-  list_rbind(bmr)
-}
-
-params <- expand.grid(
-  penalty_method = c("roughness", "geodesic"),
-  centroid_type = c("mean", "median"),
-  stringsAsFactors = FALSE
-) |>
-  mutate(.method = "srvf", parallel = TRUE)
-
-params <- data.frame(crit = 1:2, .method = "fda")
-
-bmr_one <- run_benchmark(params, sigma = 0.1, iter = 3L)
-bmr_two <- run_benchmark(params, sigma = 0.3, iter = 20L)
 ```

@@ -79,7 +79,10 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   }
 
   arg <- tf_arg(x)
-  inv_warp <- warp |> tfd(arg = arg) |> tf_invert() |> tfd(arg = arg)
+  inv_warp <- warp |>
+    tfd(arg = arg, evaluator = tf_approx_fill_extend) |>
+    tf_invert() |>
+    tfd(arg = arg, evaluator = tf_approx_fill_extend)
   ret <- tfd(tf_evaluations(x), arg = tf_evaluations(inv_warp))
 
   if (!keep_arg) {
@@ -262,15 +265,4 @@ tf_register_fda <- function(x, template, ...) {
   warp <- fda::eval.monfd(arg, ret$Wfd)
   warp <- lwr + (upr - lwr) * warp / (matrix(1, nrow = n) %*% warp[n, ])
   tfd(t(warp), arg = arg)
-}
-
-# TODO: does this make sense to include this?
-tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
-  rlang::check_installed("fdasrvf")
-  n <- assert_count(n, positive = TRUE, coerce = TRUE)
-  arg <- assert_count(arg, positive = TRUE, coerce = TRUE)
-  assert_number(sigma)
-
-  x <- fdasrvf::rgam(N = arg, sigma = sigma, num = n)
-  tfd(x, arg = seq(0, 1, length.out = arg))
 }
