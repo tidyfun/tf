@@ -17,7 +17,7 @@ growth
 \description{
 Heights of 39 boys and 54 girls measured from age 1 to 18 years as part
 of the Berkeley Growth Study. The data tracks physical development over
-time with measurements at 31 different ages that are not equally spaced.'
+time with measurements at 31 different ages that are not equally spaced.
 }
 \details{
 Data is also include in the \CRANpkg{fda} package in another format.
