@@ -79,10 +79,7 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_arg = FALSE) {
   }
 
   arg <- tf_arg(x)
-  inv_warp <- warp |>
-    tfd(arg = arg, evaluator = tf_approx_fill_extend) |>
-    tf_invert() |>
-    tfd(arg = arg, evaluator = tf_approx_fill_extend)
+  inv_warp <- warp |> tfd(arg = arg) |> tf_invert() |> tfd(arg = arg)
   ret <- tfd(tf_evaluations(x), arg = tf_evaluations(inv_warp))
 
   if (!keep_arg) {
