@@ -29,12 +29,12 @@ prep_tf_zoom_args <- function(f, begin, end) {
   assert_numeric(end, any.missing = FALSE, min.len = 1, max.len = length(f))
   regular <- TRUE
   # uses unique to homogenize and check regularity in one go
-  if (n_distinct(begin) == 1) {
+  if (vec_unique_count(begin) == 1) {
     begin <- rep(begin[1], length(f))
   } else {
     regular <- FALSE
   }
-  if (n_distinct(end) == 1) {
+  if (vec_unique_count(end) == 1) {
     end <- rep(end[1], length(f))
   } else {
     regular <- FALSE
