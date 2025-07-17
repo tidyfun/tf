@@ -128,5 +128,16 @@ bibentries <- c(
     volume = "1",
     pages = "183--364",
     year = "1954"
+  ),
+  olshen1989gait = bibentry(
+    "article",
+    title = "Gait Analysis and the Bootstrap",
+    author = "Olshen, Richard A and Biden, Edmund N and Wyatt, Marilynn P and Sutherland, David H",
+    journal = "The Annals of Statistics",
+    volume = "17",
+    number = "4",
+    pages = "1419--1440",
+    year = "1989",
+    publisher = "Institute of Mathematical Statistics"
   )
 )

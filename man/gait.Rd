@@ -21,10 +21,14 @@ for 39 boys. The data represents the angular positions of hip and knee
 joints during normal walking gait, captured at evenly spaced time points
 throughout the gait cycle.
 }
-\details{
-Data is also include in the \code{datasets} package in another format.
-}
 \examples{
 head(gait)
+}
+\references{
+Olshen, A R, Biden, N E, Wyatt, P M, Sutherland, H D (1989).
+\dQuote{Gait Analysis and the Bootstrap.}
+\emph{The Annals of Statistics}, \bold{17}(4), 1419--1440.
+
+Data is also include in the \code{datasets} package in another format.
 }
 \keyword{datasets}

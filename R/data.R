@@ -40,6 +40,9 @@
 #' joints during normal walking gait, captured at evenly spaced time points
 #' throughout the gait cycle.
 #'
+#' @references
+#' `r format_bib("olshen1989gait")`
+#'
 #' Data is also include in the `datasets` package in another format.
 #'
 #' @format A data frame with 39 rows and 3 variables:
