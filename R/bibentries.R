@@ -34,27 +34,29 @@ bibentries <- c(
   ),
   mazumder2010 = bibentry(
     "article",
-    title = "Spectral regularization algorithms for learning large incomplete matrices",
+    title = "Spectral Regularization Algorithms for Learning Large Incomplete Matrices",
     author = "Mazumder, Rahul and Hastie, Trevor and Tibshirani, Robert",
     journal = "The Journal of Machine Learning Research",
     volume = "11",
-    pages = "2287-2322",
+    pages = "2287--2322",
     year = "2010"
   ),
   softimpute = bibentry(
     "manual",
-    title = "\\code{softImpute}: Matrix Completion via Iterative Soft-Thresholded SVD",
+    title = "softImpute: Matrix Completion via Iterative Soft-Thresholded SVD",
     author = "Trevor Hastie and Rahul Mazumder",
     year = "2021",
     note = "R package version 1.4-1",
-    url = "https://CRAN.R-project.org/package=softImpute"
+    url = "https://CRAN.R-project.org/package=softImpute",
+    doi = "10.32614/CRAN.package.softImpute"
   ),
   meng2023mogsa = bibentry(
     "manual",
-    title = "\\code{mogsa}: Multiple omics data integrative clustering and gene set analysis",
+    title = "mogsa: Multiple omics data integrative clustering and gene set analysis",
     author = "Chen Meng",
     year = "2023",
-    url = "https://bioconductor.org/packages/mogsa"
+    url = "https://bioconductor.org/packages/mogsa",
+    doi = "10.18129/B9.bioc.mogsa"
   ),
   swihart2010lasagna = bibentry(
     "article",
