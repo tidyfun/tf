@@ -59,7 +59,7 @@ assert_compatible_size <- function(op, x, y) {
     message <- cli::format_inline(
       "incompatible vector sizes in {.cls {vec_ptype_full(x)}}[1:{x_size}] {op} ",
       "{.cls {vec_ptype_full(y)}}[1:{y_size}] --",
-      "\n{{tf}} does not recycle arguments."
+      "\n{.pkg tf} does not recycle arguments."
     )
     stop_incompatible_op(op, x, y, message = message)
   }
