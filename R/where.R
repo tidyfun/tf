@@ -63,11 +63,8 @@ tf_where <- function(
   f,
   cond,
   return = c("all", "first", "last", "range", "any"),
-  arg
+  arg = tf_arg(f)
 ) {
-  if (missing(arg)) {
-    arg <- tf_arg(f)
-  }
   assert_arg(arg, f)
   return <- match.arg(return)
   cond_call <- substitute(cond)
