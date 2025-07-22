@@ -16,7 +16,7 @@ find_arg <- function(data, arg) {
       )
       arg <- regmatches(names, arg_matches)
       arg <- suppressWarnings(as.numeric(arg))
-      if (n_distinct(arg) != ncol(data)) arg <- NULL
+      if (vec_unique_count(arg) != ncol(data)) arg <- NULL
     }
     if (is.null(arg) || anyNA(arg)) {
       cli::cli_inform(
@@ -215,8 +215,6 @@ na_to_0 <- function(x) {
   x[is.na(x)] <- 0
   x
 }
-
-n_distinct <- function(x) length(unique(x))
 
 sort_unique <- function(x, simplify = FALSE) {
   if (simplify) {
