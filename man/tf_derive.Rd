@@ -12,19 +12,20 @@ tf_derive(f, arg, order = 1, ...)
 
 \method{tf_derive}{matrix}(f, arg, order = 1, ...)
 
-\method{tf_derive}{tfd}(f, arg, order = 1, ...)
+\method{tf_derive}{tfd}(f, arg = tf_arg(f), order = 1, ...)
 
-\method{tf_derive}{tfb_spline}(f, arg, order = 1, ...)
+\method{tf_derive}{tfb_spline}(f, arg = tf_arg(f), order = 1, ...)
 
-\method{tf_derive}{tfb_fpc}(f, arg, order = 1, ...)
+\method{tf_derive}{tfb_fpc}(f, arg = tf_arg(f), order = 1, ...)
 }
 \arguments{
-\item{f}{a \code{tf}-object.}
+\item{f}{a \code{tf}-object}
 
 \item{arg}{grid to use for the finite differences.
-Not the \code{arg} of the returned object for \code{tfd}-inputs, see details.}
+Not (exactly) the \code{arg} of the returned object for \code{tfd}-inputs, see details.}
 
-\item{order}{order of differentiation. Maximal value for \code{tfb_spline} is 2.}
+\item{order}{order of differentiation. Maximal value for \code{tfb_spline} is 2.
+For \code{tfb_spline}-objects, \code{order = -1} yields integrals (used internally).}
 
 \item{...}{not used}
 }
@@ -40,26 +41,27 @@ Derivatives of \code{tf}-objects use finite differences of the evaluations for
 The derivatives of \code{tfd} objects use centered finite differences, e.g. for
 first derivatives \eqn{f'((t_i + t_{i+1})/2) \approx \frac{f(t_i) +
 f(t_{i+1})}{t_{i+1} - t_i}}, so the \strong{domains of differentiated \code{tfd} will
-shrink (slightly) at both ends}. Unless the \code{tfd} has a rather fine and
-regular grid, representing the data in a suitable basis representation with
-\code{\link[=tfb]{tfb()}} and then computing the derivatives or integrals of those is usually
-preferable.
+shrink (slightly) at both ends} and \strong{the returned object contains function
+evaluations at the midpoints of the original \code{arg}-grid.} Unless the \code{tfd}
+has a rather fine and regular grid, representing the data in a suitable basis
+representation with \code{\link[=tfb]{tfb()}} and then computing the derivatives (or integrals)
+of those is usually preferable.
 
-Note that, for some spline bases like \code{"cr"} or \code{"tp"} which always begin/end
-linearly, computing second derivatives will produce artefacts at the outer
-limits of the functions' domain due to these boundary constraints. Basis
-\code{"bs"} does not have this problem for sufficiently high orders, but tends to
-yield slightly less stable fits.
+Note that, for some spline bases like \code{"cr"} or \code{"tp"} which are constrained
+to begin/end linearly, computing second derivatives will produce artefacts at
+the outer limits of the functions' domain due to these boundary constraints.
+Basis \code{"bs"} does not have this problem for sufficiently high orders, but
+tends to yield slightly less stable fits.
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{tf_derive(matrix)}: row-wise finite differences
 
-\item \code{tf_derive(tfd)}: derivatives by finite differencing.
+\item \code{tf_derive(tfd)}: derivatives by finite differencing of function evaluations.
 
-\item \code{tf_derive(tfb_spline)}: derivatives by finite differencing.
+\item \code{tf_derive(tfb_spline)}: derivatives by finite differencing of spline basis functions.
 
-\item \code{tf_derive(tfb_fpc)}: derivatives by finite differencing.
+\item \code{tf_derive(tfb_fpc)}: derivatives by finite differencing of FPC basis functions.
 
 }}
 \seealso{

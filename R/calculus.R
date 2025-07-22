@@ -24,20 +24,22 @@ quad_trapez <- function(arg, evaluations) {
 #' The derivatives of `tfd` objects use centered finite differences, e.g. for
 #' first derivatives \eqn{f'((t_i + t_{i+1})/2) \approx \frac{f(t_i) +
 #' f(t_{i+1})}{t_{i+1} - t_i}}, so the **domains of differentiated `tfd` will
-#' shrink (slightly) at both ends**. Unless the `tfd` has a rather fine and
-#' regular grid, representing the data in a suitable basis representation with
-#' [tfb()] and then computing the derivatives or integrals of those is usually
-#' preferable.
+#' shrink (slightly) at both ends** and **the returned object contains function
+#' evaluations at the midpoints of the original `arg`-grid.** Unless the `tfd`
+#' has a rather fine and regular grid, representing the data in a suitable basis
+#' representation with [tfb()] and then computing the derivatives (or integrals)
+#' of those is usually preferable.
 #'
-#' Note that, for some spline bases like `"cr"` or `"tp"` which always begin/end
-#' linearly, computing second derivatives will produce artefacts at the outer
-#' limits of the functions' domain due to these boundary constraints. Basis
-#' `"bs"` does not have this problem for sufficiently high orders, but tends to
-#' yield slightly less stable fits.
-#' @param f a `tf`-object.
+#' Note that, for some spline bases like `"cr"` or `"tp"` which are constrained
+#' to begin/end linearly, computing second derivatives will produce artefacts at
+#' the outer limits of the functions' domain due to these boundary constraints.
+#' Basis `"bs"` does not have this problem for sufficiently high orders, but
+#' tends to yield slightly less stable fits.
+#' @param f a `tf`-object
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
+#' For `tfb_spline`-objects, `order = -1` yields integrals (used internally).
 #' @param arg grid to use for the finite differences.
-#'   Not the `arg` of the returned object for `tfd`-inputs, see details.
+#'   Not (exactly) the `arg` of the returned object for `tfd`-inputs, see details.
 #' @param ... not used
 #' @returns a `tf` (with slightly different `arg` or `basis` for the
 #'   derivatives, see details).
@@ -65,8 +67,8 @@ tf_derive.matrix <- function(f, arg, order = 1, ...) {
 }
 
 #' @export
-#' @describeIn tf_derive derivatives by finite differencing.
-tf_derive.tfd <- function(f, arg, order = 1, ...) {
+#' @describeIn tf_derive derivatives by finite differencing of function evaluations.
+tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
   # TODO: should this interpolate back to the original grid? shortens the domain
   # (slightly), for now. this is necessary so that we don't get NAs when trying
   # to evaluate derivs over their default domain etc.
@@ -89,8 +91,8 @@ tf_derive.tfd <- function(f, arg, order = 1, ...) {
 }
 
 #' @export
-#' @describeIn tf_derive derivatives by finite differencing.
-tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
+#' @describeIn tf_derive derivatives by finite differencing of spline basis functions.
+tf_derive.tfb_spline <- function(f, arg = tf_arg(f), order = 1, ...) {
   # TODO: make this work for iterated application tf_derive(tf_derive(fb))
   if (!is.null(attr(f, "basis_deriv"))) {
     cli::cli_abort(
@@ -101,9 +103,6 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
     cli::cli_abort(
       "Can't integrate or derive {.cls tfb_spline} with non-identity link function."
     )
-  }
-  if (missing(arg)) {
-    arg <- tf_arg(f)
   }
   assert_arg(arg, f)
   assert_choice(order, choices = c(-1, 1, 2))
@@ -131,14 +130,14 @@ tf_derive.tfb_spline <- function(f, arg, order = 1, ...) {
 }
 
 #' @export
-#' @describeIn tf_derive derivatives by finite differencing.
-tf_derive.tfb_fpc <- function(f, arg, order = 1, ...) {
+#' @describeIn tf_derive derivatives by finite differencing of FPC basis functions.
+tf_derive.tfb_fpc <- function(f, arg = tf_arg(f), order = 1, ...) {
   efunctions <- environment(attr(f, "basis"))$efunctions
   environment(attr(f, "basis")) <- new.env()
   new_basis <- if (order > 0) {
-    tf_derive(efunctions, arg, order = order)
+    tf_derive(efunctions, arg = arg, order = order)
   } else {
-    tf_integrate(efunctions, arg, definite = FALSE, ...)
+    tf_integrate(efunctions, arg = arg, definite = FALSE, ...)
   }
   environment(attr(f, "basis"))$efunctions <- new_basis
   attr(f, "basis_matrix") <- t(as.matrix(new_basis))
@@ -183,15 +182,12 @@ tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
 #' @export
 tf_integrate.tfd <- function(
   f,
-  arg,
+  arg = tf_arg(f),
   lower = tf_domain(f)[1],
   upper = tf_domain(f)[2],
   definite = TRUE,
   ...
 ) {
-  if (missing(arg)) {
-    arg <- tf_arg(f)
-  }
   assert_arg(arg, f)
   arg <- ensure_list(arg)
   # TODO: integrate is NA whenever arg does not cover entire domain!
@@ -233,15 +229,12 @@ tf_integrate.tfd <- function(
 #' @export
 tf_integrate.tfb <- function(
   f,
-  arg,
+  arg = tf_arg(f),
   lower = tf_domain(f)[1],
   upper = tf_domain(f)[2],
   definite = TRUE,
   ...
 ) {
-  if (missing(arg)) {
-    arg <- tf_arg(f)
-  }
   assert_arg(arg, f)
   assert_limit(lower, f)
   assert_limit(upper, f)
