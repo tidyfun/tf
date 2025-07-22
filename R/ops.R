@@ -212,8 +212,8 @@ tfd_op_tfd <- function(op, x, y) {
   assert_compatible_size(op, x, y)
 
   if (!domains_overlap(x, y)) {
-    message <- glue::glue(
-      "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  not permitted for non-overlapping domains"
+    message <- cli::format_inline(
+      "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}> not permitted for non-overlapping domains"
     )
     stop_incompatible_op(op, x, y, message = message)
   }
@@ -234,12 +234,12 @@ tfd_op_tfd <- function(op, x, y) {
   } else {
     arg_ret <- common_args(x, y) |> ensure_list()
     if (all(lengths(arg_ret) == 0)) {
-      message <- glue::glue(
+      message <- cli::format_inline(
         "<{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}> not possible: no common argument values."
       )
       cli::cli_abort(c(
         message,
-        "i" = "Use {.fun tf_rebase} or {.fun tf_interpolate} to change argument values."
+        "i" = "Use {.fn tf_rebase} or {.fn tf_interpolate} to change argument values."
       ))
     }
     use_x <- map2(
@@ -262,7 +262,7 @@ tfd_op_tfd <- function(op, x, y) {
   )
 
   if (!same_domain || !same_arg) {
-    message <- glue::glue(
+    message <- cli::format_inline(
       "Attempting <{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  for different",
       "{ifelse(same_domain, '', ' domains')}",
       "{ifelse(!same_domain & !same_arg, ' and', '')}",
@@ -270,7 +270,7 @@ tfd_op_tfd <- function(op, x, y) {
     )
     cli::cli_warn(c(
       message,
-      "i" = "Use {.fun tf_rebase} or {.fun tf_interpolate} to adjust argument values first if necessary."
+      "i" = "Use {.fn tf_rebase} or {.fn tf_interpolate} to adjust argument values first if necessary."
     ))
   }
 
@@ -402,8 +402,11 @@ tfb_plusminus_tfb <- function(op, x, y) {
     vec_data(y),
     \(x, y) do.call(op, list(e1 = x, e2 = y))
   )
-  attributes(ret) <- if (vec_size(x) >= vec_size(y)) attributes(x) else
+  attributes(ret) <- if (vec_size(x) >= vec_size(y)) {
+    attributes(x)
+  } else {
     attributes(y)
+  }
   ret
 }
 
