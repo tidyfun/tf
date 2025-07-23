@@ -225,6 +225,7 @@ sort_unique <- function(x, simplify = FALSE) {
 
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
 
+compact <- function(x) x[as.logical(lengths(x))]
 
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
 # by Michel Lang (copied here Feb 2024)
