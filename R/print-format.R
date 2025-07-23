@@ -120,8 +120,7 @@ spark_rep_tf <- function(
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> map_chr(format, ...)
-  evals <- tf_evaluations(x)
-  range <- if (allMissing(evals)) c(NA, NA) else range(evals, na.rm = TRUE)
+  range <- if (allMissing(x)) c(NA, NA) else range(tf_evaluations(x), na.rm = TRUE)
   range <- range |> map_chr(format, ...) |> suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
@@ -149,7 +148,7 @@ print.tfd_reg <- function(x, n = 6, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    scale_ <- range(tf_evaluations(x), na.rm = TRUE)
+    scale_ <- if (allMissing(x)) NULL else range(tf_evaluations(x), na.rm = TRUE)
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
@@ -226,7 +225,7 @@ format.tf <- function(
   prefix = FALSE,
   ...
 ) {
-  if (is_irreg(x) || !cli::is_utf8_output() || !sparkline) {
+  if (is_irreg(x) || allMissing(x) || !cli::is_utf8_output() || !sparkline) {
     resolution <- get_resolution(tf_arg(x))
     signif_arg <- abs(floor(log10(resolution)))
     str <- string_rep_tf(
