@@ -168,7 +168,7 @@ new_tfb_spline <- function(
   if (family$family == "gaussian" && family$link == "identity") {
     family_label <- ""
   } else {
-    family_label <- glue::glue("({family$family} with {family$link}-link)")
+    family_label <- sprintf("(%s with %s)", family$family, family$link)
   }
 
   ret <- new_vctr(
