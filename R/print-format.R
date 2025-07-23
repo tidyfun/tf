@@ -120,8 +120,8 @@ spark_rep_tf <- function(
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> map_chr(format, ...)
-  evals <- compact(tf_evaluations(x))
-  range <- if (length(evals) > 0) range(tf_evaluations(x), na.rm = TRUE) else c(NA, NA)
+  evals <- unlist(tf_evaluations(x), use.names = FALSE)
+  range <- if (!is.null(evals)) range(tf_evaluations(x), na.rm = TRUE) else c(NA, NA)
   range <- range |> map_chr(format, ...) |> suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
@@ -149,8 +149,8 @@ print.tfd_reg <- function(x, n = 6, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    evals <- compact(tf_evaluations(x))
-    scale_ <- if (length(evals) > 0) range(evals, na.rm = TRUE) else NULL
+    evals <- unlist(tf_evaluations(x), use.names = FALSE)
+    scale_ <- if (!is.null(evals)) range(evals, na.rm = TRUE) else NULL
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
