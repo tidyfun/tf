@@ -119,10 +119,10 @@ spark_rep_tf <- function(
 #' #! very non-equidistant grids --> sparklines can mislead about actual shapes:
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 6, ...) {
-  domain <- tf_domain(x) |> sapply(format, ...)
-  range <- range(tf_evaluations(x), na.rm = TRUE) |>
-    sapply(format, ...) |>
-    suppressWarnings()
+  domain <- tf_domain(x) |> map_chr(format, ...)
+  evals <- tf_evaluations(x)
+  range <- if (allMissing(evals)) c(NA, NA) else range(evals, na.rm = TRUE)
+  range <- range |> map_chr(format, ...) |> suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
     class(x)[2],
