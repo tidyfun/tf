@@ -268,6 +268,45 @@ legend(
 green_col <- rgb(0.2, 0.4, 0.1, 0.7)
 blue_col <- rgb(0.3, 0.5, 0.8, 0.7)
 orange_col <- rgb(0.8, 0.4, 0.1, 0.7)
+
+plot_patient_growth <- function(i) {
+  plot(
+    growth_female[i, "growth"],
+    main = paste("Growth Case", i),
+    xlab = "Age (years)",
+    ylab = "Growth Rate (cm/year)",
+    lwd = 1.5,
+    col = orange_col,
+    bty = "l",
+    las = 1
+  )
+  lines(growth_female[i, "growth_mean"], lty = 2, col = green_col)
+  lines(growth_female[i, "growth_reg"], col = blue_col)
+  legend(
+    "topright",
+    legend = c("original", "mean", "aligned"),
+    col = c(orange_col, green_col, blue_col),
+    pch = 16,
+    bty = "n",
+    pt.cex = 1.4,
+    cex = 1.0,
+    text.col = "black",
+    horiz = FALSE
+  )
+}
+
+plot_patient_warp <- function(i) {
+  plot(
+    growth_female[i, "growth_warp"],
+    main = paste("Warping Function Case", i),
+    xlab = "Clock Year",
+    ylab = "Biological Year",
+    lwd = 1.5,
+    bty = "l",
+    las = 1,
+  )
+  abline(0, 1, lty = 2)
+}
 ```
 
 We've chosen three cases that demonstrate distinct warping function behaviors
@@ -276,41 +315,8 @@ and their effects on height velocity registration:
 **Case 37 (Early Developer):**
 
 ```{r growth-case-37}
-case <- 37
-plot(
-  growth_female[case, "growth"],
-  main = paste("Growth Case", case),
-  xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
-  lwd = 1.5,
-  col = orange_col,
-  bty = "l",
-  las = 1
-)
-lines(growth_female$growth_mean, lty = 2, col = green_col)
-lines(growth_female[case, "growth_reg"], col = blue_col)
-legend(
-  "topright",
-  legend = c("original", "mean", "aligned"),
-  col = c(orange_col, green_col, blue_col),
-  pch = 16,
-  bty = "n",
-  pt.cex = 1.4,
-  cex = 1.0,
-  text.col = "black",
-  horiz = FALSE
-)
-
-plot(
-  growth_female[case, "growth_warp"],
-  main = paste("Warping Function Case", case),
-  xlab = "Clock Year",
-  ylab = "Biological Year",
-  lwd = 1.5,
-  bty = "l",
-  las = 1,
-)
-abline(0, 1, lty = 2)
+plot_patient_growth(37)
+plot_patient_warp(37)
 ```
 
 The warping function curves below the diagonal identity line, indicating
@@ -324,41 +330,8 @@ population pattern.
 **Case 38 (Delayed Developer):**
 
 ```{r growth-case-38}
-case <- 38
-plot(
-  growth_female[case, "growth"],
-  main = paste("Growth Case", case),
-  xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
-  lwd = 1.5,
-  col = orange_col,
-  bty = "l",
-  las = 1
-)
-lines(growth_female$growth_mean, lty = 2, col = green_col)
-lines(growth_female[case, "growth_reg"], col = blue_col)
-legend(
-  "topright",
-  legend = c("original", "mean", "aligned"),
-  col = c(orange_col, green_col, blue_col),
-  pch = 16,
-  bty = "n",
-  pt.cex = 1.4,
-  cex = 1.0,
-  text.col = "black",
-  horiz = FALSE
-)
-
-plot(
-  growth_female[case, "growth_warp"],
-  main = paste("Warping Function Case", case),
-  xlab = "Clock Year",
-  ylab = "Biological Year",
-  lwd = 1.5,
-  bty = "l",
-  las = 1,
-)
-abline(0, 1, lty = 2)
+plot_patient_growth(38)
+plot_patient_warp(38)
 ```
 
 The warping function shows a dramatic S-curve pattern, staying well below the
@@ -371,41 +344,8 @@ initially, requiring substantial time compression during the late growth phase.
 **Case 32 (Variable Development):**
 
 ```{r growth-case-32}
-case <- 32
-plot(
-  growth_female[case, "growth"],
-  main = paste("Growth Case", case),
-  xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
-  lwd = 1.5,
-  col = orange_col,
-  bty = "l",
-  las = 1
-)
-lines(growth_female$growth_mean, lty = 2, col = green_col)
-lines(growth_female[case, "growth_reg"], col = blue_col)
-legend(
-  "topright",
-  legend = c("original", "mean", "aligned"),
-  col = c(orange_col, green_col, blue_col),
-  pch = 16,
-  bty = "n",
-  pt.cex = 1.4,
-  cex = 1.0,
-  text.col = "black",
-  horiz = FALSE
-)
-
-plot(
-  growth_female[case, "growth_warp"],
-  main = paste("Warping Function Case", case),
-  xlab = "Clock Year",
-  ylab = "Biological Year",
-  lwd = 1.5,
-  bty = "l",
-  las = 1,
-)
-abline(0, 1, lty = 2)
+plot_patient_growth(32)
+plot_patient_warp(32)
 ```
 
 This case shows a more complex warping pattern with moderate deviations from
