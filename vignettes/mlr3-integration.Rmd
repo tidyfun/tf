@@ -28,17 +28,17 @@ library(paradox)
 ```
 
 ```{r}
-PipeOpFDAAlign = R6::R6Class(
-  "PipeOpFDAAlign",
+PipeOpFDARegister = R6::R6Class(
+  "PipeOpFDARegister",
   inherit = PipeOpTaskPreprocSimple,
   public = list(
     #' @description Initializes a new instance of this Class.
     #' @param id (`character(1)`)\cr
-    #'   Identifier of resulting object, default is `"fda.align"`.
+    #'   Identifier of resulting object, default is `"fda.register"`.
     #' @param param_vals (named `list()`)\cr
     #'   List of hyperparameter settings, overwriting the hyperparameter settings that would
     #'   otherwise be set during construction. Default `list()`.
-    initialize = function(id = "fda.align", param_vals = list()) {
+    initialize = function(id = "fda.register", param_vals = list()) {
       param_set = ps(
         method = p_fct(
           c("srvf", "fda"),
@@ -67,15 +67,15 @@ PipeOpFDAAlign = R6::R6Class(
         warp = invoke(tf::tf_register, .x = x, .args = pars)
         set(dt, j = j, value = invoke(tf::tf_unwarp, x = x, warp = warp))
       }
-      setnames(dt, sprintf("%s_%s", nms, "aligned"))
+      setnames(dt, sprintf("%s_%s", nms, "registered"))
     }
   )
 )
 
-mlr_pipeops$add("fda.align", PipeOpFDAAlign)
+mlr_pipeops$add("fda.register", PipeOpFDARegister)
 ```
 
-We create a fda task using the `growth` dataset and align the height growth.
+We create a fda task using the `growth` dataset and register the height growth.
 
 ```{r}
 library(tf)
@@ -86,7 +86,7 @@ growth = growth[gender == "female"]
 growth[, `:=`(growth = tf_derive(height), height = NULL, target = seq_len(.N))]
 task = as_task_regr(growth, target = "target")
 
-po_align = po("fda.align")
-task_align = po_align$train(list(task))[[1L]]
-task_align$head()
+po_register = po("fda.register")
+task_register = po_register$train(list(task))[[1L]]
+task_register$head()
 ```

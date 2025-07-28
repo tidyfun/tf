@@ -6,85 +6,86 @@ template:
   math-rendering: mathjax
 
 reference:
-  - title: "tf - (Sub)classes: Constructors & converters"
-    desc: Defining and converting functional data objects
-    contents:
-      - tfd
-      - as.tfd
-      - tfb
-      - as.tfb
-      - as.data.frame.tf
-      - tfb_spline
-      - tfb_fpc
-      - fpc_wsvd
-      - tf_rebase
-  - title: Evaluating, indexing & re-arranging
-    desc: Accessing, appending, evaluating, splitting & combining functional data objects
-    contents:
-      - tfbrackets
-      - tf_approx_linear
-      - tf_evaluate
-      - tf_interpolate
-      - tf_splitcombine
-  - title: Arithmetic, logical and summary functions
-    desc: Functionality for computing with and comparing functional data
-    contents:
-      - tfgroupgenerics
-      - tfsummaries
-      - functionwise
-      - tf_depth
-  - title: Differentiation, integration and simple smoothing
-    contents:
-      - tf_derive
-      - tf_integrate
-      - tf_smooth
-  - title: Registering, aligning and warping
-    desc: Functions for registering, aligning and warping functional data
-    contents:
-      - tf_register
-      - tf_warp
-      - tf_unwarp
-      - tf_invert
-  - title: Visualization & Display
-    desc: Graphics functions and print formats
-    contents:
-      - plot.tf
-      - print.tf
-      - prep_plotting_arg
-  - title: Querying functional data
-    desc: Locating functional features like peaks or zero-crossings
-    contents:
-      - tf_where
-      - tf_zoom
-  - title: Utilities
-    desc: Utility functions
-    contents:
-      - tf_arg
-  - title: Generating random functional data
-    desc: RNGs for curves
-    contents:
-      - tf_rgp
-      - tf_jiggle
-  - title: Accessories
-    desc: Tooling functions
-    contents:
-      - in_range
-      - ensure_list
-      - unique_id
-      - vctrs
-      - tf
-  - title: Data
-    desc: Real world functional data
-    contents:
-      - gait
-      - growth
-      - pinch
+- title: 'tf - (Sub)classes: Constructors & converters'
+  desc: Defining and converting functional data objects
+  contents:
+  - tfd
+  - as.tfd
+  - tfb
+  - as.tfb
+  - as.data.frame.tf
+  - tfb_spline
+  - tfb_fpc
+  - fpc_wsvd
+  - tf_rebase
+- title: Evaluating, indexing & re-arranging
+  desc: Accessing, appending, evaluating, splitting & combining functional data objects
+  contents:
+  - tfbrackets
+  - tf_approx_linear
+  - tf_evaluate
+  - tf_interpolate
+  - tf_splitcombine
+- title: Arithmetic, logical and summary functions
+  desc: Functionality for computing with and comparing functional data
+  contents:
+  - tfgroupgenerics
+  - tfsummaries
+  - functionwise
+  - tf_depth
+- title: Differentiation, integration and simple smoothing
+  contents:
+  - tf_derive
+  - tf_integrate
+  - tf_smooth
+- title: Registering and warping
+  desc: Functions for registering, and warping functional data
+  contents:
+  - tf_register
+  - tf_warp
+  - tf_unwarp
+  - tf_invert
+- title: Visualization & Display
+  desc: Graphics functions and print formats
+  contents:
+  - plot.tf
+  - print.tf
+  - prep_plotting_arg
+- title: Querying functional data
+  desc: Locating functional features like peaks or zero-crossings
+  contents:
+  - tf_where
+  - tf_zoom
+- title: Utilities
+  desc: Utility functions
+  contents:
+  - tf_arg
+- title: Generating random functional data
+  desc: RNGs for curves
+  contents:
+  - tf_rgp
+  - tf_jiggle
+- title: Accessories
+  desc: Tooling functions
+  contents:
+  - in_range
+  - ensure_list
+  - unique_id
+  - vctrs
+  - tf
+- title: Data
+  desc: Real world functional data
+  contents:
+  - gait
+  - growth
+  - pinch
 navbar:
   type: default
   left:
-    - icon: fa-github
-      href: https://github.com/tidyfun/tf
-    - text: Reference
-      href: reference/index.html
+  - icon: fa-github
+    href: https://github.com/tidyfun/tf
+  - text: Reference
+    href: reference/index.html
 development:
   mode: auto
+

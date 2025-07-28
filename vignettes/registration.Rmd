@@ -123,16 +123,16 @@ growth$growth_warp <- tf_register(growth$growth)
 growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp)
 ```
 
-### Original Growth Rate Trajectories
+### Original Height Velocity Curves
 
-First, let's examine the unregistered growth rate curves. Notice how the timing
-of growth spurts varies significantly across individuals:
+First, let's examine the unregistered height velocity curves. Notice how the
+timing of growth spurts varies significantly across individuals:
 
 ```{r growth-original}
 plot(
   growth$growth,
   xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
+  ylab = "Height Velocity (cm/year)",
   lwd = 1.5,
   bty = "l",
   las = 1
@@ -165,7 +165,7 @@ underlying growth pattern:
 plot(
   growth$growth_reg,
   xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
+  ylab = "Height Velocity (cm/year)",
   lwd = 1.5,
   bty = "l",
   las = 1
@@ -200,7 +200,7 @@ growth_male <- growth_group$male
 plot(
   growth_male$growth,
   xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
+  ylab = "Height Velocity (cm/year)",
   lwd = 1.5,
   bty = "l",
   col = green_col,
@@ -240,7 +240,7 @@ abline(0, 1, lty = 2)
 plot(
   growth_male$growth_reg,
   xlab = "Age (years)",
-  ylab = "Growth Rate (cm/year)",
+  ylab = "Height Velocity (cm/year)",
   lwd = 1.5,
   bty = "l",
   col = green_col,
@@ -274,7 +274,7 @@ plot_patient_growth <- function(i) {
     growth_female[i, "growth"],
     main = paste("Growth Case", i),
     xlab = "Age (years)",
-    ylab = "Growth Rate (cm/year)",
+    ylab = "Height Velocity (cm/year)",
     lwd = 1.5,
     col = orange_col,
     bty = "l",
@@ -319,7 +319,7 @@ plot_patient_growth(37)
 plot_patient_warp(37)
 ```
 
-The warping function curves below the diagonal identity line, indicating
+The warping function curves above the diagonal identity line, indicating
 accelerated development. This child's growth spurt occurs earlier in
 chronological time - notice how the original orange curve shows peak growth
 around age 1-2, while the population mean peaks later. The warping function
@@ -356,8 +356,8 @@ registration helps align these variable patterns with the smoother population
 average.
 
 These individual cases demonstrate the importance of registration in
-understanding growth patterns. Without it, Case 37's early growth spurt and
-Case 38's delayed spurt would appear to be completely different patterns of
+understanding growth patterns. Without it, case 37's early growth spurt and
+case 38's delayed spurt would appear to be completely different patterns of
 growth. However, registration reveals that these children follow the same
 underlying growth trajectory, just at different times. Properly accounting for
 individual timing differences through registration enables us to better
