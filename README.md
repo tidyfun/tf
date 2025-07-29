@@ -11,6 +11,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![R-CMD-check](https://github.com/tidyfun/tf/actions/workflows/quick-check.yaml/badge.svg)](https://github.com/tidyfun/tf/actions/workflows/quick-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/tf)](https://CRAN.R-project.org/package=tf)
+[![R-universe
+version](https://tidyfun.r-universe.dev/tf/badges/version)](https://tidyfun.r-universe.dev/tf)
 <!-- badges: end -->
 
 The **`tf`** package provides necessary infrastructure for
