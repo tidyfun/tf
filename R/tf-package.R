@@ -21,10 +21,10 @@
 #'
 #' @keywords internal
 #' @import checkmate
-#' @import purrr
+#' @import rlang
 #' @import vctrs
+#' @rawNamespace import(purrr, except = c(flatten, flatten_lgl, flatten_int, flatten_dbl, flatten_chr, flatten_raw, splice, invoke, `%@%`))
 #' @importFrom mgcv s Predict.matrix magic uniquecombs gam bam smooth.construct PredictMat scat
-#' @importFrom rlang as_name enexpr has_name
 #' @importFrom methods formalArgs
 #' @importFrom stats setNames na.omit complete.cases lowess
 #' @importFrom utils head tail modifyList

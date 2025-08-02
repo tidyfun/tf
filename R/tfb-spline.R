@@ -416,7 +416,7 @@ tfb_spline.fd <- function(
   verbose = TRUE,
   ...
 ) {
-  rlang::check_installed("fda")
+  check_installed("fda")
   bs <- switch(
     data$basis$type,
     bspline = "bs",
