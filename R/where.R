@@ -97,6 +97,6 @@ tf_where <- function(
 
 #' @rdname tf_where
 #' @export
-tf_anywhere <- function(f, cond, arg) {
+tf_anywhere <- function(f, cond, arg = tf_arg(f)) {
   tf_where(f = f, cond = {{ cond }}, return = "any", arg = arg)
 }
