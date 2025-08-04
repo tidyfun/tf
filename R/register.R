@@ -210,6 +210,14 @@ tf_register.tfb <- function(.x, ..., .template = NULL, .method = "srvf") {
   .x |> as.tfd() |> tf_register(.template = .template, .method = .method, ...)
 }
 
+#' Generate random warping functions
+#'
+#' @param n number of random warping functions to generate.
+#' @param arg number of grid points per curve.
+#' @param sigma standard deviation of the Gaussian noise added to the warping
+#'   functions.
+#' @returns tf vector of random warping functions.
+#' @export
 tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
   rlang::check_installed("fdasrvf")
   n <- assert_count(n, positive = TRUE, coerce = TRUE)
