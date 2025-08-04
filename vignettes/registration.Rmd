@@ -117,6 +117,7 @@ mean curve, estimate individual warping functions using `tf_register()`, and
 then align all curves to a common time scale with `tf_unwarp()`.
 
 ```{r growth-prep}
+growth <- tf::growth
 growth$growth <- tf_derive(growth$height)
 growth$growth_mean <- mean(growth$growth)
 growth$growth_warp <- tf_register(growth$growth)
