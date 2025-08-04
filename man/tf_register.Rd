@@ -2,7 +2,7 @@
 % Please edit documentation in R/register.R
 \name{tf_register}
 \alias{tf_register}
-\title{Register a \code{tf} vector against a template function}
+\title{Register / align a \code{tf} vector against a template function}
 \usage{
 tf_register(.x, ..., .template = NULL, .method = "srvf")
 }

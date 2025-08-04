@@ -119,7 +119,7 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_new_arg = FALSE) {
     tf_rebase(x)
 }
 
-#' Register a `tf` vector against a template function
+#' Register / align a `tf` vector against a template function
 #'
 #' `tf_register()` performs functional data registration (alignment) by finding
 #' warping functions that optimally align a set of functions to a template function.
@@ -243,3 +243,6 @@ tf_register_fda <- function(x, template, ...) {
   warp <- lwr + (upr - lwr) * warp / (matrix(1, nrow = n) %*% warp[n, ])
   tfd(t(warp), arg = arg)
 }
+
+# TODO: add simple shift/dilate/compress registration using affine warping functions
+# TODO: add landmark registration?
