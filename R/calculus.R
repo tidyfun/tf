@@ -13,6 +13,51 @@ derive_matrix <- function(data, arg, order) {
 quad_trapez <- function(arg, evaluations) {
   c(0, 0.5 * diff(arg) * (head(evaluations, -1) + evaluations[-1]))
 }
+#-------------------------------------------------------------------------------
+
+#' Invert a `tf` vector
+#'
+#' Computes the functional inverse of each function in the `tf` vector, such that
+#' if \eqn{y = f(x)}, then \eqn{x = f^{-1}(y)}.
+#'
+#' @param x a `tf` vector.
+#' @param ... optional arguments for the returned object, see [tfd()] / [tfb()]
+#' @returns a `tf` vector of the inverted functions.
+#'
+#' @export
+#' @examples
+#' arg <- seq(0, 2, length.out = 50)
+#' x <- tfd(rbind(2 * arg, arg^2), arg = arg)
+#' x_inv <- tf_invert(x)
+#' layout(t(1:2))
+#' plot(x, main = "original functions", ylab = "")
+#' plot(x_inv, main = "inverted functions", ylab = "")
+tf_invert <- function(x, ...) {
+  UseMethod("tf_invert")
+}
+
+#' @export
+tf_invert.tfd <- function(x, ...) {
+  assert_tfd(x)
+  assert_monotonic(x)
+
+  arg <- ensure_list(tf_arg(x))
+  if (length(x) > 1 && length(arg) == 1) {
+    arg <- rep(arg, length(x))
+  }
+  tfd(arg, arg = tf_evaluations(x), ...)
+}
+
+#' @export
+tf_invert.tfb <- function(x, ...) {
+  basis <- if (is_tfb_spline(x)) "spline" else "fpc"
+  ret <- x |> as.tfd() |> tf_invert() |> as.tfb(basis = basis, ...)
+  cli::cli_warn(
+    message = "{.fn tf_invert} for {.cls tfb} returns object with default basis."
+  )
+  ret
+}
+
 
 #-------------------------------------------------------------------------------
 
