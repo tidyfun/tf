@@ -228,6 +228,11 @@ sort_unique <- function(x, simplify = FALSE) {
 
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
 
+is_monotonic <- function(x) {
+  d <- diff(x)
+  all(d >= 0) || all(d <= 0)
+}
+
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
 # by Michel Lang (copied here Feb 2024)
 format_bib <- function(..., bibentries = NULL, envir = parent.frame()) {
