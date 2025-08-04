@@ -16,24 +16,23 @@
 #' * `tf_unwarp()`: the unwarped tf vector (registered/aligned functions)
 #'
 #' @examples
-#' # generate some random functions
-#' x <- tf_rgp(10)
-#' # apply random warping
-#' warp <- tf_rgam(10)
-#' reg <- tf_warp(x, warp)
-#' # or register the functions
-#' warp <- tf_register(x)
-#' reg <- tf_warp(x, warp)
-#'
-#' # get the warping function from registration
-#' warp <- tf_register(pinch)
-#' plot(warp)
-#'
-#' # apply the warping to register the data
-#' pinch_reg <- tf_unwarp(pinch, warp)
-#'
-#' # round-trip should be approximately equal to original
-#' isTRUE(all.equal(pinch, tf_warp(pinch_reg, warp), tolerance = 0.02))
+#' # generate "template" function shape:
+#' template <- tf_rgp(1, arg = 201L)
+#' # generate random warping functions (monotone, [0, 1] -> [0, 1]):
+#' warp <- {
+#'   tmp <- tf_rgp(5)
+#'   tmp <- exp(tmp - mean(tmp)) # center at identity warping
+#'   tmp <- tf_integrate(tmp, definite = FALSE) / tf_integrate(tmp)
+#' }
+#' x <- tf_warp(rep(template, 5), warp)
+#' layout(t(1:3))
+#' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
+#' # register the functions:
+#' warp_estimate <- tf_register(x)
+#' template_estimate <- tf_unwarp(x, warp_estimate)
+#' layout(t(1:2))
+#' plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
+#' plot(template_estimate, col = 1:5); lines(template, lty = 2)
 #' @export
 tf_warp <- function(x, warp, ..., keep_arg = FALSE) {
   rlang::check_dots_used()
@@ -208,16 +207,6 @@ tf_register.tfd <- function(.x, ..., .template = NULL, .method = "srvf") {
 #' @export
 tf_register.tfb <- function(.x, ..., .template = NULL, .method = "srvf") {
   .x |> as.tfd() |> tf_register(.template = .template, .method = .method, ...)
-}
-
-tf_rgam <- function(n, arg = 51L, sigma = 0.1) {
-  rlang::check_installed("fdasrvf")
-  n <- assert_count(n, positive = TRUE, coerce = TRUE)
-  arg <- assert_count(arg, positive = TRUE, coerce = TRUE)
-  assert_number(sigma)
-
-  x <- fdasrvf::rgam(N = arg, sigma = sigma, num = n)
-  tfd(x, arg = seq(0, 1, length.out = arg))
 }
 
 tf_register_srvf <- function(x, template, ...) {
