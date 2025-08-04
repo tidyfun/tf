@@ -2,7 +2,7 @@
 title: "Curve Registration"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{registration}
+  %\VignetteIndexEntry{Curve Registration}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -49,6 +49,7 @@ Suggests:
     fda,
     fdasrvf,
     knitr,
+    mlr3,
     refund,
     rmarkdown,
     testthat (>= 3.0.0),
