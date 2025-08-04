@@ -286,7 +286,7 @@ tfd_op_tfd <- function(op, x, y) {
     attr(x, "evaluator_name"),
     attr(y, "evaluator_name")
   ) |>
-    rlang::sym()
+    sym()
   if (attr(x, "evaluator_name") != attr(y, "evaluator_name")) {
     cli::cli_inform(c(
       "!" = "Inputs have different evaluators, result has {.val {evaluator_ret}}."

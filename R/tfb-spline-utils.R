@@ -204,7 +204,7 @@ magic_smooth_coef <- function(evaluations, index, spec_object, gam_args) {
       S = if (fixed_sp) list() else spec_object$S,
       H = if (fixed_sp) gam_args$sp * spec_object$S[[1]] else NULL
     ),
-    flatten(list(off = 1, gam_args))
+    list_flatten(list(off = 1, gam_args))
   )
   m <- do.call(magic, magic_args)
   # TODO: set PVE to 1 where var = 0

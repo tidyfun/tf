@@ -12,7 +12,7 @@ tf_where(
   arg = tf_arg(f)
 )
 
-tf_anywhere(f, cond, arg)
+tf_anywhere(f, cond, arg = tf_arg(f))
 }
 \arguments{
 \item{f}{a \code{tf} object.}
