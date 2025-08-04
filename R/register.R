@@ -132,12 +132,11 @@ tf_invert.tfd <- function(x, ...) {
 #' @export
 tf_invert.tfb <- function(x, ...) {
   basis <- if (is_tfb_spline(x)) "spline" else "fpc"
-  if (basis == "spline" && attr(x, "family")$link != "identity") {
-    cli::cli_abort(
-      "{.cls tfb_spline} with non-identity link function cannot be inverted directly."
-    )
-  }
-  x |> as.tfd() |> tf_invert() |> as.tfb(basis = basis, ...)
+  ret <- x |> as.tfd() |> tf_invert() |> as.tfb(basis = basis, ...)
+  cli::cli_warn(
+    message = "{.fn tf_invert} for {.cls tfb} returns object with default basis."
+  )
+  ret
 }
 
 #' Register a tf vector against a template function
