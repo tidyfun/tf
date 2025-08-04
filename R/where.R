@@ -63,18 +63,14 @@ tf_where <- function(
   f,
   cond,
   return = c("all", "first", "last", "range", "any"),
-  arg
+  arg = tf_arg(f)
 ) {
-  if (missing(arg)) {
-    arg <- tf_arg(f)
-  }
   assert_arg(arg, f)
   return <- match.arg(return)
-  cond_call <- substitute(cond)
-  parent <- parent.frame()
+  cond_quo <- enquo(cond)
   where_at <- map(
     f[, arg, matrix = FALSE],
-    \(x) subset(x, eval(cond_call, envir = x, enclos = parent))[["arg"]]
+    \(x) subset(x, eval_tidy(cond_quo, x))[["arg"]]
   )
   where_at[is.na(f)] <- NA
 
@@ -92,7 +88,7 @@ tf_where <- function(
   }
   where_at <- switch(
     return,
-    any = map_lgl(where_at, \(x) !all(is.na(x))),
+    any = map_lgl(where_at, \(x) !allMissing(x)),
     first = map_dbl(where_at, min),
     last = map_dbl(where_at, max)
   )
@@ -101,10 +97,6 @@ tf_where <- function(
 
 #' @rdname tf_where
 #' @export
-tf_anywhere <- function(f, cond, arg) {
-  call <- match.call()
-  call[[1]] <- tf_where
-  call$
-  return <- "any"
-  eval(call, parent.frame())
+tf_anywhere <- function(f, cond, arg = tf_arg(f)) {
+  tf_where(f = f, cond = {{ cond }}, return = "any", arg = arg)
 }

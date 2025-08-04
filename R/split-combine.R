@@ -88,7 +88,7 @@ tf_combine <- function(..., strict = FALSE) {
   map(tfs, assert_tf)
   sizes <- map_int(tfs, vec_size)
   if (!all(duplicated(sizes)[-1])) {
-    cli::cli_abort("can't {.fun tf_combine} objects of different sizes")
+    cli::cli_abort("can't {.fn tf_combine} objects of different sizes")
   }
   size <- sizes[1]
 
@@ -107,7 +107,7 @@ tf_combine <- function(..., strict = FALSE) {
     max_overlap <- apply(arg_maxs, 1, \(x) is.unsorted(as.numeric(x)))
     if (any(min_overlap) || any(max_overlap)) {
       cli::cli_abort(
-        "{.fun tf_arg}-ranges of input data are not strictly ordered."
+        "{.fn tf_arg}-ranges of input data are not strictly ordered."
       )
     }
   }

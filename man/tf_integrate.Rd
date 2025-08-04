@@ -13,7 +13,7 @@ tf_integrate(f, arg, lower, upper, ...)
 
 \method{tf_integrate}{tfd}(
   f,
-  arg,
+  arg = tf_arg(f),
   lower = tf_domain(f)[1],
   upper = tf_domain(f)[2],
   definite = TRUE,
@@ -22,7 +22,7 @@ tf_integrate(f, arg, lower, upper, ...)
 
 \method{tf_integrate}{tfb}(
   f,
-  arg,
+  arg = tf_arg(f),
   lower = tf_domain(f)[1],
   upper = tf_domain(f)[2],
   definite = TRUE,
@@ -30,7 +30,7 @@ tf_integrate(f, arg, lower, upper, ...)
 )
 }
 \arguments{
-\item{f}{a \code{tf}-object.}
+\item{f}{a \code{tf}-object}
 
 \item{arg}{(optional) grid to use for the quadrature.}
 

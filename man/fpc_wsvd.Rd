@@ -58,16 +58,16 @@ see last example for \code{\link[=tfb_fpc]{tfb_fpc()}}
 code adapted from / inspired by \code{mogsa::wsvd()} by Cheng Meng
 and \code{softImpute::softImpute()} by Trevor Hastie and Rahul Mazumder.\cr
 Meng C (2023).
-\emph{\code{mogsa}: Multiple omics data integrative clustering and gene set analysis}.
-\url{https://bioconductor.org/packages/mogsa}.
+\emph{mogsa: Multiple omics data integrative clustering and gene set analysis}.
+\doi{10.18129/B9.bioc.mogsa}, \url{https://bioconductor.org/packages/mogsa}.
 
 Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
-\dQuote{Spectral regularization algorithms for learning large incomplete matrices.}
-\emph{The Journal of Machine Learning Research}, \bold{11}, 2287-2322.
+\dQuote{Spectral Regularization Algorithms for Learning Large Incomplete Matrices.}
+\emph{The Journal of Machine Learning Research}, \bold{11}, 2287--2322.
 
 Hastie T, Mazumder R (2021).
-\emph{\code{softImpute}: Matrix Completion via Iterative Soft-Thresholded SVD}.
-R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.
+\emph{softImpute: Matrix Completion via Iterative Soft-Thresholded SVD}.
+\doi{10.32614/CRAN.package.softImpute}, R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.
 }
 \seealso{
 Other tfb-class: 

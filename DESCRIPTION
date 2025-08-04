@@ -29,12 +29,11 @@ Description: Defines S3 vector data types for vectors of functional data
 License: AGPL (>= 3)
 URL: https://tidyfun.github.io/tf/, https://github.com/tidyfun/tf/
 BugReports: https://github.com/tidyfun/tf/issues
-Depends: 
+Depends:
     R (>= 4.1)
 Imports:
     checkmate,
     cli,
-    glue,
     methods,
     mgcv,
     mvtnorm,

@@ -21,7 +21,7 @@ new_tfd <- function(
   }
 
   if (
-    vec_size(datalist) == 0 || all(is.na(unlist(datalist, use.names = FALSE)))
+    vec_size(datalist) == 0 || allMissing(unlist(datalist, use.names = FALSE))
   ) {
     arg <- arg %||% list(numeric())
     domain <- domain %||% numeric(2)
