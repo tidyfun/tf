@@ -2,16 +2,16 @@
 % Please edit documentation in R/register.R
 \name{tf_register}
 \alias{tf_register}
-\title{Register a tf vector against a template function}
+\title{Register a \code{tf} vector against a template function}
 \usage{
 tf_register(.x, ..., .template = NULL, .method = "srvf")
 }
 \arguments{
-\item{.x}{a tf vector of functions to register.}
+\item{.x}{a \code{tf} vector of functions to register.}
 
 \item{...}{additional arguments passed to further methods.}
 
-\item{.template}{an optional tf vector of a template function to register against.
+\item{.template}{an optional \code{tf} vector of a template function to register against.
 If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.}
 
 \item{.method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
@@ -22,7 +22,7 @@ For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and
 }}
 }
 \value{
-tf vector of the the warping functions with the same length as \code{x}.
+\code{tf} vector of the warping functions with the same length as \code{x}.
 }
 \description{
 \code{tf_register()} performs functional data registration (alignment) by finding
@@ -34,10 +34,12 @@ the intrinsic shape characteristics of functional data.
 \examples{
 \dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
-growth_female <- tf_derive(height_female)
+growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
+layout(t(1:3))
 plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
+# warping functions map from "observed","nominal" time to "system","standardized" time:
 warp <- tf_register(growth_female)
-plot(warp, xlab = "Clock Year", ylab = "Biological Year")
+plot(warp, xlab = "Chronological Age", ylab = "Biological Age")
 growth_female_reg <- tf_unwarp(growth_female, warp)
 plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
 \dontshow{\}) # examplesIf}

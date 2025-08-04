@@ -3,41 +3,59 @@
 \name{tf_warp}
 \alias{tf_warp}
 \alias{tf_unwarp}
-\title{Warp and unwarp tf vectors}
+\title{Elastic Deformation: warp and unwarp \code{tf} vectors}
 \usage{
-tf_warp(x, warp, ..., keep_arg = FALSE)
+tf_warp(x, warp, ..., keep_new_arg = FALSE)
 
-tf_unwarp(x, warp, ..., keep_arg = FALSE)
+tf_unwarp(x, warp, ..., keep_new_arg = FALSE)
 }
 \arguments{
-\item{x}{tf vector of functions. For \code{tf_warp()}, these should be
+\item{x}{\code{tf} vector of functions. For \code{tf_warp()}, these should be
 registered/aligned functions and unaligned functions for \code{tf_unwarp()}.}
 
-\item{warp}{tf vector of warping functions used for transformation.}
+\item{warp}{\code{tf} vector of warping functions used for transformation. See Details.}
 
 \item{...}{additional arguments passed to \code{\link[=tfd]{tfd()}}.}
 
-\item{keep_arg}{re-evaluate on warped arg values after (un)warping or return
-tf on (un)warped arg values (default)?}
+\item{keep_new_arg}{keep new \code{arg} values after (un)warping or return
+\code{tf} vector on \code{arg} values of the input (default \code{FALSE} is the latter)? See Details.}
 }
 \value{
 \itemize{
-\item \code{tf_warp()}: the warped tf vector (unregistered functions)
-\item \code{tf_unwarp()}: the unwarped tf vector (registered/aligned functions)
+\item \code{tf_warp()}: the warped \code{tf} vector (un-registered functions)
+\item \code{tf_unwarp()}: the unwarped \code{tf} vector (registered/aligned functions)
 }
 }
 \description{
-\code{tf_warp()} applies warping functions to aligned (registered) functional data
+These functions stretch and/or compress regions of the domain of functional data:
+\itemize{
+\item \code{tf_warp()} applies warping functions to aligned (registered) functional data
 to recover the original unregistered curves: \eqn{x(s) \to x(h(s)) = x(t)}.
-Conversely, \code{tf_unwarp()} applies the inverse warping to unregistered data
+\item \code{tf_unwarp()} applies the \emph{inverse} warping function to unregistered data
 to obtain aligned (registered) functions: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 }
+}
+\details{
+These functions will work best with functions evaluated on suitably dense and
+regular grids.
+
+Warping functions \eqn{h(s) = t} are strictly monotone increasing (no time
+travel backwards or infinite time dilation) with identical domain and
+co-domain: \eqn{h:T \to T}. Their input is the aligned "system" time \eqn{s},
+their output is the unaligned "observed" time \eqn{t}.
+
+By default (\code{keep_new_arg = FALSE}), these will return function objects
+re-evaluated on the same grids as the original inputs,
+which will typically incur some additional interpolation error because (un)warping
+changes the underlying grids. Set to \code{TRUE} to avoid.
+}
 \examples{
-# generate template
+# generate "template" function shape:
 template <- tf_rgp(1, arg = 201L)
-# generate random warping functions (monotone, [0, 1] -> [0, 1])
+# generate random warping functions (monotone, [0, 1] -> [0, 1]):
 warp <- {
-  tmp <- exp(tf_rgp(5))
+  tmp <- tf_rgp(5)
+  tmp <- exp(tmp - mean(tmp)) # center at identity warping
   tf_integrate(tmp, definite = FALSE) / tf_integrate(tmp)
 }
 x <- tf_warp(rep(template, 5), warp)
@@ -47,6 +65,6 @@ plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 warp_estimate <- tf_register(x)
 template_estimate <- tf_unwarp(x, warp_estimate)
 layout(t(1:2))
-plot(warps, col = 1:5); lines(warp_estimate, lty = 2, col = 1:5)
+plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
 plot(template_estimate, col = 1:5); lines(template, lty = 2)
 }

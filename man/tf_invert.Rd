@@ -2,20 +2,20 @@
 % Please edit documentation in R/register.R
 \name{tf_invert}
 \alias{tf_invert}
-\title{Invert a tf vector}
+\title{Invert a \code{tf} vector}
 \usage{
 tf_invert(x, ...)
 }
 \arguments{
-\item{x}{a tf vector.}
+\item{x}{a \code{tf} vector.}
 
 \item{...}{optional arguments for the returned object, see \code{\link[=tfd]{tfd()}} / \code{\link[=tfb]{tfb()}}}
 }
 \value{
-a tf vector of the inverted functions.
+a \code{tf} vector of the inverted functions.
 }
 \description{
-Computes the functional inverse of each function in the tf vector, such that
+Computes the functional inverse of each function in the \code{tf} vector, such that
 if \eqn{y = f(x)}, then \eqn{x = f^{-1}(y)}.
 }
 \examples{

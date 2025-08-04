@@ -16,8 +16,8 @@ test_that("tf_warp works", {
     expect_length(unreg, length(x))
     expect_identical(tf_domain(unreg), tf_domain(x))
 
-    # keep_arg = TRUE returns tfd_irreg
-    unreg <- tf_warp(x, w, keep_arg = TRUE)
+    # keep_new_arg = TRUE returns tfd_irreg
+    unreg <- tf_warp(x, w, keep_new_arg = TRUE)
     expect_s3_class(unreg, "tfd_irreg")
     expect_length(unreg, length(x))
     expect_identical(tf_domain(unreg), tf_domain(x))
@@ -33,7 +33,7 @@ test_that("tf_warp identity works", {
   x <- rep(f0, 5)
   w <- rep(tfd(t, arg = t), 5)
   expect_identical(tf_unwarp(tf_warp(x, w), w), x)
-  ret <- tf_warp(x, w, keep_arg = TRUE)
+  ret <- tf_warp(x, w, keep_new_arg = TRUE)
   expect_identical(tf_unwarp(ret, w), x)
 })
 
@@ -56,8 +56,8 @@ test_that("tf_unwarp works", {
     expect_length(reg, length(x))
     expect_identical(tf_domain(reg), tf_domain(x))
 
-    # keep_arg = TRUE returns tfd_irreg
-    irr <- tf_unwarp(unreg, w, keep_arg = TRUE)
+    # keep_new_arg = TRUE returns tfd_irreg
+    irr <- tf_unwarp(unreg, w, keep_new_arg = TRUE)
     expect_s3_class(irr, "tfd_irreg")
     expect_length(irr, length(x))
     expect_identical(tf_domain(irr), tf_domain(x))
@@ -73,7 +73,7 @@ test_that("tf_unwarp identity works", {
   x <- rep(f0, 5)
   w <- rep(tfd(t, arg = t), 5)
   expect_identical(tf_warp(tf_unwarp(x, w), w), x)
-  expect_identical(tf_warp(tf_unwarp(x, w, keep_arg = TRUE), w), x)
+  expect_identical(tf_warp(tf_unwarp(x, w, keep_new_arg = TRUE), w), x)
 })
 
 test_that("tf_register works", {
