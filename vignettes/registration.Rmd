@@ -44,7 +44,15 @@ The registration process involves:
 
 2.  Applying the inverse warping using `tf_unwarp()` - this aligns the functions to a common time scale.
 
-Let's explore this with real-world datasets.
+The default registration method in `tf` uses the SRVF-framework implemented in the  `fdasrvf` package, which seems fairly robust and general and has good theoretical properties. Alternatively, it also wraps the two "continuous criterion" registration methods implemented in the `fda` package, which are conceptually simpler but less theoretically appealing and less general (i.e., not recommended for data with complex phase- and amplitude variability). 
+
+Some general caveats: 
+
+- registration problems are only well-defined and have a unique solution for functional datasets with very simple amplitude variability (c.f. Panaretos **!TODO!**, at least as long as we don't limit the flexibility of the warping too much). If the curves being registered belong to different clusters with different mean shapes or just have very variable shapes more generally, the simple alignment methods implemented here are unlikely to yield sensible results.  
+- alignments can be fairly sensitive to the specifics of data representation like what kind of basis is being used or how many gridpoints the functions are being evaluated on. 
+- alignments are also typically fairly sensitive to the specific registration method being used and their hyperparameters.
+
+That said, let's explore how this works in `tf` with some real-world datasets:
 
 ## Pinch Data
 
@@ -54,7 +62,7 @@ This data set illustrates a common challenge in functional data analysis: the ti
 
 ```{r pinch-prep}
 library(tf)
-
+pinch <- pinch[1:10]
 pinch_warp <- tf_register(pinch)
 pinch_reg <- tf_unwarp(pinch, pinch_warp)
 ```
@@ -90,8 +98,11 @@ plot(
   bty = "l",
   las = 1
 )
-abline(0, 1, lty = 2)
+abline(0, 1, lty = 3, lwd = 2)
 ```
+
+We can see that some functions are pushed forward, some pushed backward in time at the beginning and 
+the warping functions then mostly have a slope $\approx 1$ (i.e., run parallel to the dotted bisector) for most of the time domain indicating no further time dilation or compression beyond the initial time shifts before re-converging towards the end.
 
 ### Registered Pinch Force Trajectories
 
@@ -110,13 +121,16 @@ plot(
 )
 ```
 
+This is the kind of data with simple amplitude variability (i.e. the scaled bell curve shape all curves have in common) and straightforward phase variation (i.e., different on-sets and widths) for which registration/alignment yields robust results.
+
 ## Growth Data
 
-Growth curves in children often display similar shapes but differ in the timing of growth spurts. Registration techniques help reveal common growth patterns by aligning these developmental milestones. The `growth` dataset consists of longitudinal height measurements from 93 children in the Berkeley Growth Study, with data collected quarterly between ages 1 and 2, annually from 2 to 8 years, and biannually from 8 to 18 years. From these measurements, individual growth-rate curves are derived. We begin by registering the full set of height-velocity curves: we calculate each subject’s growth rate, compute the mean curve, estimate individual warping functions using `tf_register()`, and then align all curves to a common time scale with `tf_unwarp()`.
+Growth curves in children often display similar shapes but differ in the timing of growth spurts. Registration techniques can help reveal common growth patterns by aligning these developmental milestones. The `growth` dataset consists of longitudinal height measurements from 93 children in the Berkeley Growth Study, with data collected quarterly between ages 1 and 2, annually from 2 to 8 years, and biannually from 8 to 18 years. From these measurements, individual growth-rate curves are derived. We begin by registering the full set of height-velocity curves: we calculate each subject’s growth rate, compute the mean curve, estimate individual warping functions using `tf_register()`, and then align all curves to a common time scale with `tf_unwarp()`.
 
 ```{r growth-prep}
 growth <- tf::growth
-growth$growth <- tf_derive(growth$height)
+#use tfb for more reliable derivatives
+growth$growth <- tfb(growth$height, k = 10, arg = seq(1, 18, l = 50)) |> tf_derive() 
 growth$growth_mean <- mean(growth$growth)
 growth$growth_warp <- tf_register(growth$growth)
 growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp)
@@ -174,13 +188,13 @@ green_col <- rgb(0.2, 0.4, 0.1, 0.4)
 orange_col <- rgb(0.8, 0.4, 0.1, 0.4)
 black_col <- rgb(0.1, 0.1, 0.1, 0.4)
 
-growth$growth <- tf_derive(growth$height)
+growth$growth <-  tfb(growth$height, k = 8) |> tf_derive()
 growth_group <- growth |>
   split(~gender) |>
   lapply(function(growth) {
     growth$growth_mean <- mean(growth$growth)
     growth$growth_warp <- tf_register(growth$growth)
-    growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp)#, keep_new_arg = TRUE)
+    growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp, keep_new_arg = TRUE)
     growth
   })
 growth_female <- growth_group$female
@@ -198,8 +212,8 @@ plot(
   las = 1
 )
 lines(growth_female$growth, col = orange_col)
-lines(growth_male$growth_mean, lty = 2, col = black_col)
-lines(growth_female$growth_mean, lty = 2, col = black_col)
+lines(growth_male$growth_mean, lty = 2)
+lines(growth_female$growth_mean, lty = 2)
 legend(
   "topright",
   legend = c("female", "male", "means"),
@@ -230,6 +244,7 @@ abline(0, 1, lty = 2)
 ```{r growth-gender-aligned}
 plot(
   growth_male$growth_reg,
+  arg = tf_arg(growth_male$growth_reg),
   points = FALSE,
   xlab = "Age (years)",
   ylab = "Height Velocity (cm/year)",
@@ -239,11 +254,11 @@ plot(
   las = 1
 )
 lines(growth_female$growth_reg, col = orange_col)
-lines(mean(growth_male$growth_reg), lty = 2, col = black_col)
-lines(mean(growth_female$growth_reg), lty = 2, col = black_col)
+lines(mean(growth_male$growth_reg), lty = 2)
+lines(mean(growth_female$growth_reg), lty = 2)
 legend(
   "topright",
-  legend = c("female", "male", "mean"),
+  legend = c("female", "male", "means"),
   col = c(orange_col, green_col, black_col),
   pch = 16,
   bty = "n",
