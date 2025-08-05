@@ -68,3 +68,6 @@ layout(t(1:2))
 plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
 plot(template_estimate, col = 1:5); lines(template, lty = 2)
 }
+\author{
+Maximilian Muecke
+}

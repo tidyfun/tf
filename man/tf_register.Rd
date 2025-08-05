@@ -59,3 +59,6 @@ Tucker JD, Wu W, Srivastava A (2013).
 \emph{Computational Statistics & Data Analysis}, \bold{61}, 50-66.
 ISSN 0167-9473, \doi{https://doi.org/10.1016/j.csda.2012.12.001}, \url{https://www.sciencedirect.com/science/article/pii/S0167947312004227}.
 }
+\author{
+Maximilian Muecke
+}

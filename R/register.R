@@ -52,6 +52,7 @@
 #' plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
 #' plot(template_estimate, col = 1:5); lines(template, lty = 2)
 #' @export
+#' @author Maximilian Muecke
 tf_warp <- function(x, warp, ..., keep_new_arg = FALSE) {
   rlang::check_dots_used()
   UseMethod("tf_warp")
@@ -140,6 +141,7 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_new_arg = FALSE) {
 #' @references
 #' `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
+#' @author Maximilian Muecke
 #' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
 #' height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 #' growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
