@@ -75,6 +75,9 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
 
 #' @export
 tf_warp.tfb <- function(x, warp, ..., keep_new_arg = FALSE) {
+  #TODO:
+  # - keep_new_arg should be forced to FALSE here, otherwise basis matrix blows up & plots fail (resolution bug..)
+  # - tf_rebase-call might want to force penalization more to avoid crazy wiggles?
   if (is_tfb(warp)) {
     warp <- as.tfd(warp)
   }

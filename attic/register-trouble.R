@@ -22,3 +22,70 @@ for (g in list(growth, growth_reg, growth_irreg, growth_tfb)) {
   plot(warp)
   plot(aligned)
 }
+
+##########################################
+# sanity checks for  keep_new_arg:
+
+layout(matrix(1:6, 2, 3))
+
+#
+growth_tfd <- tf_derive(growth$height)
+warp <- tf_register(growth_tfd)
+aligned_new <- tf_unwarp(growth_tfd, warp, keep_new_arg = TRUE)
+tf_arg(aligned_new[i])
+aligned_old <- tf_unwarp(growth_tfd, warp, keep_new_arg = FALSE)
+tf_arg(aligned_old[i])
+
+i <- 37
+plot(growth_tfd[i], points = TRUE)
+lines(aligned_new[i], col = 2)
+points(aligned_new[i], col = 2)
+lines(aligned_old[i], col = 3)
+points(aligned_old[i], col = 3)
+plot(warp[i], points = TRUE)
+
+# with smoother tfb-derivative w/o domain shrinkage:
+growth_tfb <- tfb(growth$height, k = 25) |> tf_derive()
+warp <- tf_register(growth_tfb)
+aligned_new <- tf_unwarp(growth_tfb, warp, keep_new_arg = TRUE)
+tf_arg(aligned_new[i]) #TODO: this is 1000 long because tf_rebase for tfd_irreg tries to preserve all unique gridpoints...
+aligned_old <- tf_unwarp(growth_tfb, warp, keep_new_arg = FALSE)
+tf_arg(aligned_old[i])
+
+i <- 37
+plot(growth_tfb[i], points = TRUE)
+lines(aligned_new[i], col = 2, n_grid = 0)
+lines(aligned_old[i], col = 3, n_grid = 0)
+points(aligned_old[i], col = 3, n_grid = 0)
+plot(warp[i], points = TRUE)
+# !! weird deviations !!
+
+# interpolate on finer, equidistant grid AFTER derivative:
+growth_fine <- tfb(growth$height, k = 8, global = TRUE) |>
+  tf_derive() |>
+  tfd(arg = seq(1, 18, l = 100))
+warp <- tf_register(growth_fine)
+aligned_new <- tf_unwarp(growth_fine, warp, keep_new_arg = TRUE)
+tf_arg(aligned_new[i])
+aligned_old <- tf_unwarp(growth_fine, warp, keep_new_arg = FALSE)
+tf_arg(aligned_old[i])
+
+i <- 37
+plot(growth_fine[i])
+lines(aligned_new[i], col = 2)
+lines(aligned_old[i], col = 3)
+plot(warp[i])
+
+# interpolate on finer, equidistant grid BEFORE derivative:
+growth_fine_tfd <- tfd(height, arg = seq(1, 18, l = 100)) |> tf_derive()
+warp <- tf_register(growth_fine_tfd)
+aligned_new <- tf_unwarp(growth_fine_tfd, warp, keep_new_arg = TRUE)
+tf_arg(aligned_new[i])
+aligned_old <- tf_unwarp(growth_fine_tfd, warp, keep_new_arg = FALSE)
+tf_arg(aligned_old[i])
+
+i <- 37
+plot(growth_fine_tfd[i])
+lines(aligned_new[i], col = 2)
+lines(aligned_old[i], col = 3)
+plot(warp[i])
