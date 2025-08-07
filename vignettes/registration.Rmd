@@ -48,17 +48,18 @@ The default registration method in `tf` uses the SRVF-framework implemented in t
 
 Some general caveats: 
 
-- registration problems are only well-defined and have a unique solution for functional datasets with very simple amplitude variability (c.f. Panaretos **!TODO!**, at least as long as we don't limit the flexibility of the warping too much). If the curves being registered belong to different clusters with different mean shapes or just have very variable shapes more generally, the simple alignment methods implemented here are unlikely to yield sensible results.  
-- alignments can be fairly sensitive to the specifics of data representation like what kind of basis is being used or how many gridpoints the functions are being evaluated on. 
+- registration problems are only well-defined and have a unique solution for functional datasets with simple amplitude variability^[c.f. [Chakraborty & Panaretos, 2020)](https://arxiv.org/pdf/1702.03556) for juicy details on this underappreciated fact]. If the curves being registered belong to different clusters with different mean shapes or just have very variable shapes more generally, the simple alignment methods implemented here are unlikely to yield sensible (or stable) results.  
+- alignments can be fairly sensitive to the specifics of data representation like what kind of basis is being used, how many gridpoints the functions are being evaluated on, or whether/how much the data was smoothed before registration. Even for a simple looking example like the "Berkeley Growth" data shown below, you can get very different alignment results from the same method, depending on the specific pre-processing.
 - alignments are also typically fairly sensitive to the specific registration method being used and their hyperparameters.
 
 That said, let's explore how this works in `tf` with some real-world datasets:
 
 ## Pinch Data
 
-The `pinch` data set contains bio-mechanical measurements of force exerted during a brief pinching motion by the thumb and forefinger. In this experiment, subjects maintained a constant background force of 2 newtons and then briefly squeezed to reach a target of 10 newtons before returning to the background level.
+The `pinch` data set contains bio-mechanical measurements of force exerted during a brief pinching motion by the thumb and forefinger. In this experiment, subjects maintained a constant background force of $2N$ and then briefly squeezed to reach a target of $10N$ before returning to the background level.
 
-This data set illustrates a common challenge in functional data analysis: the timing of events (in this case, when the pinch begins) varies arbitrarily across observations. Registration can align these force trajectories by synchronizing the timing of the pinching motion.
+This data set illustrates a common challenge in functional data analysis: the timing of events (in this case, when the pinch begins and how long it takes to get to the peak and then relax again) varies across observations. Registration can align these force trajectories by synchronizing the timing of the pinching motion:
+a global "system" time scale gets mapped to the individual time scales by the individual warping functions.
 
 ```{r pinch-prep}
 library(tf)
@@ -75,8 +76,8 @@ The unregistered data shows clear variation in when the pinching motion begins r
 plot(
   pinch,
   main = "Pinch Force Trajectories",
-  xlab = "Time (s)",
-  ylab = "Force (N)",
+  xlab = "Time [s]",
+  ylab = "Force [N]",
   lwd = 1.5,
   col = seq_along(pinch),
   bty = "l",
@@ -91,8 +92,8 @@ The warping functions reveal the timing adjustments needed to align the pinching
 ```{r pinch-warping}
 plot(
   pinch_warp,
-  xlab = "Original Time (s)",
-  ylab = "Registered Time (s)",
+  xlab = "Original Time [s]",
+  ylab = "Registered Time [s]",
   lwd = 1.5,
   col = seq_along(pinch),
   bty = "l",
@@ -112,8 +113,8 @@ After registration, the pinching motions are temporally aligned, revealing the c
 plot(
   pinch_reg,
   main = "Registered Pinch Force Trajectories",
-  xlab = "Time (s)",
-  ylab = "Force (N)",
+  xlab = "Time [s]",
+  ylab = "Force [N]",
   lwd = 1.5,
   col = seq_along(pinch),
   bty = "l",
@@ -129,7 +130,7 @@ Growth curves in children often display similar shapes but differ in the timing 
 
 ```{r growth-prep}
 growth <- tf::growth
-#use tfb for more reliable derivatives
+# using tfb for smoother derivatives
 growth$growth <- tfb(growth$height, k = 10, arg = seq(1, 18, l = 50)) |> tf_derive() 
 growth$growth_mean <- mean(growth$growth)
 growth$growth_warp <- tf_register(growth$growth)
@@ -188,7 +189,8 @@ green_col <- rgb(0.2, 0.4, 0.1, 0.4)
 orange_col <- rgb(0.8, 0.4, 0.1, 0.4)
 black_col <- rgb(0.1, 0.1, 0.1, 0.4)
 
-growth$growth <-  tfb(growth$height, k = 8) |> tf_derive()
+# spline basis with unconstrained derivatives at domain edges for smooth and unbiased derivatives:
+growth$growth <-  tfb(growth$height, k = 12, bs = "ps") |> tf_derive() |> tfd()
 growth_group <- growth |>
   split(~gender) |>
   lapply(function(growth) {
@@ -216,8 +218,8 @@ lines(growth_male$growth_mean, lty = 2)
 lines(growth_female$growth_mean, lty = 2)
 legend(
   "topright",
-  legend = c("female", "male", "means"),
-  col = c(orange_col, green_col, black_col),
+  legend = c("female", "male", "group means\n (unaligned)"),
+  col = c(orange_col, green_col, "black"),
   pch = 16,
   bty = "n",
   pt.cex = 1.4,
@@ -254,12 +256,22 @@ plot(
   las = 1
 )
 lines(growth_female$growth_reg, col = orange_col)
-lines(mean(growth_male$growth_reg), lty = 2)
-lines(mean(growth_female$growth_reg), lty = 2)
+
+#rectify grids to compute mean
+growth_male_mean_reg <- 
+  tfd(growth_male$growth_reg, arg = tf_arg(growth_male$growth)) |> 
+  mean() 
+growth_female_mean_reg <- 
+  tfd(growth_female$growth_reg, arg = tf_arg(growth_female$growth)) |> 
+  mean() 
+
+lines(growth_male_mean_reg, lty = 2)
+lines(growth_female_mean_reg, lty = 2)
+
 legend(
   "topright",
-  legend = c("female", "male", "means"),
-  col = c(orange_col, green_col, black_col),
+  legend = c("female", "male", "group means (registered)"),
+  col = c(orange_col, green_col, "black"),
   pch = 16,
   bty = "n",
   pt.cex = 1.4,
@@ -274,10 +286,6 @@ The results show that male children tend to have a more sustained and more inten
 ###  Individual Comparisons
 
 ```{r growth-case-prep}
-green_col <- rgb(0.2, 0.4, 0.1, 0.7)
-blue_col <- rgb(0.3, 0.5, 0.8, 0.7)
-orange_col <- rgb(0.8, 0.4, 0.1, 0.7)
-
 plot_patient_growth <- function(i) {
   plot(
     growth_female[i, "growth"],
@@ -286,17 +294,17 @@ plot_patient_growth <- function(i) {
     xlab = "Age (years)",
     ylab = "Height Velocity (cm/year)",
     lwd = 1.5,
-    col = orange_col,
+    col = "red",
     bty = "l",
     las = 1,
   )
-  lines(growth_female[i, "growth_mean"], lty = 2, col = green_col)
-  points(growth_female[i, "growth_reg"], col = blue_col)
-  lines(growth_female[i, "growth_reg"], col = blue_col)
+  lines(growth_female_mean_reg, lty = 2, col = "grey", lwd = 2)
+  points(growth_female[i, "growth_reg"], col = "black")
+  lines(growth_female[i, "growth_reg"], col = "black")
   legend(
     "topright",
-    legend = c("original", "mean", "aligned"),
-    col = c(orange_col, green_col, blue_col),
+    legend = c("original", "aligned", "mean (aligned)"),
+    col = c("red", "black", "grey"),
     pch = 16,
     bty = "n",
     pt.cex = 1.4,
@@ -318,24 +326,29 @@ plot_patient_warp <- function(i) {
   )
   abline(0, 1, lty = 2)
 }
+
+# identify extreme and typical cases for viz:
+growth_female_warp_mei <- tf_depth(growth_female[, "growth_warp"], depth = "MEI")
+which(order(growth_female_warp_mei) %in%  c(1, 27, 54))
+
 ```
 
-We've chosen three cases that demonstrate distinct warping function behaviors and their effects on height velocity registration:
+We've chosen three female cases that demonstrate distinct warping function behaviors and their effects on height velocity registration:
 
-**Case 37 (Early Developer):**
+**Case 16:**
 
-```{r growth-case-37}
-plot_patient_growth(37)
-plot_patient_warp(37)
+```{r growth-case-16}
+layout(t(1:2))
+plot_patient_growth(16)
+plot_patient_warp(16)
 ```
 
-The warping function curves above the diagonal identity line, indicating accelerated development. This child's growth spurt occurs earlier in chronological time - notice how the original orange curve shows peak growth around age 1-2, while the population mean peaks later. The warping function compresses the early years (steep rise from 0-2 years) then gradually catches up to normal timing. Registration successfully aligns this early peak with the population pattern.
 
-**Case 38 (Delayed Developer):**
+**Case 29 (Delayed Developer):**
 
 ```{r growth-case-38}
-plot_patient_growth(38)
-plot_patient_warp(38)
+plot_patient_growth(49)
+plot_patient_warp(49)
 ```
 
 The warping function shows a dramatic S-curve pattern, staying well below the identity line until around age 8, then rapidly accelerating. This represents significantly delayed development - the original growth curve shows very little early growth followed by a late, intense growth spurt around age 10-12. The warping function reveals how this child's "biological clock" runs much slower initially, requiring substantial time compression during the late growth phase.
