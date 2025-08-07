@@ -37,7 +37,7 @@ height_female <- subset(growth, gender == "female", select = height, drop = TRUE
 growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
 layout(t(1:3))
 plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
-# warping functions map from "observed","nominal" time to "system","standardized" time:
+# warping functions map from "observed"/"nominal" time to "system"/"standardized" time:
 warp <- tf_register(growth_female)
 plot(warp, xlab = "Chronological Age", ylab = "Biological Age")
 growth_female_reg <- tf_unwarp(growth_female, warp)

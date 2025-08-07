@@ -5,9 +5,9 @@
 \alias{tf_unwarp}
 \title{Elastic Deformation: warp and unwarp \code{tf} vectors}
 \usage{
-tf_warp(x, warp, ..., keep_new_arg = FALSE)
+tf_warp(x, warp, ...)
 
-tf_unwarp(x, warp, ..., keep_new_arg = FALSE)
+tf_unwarp(x, warp, ...)
 }
 \arguments{
 \item{x}{\code{tf} vector of functions. For \code{tf_warp()}, these should be
@@ -18,7 +18,7 @@ registered/aligned functions and unaligned functions for \code{tf_unwarp()}.}
 \item{...}{additional arguments passed to \code{\link[=tfd]{tfd()}}.}
 
 \item{keep_new_arg}{keep new \code{arg} values after (un)warping or return
-\code{tf} vector on \code{arg} values of the input (default \code{FALSE} is the latter)? See Details.}
+\code{tfd} vector on \code{arg} values of the input (default \code{FALSE} is the latter)? See Details.}
 }
 \value{
 \itemize{
@@ -44,29 +44,31 @@ travel backwards or infinite time dilation) with identical domain and
 co-domain: \eqn{h:T \to T}. Their input is the aligned "system" time \eqn{s},
 their output is the unaligned "observed" time \eqn{t}.
 
-By default (\code{keep_new_arg = FALSE}), these will return function objects
+By default (\code{keep_new_arg = FALSE}), the \code{tfd} methods will return function objects
 re-evaluated on the same grids as the original inputs,
 which will typically incur some additional interpolation error because (un)warping
-changes the underlying grids. Set to \code{TRUE} to avoid.
+changes the underlying grids, which are then changed back. Set to \code{TRUE} to avoid.
+This option is not available for \code{tfb}-objects.
 }
 \examples{
-# generate "template" function shape:
-template <- tf_rgp(1, arg = 201L)
-# generate random warping functions (monotone, [0, 1] -> [0, 1]):
+# generate "template" function shape on [0, 1]:
+set.seed(1351)
+template <- tf_rgp(1, arg = 201L, nugget = 0)
+# generate random warping functions (strictly monotone inc., [0, 1] -> [0, 1]):
 warp <- {
   tmp <- tf_rgp(5)
-  tmp <- exp(tmp - mean(tmp)) # center at identity warping
+  tmp <- exp(tmp - mean(tmp)) # centered at identity warping
   tf_integrate(tmp, definite = FALSE) / tf_integrate(tmp)
 }
-x <- tf_warp(rep(template, 5), warp)
+x <- tf_warp(rep(1, 5) * template, warp)
 layout(t(1:3))
 plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 # register the functions:
 warp_estimate <- tf_register(x)
-template_estimate <- tf_unwarp(x, warp_estimate)
+registered <- tf_unwarp(x, warp_estimate)
 layout(t(1:2))
 plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
-plot(template_estimate, col = 1:5); lines(template, lty = 2)
+plot(registered, col = 1:5); lines(template, lty = 2)
 }
 \author{
 Maximilian Muecke

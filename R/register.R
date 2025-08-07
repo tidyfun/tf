@@ -17,10 +17,11 @@
 #' co-domain: \eqn{h:T \to T}. Their input is the aligned "system" time \eqn{s},
 #' their output is the unaligned "observed" time \eqn{t}.
 #'
-#' By default (`keep_new_arg = FALSE`), these will return function objects
+#' By default (`keep_new_arg = FALSE`), the `tfd` methods will return function objects
 #' re-evaluated on the same grids as the original inputs,
 #' which will typically incur some additional interpolation error because (un)warping
-#' changes the underlying grids. Set to `TRUE` to avoid.
+#' changes the underlying grids, which are then changed back. Set to `TRUE` to avoid.
+#' This option is not available for `tfb`-objects.
 #'
 #'
 #' @param x `tf` vector of functions. For `tf_warp()`, these should be
@@ -28,41 +29,41 @@
 #' @param warp `tf` vector of warping functions used for transformation. See Details.
 #' @param ... additional arguments passed to [tfd()].
 #' @param keep_new_arg keep new `arg` values after (un)warping or return
-#'   `tf` vector on `arg` values of the input (default `FALSE` is the latter)? See Details.
+#'   `tfd` vector on `arg` values of the input (default `FALSE` is the latter)? See Details.
 #' @returns
 #' * `tf_warp()`: the warped `tf` vector (un-registered functions)
 #' * `tf_unwarp()`: the unwarped `tf` vector (registered/aligned functions)
 #'
 #' @examples
-#' # generate "template" function shape:
-#' template <- tf_rgp(1, arg = 201L)
-#' # generate random warping functions (monotone, [0, 1] -> [0, 1]):
+#' # generate "template" function shape on [0, 1]:
+#' set.seed(1351)
+#' template <- tf_rgp(1, arg = 201L, nugget = 0)
+#' # generate random warping functions (strictly monotone inc., [0, 1] -> [0, 1]):
 #' warp <- {
 #'   tmp <- tf_rgp(5)
-#'   tmp <- exp(tmp - mean(tmp)) # center at identity warping
+#'   tmp <- exp(tmp - mean(tmp)) # centered at identity warping
 #'   tf_integrate(tmp, definite = FALSE) / tf_integrate(tmp)
 #' }
-#' x <- tf_warp(rep(template, 5), warp)
+#' x <- tf_warp(rep(1, 5) * template, warp)
 #' layout(t(1:3))
 #' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 #' # register the functions:
 #' warp_estimate <- tf_register(x)
-#' template_estimate <- tf_unwarp(x, warp_estimate)
+#' registered <- tf_unwarp(x, warp_estimate)
 #' layout(t(1:2))
 #' plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
-#' plot(template_estimate, col = 1:5); lines(template, lty = 2)
+#' plot(registered, col = 1:5); lines(template, lty = 2)
 #' @export
 #' @author Maximilian Muecke
-tf_warp <- function(x, warp, ..., keep_new_arg = FALSE) {
+tf_warp <- function(x, warp, ...) {
   rlang::check_dots_used()
+  assert_warp(warp, x)
   UseMethod("tf_warp")
 }
 
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
-  assert_warp(warp, x)
   assert_flag(keep_new_arg)
-
   arg <- tf_arg(x)
   warp <- tfd(warp, arg = arg)
   ret <- tfd(tf_evaluations(x), tf_evaluations(warp), ...)
@@ -74,29 +75,35 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
 }
 
 #' @export
-tf_warp.tfb <- function(x, warp, ..., keep_new_arg = FALSE) {
-  #TODO:
-  # - keep_new_arg should be forced to FALSE here, otherwise basis matrix blows up & plots fail (resolution bug..)
-  # - tf_rebase-call might want to force penalization more to avoid crazy wiggles?
+tf_warp.tfb <- function(x, warp, ...) {
+  # keep_new_arg forced to FALSE here, otherwise basis matrix blows up:
+  # would keep every unique gridpoint & cause plots to fail (resolution too small)
   if (is_tfb(warp)) {
     warp <- as.tfd(warp)
   }
-  x |>
-    as.tfd() |>
-    tf_warp(warp, ..., keep_new_arg = keep_new_arg) |>
+  dots <- list(...)
+  if (isTRUE(dots$keep_new_arg)) {
+    cli::cli_warn(
+      "{.arg keep_new_arg} reset to FALSE - not applicable for {.cls tfb}."
+    )
+    dots$keep_new_arg <- FALSE
+  }
+  do.call(tf_warp, list(dots, x = as.tfd(x), warp = warp) |> flatten()) |>
     tf_rebase(x)
 }
 
+#-------------------------------------------------------------------------------
+
 #' @rdname tf_warp
 #' @export
-tf_unwarp <- function(x, warp, ..., keep_new_arg = FALSE) {
+tf_unwarp <- function(x, warp, ...) {
   rlang::check_dots_used()
+  assert_warp(warp, x)
   UseMethod("tf_unwarp")
 }
 
 #' @export
 tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
-  assert_warp(warp, x)
   assert_flag(keep_new_arg)
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
@@ -113,15 +120,24 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
 }
 
 #' @export
-tf_unwarp.tfb <- function(x, warp, ..., keep_new_arg = FALSE) {
+tf_unwarp.tfb <- function(x, warp, ...) {
+  # keep_new_arg forced to FALSE here, otherwise basis matrix blows up:
+  # would keep every unique gridpoint & cause plots to fail (resolution too small)
   if (is_tfb(warp)) {
     warp <- as.tfd(warp)
   }
-  x |>
-    as.tfd() |>
-    tf_unwarp(warp, ..., keep_new_arg = keep_new_arg) |>
+  dots <- list(...)
+  if (isTRUE(dots$keep_new_arg)) {
+    cli::cli_warn(
+      "{.arg keep_new_arg} reset to FALSE - not applicable for {.cls tfb}."
+    )
+    dots$keep_new_arg <- FALSE
+  }
+  do.call(tf_unwarp, list(dots, x = as.tfd(x), warp = warp) |> flatten()) |>
     tf_rebase(x)
 }
+
+#-------------------------------------------------------------------------------
 
 #' Register / align a `tf` vector against a template function
 #'
@@ -150,7 +166,7 @@ tf_unwarp.tfb <- function(x, warp, ..., keep_new_arg = FALSE) {
 #' growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
 #' layout(t(1:3))
 #' plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
-#' # warping functions map from "observed","nominal" time to "system","standardized" time:
+#' # warping functions map from "observed"/"nominal" time to "system"/"standardized" time:
 #' warp <- tf_register(growth_female)
 #' plot(warp, xlab = "Chronological Age", ylab = "Biological Age")
 #' growth_female_reg <- tf_unwarp(growth_female, warp)
