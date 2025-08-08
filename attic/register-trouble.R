@@ -5,22 +5,49 @@ height <- tfd(tf::growth$height, evaluator = tf_approx_spline)
 arg <- tf_arg(height)
 arg_reg <- seq(min(arg), max(arg), l = 101)
 arg_irreg <- {
-  d <- diff(arg1)
+  d <- diff(arg)
   cumsum(c(0, rep(d / 4, e = 4))) + min(arg)
 }
 
 growth <- tf_derive(height)
 growth_reg <- tfd(height, arg = arg_reg) |> tf_derive()
 growth_irreg <- tfd(height, arg = arg_irreg) |> tf_derive()
-growth_tfb <- tfb(height, k = 25) |> tf_derive()
+growth_tfb <- tfb(height, k = 15, bs = "ps") |> tf_derive()
 
 layout(matrix(1:12, 3, 4))
-for (g in list(growth, growth_reg, growth_irreg, growth_tfb)) {
+g_list <- list(
+  orig = growth,
+  reg = growth_reg,
+  irreg = growth_irreg,
+  spline = growth_tfb
+)
+
+for (n in names(g_list)) {
+  g <- g_list[[n]]
   warp <- tf_register(g)
   aligned <- tf_unwarp(g, warp)
-  plot(g)
-  plot(warp)
-  plot(aligned)
+  plot(g, main = n, ylim = c(0, 30))
+  plot(tf_invert(warp), points = FALSE)
+  plot(aligned, ylim = c(0, 30))
+}
+
+for (n in names(g_list)) {
+  g <- g_list[[n]]
+  warp <- tf_register(g, .method = "fda")
+  aligned <- tf_unwarp(g, warp)
+  plot(g, main = n, ylim = c(0, 30))
+  plot(tf_invert(warp), points = FALSE)
+  plot(aligned, ylim = c(0, 30))
+}
+
+
+for (n in names(g_list)) {
+  g <- g_list[[n]]
+  warp <- tf_register(g, .method = "fda", crit = 1)
+  aligned <- tf_unwarp(g, warp)
+  plot(g, main = n, ylim = c(0, 30))
+  plot(tf_invert(warp), points = FALSE)
+  plot(aligned, ylim = c(0, 30))
 }
 
 ##########################################

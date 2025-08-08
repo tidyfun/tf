@@ -1,6 +1,8 @@
 ---
 title: "Curve Registration"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    code_folding: hide
 vignette: >
   %\VignetteIndexEntry{Curve Registration}
   %\VignetteEngine{knitr::rmarkdown}
@@ -9,21 +11,24 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
+  cache = TRUE,
   collapse = TRUE,
   comment = "#>"
 )
 # library(tf)
 devtools::load_all()
+par(las = 1)
 ```
 
 Functional data registration is a pre-processing technique that *aligns* functional observations by removing phase variation (timing differences) while preserving amplitude variation (shape differences). Misalignment of curves makes it difficult to distinguish between these two sources of variability. Registration separates phase and amplitude variation, enabling a clearer analysis of structural differences among curves.
 
-The basic idea is that, in the simplest case, the observed curves $x_i(s)$ are elastically deformed versions of a common template function $m(t)$: $x_i(s) = m(h_i^{-1}(t))$, with a strictly monotone increasing *warping function* $h_i(s)$ that maps the original "system" time argument $s$ of the template function to the observed "wall-clock" time argument $t$ of $x_i(t)$. Where the slope of $h()$ is below 1, observed time is sped up relative to the system time (i.e., the graph of the function is compressed in the horizontal direction), where the slope of $h$ is above 1, observed time is slowed down relative to the system time (i.e., the graph of the function is dilated in the horizontal direction):
+The basic idea is that, in the simplest case, the observed curves $x_i(s)$ are elastically deformed versions of a common template function $m(t)$: $x_i(s) = m(h_i^{-1}(t))$, with a strictly monotone increasing *warping function* $h_i(s)$ that maps the original "system" time argument $s$ of the template function to the observed "wall-clock" time argument $t$ of $x_i(t)$. Where the slope of $h()$ is below 1, observed time is sped up relative to the system time (i.e., the graph of the template function gets squished together in the horizontal direction), where the slope of $h$ is above 1, observed time is slowed down relative to the system time (i.e., the graph of the template function is stretched out in the horizontal direction). Its inverse $h_i^{-1}(t)$ can be called *registration function* or *unwarping function*. 
 
-```{r, echo = FALSE, message = FALSE, out.width = 12}
+For example:
+```{r,  message = FALSE, fig.width = 8, fig.height = 3}
 set.seed(1221L)
 # generate "template" function shape:
-template <- tf_rgp(1, arg = 201L)
+template <- tf_rgp(1, arg = 201L, nugget = 0)
 # generate random warping functions (monotone increasing, [0, 1] -> [0, 1]):
 # h_i(s) = \int_0^s exp(f_i(s)) ds / \int_S exp(f_i(s)) ds
 warp <- {
@@ -32,25 +37,35 @@ warp <- {
    tf_integrate(tmp, definite = FALSE) / tf_integrate(tmp)
 }
 x <- tf_warp(rep(template, 5), warp)
+
 layout(t(1:3))
-plot(template, main = "template function")
-plot(warp, col = 1:5, main = "warping functions")
-plot(x, col = 1:5, main = "warped functions")
+plot(template, 
+     main = "template function", xlab = "system time")
+plot(warp, col = 1:5, 
+     main = "warping functions", xlab = "system time", ylab = "observed time")
+plot(x, col = 1:5, 
+     main = "warped functions", xlab = "observed time")
 ```
 
 The registration process involves:
 
-1.  Estimating "warping functions" using `tf_register()` - these capture the time scale deformations between functions.
+1.  Estimating "warping functions" using `tf_register()` - these capture the time scale deformations of the observed functions relative to the template.
 
-2.  Applying the inverse warping using `tf_unwarp()` - this aligns the functions to a common time scale.
+2.  Applying the *inverse* warping using `tf_unwarp()` - this aligns the observed functions to the template by putting them on a common time scale.
 
 The default registration method in `tf` uses the SRVF-framework implemented in the  `fdasrvf` package, which seems fairly robust and general and has good theoretical properties. Alternatively, it also wraps the two "continuous criterion" registration methods implemented in the `fda` package, which are conceptually simpler but less theoretically appealing and less general (i.e., not recommended for data with complex phase- and amplitude variability). 
 
 Some general caveats: 
 
+- alignments can be fairly sensitive to the specifics of data representation like what kind of basis is being used, how many gridpoints the functions are being evaluated on and how it is interpolated between grid points, or whether/how much the data was smoothed before registration. Even for a simple looking example like the "Berkeley Growth" data shown below, you can get very different alignment results from the same method, depending on the specific pre-processing - see section !!TODO!!.
+- alignments can be fairly sensitive to the specific registration method being used and their hyperparameters.
 - registration problems are only well-defined and have a unique solution for functional datasets with simple amplitude variability^[c.f. [Chakraborty & Panaretos, 2020)](https://arxiv.org/pdf/1702.03556) for juicy details on this underappreciated fact]. If the curves being registered belong to different clusters with different mean shapes or just have very variable shapes more generally, the simple alignment methods implemented here are unlikely to yield sensible (or stable) results.  
-- alignments can be fairly sensitive to the specifics of data representation like what kind of basis is being used, how many gridpoints the functions are being evaluated on, or whether/how much the data was smoothed before registration. Even for a simple looking example like the "Berkeley Growth" data shown below, you can get very different alignment results from the same method, depending on the specific pre-processing.
-- alignments are also typically fairly sensitive to the specific registration method being used and their hyperparameters.
+
+Some general tips:
+
+- smooth the data before aligning them -- especially the results of the SRVF method seem to be very sensitive to noise in the data.  
+- evaluate curves on a dense enough grid to preserve all relevant small scale variation before aligning them. 
+- for the SRVF method, equidistant grids seem to yield stable and sensible results moe often than non-equidistant grids.
 
 That said, let's explore how this works in `tf` with some real-world datasets:
 
@@ -61,77 +76,112 @@ The `pinch` data set contains bio-mechanical measurements of force exerted durin
 This data set illustrates a common challenge in functional data analysis: the timing of events (in this case, when the pinch begins and how long it takes to get to the peak and then relax again) varies across observations. Registration can align these force trajectories by synchronizing the timing of the pinching motion:
 a global "system" time scale gets mapped to the individual time scales by the individual warping functions.
 
-```{r pinch-prep}
+```{r pinch-prep, class.source = 'fold-show'}
 library(tf)
 pinch <- pinch[1:10]
-pinch_warp <- tf_register(pinch)
-pinch_reg <- tf_unwarp(pinch, pinch_warp)
+pinch_warp <- tf_register(pinch) # get SRVF-warping functions (default method)
+pinch_reg <- tf_unwarp(pinch, pinch_warp) # apply inverse warping to get registered functions
 ```
 
-### Original Pinch Force Trajectories
-
-The unregistered data shows clear variation in when the pinching motion begins relative to the recording start time:
-
-```{r pinch-original}
+```{r pinch-viz}
+layout(t(1:3))
 plot(
   pinch,
   main = "Pinch Force Trajectories",
-  xlab = "Time [s]",
+  xlab = "Observed Time [s]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = seq_along(pinch),
-  bty = "l",
-  las = 1
+  col = scales::alpha(seq_along(pinch), 0.5),
 )
-```
 
-### Pinch Warping Functions
-
-The warping functions reveal the timing adjustments needed to align the pinching motions:
-
-```{r pinch-warping}
 plot(
-  pinch_warp,
-  xlab = "Original Time [s]",
+  tf_invert(pinch_warp), #! show INVERSE warping, i.e. "alignment" functions
+  points = FALSE,
+  main = "Inverse Warping Functions",
+  xlab = "Observed Time [s]",
   ylab = "Registered Time [s]",
   lwd = 1.5,
-  col = seq_along(pinch),
-  bty = "l",
-  las = 1
+  col = scales::alpha(seq_along(pinch), 0.5)
 )
 abline(0, 1, lty = 3, lwd = 2)
-```
 
-We can see that some functions are pushed forward, some pushed backward in time at the beginning and 
-the warping functions then mostly have a slope $\approx 1$ (i.e., run parallel to the dotted bisector) for most of the time domain indicating no further time dilation or compression beyond the initial time shifts before re-converging towards the end.
-
-### Registered Pinch Force Trajectories
-
-After registration, the pinching motions are temporally aligned, revealing the common force pattern:
-
-```{r pinch-aligned}
 plot(
   pinch_reg,
   main = "Registered Pinch Force Trajectories",
-  xlab = "Time [s]",
+  xlab = "Registered Time [s]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = seq_along(pinch),
-  bty = "l",
-  las = 1
+  col = scales::alpha(seq_along(pinch), 0.5)
 )
-```
+``` 
+The unregistered data (left panel) shows clear variation in when the pinching motion begins relative to the recording start time.
+The unwarping functions `tf_invert(pinch_warp)` (middle panel) reveal the timing adjustments needed to align the pinching motions. We can see that some functions are pushed forward, some pushed backward in time at the beginning and 
+the (un)warping functions then mostly have a slope $\approx 1$ (i.e., run parallel to the dotted bisector) for most of the time domain indicating no further time dilation or compression beyond the initial time shifts before re-converging towards the end.
+After registration, the pinching motions are temporally aligned (right panel), revealing the common force pattern and its amplitude variation.
 
-This is the kind of data with simple amplitude variability (i.e. the scaled bell curve shape all curves have in common) and straightforward phase variation (i.e., different on-sets and widths) for which registration/alignment yields robust results.
+This is the kind of data with simple amplitude variability (i.e. the scaled bell curve shape all curves have in common) and straightforward phase variation (i.e., different on-sets and widths) for which registration/alignment tends to yield robust results.
+
+Using either variant of the "continuous registration" methods yields fairly similar results here:
+```{r pinch-prep, class.source = 'fold-show'}
+pinch_warp_fda1 <- tf_register(pinch, .method = "fda", crit = 1) # LS-criterion
+pinch_warp_fda2 <- tf_register(pinch, .method = "fda", crit = 2) # minEV-criterion
+pinch_reg_fda1 <- tf_unwarp(pinch, pinch_warp_fda1)
+pinch_reg_fda2 <- tf_unwarp(pinch, pinch_warp_fda2)
+
+layout(t(matrix(1:4, 2, 2)))
+plot(
+  tf_invert(pinch_warp_fda1), 
+  points = FALSE,
+  main = "Inverse Warping Functions \n(fda; LS-criterion)",
+  xlab = "Observed Time [s]",
+  ylab = "Registered Time [s]",
+  lwd = 1.5,
+  col = scales::alpha(seq_along(pinch), 0.5)
+)
+abline(0, 1, lty = 3, lwd = 2)
+plot(
+  pinch_reg_fda1,
+  main = "Registered Pinch Force Trajectories",
+  xlab = "Registered Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = scales::alpha(seq_along(pinch), 0.5)
+)
+plot(
+  tf_invert(pinch_warp_fda2), 
+  points = FALSE,
+  main = "Inverse Warping Functions \n(fda; minEV-criterion)",
+  xlab = "Observed Time [s]",
+  ylab = "Registered Time [s]",
+  lwd = 1.5,
+  col = scales::alpha(seq_along(pinch), 0.5)
+)
+abline(0, 1, lty = 3, lwd = 2)
+plot(
+  pinch_reg_fda2,
+  main = "Registered Pinch Force Trajectories",
+  xlab = "Registered Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = scales::alpha(seq_along(pinch), 0.5)
+)
+``` 
+
+
 
 ## Growth Data
 
 Growth curves in children often display similar shapes but differ in the timing of growth spurts. Registration techniques can help reveal common growth patterns by aligning these developmental milestones. The `growth` dataset consists of longitudinal height measurements from 93 children in the Berkeley Growth Study, with data collected quarterly between ages 1 and 2, annually from 2 to 8 years, and biannually from 8 to 18 years. From these measurements, individual growth-rate curves are derived. We begin by registering the full set of height-velocity curves: we calculate each subject’s growth rate, compute the mean curve, estimate individual warping functions using `tf_register()`, and then align all curves to a common time scale with `tf_unwarp()`.
 
-```{r growth-prep}
+```{r growth-prep, class.source = 'fold-show'}
 growth <- tf::growth
-# using tfb for smoother derivatives
-growth$growth <- tfb(growth$height, k = 10, arg = seq(1, 18, l = 50)) |> tf_derive() 
+# for smoother, more accurate derivatives: 
+# tfb on dense regular grid, using basis w/o constraints on boundary deriv.
+growth$growth <- 
+  tfb(growth$height, 
+      k = 12, bs = "ps", arg = seq(1, 18, l = 80),
+      verbose = FALSE) |> 
+  tf_derive() 
 growth$growth_mean <- mean(growth$growth)
 growth$growth_warp <- tf_register(growth$growth)
 growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp)
@@ -144,27 +194,29 @@ First, let's examine the unregistered height velocity curves. Notice how the tim
 ```{r growth-original}
 plot(
   growth$growth,
-  xlab = "Age (years)",
-  ylab = "Height Velocity (cm/year)",
+  xlab = "Age [years] ",
+  ylab = "Growth [cm/year]",
   lwd = 1.5,
   bty = "l",
   las = 1
 )
 ```
 
-### Warping Functions
+### Unwarping Functions
 
-The warping functions show how each individual's chronological age maps to a common "biological age". Deviations from the diagonal line indicate accelerated or delayed development:
+The unwarping functions show how each individual's chronological age maps to a common "biological age". Deviations from the diagonal line indicate accelerated or delayed development:
 
 ```{r growth-warping}
 plot(
-  growth$growth_warp,
-  xlab = "Clock Year",
-  ylab = "Biological Year",
+  tf_invert(growth$growth_warp),
+  points = FALSE,
+  xlab = "Chronological Age",
+  ylab = "Biological Age",
   lwd = 1.5,
   bty = "l",
   las = 1
 )
+abline(c(0,1), lty = 3)
 ```
 
 ### Registered Growth Curves
@@ -174,29 +226,33 @@ After registration, the growth spurts are aligned, revealing the common underlyi
 ```{r growth-aligned}
 plot(
   growth$growth_reg,
-  xlab = "Age (years)",
-  ylab = "Height Velocity (cm/year)",
+  xlab = "Biological Age [years]",
+  ylab = "Growth [cm/year]",
   lwd = 1.5,
   bty = "l",
   las = 1
 )
 ```
 
-Next, we stratify by gender (splitting the data into male and female groups) and repeat the same registration workflow within each subgroup—deriving gender‐specific mean growth rates, warping functions, and registered trajectories to directly compare male and female developmental timing and velocity^[We set `keep_new_arg = TRUE` in order to retain the registered `arg`-values instead of re-evaluating the aligned function on the old grid of the input function. T]
+### Growth by Biological Sex
+
+Next, we stratify by sex (splitting the data into male and female groups) and repeat the same registration workflow within each subgroup—deriving sex‐specific mean growth rates, warping functions, and registered trajectories to directly compare male and female developmental timing and velocity^[We set `keep_new_arg = TRUE` in order to retain the registered `arg`-values instead of re-evaluating the aligned function on the old grid of the input function. This allows us to see how each observed datum is moved horizontally in the alignment.]
 
 ```{r growth-gender}
-green_col <- rgb(0.2, 0.4, 0.1, 0.4)
-orange_col <- rgb(0.8, 0.4, 0.1, 0.4)
-black_col <- rgb(0.1, 0.1, 0.1, 0.4)
+green_col <- rgb(0.2, 0.4, 0.1, 0.3)
+orange_col <- rgb(0.8, 0.4, 0.1, 0.3)
+
 
 # spline basis with unconstrained derivatives at domain edges for smooth and unbiased derivatives:
-growth$growth <-  tfb(growth$height, k = 12, bs = "ps") |> tf_derive() |> tfd()
+growth$growth <-  tfb(growth$height, k = 12, bs = "ps", arg = seq(1, 18, l = 80)) |> tf_derive()
 growth_group <- growth |>
   split(~gender) |>
   lapply(function(growth) {
     growth$growth_mean <- mean(growth$growth)
     growth$growth_warp <- tf_register(growth$growth)
-    growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp, keep_new_arg = TRUE)
+    # put unregistered & registered functions back on original grids for direct comparisons:
+    growth$growth <- tfd(growth$growth, arg = tf_arg(growth$height))
+    growth$growth_reg <- tf_unwarp(growth$growth, growth$growth_warp, keep_new_arg = TRUE) 
     growth
   })
 growth_female <- growth_group$female
@@ -206,8 +262,8 @@ growth_male <- growth_group$male
 ```{r growth-gender-original}
 plot(
   growth_male$growth,
-  xlab = "Age (years)",
-  ylab = "Height Velocity (cm/year)",
+  xlab = "Chronological Age [years]",
+  ylab = "Height Velocity [cm/year]",
   lwd = 1.5,
   bty = "l",
   col = green_col,
@@ -231,7 +287,8 @@ legend(
 
 ```{r growth-gender-warping}
 plot(
-  growth_male$growth_warp,
+  tf_invert(growth_male$growth_warp),
+  points = FALSE,
   xlab = "Clock Year",
   ylab = "Biological Year",
   lwd = 1.5,
@@ -239,7 +296,7 @@ plot(
   col = green_col,
   las = 1
 )
-lines(growth_female$growth_warp, col = orange_col)
+lines(tf_invert(growth_female$growth_warp), col = orange_col)
 abline(0, 1, lty = 2)
 ```
 
@@ -248,8 +305,8 @@ plot(
   growth_male$growth_reg,
   arg = tf_arg(growth_male$growth_reg),
   points = FALSE,
-  xlab = "Age (years)",
-  ylab = "Height Velocity (cm/year)",
+  xlab = "Biological Age [years]",
+  ylab = "Height Velocity [cm/year]",
   lwd = 1.5,
   bty = "l",
   col = green_col,
@@ -281,7 +338,7 @@ legend(
 )
 ```
 
-The results show that male children tend to have a more sustained and more intense growth spurt later in puberty than female children.
+The results show that male children tend to have a more intense growth spurt later in puberty than female children.
 
 ###  Individual Comparisons
 
@@ -289,22 +346,23 @@ The results show that male children tend to have a more sustained and more inten
 plot_patient_growth <- function(i) {
   plot(
     growth_female[i, "growth"],
-    points = TRUE,
     main = paste("Growth Case", i),
-    xlab = "Age (years)",
-    ylab = "Height Velocity (cm/year)",
-    lwd = 1.5,
+    xlab = "Age [years]",
+    ylab = "Growth [cm/year]",
+    lwd = 2,
     col = "red",
     bty = "l",
     las = 1,
   )
-  lines(growth_female_mean_reg, lty = 2, col = "grey", lwd = 2)
-  points(growth_female[i, "growth_reg"], col = "black")
-  lines(growth_female[i, "growth_reg"], col = "black")
+  arrows(x0 = tf_arg(growth_female[i, "growth"]), x1 = tf_arg(growth_female[i, "growth_reg"])[[1]],
+         y0 = tf_evaluations(growth_female[i, "growth"])[[1]], y1 = tf_evaluations(growth_female[i, "growth"])[[1]],
+        length = .1, angle = 20, col = rgb(0,0,0,.8)) |>     suppressWarnings()
+  lines(growth_female[i, "growth_reg"], col = "blue", lwd = 2)
+
   legend(
     "topright",
-    legend = c("original", "aligned", "mean (aligned)"),
-    col = c("red", "black", "grey"),
+    legend = c("original", "aligned"),
+    col = c("red", "blue"),
     pch = 16,
     bty = "n",
     pt.cex = 1.4,
@@ -316,26 +374,46 @@ plot_patient_growth <- function(i) {
 
 plot_patient_warp <- function(i) {
   plot(
-    growth_female[i, "growth_warp"],
-    main = paste("Warping Function Case", i),
-    xlab = "Clock Year",
-    ylab = "Biological Year",
+    tf_invert(growth_female[i, "growth_warp"]),
+    main = paste("Unwarping Function Case", i),
+    xlab = "",
+    ylab = "",
     lwd = 1.5,
     bty = "l",
     las = 1,
   )
+  title(xlab = "Chronological Age (original)", col.lab = "red")
+  title(ylab = "Biological Age (aligned)", col.lab = "blue")
+
   abline(0, 1, lty = 2)
 }
 
 # identify extreme and typical cases for viz:
-growth_female_warp_mei <- tf_depth(growth_female[, "growth_warp"], depth = "MEI")
-which(order(growth_female_warp_mei) %in%  c(1, 27, 54))
+# growth_female_warp_size <- tf_integrate(growth_female[, "growth_warp"])
+# which(order(growth_female_warp_size) %in%  c(1, 54))
+# most extreme warping:
+# tf_derive(growth_female[, "growth_warp"])^2 |> tf_integrate() |> which.max()
 
 ```
 
 We've chosen three female cases that demonstrate distinct warping function behaviors and their effects on height velocity registration:
 
-**Case 16:**
+
+**Case 5: Delayed Development**
+
+```{r growth-case-5}
+layout(t(1:2))
+plot_patient_growth(5)
+plot_patient_warp(5)
+```
+The left plot shows the original function $x_i(t)$ in red and its aligned version $x_i(h^-1_i(t))$ in blue, with points on the graph that are aligned to each other connected by horizontal arrows $t \to h^-1_i(t)$. The right plot shows the corresponding *unwarping* function $h^-1_i(t)$, the length of each arrow is the vertical distance of the unwarping function to the bisecting angle: the time shift at this point.
+
+Development of this subject is slightly ahead of the population mean pattern in the first 2-3 years
+(unwarping function above bisecting angle, alignment arrows pointing right), and delayed over the rest of the observed period (unwarping function below bisecting angle, arrows pointing left).
+The observed function graph itself is initially slightly dilated by the alignment (initial slope of unwarping function > 1), then compressed (slope of unwarping function flat for chronological age 2-7, which get mapped to biological ages 2-5), then dilated again for chronological age 8-10, etc. 
+
+
+**Case 16: Initial Acceleration**
 
 ```{r growth-case-16}
 layout(t(1:2))
@@ -343,23 +421,15 @@ plot_patient_growth(16)
 plot_patient_warp(16)
 ```
 
+Development of this subject is ahead of the population mean pattern in the first 10 years, 
+and fairly closely aligned with it afterwards (unwarping function very close to bisector)
 
-**Case 29 (Delayed Developer):**
+**Case 35: Drastic & Complex Alignment**
 
-```{r growth-case-38}
-plot_patient_growth(49)
-plot_patient_warp(49)
+```{r growth-case-35}
+layout(t(1:2))
+plot_patient_growth(35)
+plot_patient_warp(35)
 ```
 
-The warping function shows a dramatic S-curve pattern, staying well below the identity line until around age 8, then rapidly accelerating. This represents significantly delayed development - the original growth curve shows very little early growth followed by a late, intense growth spurt around age 10-12. The warping function reveals how this child's "biological clock" runs much slower initially, requiring substantial time compression during the late growth phase.
-
-**Case 32 (Variable Development):**
-
-```{r growth-case-32}
-plot_patient_growth(32)
-plot_patient_warp(32)
-```
-
-This case shows a more complex warping pattern with moderate deviations from the identity line. The warping function indicates slightly delayed early development followed by periods of acceleration and deceleration. The original growth curve shows multiple smaller peaks rather than one dominant spurt, and registration helps align these variable patterns with the smoother population average.
-
-These individual cases demonstrate the importance of registration in understanding growth patterns. Without it, case 37's early growth spurt and case 38's delayed spurt would appear to be completely different patterns of growth. However, registration reveals that these children follow the same underlying growth trajectory, just at different times. Properly accounting for individual timing differences through registration enables us to better identify children who deviate from the normal growth pattern in terms of shape rather than just timing.
+This case shows a more complex warping pattern with some strong deviation from the identity line. The warping function indicates drastically delayed early development (much slower decrease in growth rates compared to population mean pattern), followed by a period of acceleration (age 8-10).
