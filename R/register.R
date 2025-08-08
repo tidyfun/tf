@@ -238,6 +238,9 @@ tf_register_srvf <- function(x, template, ...) {
     }
   }
   warp <- lwr + (upr - lwr) * warp
+  # avoid numerical over/underflow issue:
+  warp[, 1] <- arg[1]
+  warp[, length(arg)] <- arg[length(arg)]
   tfd(warp, arg = arg)
 }
 
@@ -262,6 +265,9 @@ tf_register_fda <- function(x, template, ...) {
 
   warp <- fda::eval.monfd(arg, ret$Wfd)
   warp <- lwr + (upr - lwr) * warp / (matrix(1, nrow = n) %*% warp[n, ])
+  # avoid numerical over/underflow issues:
+  warp[1, ] <- lwr
+  warp[n, ] <- upr
   tfd(t(warp), arg = arg)
 }
 
