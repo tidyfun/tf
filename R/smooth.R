@@ -76,6 +76,8 @@ tf_smooth.tfd <- function(
   method <- match.arg(method)
   smoother <- get(method, mode = "function")
   dots <- list(...)
+  nas <- is.na(x)
+  x_evals <- tf_evaluations(x)[!nas]
   # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose && !is_equidist(x)) {
@@ -108,7 +110,7 @@ tf_smooth.tfd <- function(
         )
     }
     smoothed <- map(
-      tf_evaluations(x),
+      x_evals,
       \(x) do.call(smoother, append(list(x), dots))
     )
   }
@@ -122,13 +124,14 @@ tf_smooth.tfd <- function(
         )
     }
     smoothed <- map(
-      tf_evaluations(x),
+      x_evals,
       \(x) do.call(smoother, append(list(x), dots))$y
     )
   }
-
+  x_smoothed <- vector(length(x), mode = "list")
+  x_smoothed[!nas] <- smoothed
   tfd(
-    smoothed,
+    x_smoothed,
     tf_arg(x),
     evaluator = !!attr(x, "evaluator_name"),
     domain = tf_domain(x)
