@@ -175,7 +175,7 @@ new_tfb_spline <- function(
     fit[["coef"]],
     domain = domain,
     basis = basis_constructor,
-    basis_label = deparse(s_call, width.cutoff = 60)[1],
+    basis_label = deparse1(s_call, width.cutoff = 60),
     basis_args = s_args,
     basis_matrix = spec_object$X,
     arg = arg_u$x,

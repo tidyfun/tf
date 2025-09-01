@@ -121,7 +121,7 @@ tf_derive.tfb_spline <- function(f, arg = tf_arg(f), order = 1, ...) {
     eps = eps
   )
   attr(f, "basis") <- basis_constructor
-  attr(f, "basis_label") <- deparse(s_call, width.cutoff = 60)[1]
+  attr(f, "basis_label") <- deparse1(s_call, width.cutoff = 60)
   attr(f, "basis_args") <- s_args
   attr(f, "basis_matrix") <- basis_constructor(arg)
   attr(f, "basis_deriv") <- order
