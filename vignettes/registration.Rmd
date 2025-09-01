@@ -15,9 +15,12 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-# library(tf)
-devtools::load_all()
+library(tf)
 par(las = 1)
+# scales::alpha(1:10, .5)
+alpha_palette <- c("#00000080", "#DF536B80", "#61D04F80", "#2297E680", "#28E2E580", 
+"#CD0BBC80", "#F5C71080", "#9E9E9E80", "#00000080", "#DF536B80")
+
 ```
 
 Functional data registration is a pre-processing technique that *aligns* functional observations by removing phase variation (timing differences) while preserving amplitude variation (shape differences). Misalignment of curves makes it difficult to distinguish between these two sources of variability. Registration separates phase and amplitude variation, enabling a clearer analysis of structural differences among curves.
@@ -97,7 +100,7 @@ plot(
   xlab = "Observed Time [s]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5),
+  col = alpha_palette,
 )
 
 plot(
@@ -107,7 +110,7 @@ plot(
   xlab = "Observed Time [s]",
   ylab = "Registered Time [s]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5)
+  col = alpha_palette
 )
 abline(0, 1, lty = 3, lwd = 2)
 
@@ -117,7 +120,7 @@ plot(
   xlab = "Registered Time [s]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5)
+  col = alpha_palette
 )
 ``` 
 The unregistered data (left panel) shows clear variation in when the pinching motion begins relative to the recording start time.
@@ -142,7 +145,7 @@ plot(
   xlab = "Observed Time [s]",
   ylab = "Registered Time [s]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5)
+  col = alpha_palette
 )
 abline(0, 1, lty = 3, lwd = 2)
 plot(
@@ -151,7 +154,7 @@ plot(
   xlab = "Registered Time [s]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5)
+  col = alpha_palette
 )
 plot(
   tf_invert(pinch_warp_fda2), 
@@ -160,7 +163,7 @@ plot(
   xlab = "Observed Time [s]",
   ylab = "Registered Time [s]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5)
+  col = alpha_palette
 )
 abline(0, 1, lty = 3, lwd = 2)
 plot(
@@ -169,7 +172,7 @@ plot(
   xlab = "Registered Time [s]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = scales::alpha(seq_along(pinch), 0.5)
+  col = alpha_palette
 )
 ``` 
 

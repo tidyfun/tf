@@ -2,12 +2,24 @@
 % Please edit documentation in R/register.R
 \name{tf_warp}
 \alias{tf_warp}
+\alias{tf_warp.tfd}
+\alias{tf_warp.tfb}
 \alias{tf_unwarp}
+\alias{tf_unwarp.tfd}
+\alias{tf_unwarp.tfb}
 \title{Elastic Deformation: warp and unwarp \code{tf} vectors}
 \usage{
 tf_warp(x, warp, ...)
 
+\method{tf_warp}{tfd}(x, warp, ..., keep_new_arg = FALSE)
+
+\method{tf_warp}{tfb}(x, warp, ...)
+
 tf_unwarp(x, warp, ...)
+
+\method{tf_unwarp}{tfd}(x, warp, ..., keep_new_arg = FALSE)
+
+\method{tf_unwarp}{tfb}(x, warp, ...)
 }
 \arguments{
 \item{x}{\code{tf} vector of functions. For \code{tf_warp()}, these should be

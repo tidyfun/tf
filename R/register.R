@@ -60,7 +60,7 @@ tf_warp <- function(x, warp, ...) {
   assert_warp(warp, x)
   UseMethod("tf_warp")
 }
-
+#' @rdname tf_warp
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   assert_flag(keep_new_arg)
@@ -73,7 +73,7 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   }
   ret
 }
-
+#' @rdname tf_warp
 #' @export
 tf_warp.tfb <- function(x, warp, ...) {
   # keep_new_arg forced to FALSE here, otherwise basis matrix blows up:
@@ -101,7 +101,7 @@ tf_unwarp <- function(x, warp, ...) {
   assert_warp(warp, x)
   UseMethod("tf_unwarp")
 }
-
+#' @rdname tf_warp
 #' @export
 tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   assert_flag(keep_new_arg)
@@ -118,7 +118,7 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   }
   ret
 }
-
+#' @rdname tf_warp
 #' @export
 tf_unwarp.tfb <- function(x, warp, ...) {
   # keep_new_arg forced to FALSE here, otherwise basis matrix blows up:
