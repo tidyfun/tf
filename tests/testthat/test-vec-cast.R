@@ -43,7 +43,16 @@ expect_cast_result <- function(
     ignore_attr = TRUE,
     tolerance = tolerance
   )
-  expect_identical(attributes(cast)[-ignore], attributes(to)[-ignore])
+  # for some reason names get shifted around in attributes list so check separately:
+  expect_equal(names(cast), names(x))
+
+  print(str(attributes(unname(cast))))
+  print(str(attributes(unname(to))))
+
+  expect_identical(
+    attributes(unname(cast))[-ignore],
+    attributes(unname(to))[-ignore]
+  )
 }
 
 test_that("vec_cast for tfd to tfd works/fails as expected", {
@@ -51,9 +60,9 @@ test_that("vec_cast for tfd to tfd works/fails as expected", {
   ## should fail:
   expect_error(vec_cast(l$x, l$x_short), "domain") # wrong domain
   ## should work:
-  expect_cast_result(l$x, l$x_short_longdom, ignore = 2) #w/o args
-  expect_cast_result(l$x_short_longdom, l$x, ignore = 2) #w/o args
-  expect_cast_result(l$x_short, l$x, ignore = 2) #w/o args
+  expect_cast_result(l$x, l$x_short_longdom, ignore = 1) #w/o args
+  expect_cast_result(l$x_short_longdom, l$x, ignore = 1) #w/o args
+  expect_cast_result(l$x_short, l$x, ignore = 1) #w/o args
 
   # reg -> irreg:
   ## should always work if domains compatible
@@ -68,7 +77,7 @@ test_that("vec_cast for tfd to tfd works/fails as expected", {
   ## should always fail if irreg is akshually_irregular
   expect_error(vec_cast(l$x_sp, l$x), "Can't convert")
   expect_error(vec_cast(l$x_ir, l$x), "Can't convert")
-  expect_cast_result(l$x_fake_ir, l$x, ignore = 2) #w/o arg
+  expect_cast_result(l$x_fake_ir, l$x, ignore = 1) #w/o arg
 
   # irreg -> irreg
   ## should always work as long as domains compatible
@@ -93,12 +102,12 @@ test_that("vec_cast for tfd to tfb fails as expected", {
 })
 
 test_that("vec_cast for tfb to tfd works/fails as expected", {
-  expect_cast_result(l$b, l$x, ignore = 4) #env(evaluator)
-  expect_cast_result(l$b, l$x_ir, ignore = 4) #env(evaluator)
-  expect_cast_result(l$fp, l$x, ignore = c(2, 4)) # arg names, env(evaluator)
-  expect_cast_result(l$fp, l$x_sp, ignore = 4) #env(evaluator)
-  expect_cast_result(l$bu, l$x_short_longdom, ignore = c(2, 4)) # arg + evaluator
-  expect_cast_result(l$fp_low, l$x_short_longdom, ignore = c(2, 4)) # arg + evaluator
+  expect_cast_result(l$b, l$x, ignore = 3) #env(evaluator)
+  expect_cast_result(l$b, l$x_ir, ignore = 3) #env(evaluator)
+  expect_cast_result(l$fp, l$x, ignore = c(1, 3)) # arg , env(evaluator)
+  expect_cast_result(l$fp, l$x_sp, ignore = 3) #env(evaluator)
+  expect_cast_result(l$bu, l$x_short_longdom, ignore = c(1, 3)) # arg + evaluator
+  expect_cast_result(l$fp_low, l$x_short_longdom, ignore = c(1, 3)) # arg + evaluator
 
   expect_error(vec_cast(l$fp, l$x_short), "domains") #env(evaluator)
   expect_error(vec_cast(l$bu, l$x_short), "domains") #env(evaluator)

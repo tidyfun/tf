@@ -42,3 +42,5 @@ CRAN-SUBMISSION
 # MacOS
 .DS_Store
 tf.Rproj
+# claude code
+/.claude
