@@ -176,12 +176,12 @@ tf_register <- function(.x, ..., .template = NULL, .method = "srvf") {
 }
 
 #' @export
-tf_register.tfd <- function(.x, ..., .template = NULL, .method = "srvf") {
+tf_register.tfd_reg <- function(.x, ..., .template = NULL, .method = "srvf") {
   rlang::check_dots_used()
   assert_tfd(.x)
   assert_choice(.method, c("srvf", "fda"))
-  assert_tfd(.template, null_ok = TRUE)
   if (!is.null(.template)) {
+    assert_tf(.template)
     if (length(.template) != 1 && length(.template) != length(.x)) {
       cli::cli_abort(
         "{.arg template} must be of length 1 or the same length as {.arg x}."
@@ -210,6 +210,15 @@ tf_register.tfd <- function(.x, ..., .template = NULL, .method = "srvf") {
 tf_register.tfb <- function(.x, ..., .template = NULL, .method = "srvf") {
   .x |> as.tfd() |> tf_register(.template = .template, .method = .method, ...)
 }
+
+#' @export
+tf_register.tfd_irreg <- function(.x, ..., .template = NULL, .method = "srvf") {
+  cli::cli_abort(
+    "{.cls tfd_irreg} objects cannot be registered. Please convert to {.cls tfd_reg} first."
+  )
+}
+
+#-------------------------------------------------------------------------------
 
 tf_register_srvf <- function(x, template, ...) {
   rlang::check_installed("fdasrvf")
@@ -271,5 +280,5 @@ tf_register_fda <- function(x, template, ...) {
   tfd(t(warp), arg = arg)
 }
 
-# TODO: add simple shift/dilate/compress registration using affine warping functions
-# TODO: add landmark registration?
+# TODO: add simple shift/dilate/compress registration using affine warping functions?
+# TODO: add landmark registration? see dev-register.R

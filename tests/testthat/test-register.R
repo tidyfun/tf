@@ -89,38 +89,60 @@ test_that("tf_register works", {
     amplitude * sin(t + phase_shift) + rnorm(length(t), 0, noise_level)
   })
 
-  # with default template function (Karcher mean)
-  x <- tfd(t(data))
-  domain <- tf_domain(x)
-  warp <- tf_register(x)
-  expect_identical(tf_domain(warp), domain)
-  expect_true(all(tf_fmin(warp) >= domain[1]))
-  expect_true(all(tf_fmax(warp) <= domain[2]))
-  expect_s3_class(warp, "tfd")
-  expect_length(warp, length(x))
+  test_x <- function(x) {
+    # with default template function (Karcher mean)
+    domain <- tf_domain(x)
+    warp <- tf_register(x)
+    expect_identical(tf_domain(warp), domain)
+    expect_true(all(tf_fmin(warp) >= domain[1]))
+    expect_true(all(tf_fmax(warp) <= domain[2]))
+    expect_s3_class(warp, "tfd")
+    expect_length(warp, length(x))
 
-  # simple template function
-  template <- mean(x)
-  warp <- tf_register(x, .template = template)
-  expect_s3_class(warp, "tfd")
-  expect_length(warp, length(x))
-  expect_identical(tf_domain(warp), domain)
-  expect_true(all(tf_fmin(warp) >= domain[1]))
-  expect_true(all(tf_fmax(warp) <= domain[2]))
+    # simple template function
+    template <- mean(x)
+    warp <- tf_register(x, .template = template)
+    expect_s3_class(warp, "tfd")
+    expect_length(warp, length(x))
+    expect_identical(tf_domain(warp), domain)
+    expect_true(all(tf_fmin(warp) >= domain[1]))
+    expect_true(all(tf_fmax(warp) <= domain[2]))
 
-  # works with fda package
-  warp <- tf_register(x, .method = "fda")
-  expect_s3_class(warp, "tfd")
-  expect_length(warp, length(x))
-  expect_identical(tf_domain(warp), domain)
-  expect_true(all(tf_fmin(warp) >= domain[1]))
-  expect_true(all(tf_fmax(warp) <= domain[2]))
+    # works with fda package
+    warp <- tf_register(x, .method = "fda", crit = 1)
+    expect_s3_class(warp, "tfd")
+    expect_length(warp, length(x))
+    expect_identical(tf_domain(warp), domain)
+    expect_true(all(tf_fmin(warp) >= domain[1]))
+    expect_true(all(tf_fmax(warp) <= domain[2]))
 
-  template <- mean(x)
-  warp <- tf_register(x, .template = template, .method = "fda")
-  expect_s3_class(warp, "tfd")
-  expect_length(warp, length(x))
-  expect_identical(tf_domain(warp), domain)
-  expect_true(all(tf_fmin(warp) >= domain[1]))
-  expect_true(all(tf_fmax(warp) <= domain[2]))
+    warp <- tf_register(x, .method = "fda", crit = 2)
+    expect_s3_class(warp, "tfd")
+    expect_length(warp, length(x))
+    expect_identical(tf_domain(warp), domain)
+    expect_true(all(tf_fmin(warp) >= domain[1]))
+    expect_true(all(tf_fmax(warp) <= domain[2]))
+
+    template <- mean(x)
+    warp2 <- tf_register(x, .template = template, .method = "fda")
+    expect_equal(warp, warp2, tolerance = 0.1) #mean is default template
+    warp <- warp2
+    expect_s3_class(warp, "tfd")
+    expect_length(warp, length(x))
+    expect_identical(tf_domain(warp), domain)
+    expect_true(all(tf_fmin(warp) >= domain[1]))
+    expect_true(all(tf_fmax(warp) <= domain[2]))
+  }
+
+  # test for all major tf-subclasses:
+  test_x(tfd(t(data)))
+
+  test_x(suppressMessages(tfb(t(data), k = 20)))
+
+  test_x(tfb_fpc(t(data), pve = .95))
+
+  expect_error(
+    tf_register(tfd(t(data)) |> tf_sparsify(.2)),
+    "objects cannot be registered. Please convert"
+  )
 })
