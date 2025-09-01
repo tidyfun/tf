@@ -8,9 +8,11 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![codecov.io](https://codecov.io/github/tidyfun/tf/coverage.svg?branch=main)](https://app.codecov.io/github/tidyfun/tf/branch/main/)
-[![R-CMD-check](https://github.com/tidyfun/tf/actions/workflows/full-check.yaml/badge.svg)](https://github.com/tidyfun/tf/actions/workflows/full-check.yaml)
+[![R-CMD-check](https://github.com/tidyfun/tf/actions/workflows/quick-check.yaml/badge.svg)](https://github.com/tidyfun/tf/actions/workflows/quick-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/tf)](https://CRAN.R-project.org/package=tf)
+[![R-universe
+version](https://tidyfun.r-universe.dev/tf/badges/version)](https://tidyfun.r-universe.dev/tf)
 <!-- badges: end -->
 
 The **`tf`** package provides necessary infrastructure for
