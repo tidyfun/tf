@@ -76,10 +76,11 @@ new_tfd <- function(
         "{sum(n_evals == 0)} {.code NA} entries (empty functions) created."
       )
     }
+    # NA entries should be NULL, not list(arg = domain[1], value = NA)
     datalist <- map_if(
       datalist,
       n_evals == 0,
-      \(x) list(arg = domain[1], value = NA)
+      \(x) NULL
     )
     arg <- numeric(0)
     class <- "tfd_irreg"
@@ -88,6 +89,8 @@ new_tfd <- function(
     if (any(nas)) {
       cli::cli_warn("{sum(nas)} {.code NA} entries (empty functions) created.")
     }
+    # Replace entries that are all NA with NULL
+    datalist <- map_if(datalist, nas, \(x) NULL)
     arg <- list(arg[[1]])
     class <- "tfd_reg"
   }

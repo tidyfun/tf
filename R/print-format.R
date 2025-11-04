@@ -46,7 +46,7 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
 spark_rep_tf <- function(
   f,
   bins = -1,
-  scale_f = range(unlist(evals), na.rm = TRUE)
+  scale_f = NULL
 ) {
   arg <- tf_arg(f)
   gridlength <- length(arg)
@@ -63,9 +63,21 @@ spark_rep_tf <- function(
       map(`[`, use_index) |>
       suppressMessages()
   }
+
+  # Compute scale_f if not provided, handling all-NA case
+  if (is.null(scale_f)) {
+    evals_unlisted <- unlist(evals, use.names = FALSE)
+    if (!is.null(evals_unlisted) && length(evals_unlisted) > 0 && any(!is.na(evals_unlisted))) {
+      scale_f <- range(evals_unlisted, na.rm = TRUE)
+    } else {
+      # All NA case - use dummy range
+      scale_f <- c(0, 1)
+    }
+  }
+
   # handle constant functions
   range_f <- diff(scale_f)
-  if (range_f == 0) {
+  if (range_f == 0 || !is.finite(range_f)) {
     scaled <- map(evals, function(x) rep(0.5, length(x)))
   } else {
     scaled <- map(evals, function(x) {
@@ -121,7 +133,12 @@ spark_rep_tf <- function(
 print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> map_chr(format, ...)
   evals <- unlist(tf_evaluations(x), use.names = FALSE)
-  range <- if (!is.null(evals)) range(tf_evaluations(x), na.rm = TRUE) else c(NA, NA)
+  # Handle case where all entries are NA (NULL) - evals will be empty or all NA
+  if (!is.null(evals) && length(evals) > 0 && any(!is.na(evals))) {
+    range <- range(evals, na.rm = TRUE)
+  } else {
+    range <- c(NA, NA)
+  }
   range <- range |> map_chr(format, ...) |> suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
@@ -150,7 +167,12 @@ print.tfd_reg <- function(x, n = 6, ...) {
   len <- length(x)
   if (len > 0) {
     evals <- unlist(tf_evaluations(x), use.names = FALSE)
-    scale_ <- if (!is.null(evals)) range(evals, na.rm = TRUE) else NULL
+    # Handle case where all entries are NA (NULL) - evals will be empty or all NA
+    if (!is.null(evals) && length(evals) > 0 && any(!is.na(evals))) {
+      scale_ <- range(evals, na.rm = TRUE)
+    } else {
+      scale_ <- NULL
+    }
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
@@ -198,7 +220,13 @@ print.tfb <- function(x, n = 5, ...) {
   cat(" in basis representation")
   len <- vec_size(x)
   if (len > 0) {
-    scale_ <- range(tf_evaluations(x), na.rm = TRUE)
+    evals <- unlist(tf_evaluations(x), use.names = FALSE)
+    # Handle case where all entries are NA (NULL) - evals will be empty or all NA
+    if (!is.null(evals) && length(evals) > 0 && any(!is.na(evals))) {
+      scale_ <- range(evals, na.rm = TRUE)
+    } else {
+      scale_ <- NULL
+    }
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
@@ -239,10 +267,21 @@ format.tf <- function(
     )
   } else {
     dots <- list(...)
+    # Compute scale_f if not provided in dots, handling all-NA case
+    if (is.null(dots$scale_f)) {
+      evals_unlisted <- unlist(tf_evaluations(x), use.names = FALSE)
+      if (!is.null(evals_unlisted) && length(evals_unlisted) > 0 && any(!is.na(evals_unlisted))) {
+        scale_f <- range(evals_unlisted, na.rm = TRUE)
+      } else {
+        scale_f <- NULL
+      }
+    } else {
+      scale_f <- dots$scale_f
+    }
     str <- spark_rep_tf(
       x,
       bins = dots$bins %||% floor(width / 3),
-      scale_f = dots$scale_f %||% range(tf_evaluations(x), na.rm = TRUE)
+      scale_f = scale_f
     )
   }
 

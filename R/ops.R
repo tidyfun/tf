@@ -275,6 +275,8 @@ tfd_op_tfd <- function(op, x, y) {
   }
 
   evals_ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+  # Convert all-NA results to NULL (NA.tf should be NULL entry)
+  evals_ret <- map(evals_ret, \(x) if (all(is.na(x))) NULL else x)
   if (vec_size(x) >= vec_size(y)) {
     names(evals_ret) <- names(x)
   } else {
@@ -307,8 +309,12 @@ tfd_op_tfd <- function(op, x, y) {
 tfd_op_numeric <- function(op, x, y, ...) {
   assert_compatible_size(op, x, y)
   ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
+  # Convert all-NA results to NULL (NA.tf should be NULL entry)
+  ret <- map(ret, \(x) if (all(is.na(x))) NULL else x)
   if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, \(.arg, .ret) list(arg = .arg, value = .ret))
+    ret <- map2(tf_arg(x), ret, \(.arg, .ret) {
+      if (is.null(.ret)) NULL else list(arg = .arg, value = .ret)
+    })
   }
   attributes(ret) <- attributes(x)
   if (vec_size(y) > 1) {
@@ -321,8 +327,12 @@ tfd_op_numeric <- function(op, x, y, ...) {
 numeric_op_tfd <- function(op, x, y) {
   assert_compatible_size(op, x, y)
   ret <- map2(x, tf_evaluations(y), \(x, y) do.call(op, list(x, y)))
+  # Convert all-NA results to NULL (NA.tf should be NULL entry)
+  ret <- map(ret, \(x) if (all(is.na(x))) NULL else x)
   if (is_irreg(y)) {
-    ret <- map2(tf_arg(y), ret, \(.arg, .ret) list(arg = .arg, value = .ret))
+    ret <- map2(tf_arg(y), ret, \(.arg, .ret) {
+      if (is.null(.ret)) NULL else list(arg = .arg, value = .ret)
+    })
   }
   attributes(ret) <- attributes(y)
   if (vec_size(x) > 1) {
