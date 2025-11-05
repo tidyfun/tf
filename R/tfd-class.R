@@ -348,12 +348,57 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
   domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |>
     range()
   re_eval <- !is.null(arg)
+
+  # Handle NULL entries (NA functions) - filter them out, process, then put back
+  na_mask <- is.na(data)
   arg <- ensure_list(arg %||% tf_arg(data))
-  evaluations <- if (re_eval) {
-    evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
-    tf_evaluate(data, arg = arg, evaluator = evaluator_f)
+
+  if (any(na_mask)) {
+    # Filter out NA entries before re-evaluation
+    data_non_na <- data[!na_mask]
+
+    # For irregular data with NAs, we need to filter args too
+    if (is_irreg(data) && !re_eval) {
+      arg_non_na <- arg[!na_mask]
+    } else {
+      arg_non_na <- arg  # For regular or when re-evaluating, use same arg
+    }
+
+    evaluations_non_na <- if (re_eval) {
+      evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
+      tf_evaluate(data_non_na, arg = arg_non_na, evaluator = evaluator_f)
+    } else {
+      tf_evaluations(data_non_na)
+    }
+
+    # Put NULLs back in the right positions
+    evaluations <- vector("list", length(data))
+    evaluations[!na_mask] <- evaluations_non_na
+    evaluations[na_mask] <- list(NULL)
+    names(evaluations) <- names(data)
+
+    # For irregular data, expand arg to match all entries
+    if (is_irreg(data)) {
+      arg_all <- vector("list", length(data))
+      if (re_eval) {
+        # Use the same arg for all non-NA entries
+        arg_all[!na_mask] <- list(arg[[1]])
+      } else {
+        # Use the filtered args for non-NA entries
+        arg_all[!na_mask] <- arg_non_na
+      }
+      # NULL for NA entries (these will be filtered in new_tfd)
+      arg <- arg_all
+    }
+    # For regular data, arg stays as-is (single element list)
   } else {
-    tf_evaluations(data)
+    # No NA entries, proceed normally
+    evaluations <- if (re_eval) {
+      evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
+      tf_evaluate(data, arg = arg, evaluator = evaluator_f)
+    } else {
+      tf_evaluations(data)
+    }
   }
   nas <- map(evaluations, \(x) which(is.na(x)))
   if (re_eval && any(lengths(nas))) {
