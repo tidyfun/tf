@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## R Environment Setup
+
+If R is not available, run the auto-setup script:
+```bash
+bash setup-r-environment.sh
+```
+
+This installs R 4.3.3 and all required packages. See `R-ENVIRONMENT-SETUP.md` for details and automatic setup options.
+
 ## Build/Test Commands
 
 - Full package check: `Rscript -e "devtools::check()"`
