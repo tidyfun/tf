@@ -349,11 +349,26 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
     range()
   re_eval <- !is.null(arg)
 
-  # Handle NULL entries (NA functions) - filter them out, process, then put back
+  # Handle NULL entries (NA functions) - filter them out, process with new_tfd, then insert back
   na_mask <- is.na(data)
   arg <- ensure_list(arg %||% tf_arg(data))
 
   if (any(na_mask)) {
+    # If all entries are NA, return an appropriate all-NA tfd
+    if (all(na_mask)) {
+      evaluations <- vector("list", length(data))
+      evaluations[] <- list(NULL)
+      names(evaluations) <- names(data)
+      ret <- new_tfd(
+        arg,
+        evaluations,
+        regular = (length(arg) == 1),
+        domain = domain,
+        evaluator = evaluator
+      )
+      return(ret)
+    }
+
     # Filter out NA entries before re-evaluation
     data_non_na <- data[!na_mask]
 
@@ -364,42 +379,77 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
       arg_non_na <- arg  # For regular or when re-evaluating, use same arg
     }
 
-    evaluations_non_na <- if (re_eval) {
+    # Build the non-NA part using new_tfd (via recursion without NAs)
+    result_non_na <- if (re_eval) {
       evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
       tf_evaluate(data_non_na, arg = arg_non_na, evaluator = evaluator_f)
     } else {
       tf_evaluations(data_non_na)
     }
 
-    # Put NULLs back in the right positions
-    evaluations <- vector("list", length(data))
-    evaluations[!na_mask] <- evaluations_non_na
-    evaluations[na_mask] <- list(NULL)
-    names(evaluations) <- names(data)
-
-    # For irregular data, expand arg to match all entries
-    if (is_irreg(data)) {
-      arg_all <- vector("list", length(data))
-      if (re_eval) {
-        # Use the same arg for all non-NA entries
-        arg_all[!na_mask] <- list(arg[[1]])
+    # Process NA values within evaluations for re_eval case
+    nas <- map(result_non_na, \(x) which(is.na(x)))
+    if (re_eval && any(lengths(nas))) {
+      result_non_na <- map2(result_non_na, nas, \(x, y) if (length(y)) x[-y] else x)
+      # check if all NAs occur at the same args and try to make a regular tfd if so
+      na_args <- map2(arg_non_na, nas, \(x, y) x[y])
+      if (!all(duplicated(na_args)[-1])) {
+        cli::cli_warn(c(
+          i = "{length(unlist(nas, use.names = FALSE))} evaluations were {.code NA}",
+          x = "Returning irregular {.cls tfd}."
+        ))
       } else {
-        # Use the filtered args for non-NA entries
-        arg_all[!na_mask] <- arg_non_na
+        na_arg_string <- prettyNum(na_args[[1]]) |> paste(collapse = ", ")
+        if (nchar(na_arg_string) > options()$width) {
+          na_arg_string <- substr(na_arg_string, 1, options()$width - 15) |>
+            paste0("[... truncated]")
+        }
+        cli::cli_warn(c(
+          i = "All {length(unlist(nas, use.names = FALSE))} evaluations on {.code arg = ({na_arg_string})} were {.code NA}",
+          x = "Returning regular data {.cls tfd_reg} on the reduced grid."
+        ))
+        nas <- nas[1]
       }
-      # NULL for NA entries (these will be filtered in new_tfd)
-      arg <- arg_all
+      arg_non_na <- map2(arg_non_na, nas, \(x, y) if (length(y)) x[-y] else x)
     }
-    # For regular data, arg stays as-is (single element list)
-  } else {
-    # No NA entries, proceed normally
-    evaluations <- if (re_eval) {
-      evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
-      tf_evaluate(data, arg = arg, evaluator = evaluator_f)
+
+    # Create tfd for non-NA entries
+    tfd_non_na <- new_tfd(
+      arg_non_na,
+      result_non_na,
+      regular = (length(arg_non_na) == 1),
+      domain = domain,
+      evaluator = evaluator
+    )
+
+    # Now insert NULLs at NA positions
+    result <- vector("list", length(data))
+    result[!na_mask] <- unclass(tfd_non_na)
+    result[na_mask] <- list(NULL)
+    names(result) <- names(data)
+
+    # Determine if result should be regular or irregular
+    # It's regular if we started with regular data (unless forced irregular by NA removal)
+    if (is_reg(data) && length(arg) == 1) {
+      class(result) <- c("tfd_reg", "tfd", "tf", "vctrs_vctr", "list")
     } else {
-      tf_evaluations(data)
+      class(result) <- c("tfd_irreg", "tfd", "tf", "vctrs_vctr", "list")
     }
+
+    # Copy attributes from tfd_non_na
+    attributes(result) <- c(attributes(result), attributes(tfd_non_na)[!names(attributes(tfd_non_na)) %in% c("names", "class")])
+
+    return(result)
   }
+
+  # No NA entries, proceed normally
+  evaluations <- if (re_eval) {
+    evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
+    tf_evaluate(data, arg = arg, evaluator = evaluator_f)
+  } else {
+    tf_evaluations(data)
+  }
+
   nas <- map(evaluations, \(x) which(is.na(x)))
   if (re_eval && any(lengths(nas))) {
     evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
@@ -479,7 +529,10 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
-  ret <- map2(tf_evaluations(data), arg, \(x, y) list(arg = y, value = x))
+  ret <- map2(tf_evaluations(data), arg, \(x, y) {
+    if (is.null(x)) return(NULL)  # Preserve NULL for NA entries
+    list(arg = y, value = x)
+  })
   attributes(ret) <- attributes(data)
   attr(ret, "arg") <- numeric(0)
   class(ret)[1] <- "tfd_irreg"

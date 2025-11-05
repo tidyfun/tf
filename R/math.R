@@ -2,9 +2,16 @@
 #   evaluations directly.
 fun_math <- function(x, op) {
   attr_ret <- attributes(x)
-  ret <- map(tf_evaluations(x), \(x) do.call(op, list(x = x)))
+  ret <- map(tf_evaluations(x), \(x) {
+    if (is.null(x)) return(NULL)  # Preserve NULL for NA entries
+    result <- do.call(op, list(x = x))
+    # Convert all-NA/NaN results to NULL (NA.tf should be NULL entry)
+    if (all(is.na(result))) NULL else result
+  })
   if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, \(x, y) list(arg = x, value = y))
+    ret <- map2(tf_arg(x), ret, \(x, y) {
+      if (is.null(y)) NULL else list(arg = x, value = y)
+    })
   }
   attributes(ret) <- attr_ret
   ret
