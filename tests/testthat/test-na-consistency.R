@@ -550,8 +550,45 @@ test_that("Math-induced NAs work with irregular tfd", {
 })
 
 test_that("Math-induced NAs work with tfb", {
-  skip("tfb operations with math-induced NAs need more work")
+  # Create tfd with mixed positive/negative functions, then convert to tfb
+  t <- seq(0, 1, length.out = 51)
+  mixed_data <- list(
+    1 + abs(sin(2 * pi * t)),    # strictly positive
+    -1 - abs(cos(2 * pi * t)),   # strictly negative
+    1 + abs(sin(4 * pi * t))     # strictly positive
+  )
+  x_tfd <- tfd(mixed_data, arg = t)
 
-  # Create tfb with negative values - skip for now as tfb math ops are complex
-  # This would require ensuring tfb operations handle NAs properly throughout
+  # Convert to tfb
+  x_tfb <- suppressWarnings(tfb(x_tfd, k = 7, verbose = FALSE))
+
+  # Apply log - should create NA for entry 2
+  x_log <- suppressWarnings(log(x_tfb))
+
+  expect_equal(is.na(x_log), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_false(is.null(unclass(x_log)[[1]]))
+  expect_null(unclass(x_log)[[2]])
+  expect_false(is.null(unclass(x_log)[[3]]))
+  expect_no_error(print(x_log))
+
+  # sqrt should behave the same
+  x_sqrt <- suppressWarnings(sqrt(x_tfb))
+
+  expect_equal(is.na(x_sqrt), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_false(is.null(unclass(x_sqrt)[[1]]))
+  expect_null(unclass(x_sqrt)[[2]])
+  expect_false(is.null(unclass(x_sqrt)[[3]]))
+  expect_no_error(print(x_sqrt))
+
+  # Test with all negative functions -> all NA
+  neg_data <- list(-1 - abs(sin(2 * pi * t)), -1 - abs(cos(2 * pi * t)))
+  x_neg_tfd <- tfd(neg_data, arg = t)
+  x_neg_tfb <- suppressWarnings(tfb(x_neg_tfd, k = 7, verbose = FALSE))
+
+  x_neg_log <- suppressWarnings(log(x_neg_tfb))
+
+  expect_equal(is.na(x_neg_log), c(TRUE, TRUE), ignore_attr = "names")
+  expect_null(unclass(x_neg_log)[[1]])
+  expect_null(unclass(x_neg_log)[[2]])
+  expect_no_error(print(x_neg_log))
 })

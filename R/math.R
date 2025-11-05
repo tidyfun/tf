@@ -37,6 +37,36 @@ Math.tfb <- function(x, ...) {
   )
   basis_args <- attr(x, "basis_args")
   eval <- fun_math(tfd(x), .Generic)
+
+  # Check for NULL entries (NA functions) - can't convert those to tfb
+  na_entries <- is.na(eval)
+  if (all(na_entries)) {
+    # All entries are NA - return as tfd since we can't create tfb coefficients
+    return(eval)
+  }
+
+  if (any(na_entries)) {
+    # Some entries are NA - convert only non-NA entries to tfb
+    non_na_eval <- eval[!na_entries]
+    tfb_non_na <- do.call(
+      "tfb",
+      c(list(non_na_eval), basis_args, penalized = FALSE, verbose = FALSE)
+    )
+
+    # Insert NULLs back at NA positions
+    result <- vector("list", length(eval))
+    result[!na_entries] <- unclass(tfb_non_na)
+    result[na_entries] <- list(NULL)
+    names(result) <- names(eval)
+
+    # Copy attributes from tfb_non_na and adjust class
+    attributes(result) <- c(attributes(result), attributes(tfb_non_na)[!names(attributes(tfb_non_na)) %in% c("names", "class")])
+    class(result) <- class(tfb_non_na)
+
+    return(result)
+  }
+
+  # No NA entries, proceed normally
   do.call(
     "tfb",
     c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
