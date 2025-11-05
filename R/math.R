@@ -41,8 +41,16 @@ Math.tfb <- function(x, ...) {
   # Check for NULL entries (NA functions) - can't convert those to tfb
   na_entries <- is.na(eval)
   if (all(na_entries)) {
-    # All entries are NA - return as tfd since we can't create tfb coefficients
-    return(eval)
+    # All entries are NA - return tfb with NULL entries
+    result <- vector("list", length(eval))
+    result[] <- list(NULL)
+    names(result) <- names(eval)
+
+    # Copy attributes from original tfb to maintain tfb structure
+    attributes(result) <- c(attributes(result), attributes(x)[!names(attributes(x)) %in% c("names", "class")])
+    class(result) <- class(x)
+
+    return(result)
   }
 
   if (any(na_entries)) {

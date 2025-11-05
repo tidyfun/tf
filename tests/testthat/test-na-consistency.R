@@ -587,6 +587,9 @@ test_that("Math-induced NAs work with tfb", {
 
   x_neg_log <- suppressWarnings(log(x_neg_tfb))
 
+  # Must return tfb object, not tfd
+  expect_true(is_tfb(x_neg_log))
+  expect_false(is_tfd(x_neg_log))
   expect_equal(is.na(x_neg_log), c(TRUE, TRUE), ignore_attr = "names")
   expect_null(unclass(x_neg_log)[[1]])
   expect_null(unclass(x_neg_log)[[2]])
