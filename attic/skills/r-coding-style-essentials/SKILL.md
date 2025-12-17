@@ -7,12 +7,7 @@ description: Essential R coding standards for scripts and data analysis projects
 
 ## When to Use This Skill
 
-Apply these guidelines when:
-- Writing R scripts for data analysis
-- Creating general R projects (not packages)
-- Using tidyverse for data wrangling
-- Prototyping or exploratory analysis
-- Working with smaller codebases
+Apply when writing R scripts for data analysis, general projects (not packages), using tidyverse, prototyping, or exploratory analysis.
 
 **Not for**: Package development (use r-coding-style-guide instead)
 
@@ -23,43 +18,37 @@ Apply these guidelines when:
 - **Explicit over implicit** - make intentions obvious
 - **Functional over imperative** - prefer `map()` over loops when clearer
 
-**Write for humans first, computers second.**
-
 ---
 
 ## Naming Conventions
 
-### Functions
-**Always use snake_case** (no camelCase, no dots)
+### Functions: snake_case always
 
 ```r
 # GOOD
 calculate_mean <- function(x) { mean(x, na.rm = TRUE) }
-filter_outliers <- function(data, sd_threshold = 3) { ... }
-plot_results <- function(results) { ... }
+filter_outliers <- function(data, threshold = 3) { ... }
 
 # BAD
 calculateMean <- function(x) { ... }
-filter.outliers <- function(data, threshold) { ... }
+filter.outliers <- function(data) { ... }
 ```
 
 - **Verbs for actions**: `calculate_mean()`, `filter_data()`, `plot_results()`
 - **Nouns for getters**: `get_data()`, `extract_values()`
-- **Consistent prefixes** for related functions: `plot_scatter()`, `plot_timeseries()`
+- **Consistent prefixes**: `plot_scatter()`, `plot_timeseries()`
 
 ### Variables
-- **Descriptive names**: `patient_ages`, `sales_by_region`, `model_predictions`
-- **Plural for collections**: `results`, `measurements`, `predictions`
-- **Underscores for word separation**: `max_value`, `start_date`, `error_rate`
-- Avoid single letters except `i`, `j`, `x`, `y` in standard math contexts
+- **Descriptive**: `patient_ages`, `sales_by_region`, `model_predictions`
+- **Plural for collections**: `results`, `measurements`
+- **Underscores**: `max_value`, `start_date`
+- Avoid single letters except `i`, `j`, `x`, `y` in math contexts
 
-### Constants
-**Use UPPER_SNAKE_CASE**
+### Constants: UPPER_SNAKE_CASE
 
 ```r
 MAX_ITERATIONS <- 1000
 DEFAULT_ALPHA <- 0.05
-DATA_PATH <- "data/customers.csv"
 ```
 
 ---
@@ -72,17 +61,13 @@ DATA_PATH <- "data/customers.csv"
 # CORRECT
 result <- x + y
 func(arg1, arg2, arg3)
-list(a = 1, b = 2)
 
 # WRONG
 result<-x+y
-result = x + y  # Use <- for assignment, not =
-func(arg1,arg2,arg3)
+result = x + y  # Use <- not =
 ```
 
 ### Pipes
-
-Use **native pipe** `|>` (R ≥ 4.1) or **magrittr** `%>%` for older R
 
 ```r
 # Good - one operation per line
@@ -90,33 +75,31 @@ result <- raw_data |>
   filter(age > 18) |>
   mutate(log_income = log(income)) |>
   group_by(region) |>
-  summarize(mean_income = mean(log_income))
-
-# Also OK for short chains
-count <- data |> filter(valid) |> nrow()
+  summarize(mean = mean(log_income))
 ```
+
+Use native pipe `|>` (R ≥ 4.1) or magrittr `%>%`
 
 ### Lambda Functions
 
 ```r
 # Modern R (≥ 4.1)
 map(data, \(x) x^2 + 1)
-map2(x, y, \(a, b) a * b)
 
-# Older R or when more readable
+# Older R
 map(data, function(x) process(x))
 ```
 
-### Style Rules
-- **2 spaces** for indentation (not tabs)
-- **~80 characters** per line (flexible)
-- Break long function calls after commas
+### Style
+- **2 spaces** indentation
+- **~80 chars** per line
+- Break long calls after commas
 
 ---
 
 ## Function Design
 
-### Standard Structure
+### Structure
 
 ```r
 my_function <- function(data, threshold = 0.05, verbose = FALSE) {
@@ -129,47 +112,45 @@ my_function <- function(data, threshold = 0.05, verbose = FALSE) {
   # 3. Main logic
   result <- process_data(data, threshold)
 
-  # 4. Return
   result
 }
 ```
 
-### Pure Functions: CRITICAL RULE
+### Pure Functions: CRITICAL
 
-**NO HIDDEN DEPENDENCIES: All inputs must be explicit function arguments.**
+**NO HIDDEN DEPENDENCIES: All inputs must be explicit arguments.**
 
 ```r
-# BAD: Using global variable
-THRESHOLD <- 0.05  # Global constant
+# BAD: Global variable
+THRESHOLD <- 0.05
 filter_data <- function(df) {
-  df |> filter(p_value < THRESHOLD)  # Reads from global ❌
+  df |> filter(p_value < THRESHOLD)  # ❌
 }
 
-# GOOD: Threshold as argument
+# GOOD: Explicit argument
 filter_data <- function(df, threshold = 0.05) {
-  df |> filter(p_value < threshold)  # Explicit argument ✓
+  df |> filter(p_value < threshold)  # ✓
 }
 
 # BAD: Reading from environment
-process_data <- function(data) {
-  settings <- readRDS("settings.rds")  # Hidden file dependency ❌
+process <- function(data) {
+  settings <- readRDS("settings.rds")  # ❌
   transform(data, settings)
 }
 
-# GOOD: Pass settings explicitly
-process_data <- function(data, settings) {
-  transform(data, settings)  # Explicit argument ✓
+# GOOD: Pass explicitly
+process <- function(data, settings) {
+  transform(data, settings)  # ✓
 }
 ```
 
-**Why:** Functions should be testable, reusable, and predictable. Same inputs → same outputs.
+**Why**: Testable, reusable, predictable. Same inputs → same outputs.
 
 ### Best Practices
-- **Short**: ~50 lines or less
-- **One responsibility** per function
-- **Required args first**, optional with defaults after
-- **Sensible defaults** that work for most cases
-- **Extract functions**: If you copy-paste 3 times, make it a function
+- **Short**: ~50 lines
+- **One responsibility**
+- **Required args first**, optional with defaults
+- **Extract**: If copy-paste 3x, make function
 
 ---
 
@@ -177,62 +158,55 @@ process_data <- function(data, settings) {
 
 ### Early Returns
 
-Reduce nesting by returning early:
-
 ```r
 calculate_score <- function(x, y) {
   if (is.null(x)) return(0)
   if (is.null(y)) return(0)
   if (length(x) == 0) return(0)
 
-  compute_complex_score(x, y)  # Main logic without deep nesting
+  compute_complex_score(x, y)
 }
 ```
 
 ### Conditionals
 
 ```r
-# Explicit if-else for clarity
+# Explicit if-else
 if (condition) {
   do_something()
 } else {
   do_something_else()
 }
 
-# Vectorized operations
+# Vectorized
 result <- ifelse(x > 0, "positive", "negative")
 
 # Multiple conditions (tidyverse)
 category <- case_when(
   score >= 90 ~ "A",
   score >= 80 ~ "B",
-  score >= 70 ~ "C",
   TRUE ~ "F"
 )
-```
 
-### switch() for Discrete Options
-
-```r
+# switch() for discrete options
 result <- switch(
   method,
   "mean" = mean(x, na.rm = TRUE),
   "median" = median(x, na.rm = TRUE),
-  "mode" = calculate_mode(x),
   stop("Unknown method: ", method)
 )
 ```
 
 ---
 
-## Functional Programming with purrr
+## Functional Programming
 
-### Basic Usage
+### purrr Basics
 
 ```r
-# map() returns list, map_*() returns typed vector
+# map() returns list, map_*() typed vector
 results <- map(data, \(x) process(x))
-numbers <- map_dbl(data, \(x) compute_value(x))
+numbers <- map_dbl(data, compute_value)
 flags <- map_lgl(data, is_valid)
 
 # Multiple inputs
@@ -242,18 +216,10 @@ results <- pmap(list(x, y, z), \(a, b, c) a * b + c)
 # Filtering
 valid <- keep(items, is_valid)
 invalid <- discard(items, is_valid)
-```
 
-### Error Handling in map
-
-```r
-# possibly() returns default on error
+# Error handling
 safe_mean <- possibly(mean, otherwise = NA)
 means <- map_dbl(data_list, safe_mean)
-
-# safely() catches errors and returns result + error
-safe_log <- safely(log)
-results <- map(values, safe_log)
 ```
 
 ---
@@ -267,215 +233,149 @@ result <- raw_data |>
   filter(!is.na(value)) |>
   mutate(
     log_value = log(value),
-    value_scaled = scale(value)
+    scaled = scale(value)
   ) |>
   group_by(category) |>
-  summarize(
-    n = n(),
-    mean = mean(value),
-    sd = sd(value)
-  ) |>
+  summarize(n = n(), mean = mean(value)) |>
   arrange(desc(mean))
 ```
 
 ### across() for Multiple Columns
 
 ```r
-# Apply function to columns by type
+# By type
 df |> mutate(across(where(is.numeric), scale))
 
-# Apply to columns by name pattern
+# By pattern
 df |> mutate(across(starts_with("date_"), as.Date))
 
-# Summarize multiple columns
+# Summarize multiple
 df |> summarize(across(where(is.numeric), list(mean = mean, sd = sd)))
 ```
 
-### Selecting Columns
+### Selecting
 
 ```r
-select(df, id, value, category)           # By name
-select(df, starts_with("date_"))          # By pattern
-select(df, ends_with("_score"))           # By suffix
-select(df, contains("temp"))              # By substring
-select(df, where(is.numeric))             # By type
+select(df, id, value)              # By name
+select(df, starts_with("date_"))   # By pattern
+select(df, where(is.numeric))      # By type
 ```
 
 ---
 
-## Error Handling and Validation
+## Error Handling
 
-### Input Validation
+### Validation
 
 ```r
-# stopifnot() with descriptive messages (R ≥ 4.0)
-calculate_ratio <- function(numerator, denominator) {
+# stopifnot() with messages (R ≥ 4.0)
+calculate_ratio <- function(num, denom) {
   stopifnot(
-    "numerator must be numeric" = is.numeric(numerator),
-    "denominator must be numeric" = is.numeric(denominator),
-    "denominator cannot be zero" = all(denominator != 0)
+    "num must be numeric" = is.numeric(num),
+    "denom cannot be zero" = all(denom != 0)
   )
-  numerator / denominator
+  num / denom
 }
 
-# Manual checks with informative messages
+# Manual checks
 if (!is.numeric(x)) {
   stop("x must be numeric, got ", class(x))
 }
-
-if (any(x < 0)) {
-  warning("Negative values found in x, setting to 0")
-  x[x < 0] <- 0
-}
 ```
 
-### Informative Error Messages
+### Informative Messages
 
 ```r
-# BAD: Cryptic
+# BAD
 if (x < 0) stop("Invalid x")
 
-# GOOD: Descriptive and actionable
+# GOOD
 if (x < 0) {
-  stop(
-    "x must be non-negative, got x = ", x, "\n",
-    "Try using abs(x) or filtering negative values"
-  )
+  stop("x must be non-negative, got x = ", x,
+       "\nTry using abs(x) or filtering negatives")
 }
 ```
 
-### Try-Catch for Expected Failures
+### Try-Catch
 
 ```r
 result <- tryCatch(
   risky_computation(data),
   error = function(e) {
-    message("Computation failed: ", e$message)
+    message("Failed: ", e$message)
     NULL
   }
 )
 
-# Or use possibly() for simpler cases
+# Or use possibly()
 safe_compute <- possibly(risky_computation, otherwise = NULL)
-result <- safe_compute(data)
 ```
 
 ---
 
 ## Common Patterns
 
-### Null Coalescing
-
 ```r
-# Use %||% (from rlang/purrr)
+# Null coalescing
 value <- user_input %||% default_value
 
-# Equivalent to
-value <- if (is.null(user_input)) default_value else user_input
-```
-
-### Default Arguments Based on Other Args
-
-```r
-plot_data <- function(data, x_col, y_col, title = NULL) {
-  # Set default title based on column names
-  title <- title %||% paste(y_col, "vs", x_col)
-  # ... plotting code
+# Default arguments
+plot_data <- function(data, x, y, title = NULL) {
+  title <- title %||% paste(y, "vs", x)
+  # ...
 }
-```
 
-### Named Lists for Multiple Returns
-
-```r
+# Named lists for returns
 compute_stats <- function(x) {
   list(
     mean = mean(x, na.rm = TRUE),
-    median = median(x, na.rm = TRUE),
     sd = sd(x, na.rm = TRUE),
     n = sum(!is.na(x))
   )
 }
 
-stats <- compute_stats(data)
-stats$mean  # Access by name
-```
-
-### Working with Factors
-
-```r
-# Create factors with explicit levels
-category <- factor(
-  raw_values,
-  levels = c("low", "medium", "high"),
-  ordered = TRUE
-)
-
-# Use forcats (tidyverse)
+# Factors with forcats
 library(forcats)
 category <- fct_infreq(category)  # Order by frequency
 category <- fct_relevel(category, "high", "medium", "low")
-category <- fct_lump(category, n = 5)  # Keep top 5, lump rest as "Other"
 ```
 
 ---
 
 ## Performance
 
-### Vectorization
-
 ```r
-# GOOD: Vectorized operations
+# GOOD: Vectorized
 result <- x^2 + 2 * x + 1
-scaled <- (x - mean(x)) / sd(x)
 
-# AVOID: Explicit loops for simple operations
-result <- numeric(length(x))
-for (i in seq_along(x)) {
-  result[i] <- x[i]^2 + 2 * x[i] + 1
-}
-```
+# AVOID: Loop for simple ops
+for (i in seq_along(x)) result[i] <- x[i]^2
 
-### Pre-allocation
-
-When you must loop, pre-allocate:
-
-```r
-n <- 10000
-results <- vector("list", n)  # Pre-allocate
+# Pre-allocate when looping
+results <- vector("list", n)
 for (i in seq_len(n)) {
   results[[i]] <- compute(i)
 }
 
-# Don't grow objects in loops (slow!)
-results <- list()
-for (i in seq_len(n)) {
-  results[[i]] <- compute(i)  # BAD: grows each iteration
-}
-```
-
-### data.table for Large Data
-
-```r
+# data.table for large data
 library(data.table)
-dt <- as.data.table(large_df)
-result <- dt[, .(mean_val = mean(value)), by = category]
+dt <- as.data.table(df)
+result <- dt[, .(mean = mean(value)), by = category]
 ```
 
 ---
 
-## Anti-Patterns to Avoid
+## Anti-Patterns
 
 ### Don't Over-Engineer
 
 ```r
-# BAD: Premature abstraction
-create_abstract_processor <- function(data, pipeline, validators) { ... }
+# BAD
+create_processor <- function(data, config, strategy) { ... }
 
-# GOOD: Simple solution
+# GOOD
 process_data <- function(data) {
-  data |>
-    filter(!is.na(value)) |>
-    mutate(value_scaled = scale(value))
+  data |> filter(!is.na(value)) |> mutate(scaled = scale(value))
 }
 ```
 
@@ -483,66 +383,46 @@ process_data <- function(data) {
 
 ```r
 # BAD
-significant_results <- filter(results, p_value < 0.05)
-adults <- filter(patients, age >= 18)
+significant <- filter(results, p < 0.05)
 
 # GOOD
 ALPHA <- 0.05
-ADULT_AGE <- 18
-significant_results <- filter(results, p_value < ALPHA)
-adults <- filter(patients, age >= ADULT_AGE)
+significant <- filter(results, p < ALPHA)
 ```
 
-### Don't Repeat Yourself (DRY)
+### Don't Repeat Yourself
 
 ```r
-# BAD: Repetitive code
-summary_a <- data_a |> filter(valid) |> summarize(mean = mean(value))
-summary_b <- data_b |> filter(valid) |> summarize(mean = mean(value))
-summary_c <- data_c |> filter(valid) |> summarize(mean = mean(value))
+# BAD
+summary_a <- data_a |> filter(valid) |> summarize(m = mean(val))
+summary_b <- data_b |> filter(valid) |> summarize(m = mean(val))
 
-# GOOD: Extract to function
-calculate_summary <- function(data) {
-  data |> filter(valid) |> summarize(mean = mean(value))
-}
-summaries <- map(list(data_a, data_b, data_c), calculate_summary)
+# GOOD
+calc_summary <- function(d) d |> filter(valid) |> summarize(m = mean(val))
+summaries <- map(list(data_a, data_b), calc_summary)
 ```
 
 ### Don't Modify Inputs Silently
 
 ```r
-# BAD: Modifies input unexpectedly
-add_column <- function(df) {
-  df$new_col <- 1:nrow(df)
-  df
-}
+# BAD
+add_column <- function(df) { df$new <- 1; df }
 
-# GOOD: Clear that you're returning modified copy
-add_column <- function(df) {
-  df |> mutate(new_col = row_number())
-}
+# GOOD
+add_column <- function(df) { df |> mutate(new = row_number()) }
 ```
 
 ### Don't Swallow Errors
 
 ```r
-# BAD: Silent failures
-process_all <- function(items) {
-  map(items, \(x) try(process(x), silent = TRUE))
-}
+# BAD
+try(risky(x), silent = TRUE)
 
-# GOOD: Log failures
-process_all <- function(items) {
-  map(items, \(x) {
-    tryCatch(
-      process(x),
-      error = function(e) {
-        message("Failed to process item: ", e$message)
-        NA
-      }
-    )
-  })
-}
+# GOOD
+tryCatch(risky(x), error = function(e) {
+  message("Failed: ", e$message)
+  NA
+})
 ```
 
 ---
@@ -552,107 +432,54 @@ process_all <- function(items) {
 ### Script Structure
 
 ```r
-# 1. Header comment
-# Analysis of customer churn rates
-# Author: Your Name
-# Date: 2024-01-15
-
-# 2. Load libraries
+# 1. Header, libraries, constants
 library(tidyverse)
-library(lubridate)
-
-# 3. Set constants
 DATA_PATH <- "data/customers.csv"
-OUTPUT_PATH <- "output/churn_analysis.pdf"
-CHURN_THRESHOLD <- 90  # days
 
-# 4. Define functions
-calculate_churn_rate <- function(data, threshold) {
-  # ...
-}
+# 2. Functions
+calculate_churn <- function(data, days) { ... }
 
-# 5. Load data
+# 3. Load, analyze, output
 customers <- read_csv(DATA_PATH)
-
-# 6. Main analysis
-churn_rates <- calculate_churn_rate(customers, CHURN_THRESHOLD)
-
-# 7. Output results
-ggsave(OUTPUT_PATH, plot_results(churn_rates))
+results <- calculate_churn(customers, 90)
+write_csv(results, "output/churn.csv")
 ```
 
-### Section Headers (RStudio)
+Use section headers: `# Data Loading ####`
 
-Use `####` for collapsible sections:
-
-```r
-# Data Loading ####
-data <- read_csv("data.csv")
-
-# Data Cleaning ####
-data_clean <- data |> filter(...)
-
-# Analysis ####
-results <- analyze(data_clean)
-
-# Visualization ####
-plots <- create_plots(results)
-```
-
-### When to Split Into Multiple Files
-
-- **One file per major task** (import.R, clean.R, analyze.R, visualize.R)
-- **Source shared functions** from separate file
-
-```r
-# shared_functions.R
-calculate_metrics <- function(data) { ... }
-
-# main_analysis.R
-source("shared_functions.R")
-results <- calculate_metrics(data)
-```
+Split files by task, source shared: `source("shared_functions.R")`
 
 ---
 
 ## Comments
 
-### When to Comment
-
 ```r
-# GOOD: Explain WHY, not WHAT
-# Use log transformation to normalize right-skewed distribution
-data <- data |> mutate(value_log = log(value + 1))
+# GOOD: Explain WHY
+# Log transform to normalize right-skewed distribution
+data <- mutate(data, log_val = log(value + 1))
 
-# BAD: Stating the obvious
-# Calculate the mean
-mean_value <- mean(data$value)
+# BAD: State obvious
+m <- mean(x)  # Calculate mean
 
-# GOOD: Document assumptions
-# Assumes data is already sorted by date
-rolling_avg <- zoo::rollmean(values, k = 7, align = "right")
-
-# GOOD: Explain non-obvious choices
-# Add 1 to avoid log(0) for zero values
-data <- data |> mutate(value_log = log(value + 1))
+# GOOD: Document assumptions and choices
+# Assumes data sorted by date
+rolling <- zoo::rollmean(values, k = 7)
 ```
 
 ---
 
 ## Quick Checklist
 
-Before running your script:
-
-- [ ] Clear variable names (no `x`, `temp`, `data2` unless very local)
-- [ ] Functions are focused (each does one thing well)
-- [ ] **Functions are pure: all inputs as arguments (no globals)**
-- [ ] No magic numbers (constants are named)
-- [ ] Basic input validation (at least `stopifnot()`)
-- [ ] Pipes are readable (one operation per line when piping)
-- [ ] No repetition (extracted repeated code to functions)
-- [ ] Comments explain why, not what
-- [ ] Consistent naming throughout
-- [ ] Works in fresh R session (all dependencies sourced)
+- [ ] Clear variable names
+- [ ] Functions focused (one thing each)
+- [ ] **Functions pure: all inputs as args (no globals)**
+- [ ] No magic numbers
+- [ ] Basic validation
+- [ ] Pipes readable
+- [ ] No repetition (DRY)
+- [ ] Comments explain why
+- [ ] Consistent naming
+- [ ] Works in fresh session
 
 ---
 
@@ -660,10 +487,10 @@ Before running your script:
 
 **Good R code is:**
 
-1. **Readable** - someone else (or future you) can understand it
-2. **Consistent** - follows the same patterns throughout
-3. **Simple** - solves the problem without unnecessary complexity
-4. **Functional** - breaks work into composable pieces
-5. **Defensive** - validates inputs and handles errors gracefully
+1. **Readable** - future you understands it
+2. **Consistent** - same patterns throughout
+3. **Simple** - solves problem without complexity
+4. **Functional** - composable pieces
+5. **Defensive** - validates inputs, handles errors
 
-**Remember:** Code is read many more times than it is written. Optimize for reading, not writing.
+**Code is read more than written. Optimize for reading.**
