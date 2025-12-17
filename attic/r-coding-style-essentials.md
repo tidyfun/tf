@@ -98,6 +98,35 @@ my_function <- function(data, threshold = 0.05, verbose = FALSE) {
 - **Sensible defaults** that work for most cases
 - **Extract functions**: If you copy-paste 3 times, make it a function
 
+### Pure Functions: NO Hidden Dependencies
+**CRITICAL: All inputs must be explicit function arguments.**
+
+```r
+# BAD: Using global variable
+THRESHOLD <- 0.05
+filter_data <- function(df) {
+  df |> filter(p_value < THRESHOLD)  # Hidden dependency
+}
+
+# GOOD: Threshold as argument
+filter_data <- function(df, threshold = 0.05) {
+  df |> filter(p_value < threshold)
+}
+
+# BAD: Reading from environment
+process <- function(data) {
+  settings <- readRDS("settings.rds")  # Hidden file dependency
+  transform(data, settings)
+}
+
+# GOOD: Pass settings explicitly
+process <- function(data, settings) {
+  transform(data, settings)
+}
+```
+
+**Why:** Functions should be testable, reusable, and predictable. Same inputs → same outputs.
+
 ---
 
 ## Control Flow
@@ -477,6 +506,7 @@ Before running:
 
 - [ ] Clear variable names (no `x`, `temp`, `data2`)
 - [ ] Functions are focused (one thing each)
+- [ ] **Functions are pure: all inputs as arguments (no globals)**
 - [ ] No magic numbers (constants named)
 - [ ] Basic input validation
 - [ ] Pipes are readable (one op per line)

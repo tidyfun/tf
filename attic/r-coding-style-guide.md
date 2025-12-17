@@ -96,6 +96,41 @@ my_function <- function(data, arg = NULL, verbose = TRUE) {
 - Return values invisibly for side-effect functions (plotting, printing)
 - Document all arguments and return values
 
+### Pure Functions: NO Hidden Dependencies
+**CRITICAL: Functions must receive ALL inputs as explicit arguments.**
+
+```r
+# BAD: Accessing global variables
+threshold <- 0.05  # Global
+filter_significant <- function(data) {
+  data |> filter(p_value < threshold)  # Uses global threshold
+}
+
+# GOOD: All inputs explicit
+filter_significant <- function(data, threshold = 0.05) {
+  data |> filter(p_value < threshold)  # threshold is an argument
+}
+
+# BAD: Reading from environment
+analyze_data <- function(data) {
+  config <- readRDS("config.rds")  # Hidden dependency
+  process(data, config$settings)
+}
+
+# GOOD: Configuration passed as argument
+analyze_data <- function(data, config) {
+  process(data, config$settings)
+}
+```
+
+**Why this matters:**
+- Functions are **testable** - can call with different inputs
+- Functions are **reusable** - not tied to specific global state
+- Functions are **predictable** - same inputs always give same outputs
+- Code is **debuggable** - can see all dependencies in function signature
+
+**Exceptions:** Side effects must be explicit in function purpose (e.g., `save_plot()`, `write_results()`)
+
 ### Use of ...
 - For passing args to underlying functions or extending generics
 - Not as primary interface; name important arguments
@@ -438,6 +473,7 @@ Before committing:
 - [ ] Native pipe `|>` (not `%>%`)
 - [ ] Lambda syntax `\(x)` (not `function(x)`)
 - [ ] Descriptive variable names
+- [ ] **Functions are pure: all inputs as arguments (no globals)**
 - [ ] Functions < 50 lines when possible
 - [ ] No new unnecessary dependencies
 - [ ] Tests for new functionality
