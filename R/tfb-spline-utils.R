@@ -269,7 +269,7 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   list(
     coef = coef,
     pve = map_dbl(ret, "pve"),
-    sp = if (penalized & !fixed_sp) map_dbl(ret, "sp") else NULL
+    sp = if (penalized && !fixed_sp) map_dbl(ret, "sp") else NULL
   )
 }
 
