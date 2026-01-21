@@ -4,25 +4,39 @@
 \alias{tf_register}
 \title{Register / align a \code{tf} vector against a template function}
 \usage{
-tf_register(.x, ..., .template = NULL, .method = "srvf")
+tf_register(
+  x,
+  ...,
+  template = NULL,
+  method = c("srvf", "fda", "affine", "landmark")
+)
 }
 \arguments{
-\item{.x}{a \code{tf} vector of functions to register.}
+\item{x}{a \code{tf} vector of functions to register.}
 
-\item{...}{additional arguments passed to further methods.}
+\item{...}{method-specific arguments (see Details).}
 
-\item{.template}{an optional \code{tf} vector of a template function to register against.
-If \code{NULL}, the Karcher mean (for SRVF) or arithmetic mean (for FDA) is used as the template.}
+\item{template}{an optional \code{tf} vector of length 1 to use as the template.
+If \code{NULL}, a default template is computed (method-dependent).
+Not used for \code{method = "landmark"}.}
 
-\item{.method}{the implementation method to choose. Either \code{"srvf"} or \code{"fda"}.
+\item{method}{the registration method to use:
 \itemize{
-\item \code{srvf}: Square Root Velocity Framework (SRVF) framework.
-For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}} and \code{\link[fdasrvf:pair_align_functions]{fdasrvf::pair_align_functions()}}.
-\item \code{fda}: continuous‐criterion registration. For details, see \code{\link[fda:register.fd]{fda::register.fd()}}.
+\item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
+For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}. Default template is the Karcher mean.
+\item \code{"fda"}: continuous-criterion registration via \code{\link[fda:register.fd]{fda::register.fd()}}.
+Default template is the arithmetic mean.
+\item \code{"affine"}: affine (linear) registration with warps of the form
+\eqn{h(t) = a \cdot t + b}. Simpler than elastic registration, appropriate
+when phase variability consists only of shifts and/or uniform scaling.
+Default template is the arithmetic mean.
+\item \code{"landmark"}: piecewise-linear warps that align user-specified landmark
+features. Requires \code{landmarks} argument.
 }}
 }
 \value{
-\code{tf} vector of the warping functions with the same length as \code{x}.
+\code{tfd} vector of warping functions with the same length as \code{x}.
+Apply with \code{\link[=tf_unwarp]{tf_unwarp()}} to obtain registered functions.
 }
 \description{
 \code{tf_register()} performs functional data registration (alignment) by finding
@@ -31,18 +45,53 @@ Registration removes phase variation (horizontal shifts and stretches) while
 preserving amplitude (i.e., vertical) variation, making it easier to analyze
 the intrinsic shape characteristics of functional data.
 }
+\section{Method-specific arguments passed via \code{...}}{
+
+
+\strong{For \code{method = "affine"}:}
+\describe{
+\item{\code{type}}{character: \code{"shift"} (translation only), \code{"scale"} (scaling only),
+or \code{"shift_scale"} (both). Default is \code{"shift"}.}
+\item{\code{shift_range}}{numeric(2): bounds for shift parameter. Default is
+\code{c(-range/2, range/2)} where range is the domain width.
+Larger bounds allow greater shifts but may result in more \code{NA} values.}
+\item{\code{scale_range}}{numeric(2): bounds for scale parameter. Default is
+\code{c(0.5, 2)}. Must have \code{lower > 0}.}
+}
+
+\strong{For \code{method = "landmark"}:}
+\describe{
+\item{\code{landmarks}}{\strong{(required)} numeric matrix of landmark positions with
+one row per function and one column per landmark. Use \code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}}
+to find peaks/valleys automatically.}
+\item{\code{template_landmarks}}{numeric vector of target landmark positions.
+Default is column-wise mean of \code{landmarks}.}
+}
+}
+
 \examples{
 \dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+# Elastic registration (SRVF method)
 height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
 layout(t(1:3))
 plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
-# warping functions map from "observed"/"nominal" time to "system"/"standardized" time:
 warp <- tf_register(growth_female)
 plot(warp, xlab = "Chronological Age", ylab = "Biological Age")
 growth_female_reg <- tf_unwarp(growth_female, warp)
 plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
 \dontshow{\}) # examplesIf}
+# Affine registration (shift only)
+t <- seq(0, 2 * pi, length.out = 101)
+x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+warp <- tf_register(x, method = "affine", type = "shift")
+plot(tf_unwarp(x, warp), col = 1:3)
+
+# Landmark registration
+peaks <- tf_landmarks_extrema(x, "max")
+warp <- tf_register(x, method = "landmark", landmarks = peaks)
+plot(tf_unwarp(x, warp), col = 1:3)
+
 }
 \references{
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
@@ -59,6 +108,11 @@ Tucker JD, Wu W, Srivastava A (2013).
 \emph{Computational Statistics & Data Analysis}, \bold{61}, 50-66.
 ISSN 0167-9473, \doi{https://doi.org/10.1016/j.csda.2012.12.001}, \url{https://www.sciencedirect.com/science/article/pii/S0167947312004227}.
 }
+\seealso{
+Other registration functions: 
+\code{\link{tf_landmarks_extrema}()}
+}
 \author{
 Maximilian Muecke
 }
+\concept{registration functions}

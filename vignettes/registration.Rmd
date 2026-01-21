@@ -132,8 +132,8 @@ This is the kind of data with simple amplitude variability (i.e. the scaled bell
 
 Using either variant of the "continuous registration" methods yields fairly similar results here:
 ```{r pinch-prep2, class.source = 'fold-show', fig.width = 8, fig.height = 8}
-pinch_warp_fda1 <- tf_register(pinch, .method = "fda", crit = 1) # LS-criterion
-pinch_warp_fda2 <- tf_register(pinch, .method = "fda", crit = 2) # minEV-criterion
+pinch_warp_fda1 <- tf_register(pinch, method = "fda", crit = 1) # LS-criterion
+pinch_warp_fda2 <- tf_register(pinch, method = "fda", crit = 2) # minEV-criterion
 pinch_reg_fda1 <- tf_unwarp(pinch, pinch_warp_fda1)
 pinch_reg_fda2 <- tf_unwarp(pinch, pinch_warp_fda2)
 
@@ -186,7 +186,7 @@ peak_locations <- tf_landmarks_extrema(pinch, "max")
 peak_locations
 
 # Register using these landmarks
-pinch_warp_lm <- tf_register_landmark(pinch, peak_locations)
+pinch_warp_lm <- tf_register(pinch, method = "landmark", landmarks = peak_locations)
 pinch_reg_lm <- tf_unwarp(pinch, pinch_warp_lm)
 ```
 
@@ -232,7 +232,7 @@ For data with primarily shift variability (or uniform scaling), affine registrat
 
 ```{r pinch-affine, class.source = 'fold-show'}
 # Shift-only registration (horizontal translation)
-pinch_warp_shift <- tf_register_affine(pinch, .type = "shift")
+pinch_warp_shift <- tf_register(pinch, method = "affine", type = "shift")
 pinch_reg_shift <- tf_unwarp(pinch, pinch_warp_shift)
 ```
 
