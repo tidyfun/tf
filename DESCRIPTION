@@ -45,17 +45,10 @@ Imports:
     zoo
 Suggests:
     covr,
-    data.table,
     dplyr,
     fda,
     fdasrvf,
     knitr,
-    mlr3,
-    mlr3fda,
-    mlr3misc,
-    mlr3pipelines,
-    paradox,
-    R6,
     refund,
     rmarkdown,
     testthat (>= 3.0.0),

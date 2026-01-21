@@ -280,5 +280,347 @@ tf_register_fda <- function(x, template, ...) {
   tfd(t(warp), arg = arg)
 }
 
-# TODO: add simple shift/dilate/compress registration using affine warping functions?
-# TODO: add landmark registration? see dev-register.R
+#-------------------------------------------------------------------------------
+
+#' Landmark Registration
+#'
+#' @description
+#' `tf_register_landmark()` performs piecewise linear registration by aligning
+#' user-specified landmarks across functions. This is useful when functions have
+#' identifiable features (peaks, valleys, zero-crossings) that should be aligned.
+#'
+#' `tf_landmarks_extrema()` is a helper function that automatically finds the
+#' locations of extrema (maxima and/or minima) in each function.
+#'
+#' @details
+#' Landmark registration creates piecewise linear warping functions that map
+#' each curve's landmark locations to template landmark locations. Between
+#' landmarks, the warping function interpolates linearly, stretching or
+#' compressing the time axis to align the features.
+#'
+#' The landmarks matrix must have the same number of rows as functions in `.x`.
+#' Each row contains the observed landmark positions for that function, and
+#' each column represents one landmark feature. Landmarks must be strictly
+#' increasing within each row and within the domain of `.x`.
+#'
+#' @param .x a `tf` vector of functions to register.
+#' @param .landmarks a numeric matrix of landmark positions with one row per
+#'   function and one column per landmark feature. Landmarks must be strictly
+#'   increasing within each row.
+#' @param .template_landmarks optional numeric vector of template landmark
+#'   positions to align to. Must have the same length as `ncol(.landmarks)`.
+#'   If `NULL` (default), uses the column-wise means of `.landmarks`.
+#' @returns a `tfd` vector of warping functions with the same length as `.x`.
+#'   These can be used with [tf_unwarp()] to align the functions.
+#' @seealso [tf_register()] for elastic registration, [tf_register_affine()]
+#'   for affine registration
+#'
+#' @examples
+#' # Create functions with shifted peaks
+#' t <- seq(0, 1, length.out = 101)
+#' shifts <- c(0.4, 0.5, 0.6) # peak locations
+#' x <- tfd(
+#'   t(sapply(shifts, function(s) dnorm(t, mean = s, sd = 0.1))),
+#'   arg = t
+#' )
+#' plot(x, col = 1:3)
+#'
+#' # Find peak locations and register
+#' peaks <- tf_landmarks_extrema(x, "max")
+#' warp <- tf_register_landmark(x, peaks)
+#' x_aligned <- tf_unwarp(x, warp)
+#' plot(x_aligned, col = 1:3)
+#'
+#' @export
+#' @family registration functions
+tf_register_landmark <- function(.x, .landmarks, .template_landmarks = NULL) {
+  assert_tf(.x)
+  assert_matrix(.landmarks, mode = "numeric", nrows = length(.x), min.cols = 1)
+
+  domain <- tf_domain(.x)
+  n <- length(.x)
+  n_landmarks <- ncol(.landmarks)
+
+  validate_landmarks(.landmarks, domain, n, n_landmarks)
+  .template_landmarks <- validate_template_landmarks(
+    .template_landmarks,
+    .landmarks,
+    domain,
+    n_landmarks
+  )
+
+  # Create piecewise linear warping functions:
+  # Template arg: domain boundaries + template landmarks
+  # Warping values: domain boundaries + observed landmarks
+  template_arg <- c(domain[1], .template_landmarks, domain[2])
+  warp_values <- cbind(domain[1], .landmarks, domain[2])
+
+  tfd(warp_values, arg = template_arg)
+}
+
+# Helper: validate landmark matrix
+validate_landmarks <- function(landmarks, domain, n, n_landmarks) {
+  # Check strictly increasing within each row
+  for (i in seq_len(n)) {
+    if (n_landmarks > 1 && !all(diff(landmarks[i, ]) > 0)) {
+      cli::cli_abort(
+        "Landmarks must be strictly increasing within each row. Problem at row {i}."
+      )
+    }
+  }
+  # Check within domain
+  if (any(landmarks < domain[1]) || any(landmarks > domain[2])) {
+    cli::cli_abort(
+      "All landmarks must be within the domain [{domain[1]}, {domain[2]}]."
+    )
+  }
+  invisible(landmarks)
+}
+
+# Helper: validate and return template landmarks
+validate_template_landmarks <- function(
+  template,
+  landmarks,
+  domain,
+  n_landmarks
+) {
+  if (is.null(template)) {
+    return(colMeans(landmarks))
+  }
+
+  assert_numeric(template, len = n_landmarks, any.missing = FALSE)
+
+  if (n_landmarks > 1 && !all(diff(template) > 0)) {
+    cli::cli_abort("Template landmarks must be strictly increasing.")
+  }
+  if (any(template < domain[1]) || any(template > domain[2])) {
+    cli::cli_abort(
+      "Template landmarks must be within the domain [{domain[1]}, {domain[2]}]."
+    )
+  }
+  template
+}
+
+#' @rdname tf_register_landmark
+#' @param x a `tf` vector for `tf_landmarks_extrema()`.
+#' @param which character specifying which extrema to find: `"max"` for maxima,
+#'   `"min"` for minima, or `"both"` for both (maxima first, then minima).
+#' @returns For `tf_landmarks_extrema()`: a numeric matrix with one row per
+#'   function containing the locations of the specified extrema.
+#' @export
+tf_landmarks_extrema <- function(x, which = c("max", "min", "both")) {
+  assert_tf(x)
+  which <- match.arg(which)
+
+  extrema <- switch(
+    which,
+    max = tf_where(x, value == max(value), "first"),
+    min = tf_where(x, value == min(value), "first"),
+    both = cbind(
+      tf_where(x, value == max(value), "first"),
+      tf_where(x, value == min(value), "first")
+    )
+  )
+
+  if (!is.matrix(extrema)) {
+    extrema <- matrix(extrema, ncol = 1)
+  }
+
+  extrema
+}
+
+#-------------------------------------------------------------------------------
+
+#' Affine Registration
+#'
+#' @description
+#' `tf_register_affine()` performs registration using affine (linear) warping
+#' functions of the form \eqn{h(t) = a \cdot t + b}, where \eqn{a} controls
+#' scaling (dilation/compression) and \eqn{b} controls shift (translation).
+#'
+#' @details
+#' Affine registration is simpler than elastic registration and is appropriate
+#' when the phase variability in the data consists only of shifts and/or
+#' uniform scaling of the time axis.
+#'
+#' Three types of affine registration are available:
+#'
+#' - `"shift"`: Only horizontal translation (\eqn{a = 1}, optimize \eqn{b}).
+#'   The functions are shifted left or right to align with the template.
+#'
+#' - `"scale"`: Only scaling (\eqn{b} determined by anchor, optimize \eqn{a}).
+#'   The time axis is stretched or compressed around the anchor point.
+#'
+#' - `"shift_scale"`: Both shift and scale (optimize both \eqn{a} and \eqn{b}).
+#'   Combines translation and scaling for more flexible alignment.
+#'
+#' The `.anchor` parameter determines the fixed point for scaling:
+#' - `"start"`: The domain start is fixed; scaling expands/contracts toward the end.
+#' - `"end"`: The domain end is fixed; scaling expands/contracts toward the start.
+#' - `"center"`: The domain center is fixed; scaling expands/contracts symmetrically.
+#'
+#' Optimization minimizes the L2 distance between each (affinely warped)
+#' function and the template.
+#'
+#' @param .x a `tf` vector of functions to register.
+#' @param .template an optional `tf` vector of length 1 to use as the template.
+#'   If `NULL` (default), the cross-sectional mean of `.x` is used.
+#' @param .type character specifying the type of affine transformation:
+#'   `"shift"`, `"scale"`, or `"shift_scale"`.
+#' @param .anchor character specifying the anchor point for scaling:
+#'   `"start"`, `"end"`, or `"center"`. Only used when `.type` includes scaling.
+#' @returns a `tfd` vector of warping functions with the same length as `.x`.
+#'   These can be used with [tf_unwarp()] to align the functions.
+#' @seealso [tf_register()] for elastic registration, [tf_register_landmark()]
+#'   for landmark-based registration
+#'
+#' @examples
+#' # Create shifted sinusoids
+#' t <- seq(0, 2 * pi, length.out = 101)
+#' shifts <- seq(-0.5, 0.5, length.out = 5)
+#' x <- tfd(t(sapply(shifts, function(s) sin(t + s))), arg = t)
+#' plot(x, col = 1:5)
+#'
+#' # Shift registration
+#' warp <- tf_register_affine(x, .type = "shift")
+#' x_aligned <- tf_unwarp(x, warp)
+#' plot(x_aligned, col = 1:5)
+#'
+#' @export
+#' @family registration functions
+#' @importFrom stats approx optim
+tf_register_affine <- function(
+  .x,
+  .template = NULL,
+  .type = c("shift", "scale", "shift_scale"),
+  .anchor = c("start", "end", "center")
+) {
+  assert_tf(.x)
+  .type <- match.arg(.type)
+  .anchor <- match.arg(.anchor)
+
+  domain <- tf_domain(.x)
+  .template <- validate_affine_template(.template, .x, domain)
+
+  # Get optimization configuration for this type
+  config <- affine_config(.type, .anchor, domain)
+
+  # Prepare data matrices on common grid
+  arg <- tf_arg(.x)
+  if (is.list(arg)) arg <- sort_unique(arg, simplify = TRUE)
+
+  x_mat <- as.matrix(tfd(.x, arg = arg))
+  template_vec <- as.matrix(tfd(.template, arg = arg))[1, ]
+
+  # Optimize each curve
+  warp_mat <- map(
+    seq_len(nrow(x_mat)),
+    \(i) optimize_affine_warp(x_mat[i, ], template_vec, arg, domain, config)
+  ) |>
+    do.call(what = rbind)
+
+  tfd(warp_mat, arg = arg)
+}
+
+# Helper: validate template for affine registration
+validate_affine_template <- function(template, x, domain) {
+  if (is.null(template)) return(mean(x))
+
+  assert_tf(template)
+  if (length(template) != 1) {
+    cli::cli_abort("{.arg .template} must be of length 1.")
+  }
+  if (!all(domain == tf_domain(template))) {
+    cli::cli_abort("{.arg .x} and {.arg .template} must have the same domain.")
+  }
+  template
+}
+
+# Helper: get optimization configuration based on type
+affine_config <- function(type, anchor, domain) {
+  lwr <- domain[1]
+  upr <- domain[2]
+  half_range <- (upr - lwr) / 2
+
+  anchor_point <- switch(
+    anchor,
+    start = lwr,
+    end = upr,
+    center = (lwr + upr) / 2
+  )
+
+  # Named constants for optimization bounds
+  scale_lower <- 0.5
+  scale_upper <- 2.0
+
+  switch(
+    type,
+    shift = list(
+      type = "shift",
+      init = 0,
+      lower = -half_range,
+      upper = half_range,
+      anchor = anchor_point
+    ),
+    scale = list(
+      type = "scale",
+      init = 1,
+      lower = scale_lower,
+      upper = scale_upper,
+      anchor = anchor_point
+    ),
+    shift_scale = list(
+      type = "shift_scale",
+      init = c(1, 0),
+      lower = c(scale_lower, -half_range),
+      upper = c(scale_upper, half_range),
+      anchor = anchor_point
+    )
+  )
+}
+
+# Helper: optimize affine warp for one curve
+optimize_affine_warp <- function(x_vec, template_vec, arg, domain, config) {
+  lwr <- domain[1]
+  upr <- domain[2]
+  penalty <- 1e10
+
+  # Objective: L2 distance after affine warping
+  objective <- function(params) {
+    ab <- extract_affine_params(params, config)
+    warped_arg <- ab$a * arg + ab$b
+
+    # Penalize out-of-domain warping
+    if (any(warped_arg < lwr) || any(warped_arg > upr)) return(penalty)
+
+    x_warped <- approx(arg, x_vec, xout = warped_arg, rule = 2)$y
+    sum((x_warped - template_vec)^2)
+  }
+
+  opt <- optim(
+    par = config$init,
+    fn = objective,
+    method = "L-BFGS-B",
+    lower = config$lower,
+    upper = config$upper
+  )
+
+  ab <- extract_affine_params(opt$par, config)
+  warp_values <- ab$a * arg + ab$b
+
+  # Clamp boundaries
+  warp_values[1] <- max(warp_values[1], lwr)
+  warp_values[length(warp_values)] <- min(warp_values[length(warp_values)], upr)
+
+  warp_values
+}
+
+# Helper: extract (a, b) parameters from optimizer output
+extract_affine_params <- function(params, config) {
+  switch(
+    config$type,
+    shift = list(a = 1, b = params[1]),
+    scale = list(a = params[1], b = config$anchor * (1 - params[1])),
+    shift_scale = list(a = params[1], b = params[2])
+  )
+}

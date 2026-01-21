@@ -211,7 +211,7 @@ unique_id <- function(x) {
     return(x)
   }
   if (is.character(x)) {
-    x <- sub("$^", "NA", x)
+    x <- sub("^$", "NA", x)
   }
   x <- make.names(as.character(x), unique = TRUE)
   x

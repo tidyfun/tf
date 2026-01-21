@@ -58,7 +58,7 @@ lines(template, lty = 3)
 
 The registration process involves:
 
-1.  Estimating "warping functions" using `tf_register()` - these capture the time scale deformations of the observed functions relative to a (tpyically iteratively estimated) common template.
+1.  Estimating "warping functions" using `tf_register()` - these capture the time scale deformations of the observed functions relative to a (typically iteratively estimated) common template.
 
 2.  Applying the *inverse* warping using `tf_unwarp()` - this aligns the observed functions to the template by putting them on a common time scale.
 
@@ -66,7 +66,7 @@ The default registration method in `tf` uses the SRVF-framework implemented in t
 
 Some general caveats: 
 
-- alignments can be fairly sensitive to the specifics of data representation (i.e., what kind of basis representation is being used, how many gridpoints the functions are being evaluated on,  how to interpolate between grid points, whether/how much the data was smoothed before registration). Even for a simple looking example like the "Berkeley Growth" data shown below, you can get very different alignment results from the same method, depending on the specific pre-processing - see section !!TODO!!.
+- alignments can be fairly sensitive to the specifics of data representation (i.e., what kind of basis representation is being used, how many gridpoints the functions are being evaluated on,  how to interpolate between grid points, whether/how much the data was smoothed before registration). Even for a simple looking example like the "Berkeley Growth" data shown below, you can get very different alignment results from the same method, depending on the specific pre-processing.
 - alignments can be fairly sensitive to the specific registration method being used and their hyperparameters. 
 - registration problems are only well-defined and have a unique solution for functional datasets with simple amplitude variability^[c.f. [Chakraborty & Panaretos, 2020)](https://arxiv.org/pdf/1702.03556) for juicy details on this underappreciated fact]. If the curves being registered belong to different clusters with different mean shapes or just have very variable shapes more generally, the simple alignment methods implemented here are unlikely to yield sensible (or stable) results out of the box.  
 
@@ -174,7 +174,101 @@ plot(
   lwd = 1.5,
   col = alpha_palette
 )
-``` 
+```
+
+### Landmark Registration
+
+When distinctive features (e.g., peaks, valleys, zero-crossings) are identifiable across curves, landmark registration provides a straightforward approach. For the pinch data, we can use the location of the peak force as a landmark to align the curves. `tf_landmarks_extrema()` finds the locations of extrema automatically:
+
+```{r pinch-landmark, class.source = 'fold-show'}
+# Find peak force locations for each curve
+peak_locations <- tf_landmarks_extrema(pinch, "max")
+peak_locations
+
+# Register using these landmarks
+pinch_warp_lm <- tf_register_landmark(pinch, peak_locations)
+pinch_reg_lm <- tf_unwarp(pinch, pinch_warp_lm)
+```
+
+```{r pinch-landmark-viz}
+layout(t(1:3))
+plot(
+  pinch,
+  main = "Original Pinch Force",
+  xlab = "Observed Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+# Mark peak locations (peak_locations contains arg, tf_fmax gives the values)
+points(peak_locations, tf_fmax(pinch), pch = 19)
+
+plot(
+  tf_invert(pinch_warp_lm),
+  points = FALSE,
+  main = "Landmark Warping",
+  xlab = "Observed Time [s]",
+  ylab = "Registered Time [s]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+abline(0, 1, lty = 3, lwd = 2)
+
+plot(
+  pinch_reg_lm,
+  main = "Landmark-Registered",
+  xlab = "Registered Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+```
+
+Landmark registration produces piecewise linear warping functions that align the peaks. This is simpler than elastic registration and works well when the landmarks are reliable.
+
+### Affine Registration
+
+For data with primarily shift variability (or uniform scaling), affine registration provides a simpler and faster alternative. Affine warping functions have the form $h(t) = a \cdot t + b$, where $a$ controls scaling and $b$ controls shifting:
+
+```{r pinch-affine, class.source = 'fold-show'}
+# Shift-only registration (horizontal translation)
+pinch_warp_shift <- tf_register_affine(pinch, .type = "shift")
+pinch_reg_shift <- tf_unwarp(pinch, pinch_warp_shift)
+```
+
+```{r pinch-affine-viz}
+layout(t(1:3))
+plot(
+  pinch,
+  main = "Original Pinch Force",
+  xlab = "Observed Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+
+plot(
+  tf_invert(pinch_warp_shift),
+  points = FALSE,
+  main = "Affine (Shift) Warping",
+  xlab = "Observed Time [s]",
+  ylab = "Registered Time [s]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+abline(0, 1, lty = 3, lwd = 2)
+
+plot(
+  pinch_reg_shift,
+  main = "Shift-Registered",
+  xlab = "Registered Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+```
+
+Affine registration is appropriate when the phase variability is relatively simple. It's computationally faster than elastic registration and provides easily interpretable warping parameters.
 
 
 ## Case Study: Growth Data
@@ -415,7 +509,7 @@ The left plot shows the original function $x_i(t)$ in red and its aligned versio
 
 Development of this subject is aligned to the population mean pattern in the first 2-3 years
 (unwarping function follows bisecting angle), and delayed over most of the rest of the observed period (unwarping function below bisecting angle, all arrows pointing left).
-The graph of the original growth trajectory itself is compressed by the alignment early on (slope of unwarping function < 1 for age 2-7, arrows to the left lenghtening), then dilated (steep unwarping function slope for age 7-10, arrows to the left shortening). 
+The graph of the original growth trajectory itself is compressed by the alignment early on (slope of unwarping function < 1 for age 2-7, arrows to the left lengthening), then dilated (steep unwarping function slope for age 7-10, arrows to the left shortening). 
 
 
 **Case 38:  Complex Alignment**

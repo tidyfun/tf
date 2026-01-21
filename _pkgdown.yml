@@ -42,6 +42,9 @@ reference:
   desc: Functions for registering, and warping functional data
   contents:
   - tf_register
+  - tf_register_landmark
+  - tf_register_affine
+  - tf_landmarks_extrema
   - tf_warp
   - tf_unwarp
   - tf_invert
