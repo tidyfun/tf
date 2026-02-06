@@ -1,0 +1,374 @@
+---
+title: "Curve Registration: Practical Guide and Pitfalls"
+output:
+  rmarkdown::html_vignette:
+    code_folding: hide
+vignette: >
+  %\VignetteIndexEntry{Curve Registration: Practical Guide and Pitfalls}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  cache = TRUE,
+  collapse = TRUE,
+  comment = "#>"
+)
+library(tf)
+par(las = 1)
+alpha_palette <- c(
+  "#00000080", "#DF536B80", "#61D04F80", "#2297E680", "#28E2E580",
+  "#CD0BBC80", "#F5C71080", "#9E9E9E80", "#00000080", "#DF536B80"
+)
+have_srvf <- rlang::is_installed("fdasrvf")
+have_fda <- rlang::is_installed("fda")
+```
+
+This vignette is written in two passes:
+
+1. First pages: practical guidance for choosing methods, avoiding common mistakes, and diagnosing results.
+2. Later pages: more detail on method assumptions and a deeper case study.
+
+## 1) Before You Register: Template, Warp, Domain
+
+Registration aligns functions in time by reducing phase variation (timing differences) while trying to preserve amplitude variation (shape/height differences).
+
+Use registration when:
+
+- Curves have broadly similar shapes but shifted or stretched timing.
+- Your scientific question depends on timing alignment.
+- You can interpret both the **target template** and the resulting warps in domain terms.
+
+Do not treat registration as a default preprocessing step when:
+
+- Curves come from clearly different shape classes/clusters.
+- Timing differences are not meaningful for your question.
+- Heavy warping would create implausible subject-specific timelines.
+
+Core model:
+
+\[
+x_i(t) \approx m\left(h_i^{-1}(t)\right)
+\]
+
+- \(m\): template shape you register against.
+- \(h_i\): warping function mapping aligned time \(s\) to observed time \(t\).
+- \(h_i^{-1}\): inverse warping used by `tf_unwarp()` to align observed curves.
+
+### 1.1) What Is the Template?
+
+Template choice is the most important modeling choice in registration: every estimated warp is relative to that template.
+
+Default template behavior in `tf_register()`:
+
+| Method | Default template behavior | How to override |
+|:--|:--|:--|
+| `srvf` | Karcher-type mean estimated by `fdasrvf` | pass `template = ...` |
+| `fda` | arithmetic mean curve | pass `template = ...` |
+| `affine` | arithmetic mean curve | pass `template = ...` |
+| `landmark` | column-wise mean of landmarks | pass `template_landmarks = ...` |
+
+Practical rules:
+
+1. If you need interpretable timing relative to a known reference, supply an explicit template.
+2. Keep template and data on the same domain/grid for `srvf` and `fda`.
+3. Always visualize raw curves and the template together before trusting warps.
+
+### 1.2) What a Warping Function Means
+
+`tf_register()` returns warps \(h_i\). In practice, you usually inspect inverse warps \(h_i^{-1}\) via `tf_invert(warp)` because those are directly used for alignment.
+
+- Curves close to the identity line mean little phase correction.
+- Strong local slope changes imply strong local time dilation/compression.
+- Large departures from identity without clear alignment gain indicate over-warping risk.
+
+### 1.3) Domain-Preserving vs Non-domain-preserving Warps
+
+This distinction is fundamental for interpretation and edge behavior:
+
+- **Domain-preserving**: warps map domain endpoints to themselves. Typical for `srvf`, `fda`, and `landmark`.
+- **Non-domain-preserving**: warps can shift/scale outside (or into a subset of) the observed domain. Often seen with `affine`.
+
+Implications:
+
+1. Non-domain-preserving warps can produce boundary `NA`s after `tf_unwarp()` because parts of the aligned timeline have no observed support.
+2. Domain-preserving warps avoid these boundary losses but can still overfit timing.
+3. Method choice is therefore not only about alignment quality; it is also about what time transformation is scientifically admissible.
+
+Core workflow in `tf`:
+
+```r
+warp <- tf_register(x, method = "...")
+x_reg <- tf_unwarp(x, warp)
+```
+
+## 2) Five-Minute Quick Start (Template-aware Baseline)
+
+This minimal example uses affine shift registration because it has no extra package dependency and provides a fast baseline. We pass an explicit template to make the target shape transparent.
+
+```{r quickstart, class.source = "fold-show"}
+pinch_small <- pinch[1:10]
+template_affine <- mean(pinch_small)
+
+warp_affine <- tf_register(
+  pinch_small,
+  method = "affine",
+  template = template_affine,
+  type = "shift"
+)
+pinch_small_reg <- tf_unwarp(pinch_small, warp_affine)
+```
+
+```{r quickstart-plot}
+layout(t(1:3))
+plot(
+  pinch_small,
+  main = "Original Curves",
+  xlab = "Observed Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+lines(template_affine, lwd = 2.5, lty = 3)
+plot(
+  tf_invert(warp_affine),
+  points = FALSE,
+  main = "Inverse Warping Functions",
+  xlab = "Observed Time [s]",
+  ylab = "Registered Time [s]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+abline(0, 1, lty = 3)
+plot(
+  pinch_small_reg,
+  main = "Registered Curves",
+  xlab = "Registered Time [s]",
+  ylab = "Force [N]",
+  lwd = 1.5,
+  col = alpha_palette
+)
+```
+
+Quick success checks:
+
+- The template is plausible for the population you are aligning.
+- Major features (e.g., peaks) are more aligned after registration.
+- Warps are monotone and not excessively bent for this problem.
+- Boundary `NA`s are limited and scientifically acceptable.
+- Resulting timing shifts are domain-plausible.
+
+## 3) Choosing a Registration Method
+
+> **Provisional guidance:** Method-selection advice in Sections 3/4/5 reflects current package behavior and practical experience. We are running a benchmark study comparing methods under controlled scenarios, so these recommendations may be revised after those results are finalized.
+
+| Method | Use when | Avoid when | Template handling | Key arguments | Typical failure signs | First fallback |
+|:--|:--|:--|:--|:--|:--|:--|
+| `srvf` (default) | Smooth, non-linear timing differences with shared shape family | Very noisy data, sparse grids, highly heterogeneous shapes | Implicit Karcher-type mean unless `template` supplied | `method = "srvf"` | Unstable warps, over-warping, inconsistent reruns | Smooth more; try `affine` or `landmark` |
+| `fda` | You want continuous-criterion alignment and can tune criterion | Complex phase-amplitude interactions or severe irregularity | Arithmetic mean unless `template` supplied | `method = "fda"`, `crit = 1/2` | Sensitive to criterion choice, weak alignment gains | Try `srvf` or `affine` |
+| `affine` | Mostly shift/scale timing variability; need interpretable warps | Strong non-linear timing deformation | Arithmetic mean unless `template` supplied | `method = "affine"`, `type`, bounds | Residual misalignment of local features, boundary `NA`s under stronger shifts/scales | Upgrade to `srvf` |
+| `landmark` | Reliable, repeated landmarks are available across curves | Ambiguous/noisy landmarks or mismatched counts | Uses `template_landmarks` (default: column means) | `method = "landmark"`, `landmarks`, `template_landmarks` | Forced/broken alignments from bad landmarks | Use `srvf` or `affine` |
+
+Practical default:
+
+1. Start with `affine` to get a baseline.
+2. Move to `srvf` if you need non-linear timing flexibility.
+3. Use `landmark` when domain landmarks are trusted and central.
+
+## 4) Pitfalls and Likely Failure Modes (Read Before Scaling Up)
+
+> **Provisional guidance:** Method-selection advice in Sections 3/4/5 reflects current package behavior and practical experience. We are running a benchmark study comparing methods under controlled scenarios, so these recommendations may be revised after those results are finalized.
+
+### A) Multiple shape families (non-identifiability)
+
+- **Detect:** Registered curves still form distinct shape clusters.
+- **Do next:** Stratify first; register within clusters; compare cluster-specific results.
+
+### B) Noise dominates phase signal
+
+- **Detect:** Warps become jagged or highly variable across near-identical curves.
+- **Do next:** Smooth first; reduce basis flexibility; compare before/after sensitivity.
+
+### C) Sparse or irregular grids
+
+- **Detect:** Registration quality depends strongly on interpolation grid choices.
+- **Do next:** Re-evaluate to a stable common grid; run sensitivity checks on grid density.
+
+### D) Boundary and overlap artifacts
+
+- **Detect:** `NA` regions after unwarping, especially for aggressive affine shifts/scales.
+- **Do next:** Inspect boundary behavior explicitly; use `keep_new_arg = TRUE` when needed; narrow affine bounds.
+
+### E) Landmark quality issues
+
+- **Detect:** Small landmark perturbations cause large warp changes.
+- **Do next:** Validate landmarks visually; use robust landmark definitions; fall back to `srvf`/`affine` when ambiguous.
+
+### F) Over-warping
+
+- **Detect:** Large timing distortions with little gain in feature alignment.
+- **Do next:** Prefer simpler method (`affine`), reduce flexibility, or avoid registration for that subset.
+
+### G) Template mismatch
+
+- **Detect:** Registered curves align to a shape that is not scientifically meaningful for your question.
+- **Do next:** Choose an explicit template (or template landmarks), rerun, and compare conclusions.
+
+## 5) Practical Diagnostics Workflow
+
+> **Provisional guidance:** Method-selection advice in Sections 3/4/5 reflects current package behavior and practical experience. We are running a benchmark study comparing methods under controlled scenarios, so these recommendations may be revised after those results are finalized.
+
+After any registration run:
+
+1. Plot original curves together with the template you used.
+2. Plot registered curves and compare key features to the template.
+3. Plot inverse warps and check for plausible deformation.
+4. Quantify one alignment target (e.g., spread of peak locations).
+5. Check boundary support (`NA` rates), especially for affine warps.
+6. Re-run with at least one alternative method.
+7. Re-run after modest smoothing/grid change; check stability.
+
+```{r diagnostics, class.source = "fold-show"}
+x <- pinch[1:10]
+
+warp_aff <- tf_register(x, method = "affine", type = "shift")
+x_aff <- tf_unwarp(x, warp_aff)
+
+peak_before <- as.numeric(tf_landmarks_extrema(x, "max"))
+peak_after_aff <- as.numeric(tf_landmarks_extrema(x_aff, "max"))
+
+data.frame(
+  metric = c("sd_peak_before", "sd_peak_after_affine"),
+  value = c(sd(peak_before), sd(peak_after_aff))
+)
+
+na_prop_aff <- mean(vapply(tf_evaluations(x_aff), \(v) mean(is.na(v)), numeric(1)))
+na_prop_aff
+```
+
+```{r diagnostics-optional-srvf, eval = have_srvf, class.source = "fold-show"}
+warp_srvf <- tf_register(x, method = "srvf")
+x_srvf <- tf_unwarp(x, warp_srvf)
+peak_after_srvf <- as.numeric(tf_landmarks_extrema(x_srvf, "max"))
+
+data.frame(
+  metric = c("sd_peak_after_affine", "sd_peak_after_srvf"),
+  value = c(sd(peak_after_aff), sd(peak_after_srvf))
+)
+```
+
+If different methods disagree strongly and diagnostics are unstable, treat conclusions as low confidence until you resolve data representation and model-choice sensitivity.
+
+## 6) Method Notes and Theoretical Background
+
+Registration models observed curves as time-deformed versions of a template:
+
+\[
+x_i(t) \approx m(h_i^{-1}(t))
+\]
+
+with monotone warping \(h_i\).
+
+Key interpretation:
+
+- \(h_i\) maps aligned/system time to observed time.
+- \(h_i^{-1}\) maps observed time to aligned time.
+- Slope \(>1\) or \(<1\) indicates local dilation/compression in time.
+
+Method-specific notes:
+
+- **SRVF**: strongest general-purpose option for smooth non-linear timing effects; sensitive to representation/noise.
+- **FDA criteria**: useful alternatives but often require more tuning.
+- **Affine**: constrained but interpretable and fast; excellent baseline.
+- **Landmark**: highly effective when landmarks are reliable; fragile otherwise.
+
+## 7) Worked Examples (Later Detail)
+
+### 7.1 Pinch Data: Cross-method Comparison
+
+```{r pinch-compare, class.source = "fold-show"}
+pinch_small <- pinch[1:10]
+
+warp_aff <- tf_register(pinch_small, method = "affine", type = "shift")
+reg_aff <- tf_unwarp(pinch_small, warp_aff)
+
+peak_locs <- tf_landmarks_extrema(pinch_small, "max")
+warp_lm <- tf_register(pinch_small, method = "landmark", landmarks = peak_locs)
+reg_lm <- tf_unwarp(pinch_small, warp_lm)
+```
+
+```{r pinch-compare-plot, fig.width = 8, fig.height = 8}
+layout(t(matrix(1:4, 2, 2)))
+plot(pinch_small, main = "Original", col = alpha_palette, lwd = 1.5)
+plot(reg_aff, main = "Affine Registered", col = alpha_palette, lwd = 1.5)
+plot(reg_lm, main = "Landmark Registered", col = alpha_palette, lwd = 1.5)
+plot(tf_invert(warp_aff), points = FALSE, main = "Affine Inverse Warps", col = alpha_palette, lwd = 1.5)
+abline(0, 1, lty = 3)
+```
+
+```{r pinch-compare-srvf-fda, eval = have_srvf || have_fda, class.source = "fold-show"}
+if (have_srvf) {
+  warp_srvf <- tf_register(pinch_small, method = "srvf")
+  reg_srvf <- tf_unwarp(pinch_small, warp_srvf)
+}
+if (have_fda) {
+  warp_fda <- tf_register(pinch_small, method = "fda", crit = 1)
+  reg_fda <- tf_unwarp(pinch_small, warp_fda)
+}
+```
+
+### 7.2 Growth Data: Deeper Real-data Workflow
+
+```{r growth-prep-short, class.source = "fold-show"}
+growth <- tf::growth
+growth$growth <- tfb(
+  growth$height,
+  k = 20,
+  bs = "ps",
+  arg = seq(1, 18, l = 80),
+  verbose = FALSE
+) |>
+  tf_derive()
+
+if (have_srvf) {
+  growth_warp <- tf_register(growth$growth, method = "srvf")
+} else {
+  growth_warp <- tf_register(growth$growth, method = "affine", type = "shift")
+}
+growth_reg <- tf_unwarp(growth$growth, growth_warp)
+```
+
+```{r growth-plot-short}
+layout(t(1:3))
+plot(
+  growth$growth,
+  xlab = "Chronological Age [years]",
+  ylab = "Growth [cm/year]",
+  lwd = 1.2
+)
+plot(
+  tf_invert(growth_warp),
+  points = FALSE,
+  xlab = "Chronological Age",
+  ylab = "Biological Age",
+  lwd = 1.2
+)
+abline(0, 1, lty = 3)
+plot(
+  growth_reg,
+  xlab = "Biological Age [years]",
+  ylab = "Growth [cm/year]",
+  lwd = 1.2
+)
+```
+
+For larger studies, keep a diagnostics log per run (data preprocessing, method, key parameters, alignment metrics, and failure notes) so method choices are auditable and reproducible.
+
+## 8) Default Playbook (Copy/Paste)
+
+1. Start with `affine` as a baseline and inspect results.
+2. Move to `srvf` if non-linear timing misalignment remains.
+3. Use `landmark` only with high-confidence landmarks.
+4. Run diagnostics from Section 5 every time.
+5. Treat recommendations in Sections 3/4/5 as provisional pending benchmark updates.

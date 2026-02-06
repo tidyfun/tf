@@ -76,8 +76,62 @@ test_that("tf_unwarp identity works", {
   expect_identical(tf_warp(tf_unwarp(x, w, keep_new_arg = TRUE), w), x)
 })
 
+test_that("tf_warp and tf_unwarp accept tfb warps", {
+  t <- seq(-10, 10, length.out = 101)
+  x <- tfd(
+    t(sapply(c(-0.2, 0, 0.15), \(s) sin((t - s) * 0.3))),
+    arg = t
+  )
+  warp_tfd <- rep(tfd(t, arg = t), length(x))
+  warp_tfb <- suppressMessages(tfb(warp_tfd, k = 9))
+
+  expect_no_error(x_unreg <- tf_warp(x, warp_tfb))
+  expect_no_error(x_reg <- tf_unwarp(x_unreg, warp_tfb))
+  expect_s3_class(x_unreg, "tfd")
+  expect_s3_class(x_reg, "tfd")
+})
+
+test_that("tf_unwarp handles irregular grids with non-domain-preserving warps", {
+  arg_x <- list(
+    seq(0, 1, length.out = 41),
+    seq(0, 1, length.out = 73)
+  )
+  x <- tfd(
+    list(
+      sin(2 * pi * arg_x[[1]]),
+      cos(2 * pi * arg_x[[2]])
+    ),
+    arg = arg_x
+  )
+
+  warp_arg <- seq(0, 1, length.out = 101)
+  warp_tfd <- tfd(
+    rbind(
+      warp_arg + 0.15,
+      warp_arg - 0.12
+    ),
+    arg = warp_arg
+  )
+  warp_tfb <- suppressMessages(tfb(warp_tfd, k = 9))
+
+  ret_irreg <- tf_unwarp(x, warp_tfd, keep_new_arg = TRUE)
+  expect_s3_class(ret_irreg, "tfd_irreg")
+  expect_length(ret_irreg, length(x))
+  expect_identical(tf_domain(ret_irreg), tf_domain(x))
+
+  ret_irreg_tfb <- tf_unwarp(x, warp_tfb, keep_new_arg = TRUE)
+  expect_s3_class(ret_irreg_tfb, "tfd_irreg")
+  expect_length(ret_irreg_tfb, length(x))
+  expect_identical(tf_domain(ret_irreg_tfb), tf_domain(x))
+
+  ret_grid <- tf_unwarp(x, warp_tfd, keep_new_arg = FALSE)
+  expect_length(ret_grid, length(x))
+  expect_identical(tf_domain(ret_grid), tf_domain(x))
+})
+
 test_that("tf_register works", {
   skip_if_not_installed("fdasrvf")
+  skip_if_not_installed("fda")
   withr::local_seed(1234)
 
   n_curves <- 10
@@ -218,11 +272,198 @@ test_that("tf_landmarks_extrema finds correct extrema locations", {
   expect_equal(dim(minima), c(3, 1))
   expect_equal(as.numeric(minima), expected_min, tolerance = 0.1)
 
-  # Both: maxima in col 1, minima in col 2
+  # Both: sorted left-to-right, so col 1 = max (near pi/2), col 2 = min (near 3*pi/2)
   both <- tf_landmarks_extrema(x, "both")
   expect_equal(dim(both), c(3, 2))
   expect_equal(both[, 1], maxima[, 1])
   expect_equal(both[, 2], minima[, 1])
+  # feature_types attribute tracks what each column is
+  expect_equal(attr(both, "feature_types"), c("max", "min"))
+})
+
+test_that("tf_landmarks_extrema detects all local extrema and zero crossings", {
+  t <- seq(0, 2, length.out = 201)
+  # 2-period sine: 2 maxima, 2 minima, 3 interior zero crossings
+  template <- sin(2 * pi * t)
+  x <- tfd(
+    t(sapply(c(0, 0.03, -0.03), function(s) {
+      approx(t, template, xout = t + s, rule = 2)$y
+    })),
+    arg = t
+  )
+
+  lm_all <- tf_landmarks_extrema(x, "all", smooth = FALSE)
+  types <- attr(lm_all, "feature_types")
+  # Should have 7 landmarks: 2 max + 2 min + 3 zero crossings
+  expect_true(ncol(lm_all) >= 5)
+  # Each row should be sorted
+  for (i in seq_len(nrow(lm_all))) {
+    non_na <- lm_all[i, !is.na(lm_all[i, ])]
+    expect_true(all(diff(non_na) > 0))
+  }
+  # Types should include max, min, and zero
+  expect_true("max" %in% types)
+  expect_true("min" %in% types)
+  expect_true("zero" %in% types)
+})
+
+test_that("tf_landmarks_extrema drops boundary features", {
+  t <- seq(0, 1, length.out = 101)
+  # Sigbump: min at boundary (t=0), max at interior (t~0.7)
+  vals <- pnorm(t, 0.2, 0.03) + 0.3 * dnorm(t, 0.7, 0.08) - 0.5
+  x <- tfd(
+    t(sapply(c(0, 0.02, -0.02), function(s) {
+      approx(t, vals, xout = t + s, rule = 2)$y
+    })),
+    arg = t
+  )
+
+  lm <- tf_landmarks_extrema(x, "both", smooth = FALSE)
+  # Should have 1 column (just the interior max, boundary min dropped)
+  expect_equal(ncol(lm), 1)
+  expect_equal(attr(lm, "feature_types"), "max")
+  # Max should be near 0.7
+  expect_true(all(abs(lm[, 1] - 0.7) < 0.05, na.rm = TRUE))
+})
+
+test_that("tf_landmarks_extrema detects landmarks on irregular tfd", {
+  # Create 4 curves with shifted peaks on different (irregular) grids
+  set.seed(123)
+  peak_locs <- c(0.4, 0.5, 0.6, 0.45)
+  arg_list <- lapply(1:4, function(i) sort(c(0, 1, runif(80))))
+  vals_list <- lapply(seq_along(peak_locs), function(i) {
+    dnorm(arg_list[[i]], mean = peak_locs[i], sd = 0.1)
+  })
+  x_irr <- tfd(vals_list, arg = arg_list)
+  expect_true(inherits(x_irr, "tfd_irreg"))
+
+  # Landmark detection should find the peak for each curve on its own grid
+  lm <- tf_landmarks_extrema(x_irr, "max", smooth = FALSE)
+  expect_true(is.matrix(lm))
+  expect_equal(nrow(lm), 4)
+  expect_equal(ncol(lm), 1)
+  # Detected peaks should be close to true peak locations
+  expect_equal(as.numeric(lm), peak_locs, tolerance = 0.05)
+
+  # "both" should also work -- min is at boundary, so only max remains
+  lm_both <- tf_landmarks_extrema(x_irr, "both", smooth = FALSE)
+  expect_equal(ncol(lm_both), 1)
+  expect_equal(attr(lm_both, "feature_types"), "max")
+
+  # Detected landmarks can be used for registration after converting to
+  # regular tfd (tf_register requires tfd_reg)
+  x_reg <- tfd(x_irr, arg = seq(0, 1, length.out = 101))
+  warp <- tf_register(x_reg, method = "landmark", landmarks = lm)
+  aligned <- tf_unwarp(x_reg, warp)
+  aligned_peaks <- tf_where(aligned, value == max(value), "first")
+  # All peaks should be near the mean landmark (~0.4875)
+  expect_equal(aligned_peaks, rep(mean(peak_locs), 4), tolerance = 0.03)
+})
+
+test_that("register_landmark handles NA landmarks correctly", {
+  set.seed(42)
+  t <- seq(0, 1, length.out = 101)
+  # 5 curves with a peak near 0.5, shifted slightly
+  peak_locs <- c(0.4, 0.45, 0.5, 0.55, 0.6)
+  x <- tfd(t(sapply(peak_locs, function(p) dnorm(t, p, 0.08))), arg = t)
+
+  # Landmark matrix: 5 curves, 2 landmark columns
+
+  # Curves 1-3 have both landmarks; curves 4-5 are missing the second landmark
+  lm_mat <- matrix(NA_real_, nrow = 5, ncol = 2)
+  lm_mat[, 1] <- peak_locs
+  lm_mat[1:3, 2] <- c(0.75, 0.78, 0.80)
+  # Rows 4 and 5 have NA in column 2
+
+  # Registration succeeds (NA-aware path in register_landmark)
+  warp <- tf_register(x, method = "landmark", landmarks = lm_mat)
+  expect_s3_class(warp, "tfd")
+  expect_length(warp, 5)
+
+  # All warps should be strictly increasing
+  warp_evals <- tf_evaluations(warp)
+  for (i in seq_len(5)) {
+    expect_true(
+      all(diff(warp_evals[[i]]) > 0),
+      info = paste("Warp", i, "is not strictly increasing")
+    )
+  }
+
+  # Warps should map domain endpoints to themselves
+  domain <- tf_domain(x)
+  for (i in seq_len(5)) {
+    vals <- warp_evals[[i]]
+    expect_equal(vals[1], domain[1])
+    expect_equal(vals[length(vals)], domain[2])
+  }
+})
+
+test_that("tf_landmarks_extrema threshold parameter filters rare features", {
+  set.seed(101)
+  t <- seq(0, 1, length.out = 201)
+
+  # 5 curves: all have a main peak near 0.4, but only curve 1 has a
+
+  # secondary peak near 0.8. Built from two Gaussian bumps.
+  make_curve <- function(main_peak, add_secondary = FALSE) {
+    y <- dnorm(t, main_peak, 0.06)
+    if (add_secondary) {
+      y <- y + 0.8 * dnorm(t, 0.8, 0.04)
+    }
+    y
+  }
+  vals <- rbind(
+    make_curve(0.38, add_secondary = TRUE),
+    make_curve(0.40),
+    make_curve(0.42),
+    make_curve(0.39),
+    make_curve(0.41)
+  )
+  x <- tfd(vals, arg = t)
+
+  # threshold = 0.5 -> need feature in >= 3 of 5 curves -> only main peak
+  lm_strict <- tf_landmarks_extrema(x, "max", smooth = FALSE, threshold = 0.5)
+  expect_true(is.matrix(lm_strict))
+  expect_equal(ncol(lm_strict), 1)
+  # Single landmark should be near 0.4
+  expect_true(all(abs(lm_strict[, 1] - 0.4) < 0.1, na.rm = TRUE))
+
+  # threshold = 0.2 -> need feature in >= 1 of 5 curves -> both peaks
+  # Warns about missing landmarks (4 curves lack the secondary peak)
+  expect_warning(
+    lm_loose <- tf_landmarks_extrema(x, "max", smooth = FALSE, threshold = 0.2),
+    "missing landmark"
+  )
+  expect_true(is.matrix(lm_loose))
+  expect_equal(ncol(lm_loose), 2)
+  # Column 1 should be the main peak near 0.4, column 2 near 0.8
+  expect_true(all(abs(lm_loose[, 1] - 0.4) < 0.1, na.rm = TRUE))
+  expect_true(any(abs(lm_loose[, 2] - 0.8) < 0.1, na.rm = TRUE))
+})
+
+test_that("tf_landmarks_extrema warns when no stable landmarks found", {
+  set.seed(202)
+  t <- seq(0, 1, length.out = 101)
+
+  # Constant functions: no extrema, no zero crossings -> 0 landmarks
+  x_const <- tfd(rbind(rep(1, 101), rep(2, 101), rep(3, 101)), arg = t)
+
+  expect_warning(
+    lm <- tf_landmarks_extrema(x_const, "max", smooth = FALSE),
+    "No stable landmarks"
+  )
+  expect_true(is.matrix(lm))
+  expect_equal(ncol(lm), 0)
+  expect_equal(nrow(lm), 3)
+  expect_equal(attr(lm, "feature_types"), character(0))
+
+  # Also test with "both" (max + min)
+  expect_warning(
+    lm_both <- tf_landmarks_extrema(x_const, "both", smooth = FALSE),
+    "No stable landmarks"
+  )
+  expect_equal(ncol(lm_both), 0)
+  expect_equal(nrow(lm_both), 3)
 })
 
 test_that("tf_register landmark methodvalidates input", {
@@ -252,7 +493,7 @@ test_that("tf_register landmark methodvalidates input", {
       method = "landmark",
       landmarks = matrix(c(-0.1, 1.1), ncol = 1)
     ),
-    "within the domain"
+    "strictly inside the domain"
   )
 
   # Template landmarks wrong length
@@ -415,11 +656,17 @@ test_that("tf_register affine methodregistered functions may have NA at boundari
   # Function shifted backward (negative shift in original) will have NA at end
   evals <- tf_evaluations(x_aligned)
 
-  # Check that at least some functions have NA values
-  # (this depends on whether the shift was large enough)
-  has_na <- sapply(evals, anyNA)
-  # At least one function should have NA if shifts are recovered
-  expect_true(any(has_na) || all(sapply(evals, function(e) all(!is.na(e)))))
+  # Large shifts produce non-domain-preserving warps. Depending on
+  # extrapolation behavior, some curves may have NA at boundaries.
+  # Verify the unwarp didn't silently drop curves or change length.
+  expect_length(evals, length(true_shifts))
+  # Warp values should extend outside domain for shifted functions
+  warp_evals <- tf_evaluations(warp)
+  warp_ranges <- vapply(warp_evals, range, numeric(2))
+  expect_true(
+    any(warp_ranges[1, ] < tf_domain(x)[1]) ||
+      any(warp_ranges[2, ] > tf_domain(x)[2])
+  )
 })
 
 test_that("tf_register affine method shift aligns functions to template", {

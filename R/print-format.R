@@ -121,7 +121,8 @@ spark_rep_tf <- function(
 print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> map_chr(format, ...)
   evals <- unlist(tf_evaluations(x), use.names = FALSE)
-  range <- if (!is.null(evals)) range(tf_evaluations(x), na.rm = TRUE) else c(NA, NA)
+  range <- if (!is.null(evals)) range(tf_evaluations(x), na.rm = TRUE) else
+    c(NA, NA)
   range <- range |> map_chr(format, ...) |> suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),

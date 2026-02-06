@@ -23,6 +23,8 @@ alpha_palette <- c("#00000080", "#DF536B80", "#61D04F80", "#2297E680", "#28E2E58
 
 ```
 
+> **Note (new practical vignette):** For a more accessible, action-first guide with explicit method selection and diagnostic workflow, see `registration2.Rmd`. Method-selection advice is currently provisional and may be revised after the ongoing benchmark study comparing registration methods.
+
 Functional data registration is a pre-processing technique that *aligns* functional observations by removing phase variation (timing differences) while preserving amplitude variation (shape differences). Misalignment of curves makes it difficult to distinguish between these two sources of variability. Registration separates phase and amplitude variation, enabling a clearer analysis of structural differences among curves.
 
 The basic idea is that, in the simplest case, the observed curves $x_i(t)$ observed at times $t$ are elastically deformed versions of a common template function $m(s)$ with system time $s$: $x_i(t) = m(h_i(s)) = m(h_i^{-1}(t))$, with a strictly monotone increasing *warping function* $h_i(s)$ that maps the original "system" time argument $s$ of the template function to the observed "wall-clock" time argument $t$ of $x_i(t)$. Where the slope of $h(s)$ is below 1, observed time is sped up relative to the system time (i.e., the graph of the template function gets squished together in the horizontal direction), where the slope of $h(s)$ is above 1, observed time is slowed down relative to the system time (i.e., the graph of the template function is stretched out in the horizontal direction).  
@@ -200,8 +202,12 @@ plot(
   lwd = 1.5,
   col = alpha_palette
 )
-# Mark peak locations (peak_locations contains arg, tf_fmax gives the values)
-points(peak_locations, tf_fmax(pinch), pch = 19)
+# Mark the main peak (force maximum) for each curve
+arg_vals <- as.numeric(tf_arg(pinch))
+for (i in seq_along(pinch)) {
+  evals <- tf_evaluations(pinch)[[i]]
+  points(arg_vals[which.max(evals)], max(evals), pch = 19)
+}
 
 plot(
   tf_invert(pinch_warp_lm),

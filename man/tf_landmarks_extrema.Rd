@@ -4,24 +4,52 @@
 \alias{tf_landmarks_extrema}
 \title{Find Extrema Locations in Functional Data}
 \usage{
-tf_landmarks_extrema(x, which = c("max", "min", "both"))
+tf_landmarks_extrema(
+  x,
+  which = "all",
+  smooth = TRUE,
+  threshold = 0.5,
+  boundary_tol = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{a \code{tf} vector.}
 
-\item{which}{character specifying which extrema to find: \code{"max"} for maxima,
-\code{"min"} for minima, or \code{"both"} for both (maxima first, then minima).}
+\item{which}{character: which features to detect. Either \code{"all"} (maxima,
+minima, and zero crossings), \code{"both"} (maxima and minima), or any subset
+of \code{c("max", "min", "zero")}.}
+
+\item{smooth}{logical: if \code{TRUE} (default for \code{tfd}), smooth curves with
+\code{\link[=tf_smooth]{tf_smooth()}} before feature detection to suppress spurious noise peaks.}
+
+\item{threshold}{numeric in (0, 1]: minimum proportion of curves that must
+contain a feature for it to be retained as a landmark. Defaults to \code{0.5}.}
+
+\item{boundary_tol}{numeric: features within this distance of the domain
+boundary are dropped (they are redundant with the boundary anchors in
+landmark registration). Defaults to 2x the grid spacing. Set to \code{0} to
+keep all features.}
+
+\item{...}{additional arguments passed to \code{\link[=tf_smooth]{tf_smooth()}}.}
 }
 \value{
-A numeric matrix with one row per function containing the
-locations (arg values) of the specified extrema.
+A numeric matrix with one row per function and one column per
+landmark, sorted left-to-right on the domain. Has attribute
+\code{"feature_types"} (character vector of \code{"max"}, \code{"min"}, or \code{"zero"} for
+each column). Contains \code{NA} where a curve is missing a landmark.
 }
 \description{
-Helper function that finds the locations of extrema (maxima and/or minima)
-in each function. Useful for landmark registration via \code{\link[=tf_register]{tf_register()}}.
+Find landmark locations for registration
+}
+\details{
+Detects local maxima, minima, and/or zero crossings in each function and
+returns a landmark matrix suitable for \code{\link[=tf_register]{tf_register()}} with
+\code{method = "landmark"}. Uses position-based clustering across curves to
+establish feature correspondence and majority-count filtering to discard
+unstable landmarks.
 }
 \examples{
-# Create functions with shifted peaks
 t <- seq(0, 1, length.out = 101)
 x <- tfd(t(sapply(c(0.3, 0.5, 0.7), function(s) dnorm(t, s, 0.1))), arg = t)
 tf_landmarks_extrema(x, "max")
