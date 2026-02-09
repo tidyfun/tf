@@ -34,7 +34,11 @@ assert_same_domains <- function(x, to) {
 assert_arg <- function(arg, x, check_unique = TRUE) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
-    walk(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
+    walk(arg, \(arg) {
+      if (!is.null(arg)) {
+        assert_arg_vector(arg, x = x, check_unique = check_unique)
+      }
+    })
   } else {
     assert_arg_vector(arg, x, check_unique = check_unique)
   }

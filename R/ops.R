@@ -274,7 +274,10 @@ tfd_op_tfd <- function(op, x, y) {
     ))
   }
 
-  evals_ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+  evals_ret <- map2(x_, y_, \(x, y) {
+    if (is.null(x) || is.null(y)) return(rep(NA_real_, max(length(x), length(y), lengths(arg_ret)[1])))
+    do.call(op, list(x, y))
+  })
   if (vec_size(x) >= vec_size(y)) {
     names(evals_ret) <- names(x)
   } else {
@@ -306,9 +309,16 @@ tfd_op_tfd <- function(op, x, y) {
 
 tfd_op_numeric <- function(op, x, y, ...) {
   assert_compatible_size(op, x, y)
-  ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
+  ret <- map2(tf_evaluations(x), y, \(x, y) {
+    if (is.null(x)) return(NULL)
+    result <- do.call(op, list(x, y))
+    if (allMissing(result)) NULL else result
+  })
   if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, \(.arg, .ret) list(arg = .arg, value = .ret))
+    ret <- map2(tf_arg(x), ret, \(.arg, .ret) {
+      if (is.null(.ret)) return(NULL)
+      list(arg = .arg, value = .ret)
+    })
   }
   attributes(ret) <- attributes(x)
   if (vec_size(y) > 1) {
@@ -320,9 +330,16 @@ tfd_op_numeric <- function(op, x, y, ...) {
 # some code-duplication here, this makes non-commutative ops work for tfd and numeric
 numeric_op_tfd <- function(op, x, y) {
   assert_compatible_size(op, x, y)
-  ret <- map2(x, tf_evaluations(y), \(x, y) do.call(op, list(x, y)))
+  ret <- map2(x, tf_evaluations(y), \(x, y) {
+    if (is.null(y)) return(NULL)
+    result <- do.call(op, list(x, y))
+    if (allMissing(result)) NULL else result
+  })
   if (is_irreg(y)) {
-    ret <- map2(tf_arg(y), ret, \(.arg, .ret) list(arg = .arg, value = .ret))
+    ret <- map2(tf_arg(y), ret, \(.arg, .ret) {
+      if (is.null(.ret)) return(NULL)
+      list(arg = .arg, value = .ret)
+    })
   }
   attributes(ret) <- attributes(y)
   if (vec_size(x) > 1) {
@@ -340,7 +357,11 @@ tfb_multdiv_numeric <- function(op, x, y) {
     return(tfb_op_numeric(op, x, y))
   }
   # if not, * and / can simply be applied to the basis coefficients:
-  ret <- map2(vec_data(x), y, \(x, y) do.call(op, list(e1 = x, e2 = y)))
+  ret <- map2(vec_data(x), y, \(x, y) {
+    if (is.null(x)) return(NULL)
+    result <- do.call(op, list(e1 = x, e2 = y))
+    if (allMissing(result)) NULL else result
+  })
   attributes(ret) <- attributes(x)
   ret
 }
@@ -350,6 +371,14 @@ tfb_op_numeric <- function(op, x, y) {
     "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
   eval <- tfd_op_numeric(op, tfd(x), y)
+  na_entries <- is.na(eval)
+  if (all(na_entries)) return(eval)
+  if (any(na_entries)) {
+    rebased <- tf_rebase(eval[!na_entries], x[!na_entries], penalized = FALSE, verbose = FALSE)
+    result <- eval
+    result[!na_entries] <- rebased
+    return(result)
+  }
   tf_rebase(eval, x, penalized = FALSE, verbose = FALSE)
   #TODO: restore sp afterwards so all properties are preserved?
 }
@@ -359,6 +388,14 @@ numeric_op_tfb <- function(op, x, y) {
     "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
   eval <- numeric_op_tfd(op, x, tfd(y))
+  na_entries <- is.na(eval)
+  if (all(na_entries)) return(eval)
+  if (any(na_entries)) {
+    rebased <- tf_rebase(eval[!na_entries], y[!na_entries], penalized = FALSE, verbose = FALSE)
+    result <- eval
+    result[!na_entries] <- rebased
+    return(result)
+  }
   tf_rebase(eval, y, penalized = FALSE, verbose = FALSE) #TODO: see tfb_op_numeric
 }
 
@@ -368,6 +405,14 @@ tfb_op_tfb <- function(op, x, y) {
   )
   eval <- tfd_op_tfd(op, tfd(x), tfd(y))
   ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)
+  na_entries <- is.na(eval)
+  if (all(na_entries)) return(eval)
+  if (any(na_entries)) {
+    rebased <- tf_rebase(eval[!na_entries], ret_ptype, penalized = FALSE, verbose = FALSE)
+    result <- eval
+    result[!na_entries] <- rebased
+    return(result)
+  }
   tf_rebase(eval, ret_ptype, penalized = FALSE, verbose = FALSE) #TODO: see tfb_op_numeric
 }
 
@@ -400,7 +445,11 @@ tfb_plusminus_tfb <- function(op, x, y) {
   ret <- map2(
     vec_data(x),
     vec_data(y),
-    \(x, y) do.call(op, list(e1 = x, e2 = y))
+    \(x, y) {
+      if (is.null(x) || is.null(y)) return(NULL)
+      result <- do.call(op, list(e1 = x, e2 = y))
+      if (allMissing(result)) NULL else result
+    }
   )
   attributes(ret) <- if (vec_size(x) >= vec_size(y)) {
     attributes(x)

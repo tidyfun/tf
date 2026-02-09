@@ -66,28 +66,25 @@ new_tfd <- function(
       datalist,
       arg,
       function(x, y) {
+        if (is.null(x) || allMissing(x)) return(NULL)
         this_arg <- unname(y[!is.na(x)])
         list(arg = this_arg, value = unname(x[!is.na(x)]))
       }
     )
-    n_evals <- map(datalist, \(x) length(x$value))
-    if (any(n_evals == 0)) {
+    n_null <- sum(map_lgl(datalist, is.null))
+    if (n_null > 0) {
       cli::cli_warn(
-        "{sum(n_evals == 0)} {.code NA} entries (empty functions) created."
+        "{n_null} {.code NA} entries (empty functions) created."
       )
     }
-    datalist <- map_if(
-      datalist,
-      n_evals == 0,
-      \(x) list(arg = domain[1], value = NA)
-    )
     arg <- numeric(0)
     class <- "tfd_irreg"
   } else {
-    nas <- map_lgl(datalist, anyNA)
+    nas <- map_lgl(datalist, \(x) is.null(x) || allMissing(x))
     if (any(nas)) {
       cli::cli_warn("{sum(nas)} {.code NA} entries (empty functions) created.")
     }
+    datalist <- map_if(datalist, nas, \(x) NULL)
     arg <- list(arg[[1]])
     class <- "tfd_reg"
   }
@@ -345,17 +342,32 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
   domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |>
     range()
   re_eval <- !is.null(arg)
+  na_mask <- is.na(data)
   arg <- ensure_list(arg %||% tf_arg(data))
-  evaluations <- if (re_eval) {
+
+  if (any(na_mask) && re_eval) {
+    # process only non-NA entries, keep NULLs for NA entries
     evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
-    tf_evaluate(data, arg = arg, evaluator = evaluator_f)
+    if (all(na_mask)) {
+      evaluations <- vector("list", length(data))
+      evaluations[] <- list(NULL)
+    } else {
+      non_na_evals <- tf_evaluate(data[!na_mask], arg = arg, evaluator = evaluator_f)
+      evaluations <- vector("list", length(data))
+      evaluations[!na_mask] <- non_na_evals
+      evaluations[na_mask] <- list(NULL)
+    }
+  } else if (re_eval) {
+    evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
+    evaluations <- tf_evaluate(data, arg = arg, evaluator = evaluator_f)
   } else {
-    tf_evaluations(data)
+    evaluations <- tf_evaluations(data)
   }
-  nas <- map(evaluations, \(x) which(is.na(x)))
+  # handle NAs within non-NULL evaluations (e.g. from interpolation outside domain)
+  non_null <- !map_lgl(evaluations, is.null)
+  nas <- map(evaluations[non_null], \(x) which(is.na(x)))
   if (re_eval && any(lengths(nas))) {
-    evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
-    # check if all NAs occur at the same args and try to make a regular tfd if so
+    fixed_evals <- map2(evaluations[non_null], nas, \(x, y) if (length(y)) x[-y] else x)
     na_args <- map2(arg, nas, \(x, y) x[y])
     if (!all(duplicated(na_args)[-1])) {
       cli::cli_warn(c(
@@ -375,6 +387,7 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
       nas <- nas[1]
     }
     arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+    evaluations[non_null] <- fixed_evals
   }
   names(evaluations) <- names(data)
   new_tfd(
@@ -431,7 +444,10 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
-  ret <- map2(tf_evaluations(data), arg, \(x, y) list(arg = y, value = x))
+  ret <- map2(tf_evaluations(data), arg, \(x, y) {
+    if (is.null(x)) return(NULL)
+    list(arg = y, value = x)
+  })
   attributes(ret) <- attributes(data)
   attr(ret, "arg") <- numeric(0)
   class(ret)[1] <- "tfd_irreg"
