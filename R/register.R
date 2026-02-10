@@ -901,12 +901,15 @@ build_landmark_matrix <- function(features, clusters, n, bandwidth) {
     f <- features[[i]]
     if (nrow(f) == 0) next
     used <- logical(nrow(f))
+    prev_pos <- -Inf
     for (j in seq_len(k)) {
-      # Find features of matching type within bandwidth, not yet assigned
+      # Find features of matching type within bandwidth, not yet assigned,
+      # and strictly after the previous matched position (ensures monotonicity)
       matches <- which(
         abs(f$position - clusters$center[j]) <= bandwidth &
           f$type == clusters$type[j] &
-          !used
+          !used &
+          f$position > prev_pos
       )
       if (length(matches) > 0) {
         best <- matches[which.min(abs(
@@ -914,6 +917,7 @@ build_landmark_matrix <- function(features, clusters, n, bandwidth) {
         ))]
         lm_mat[i, j] <- f$position[best]
         used[best] <- TRUE
+        prev_pos <- f$position[best]
       }
     }
   }
