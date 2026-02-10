@@ -394,7 +394,12 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
       ))
       nas <- nas[1]
     }
-    arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+    if (length(arg) > 1) {
+      pruned <- map2(arg[non_null], nas, \(x, y) if (length(y)) x[-y] else x)
+      arg[non_null] <- pruned
+    } else {
+      arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+    }
     evaluations[non_null] <- fixed_evals
   }
   names(evaluations) <- names(data)
