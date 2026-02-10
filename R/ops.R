@@ -275,7 +275,7 @@ tfd_op_tfd <- function(op, x, y) {
   }
 
   evals_ret <- map2(x_, y_, \(x, y) {
-    if (is.null(x) || is.null(y)) return(rep(NA_real_, max(length(x), length(y), lengths(arg_ret)[1])))
+    if (is.null(x) || is.null(y)) return(NULL)
     do.call(op, list(x, y))
   })
   if (vec_size(x) >= vec_size(y)) {

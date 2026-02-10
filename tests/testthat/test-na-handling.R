@@ -67,6 +67,16 @@ test_that("tfd + tfd propagates NULL entries", {
   expect_false(is.na(z)[1])
 })
 
+test_that("all-NA irregular tfd + tfd preserves vector size", {
+  x <- tfd(list(c(1, 2, 3), c(4, 5, 6)),
+           arg = list(c(0, 0.5, 1), c(0, 0.3, 1)))
+  x[] <- NA
+  y <- suppressWarnings(x + x)
+  expect_length(y, 2)
+  expect_equal(is.na(y), c(TRUE, TRUE), ignore_attr = "names")
+  for (i in seq_along(y)) expect_null(unclass(y)[[i]])
+})
+
 test_that("irregular arithmetic with NA_real_ produces NULL entries", {
   set.seed(1234)
   x <- tf_rgp(3) |> tf_sparsify(0.6)
