@@ -174,6 +174,8 @@ test_that("data.frame constructor handles all-NA rows", {
   expect_no_error(print(x))
 })
 
+# --- tf_arg accessor for tfd_irreg with NAs ---
+
 test_that("tf_arg returns numeric(0) for NA entries in tfd_irreg", {
   x <- tfd(
     list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
@@ -193,7 +195,6 @@ test_that("tfd_irreg with NA survives round-trip via tf_arg", {
     arg = list(c(0, 0.5, 1), c(0, 0.3, 1), c(0, 0.7, 1))
   )
   x[2] <- NA
-  # This previously crashed with "argument 1 is not a vector" from order(NULL)
   y <- suppressWarnings(tfd(x, arg = tf_arg(x)))
   expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
   expect_s3_class(y, "tfd_irreg")
@@ -211,12 +212,43 @@ test_that("tf_fmean works on tfd_irreg with NA entries", {
   expect_false(is.na(result[3]))
 })
 
-test_that("tfd.tf re-eval with shared arg and different extrapolation NAs works", {
-  # Sparse irregular data where different functions have different domains.
-  # When re-evaluated on a common grid, extrapolation produces NAs at
+# --- tfd.tf re-evaluation with NAs: systematic test matrix ---
+# Tests cover all combinations of:
+#   shared vs per-function arg
+#   with vs without NULL entries
+#   same vs different extrapolation NAs vs no extrapolation NAs
+# This exercises the normalize-prune-collapse logic in tfd.tf lines 370-418.
 
-  # different positions per function. With one NA entry, the shared arg must
-  # expand to a per-function arg list aligned to all entries (including NULLs).
+test_that("re-eval: shared arg, no NULLs, no extrapolation NAs", {
+  x <- tfd(list(c(1, 2, 3), c(4, 5, 6)),
+           arg = list(c(0, 0.5, 1), c(0, 0.5, 1)))
+  y <- tfd(x, arg = seq(0, 1, length.out = 11))
+  expect_s3_class(y, "tfd_reg")
+  expect_equal(is.na(y), c(FALSE, FALSE), ignore_attr = "names")
+})
+
+test_that("re-eval: shared arg, with NULLs, no extrapolation NAs", {
+  x <- tfd(list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+           arg = list(c(0, 0.5, 1), c(0, 0.5, 1), c(0, 0.5, 1)))
+  x[2] <- NA
+  y <- suppressWarnings(tfd(x, arg = seq(0, 1, length.out = 11)))
+  expect_s3_class(y, "tfd_reg")
+  expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_null(unclass(y)[[2]])
+})
+
+test_that("re-eval: shared arg, with NULLs, same extrapolation NAs", {
+  # All non-NULL functions have same domain, so same NAs on wider grid
+  x <- tfd(list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+           arg = list(c(0.1, 0.5, 0.9), c(0.1, 0.5, 0.9), c(0.1, 0.5, 0.9)))
+  x[2] <- NA
+  y <- suppressWarnings(tfd(x, arg = seq(0.1, 0.9, length.out = 11)))
+  expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_null(unclass(y)[[2]])
+})
+
+test_that("re-eval: shared arg, with NULLs, different extrapolation NAs", {
+  # Functions have different original domains -> different extrapolation NAs
   x <- tfd(
     list(c(1, 2, 3, 4, 5), c(6, 7, 8, 9, 10), c(11, 12, 13, 14, 15)),
     arg = list(
@@ -226,9 +258,72 @@ test_that("tfd.tf re-eval with shared arg and different extrapolation NAs works"
     )
   )
   x[2] <- NA
-  # Re-evaluate on a common dense grid — entry 3 will have extrapolation NAs
-  # at the edges (original domain was [0.1, 0.9]) while entry 1 won't
   y <- suppressWarnings(tfd(x, arg = seq(0, 1, length.out = 21)))
   expect_s3_class(y, "tfd_irreg")
   expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_null(unclass(y)[[2]])
+})
+
+test_that("re-eval: shared arg, no NULLs, different extrapolation NAs", {
+  # No NULL entries, but different arg ranges -> different extrapolation NAs
+  # Domain is [0.1, 0.9] (union). Grid within domain but outside individual ranges.
+  x <- tfd(
+    list(c(1, 2, 3), c(4, 5, 6)),
+    arg = list(c(0.1, 0.5, 0.9), c(0.2, 0.5, 0.8))
+  )
+  y <- suppressWarnings(tfd(x, arg = seq(0.1, 0.9, length.out = 11)))
+  expect_s3_class(y, "tfd_irreg")
+  expect_false(any(is.na(y)))
+})
+
+test_that("re-eval: per-function arg, with NULLs, no extrapolation NAs", {
+  x <- tfd(list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+           arg = list(c(0, 0.5, 1), c(0, 0.3, 1), c(0, 0.7, 1)))
+  x[2] <- NA
+  new_args <- list(
+    seq(0, 1, length.out = 11),
+    seq(0, 1, length.out = 11),
+    seq(0, 1, length.out = 11)
+  )
+  y <- suppressWarnings(tfd(x, arg = new_args))
+  expect_s3_class(y, "tfd_irreg")
+  expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_null(unclass(y)[[2]])
+})
+
+test_that("re-eval: per-function arg, with NULLs, different extrapolation NAs", {
+  x <- tfd(
+    list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+    arg = list(c(0.1, 0.5, 0.9), c(0, 0.5, 1.0), c(0.2, 0.5, 0.8))
+  )
+  x[2] <- NA
+  new_args <- list(
+    seq(0, 1, length.out = 11),
+    seq(0, 1, length.out = 11),
+    seq(0, 1, length.out = 11)
+  )
+  y <- suppressWarnings(tfd(x, arg = new_args))
+  expect_s3_class(y, "tfd_irreg")
+  expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_null(unclass(y)[[2]])
+})
+
+test_that("re-eval: all NULLs", {
+  x <- tfd(list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+           arg = list(c(0, 0.5, 1), c(0, 0.5, 1), c(0, 0.5, 1)))
+  x[1:3] <- NA
+  y <- suppressWarnings(tfd(x, arg = seq(0, 1, length.out = 11)))
+  expect_equal(is.na(y), c(TRUE, TRUE, TRUE), ignore_attr = "names")
+})
+
+test_that("re-eval: single non-NULL entry with extrapolation NAs", {
+  x <- tfd(
+    list(c(1, 2, 3), c(4, 5, 6)),
+    arg = list(c(0.1, 0.5, 0.9), c(0.1, 0.5, 0.9))
+  )
+  x[1] <- NA
+  y <- suppressWarnings(tfd(x, arg = seq(0.1, 0.9, length.out = 11)))
+  expect_true(is.na(y)[1])
+  expect_null(unclass(y)[[1]])
+  expect_false(is.na(y)[2])
 })

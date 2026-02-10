@@ -371,45 +371,50 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
   non_null <- !map_lgl(evaluations, is.null)
   nas <- map(evaluations[non_null], \(x) which(is.na(x)))
   if (re_eval && any(lengths(nas))) {
-    fixed_evals <- map2(
-      evaluations[non_null], nas, \(x, y) if (length(y)) x[-y] else x
-    )
-    # use arg subset to match non-null entries
-    arg_non_null <- if (length(arg) > 1) arg[non_null] else arg
-    na_args <- map2(arg_non_null, nas, \(x, y) x[y])
-    if (!all(duplicated(na_args)[-1])) {
+    n <- length(evaluations)
+    was_shared <- length(arg) == 1
+
+    # normalize arg to per-function (length n) for uniform processing
+    if (was_shared) {
+      full_arg <- vector("list", n)
+      full_arg[non_null] <- list(arg[[1]])
+      full_arg[!non_null] <- list(numeric(0))
+    } else {
+      full_arg <- arg
+    }
+
+    # extract NA arg positions for warning (before pruning)
+    na_arg_vals <- map2(full_arg[non_null], nas, \(x, y) x[y])
+    same_nas <- all(duplicated(na_arg_vals)[-1])
+    n_na <- length(unlist(nas, use.names = FALSE))
+
+    if (!same_nas) {
       cli::cli_warn(c(
-        i = "{length(unlist(nas, use.names = FALSE))} evaluations were {.code NA}",
+        i = "{n_na} evaluations were {.code NA}",
         x = "Returning irregular {.cls tfd}."
       ))
     } else {
-      na_arg_string <- prettyNum(na_args[[1]]) |> paste(collapse = ", ")
+      na_arg_string <- prettyNum(na_arg_vals[[1]]) |> paste(collapse = ", ")
       if (nchar(na_arg_string) > options()$width) {
         na_arg_string <- substr(na_arg_string, 1, options()$width - 15) |>
           paste0("[... truncated]")
       }
       cli::cli_warn(c(
-        i = "All {length(unlist(nas, use.names = FALSE))} evaluations on {.code arg = ({na_arg_string})} were {.code NA}",
+        i = "All {n_na} evaluations on {.code arg = ({na_arg_string})} were {.code NA}",
         x = "Returning regular data {.cls tfd_reg} on the reduced grid."
       ))
-      nas <- nas[1]
     }
-    if (length(arg) > 1) {
-      pruned <- map2(arg[non_null], nas, \(x, y) if (length(y)) x[-y] else x)
-      arg[non_null] <- pruned
-    } else {
-      pruned <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
-      if (length(pruned) > 1) {
-        # shared arg pruned differently per function -> per-function arg list
-        full_arg <- vector("list", length(evaluations))
-        full_arg[] <- list(numeric(0))
-        full_arg[non_null] <- pruned
-        arg <- full_arg
-      } else {
-        arg <- pruned
-      }
-    }
-    evaluations[non_null] <- fixed_evals
+
+    # prune NAs from arg and evaluations (non-null entries only)
+    full_arg[non_null] <- map2(
+      full_arg[non_null], nas, \(x, y) if (length(y)) x[-y] else x
+    )
+    evaluations[non_null] <- map2(
+      evaluations[non_null], nas, \(x, y) if (length(y)) x[-y] else x
+    )
+
+    # collapse back to shared arg only if originally shared and NAs were uniform
+    arg <- if (same_nas && was_shared) full_arg[non_null][1] else full_arg
   }
   names(evaluations) <- names(data)
   new_tfd(
