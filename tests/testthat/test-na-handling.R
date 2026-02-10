@@ -173,3 +173,40 @@ test_that("data.frame constructor handles all-NA rows", {
   expect_null(unclass(x)[[2]])
   expect_no_error(print(x))
 })
+
+test_that("tf_arg returns numeric(0) for NA entries in tfd_irreg", {
+  x <- tfd(
+    list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+    arg = list(c(0, 0.5, 1), c(0, 0.3, 1), c(0, 0.7, 1))
+  )
+  x[2] <- NA
+  args <- tf_arg(x)
+  expect_length(args, 3)
+  expect_equal(args[[2]], numeric(0))
+  expect_true(length(args[[1]]) > 0)
+  expect_true(length(args[[3]]) > 0)
+})
+
+test_that("tfd_irreg with NA survives round-trip via tf_arg", {
+  x <- tfd(
+    list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+    arg = list(c(0, 0.5, 1), c(0, 0.3, 1), c(0, 0.7, 1))
+  )
+  x[2] <- NA
+  # This previously crashed with "argument 1 is not a vector" from order(NULL)
+  y <- suppressWarnings(tfd(x, arg = tf_arg(x)))
+  expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+  expect_s3_class(y, "tfd_irreg")
+})
+
+test_that("tf_fmean works on tfd_irreg with NA entries", {
+  x <- tfd(
+    list(c(1, 2, 3), c(4, 5, 6), c(7, 8, 9)),
+    arg = list(c(0, 0.5, 1), c(0, 0.3, 1), c(0, 0.7, 1))
+  )
+  x[2] <- NA
+  result <- suppressWarnings(tf_fmean(x))
+  expect_true(is.na(result[2]))
+  expect_false(is.na(result[1]))
+  expect_false(is.na(result[3]))
+})

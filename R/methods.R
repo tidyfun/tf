@@ -16,7 +16,7 @@ tf_arg <- function(f) UseMethod("tf_arg")
 tf_arg.default <- function(f) .NotYetImplemented()
 
 #' @export
-tf_arg.tfd_irreg <- function(f) map(f, \(x) if (is.null(x)) NULL else x$arg)
+tf_arg.tfd_irreg <- function(f) map(f, \(x) if (is.null(x)) numeric(0) else x$arg)
 
 #' @export
 tf_arg.tfd_reg <- function(f) attr(f, "arg")[[1]]
