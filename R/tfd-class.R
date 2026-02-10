@@ -398,7 +398,16 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
       pruned <- map2(arg[non_null], nas, \(x, y) if (length(y)) x[-y] else x)
       arg[non_null] <- pruned
     } else {
-      arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+      pruned <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+      if (length(pruned) > 1) {
+        # shared arg pruned differently per function -> per-function arg list
+        full_arg <- vector("list", length(evaluations))
+        full_arg[] <- list(numeric(0))
+        full_arg[non_null] <- pruned
+        arg <- full_arg
+      } else {
+        arg <- pruned
+      }
     }
     evaluations[non_null] <- fixed_evals
   }

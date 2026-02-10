@@ -210,3 +210,25 @@ test_that("tf_fmean works on tfd_irreg with NA entries", {
   expect_false(is.na(result[1]))
   expect_false(is.na(result[3]))
 })
+
+test_that("tfd.tf re-eval with shared arg and different extrapolation NAs works", {
+  # Sparse irregular data where different functions have different domains.
+  # When re-evaluated on a common grid, extrapolation produces NAs at
+
+  # different positions per function. With one NA entry, the shared arg must
+  # expand to a per-function arg list aligned to all entries (including NULLs).
+  x <- tfd(
+    list(c(1, 2, 3, 4, 5), c(6, 7, 8, 9, 10), c(11, 12, 13, 14, 15)),
+    arg = list(
+      c(0, 0.25, 0.5, 0.75, 1),
+      c(0, 0.3, 0.5, 0.7, 1),
+      c(0.1, 0.3, 0.5, 0.7, 0.9)
+    )
+  )
+  x[2] <- NA
+  # Re-evaluate on a common dense grid — entry 3 will have extrapolation NAs
+  # at the edges (original domain was [0.1, 0.9]) while entry 1 won't
+  y <- suppressWarnings(tfd(x, arg = seq(0, 1, length.out = 21)))
+  expect_s3_class(y, "tfd_irreg")
+  expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
+})
