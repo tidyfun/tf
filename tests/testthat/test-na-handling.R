@@ -143,12 +143,23 @@ test_that("subsetting preserves NULL entries", {
   expect_null(unclass(sub)[[2]])
 })
 
-test_that("tfb arithmetic with NA_real_ produces NULL entries", {
+test_that("tfb arithmetic with NA_real_ produces NULL entries and returns tfb", {
   set.seed(1234)
   x <- tf_rgp(3) |> tfb(k = 15, verbose = FALSE)
   y <- suppressWarnings(x + NA_real_)
+  expect_true(is_tfb(y))
   expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
   for (i in 1:3) expect_null(unclass(y)[[i]])
+  # partial NA: numeric_op_tfb
+  z <- suppressWarnings(NA_real_ - x[1:2])
+  expect_true(is_tfb(z))
+  expect_equal(is.na(z), rep(TRUE, 2), ignore_attr = "names")
+  # tfb_op_tfb
+  x2 <- x
+  x2[2] <- NA
+  w <- suppressWarnings(x + x2)
+  expect_true(is_tfb(w))
+  expect_equal(is.na(w), c(FALSE, TRUE, FALSE), ignore_attr = "names")
 })
 
 test_that("data.frame constructor handles all-NA rows", {

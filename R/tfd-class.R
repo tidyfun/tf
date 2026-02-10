@@ -352,7 +352,11 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
       evaluations <- vector("list", length(data))
       evaluations[] <- list(NULL)
     } else {
-      non_na_evals <- tf_evaluate(data[!na_mask], arg = arg, evaluator = evaluator_f)
+      # subset arg for per-function arg lists (length > 1) to match non-NA data
+      arg_for_eval <- if (length(arg) > 1) arg[!na_mask] else arg
+      non_na_evals <- tf_evaluate(
+        data[!na_mask], arg = arg_for_eval, evaluator = evaluator_f
+      )
       evaluations <- vector("list", length(data))
       evaluations[!na_mask] <- non_na_evals
       evaluations[na_mask] <- list(NULL)
@@ -367,8 +371,12 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
   non_null <- !map_lgl(evaluations, is.null)
   nas <- map(evaluations[non_null], \(x) which(is.na(x)))
   if (re_eval && any(lengths(nas))) {
-    fixed_evals <- map2(evaluations[non_null], nas, \(x, y) if (length(y)) x[-y] else x)
-    na_args <- map2(arg, nas, \(x, y) x[y])
+    fixed_evals <- map2(
+      evaluations[non_null], nas, \(x, y) if (length(y)) x[-y] else x
+    )
+    # use arg subset to match non-null entries
+    arg_non_null <- if (length(arg) > 1) arg[non_null] else arg
+    na_args <- map2(arg_non_null, nas, \(x, y) x[y])
     if (!all(duplicated(na_args)[-1])) {
       cli::cli_warn(c(
         i = "{length(unlist(nas, use.names = FALSE))} evaluations were {.code NA}",

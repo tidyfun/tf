@@ -348,6 +348,16 @@ numeric_op_tfd <- function(op, x, y) {
   ret
 }
 
+# construct a tfb shell with NULL entries, using ref_tfb for attributes
+tfb_na_result <- function(eval, ref_tfb) {
+  result <- vector("list", length(eval))
+  result[] <- list(NULL)
+  names(result) <- names(eval)
+  attributes(result) <- attributes(ref_tfb)
+  names(result) <- names(eval)
+  result
+}
+
 #-------------------------------------------------------------------------------
 
 tfb_multdiv_numeric <- function(op, x, y) {
@@ -372,11 +382,11 @@ tfb_op_numeric <- function(op, x, y) {
   )
   eval <- tfd_op_numeric(op, tfd(x), y)
   na_entries <- is.na(eval)
-  if (all(na_entries)) return(eval)
+  if (all(na_entries)) return(tfb_na_result(eval, x))
   if (any(na_entries)) {
     rebased <- tf_rebase(eval[!na_entries], x[!na_entries], penalized = FALSE, verbose = FALSE)
-    result <- eval
-    result[!na_entries] <- rebased
+    result <- tfb_na_result(eval, rebased)
+    result[!na_entries] <- unclass(rebased)
     return(result)
   }
   tf_rebase(eval, x, penalized = FALSE, verbose = FALSE)
@@ -389,11 +399,11 @@ numeric_op_tfb <- function(op, x, y) {
   )
   eval <- numeric_op_tfd(op, x, tfd(y))
   na_entries <- is.na(eval)
-  if (all(na_entries)) return(eval)
+  if (all(na_entries)) return(tfb_na_result(eval, y))
   if (any(na_entries)) {
     rebased <- tf_rebase(eval[!na_entries], y[!na_entries], penalized = FALSE, verbose = FALSE)
-    result <- eval
-    result[!na_entries] <- rebased
+    result <- tfb_na_result(eval, rebased)
+    result[!na_entries] <- unclass(rebased)
     return(result)
   }
   tf_rebase(eval, y, penalized = FALSE, verbose = FALSE) #TODO: see tfb_op_numeric
@@ -406,11 +416,11 @@ tfb_op_tfb <- function(op, x, y) {
   eval <- tfd_op_tfd(op, tfd(x), tfd(y))
   ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)
   na_entries <- is.na(eval)
-  if (all(na_entries)) return(eval)
+  if (all(na_entries)) return(tfb_na_result(eval, ret_ptype))
   if (any(na_entries)) {
     rebased <- tf_rebase(eval[!na_entries], ret_ptype, penalized = FALSE, verbose = FALSE)
-    result <- eval
-    result[!na_entries] <- rebased
+    result <- tfb_na_result(eval, rebased)
+    result[!na_entries] <- unclass(rebased)
     return(result)
   }
   tf_rebase(eval, ret_ptype, penalized = FALSE, verbose = FALSE) #TODO: see tfb_op_numeric

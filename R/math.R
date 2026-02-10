@@ -42,8 +42,9 @@ Math.tfb <- function(x, ...) {
     # all entries became NA -- return tfb with NULL entries
     result <- vector("list", length(eval))
     result[] <- list(NULL)
-    names(result) <- names(eval)
+    result_names <- names(eval)
     attributes(result) <- attributes(x)
+    names(result) <- result_names
     return(result)
   }
   if (any(na_entries)) {
@@ -55,8 +56,9 @@ Math.tfb <- function(x, ...) {
     result <- vector("list", length(eval))
     result[!na_entries] <- unclass(non_na)
     result[na_entries] <- list(NULL)
-    names(result) <- names(eval)
+    result_names <- names(eval)
     attributes(result) <- attributes(non_na)
+    names(result) <- result_names
     return(result)
   }
   do.call(
