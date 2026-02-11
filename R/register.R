@@ -327,6 +327,20 @@ tf_unwarp.tfb <- function(x, warp, ...) {
 #'     Default template is the arithmetic mean.
 #'   * `"landmark"`: piecewise-linear warps that align user-specified landmark
 #'     features. Requires `landmarks` argument.
+#' @param max_iter integer: maximum number of Procrustes-style template
+#'   refinement iterations when `template = NULL`. The iteration cycle is:
+#'   (1) estimate template as mean of (aligned) curves, (2) register all curves
+#'   to current template, (3) update template as mean of newly aligned curves,
+#'   (4) repeat until convergence or `max_iter` reached.
+#'   Ignored when `template` is provided (no refinement needed) or for
+#'   `method = "landmark"` (template not used).
+#'   For `method = "srvf"` with `template = NULL`, the outer Procrustes loop
+#'   is skipped regardless of `max_iter` because [fdasrvf::time_warping()]
+#'   already computes the Karcher mean internally.
+#'   Default is `1L` (single-shot, backward-compatible).
+#' @param tol numeric: convergence tolerance for template refinement. Iteration
+#'   stops when the relative change in the template (L2 norm) falls below `tol`.
+#'   Default is `1e-4`.
 #'
 #' @section Method-specific arguments passed via `...`:
 #'
@@ -386,7 +400,9 @@ tf_register <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark")
+  method = c("srvf", "fda", "affine", "landmark"),
+  max_iter = 1L,
+  tol = 1e-4
 ) {
   UseMethod("tf_register")
 }
@@ -396,25 +412,37 @@ tf_register.tfd_reg <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark")
+  method = c("srvf", "fda", "affine", "landmark"),
+  max_iter = 1L,
+  tol = 1e-4
 ) {
   assert_tfd(x)
   method <- match.arg(method)
+  assert_count(max_iter, positive = TRUE)
+  assert_number(tol, lower = 0)
 
   # Landmark method doesn't use template, uses landmarks instead
-
   if (method == "landmark") {
     return(register_landmark(x, ...))
   }
 
-  # Affine method has its own simpler validation
-  if (method == "affine") {
-    return(register_affine(x, template = template, ...))
+  # SRVF with no template: Karcher mean handles iteration internally
+  # (skip outer Procrustes loop regardless of max_iter)
+  if (method == "srvf" && is.null(template)) {
+    rlang::check_dots_used()
+    return(tf_register_srvf(x, template = NULL, ...))
   }
 
-  # SRVF/FDA methods: validate template compatibility
-  rlang::check_dots_used()
-  if (!is.null(template)) {
+  # Initial template
+  if (is.null(template)) {
+    current_template <- mean(x)
+  } else {
+    current_template <- template
+    max_iter <- 1L # no refinement when template is given
+  }
+
+  # Validate user-supplied template for SRVF/FDA
+  if (!is.null(template) && method %in% c("srvf", "fda")) {
     assert_tf(template)
     if (length(template) != 1 && length(template) != length(x)) {
       cli::cli_abort(
@@ -433,11 +461,76 @@ tf_register.tfd_reg <- function(
     }
   }
 
-  switch(
-    method,
-    srvf = tf_register_srvf(x, template, ...),
-    fda = tf_register_fda(x, template, ...)
-  )
+  if (method %in% c("srvf", "fda")) {
+    rlang::check_dots_used()
+  }
+
+  # Procrustes iteration (single pass when max_iter=1 or template given)
+  arg <- tf_arg(x)
+  domain_length <- diff(tf_domain(x))
+  best_warps <- NULL
+  best_obj <- Inf
+  for (iter in seq_len(max_iter)) {
+    warps <- switch(
+      method,
+      srvf = tf_register_srvf(x, current_template, ...),
+      fda = tf_register_fda(x, current_template, ...),
+      affine = register_affine(x, template = current_template, ...)
+    )
+
+    aligned <- tf_unwarp(x, warps)
+    aligned_on_arg <- suppressWarnings(tf_interpolate(aligned, arg = arg))
+    template_on_arg <- suppressWarnings(tfd(current_template, arg = arg))
+    template_vec <- tf_evaluate(template_on_arg, arg = arg)[[1]]
+
+    # Monotonicity guard: if an iteration worsens alignment objective, stop and
+    # return the best previous solution.
+    obj <- suppressWarnings(mean(
+      tf_integrate((aligned_on_arg - template_on_arg)^2, arg = arg) /
+        domain_length,
+      na.rm = TRUE
+    ))
+    if (is.finite(obj)) {
+      if (
+        is.finite(best_obj) &&
+          obj > best_obj * (1 + sqrt(.Machine$double.eps))
+      ) {
+        warps <- best_warps
+        break
+      }
+      best_warps <- warps
+      best_obj <- obj
+    } else if (is.null(best_warps)) {
+      best_warps <- warps
+    }
+
+    if (iter == max_iter) break
+
+    new_template <- suppressWarnings(mean(aligned_on_arg, na.rm = TRUE))
+    new_tmpl_vec <- tf_evaluate(new_template, arg = arg)[[1]]
+    old_vec <- template_vec
+    # Preserve previous template where all aligned curves are undefined.
+    missing_tmpl <- !is.finite(new_tmpl_vec)
+    if (any(missing_tmpl)) {
+      new_tmpl_vec[missing_tmpl] <- old_vec[missing_tmpl]
+    }
+    new_template <- tfd(matrix(new_tmpl_vec, nrow = 1), arg = arg)
+    # Convergence check based on integrated squared change.
+    delta <- suppressWarnings(
+      tf_integrate((new_template - template_on_arg)^2, arg = arg)
+    )
+    norm_sq <- suppressWarnings(tf_integrate(template_on_arg^2, arg = arg))
+    delta <- as.numeric(delta / domain_length)
+    norm_sq <- as.numeric(norm_sq / domain_length)
+    if (
+      is.finite(delta) &&
+        delta / max(norm_sq, .Machine$double.eps) < tol^2
+    ) {
+      break
+    }
+    current_template <- new_template
+  }
+  best_warps %||% warps
 }
 
 #' @export
@@ -445,9 +538,19 @@ tf_register.tfb <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark")
+  method = c("srvf", "fda", "affine", "landmark"),
+  max_iter = 1L,
+  tol = 1e-4
 ) {
-  x |> as.tfd() |> tf_register(template = template, method = method, ...)
+  x |>
+    as.tfd() |>
+    tf_register(
+      template = template,
+      method = method,
+      max_iter = max_iter,
+      tol = tol,
+      ...
+    )
 }
 
 #' @export
@@ -455,7 +558,9 @@ tf_register.tfd_irreg <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark")
+  method = c("srvf", "fda", "affine", "landmark"),
+  max_iter = 1L,
+  tol = 1e-4
 ) {
   cli::cli_abort(
     "{.cls tfd_irreg} objects cannot be registered. Please convert to {.cls tfd_reg} first."

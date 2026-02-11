@@ -871,3 +871,135 @@ test_that("tf_register affine methodrespects custom bounds", {
     tf_evaluations(warp_scale)[[1]][1]
   expect_equal(a_scale, 0.6, tolerance = 0.01)
 })
+
+# --- Procrustes Iteration (max_iter / tol) ------------------------------------
+
+test_that("tf_register rejects invalid max_iter and tol", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+  expect_error(tf_register(x, method = "affine", type = "shift", max_iter = 0L))
+  expect_error(tf_register(
+    x,
+    method = "affine",
+    type = "shift",
+    max_iter = -1L
+  ))
+  expect_error(tf_register(x, method = "affine", type = "shift", tol = -1))
+})
+
+test_that("tf_register max_iter=1 gives same result as default", {
+  withr::local_seed(123)
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+  template <- tfd(matrix(sin(t), nrow = 1), arg = t)
+
+  # Affine: explicit max_iter=1 should match default (no template)
+  w_default <- tf_register(x, method = "affine", type = "shift")
+  w_explicit <- tf_register(x, method = "affine", type = "shift", max_iter = 1L)
+  expect_equal(as.matrix(w_default), as.matrix(w_explicit))
+
+  # With template: max_iter=1 should match default
+  w_tmpl1 <- tf_register(
+    x,
+    method = "affine",
+    type = "shift",
+    template = template
+  )
+  w_tmpl2 <- tf_register(
+    x,
+    method = "affine",
+    type = "shift",
+    template = template,
+    max_iter = 1L
+  )
+  expect_equal(as.matrix(w_tmpl1), as.matrix(w_tmpl2))
+})
+
+test_that("tf_register max_iter ignored when template provided", {
+  withr::local_seed(123)
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+  template <- tfd(matrix(sin(t), nrow = 1), arg = t)
+
+  # Affine with template: max_iter=5 should give same result as max_iter=1
+  w1 <- tf_register(
+    x,
+    method = "affine",
+    type = "shift",
+    template = template,
+    max_iter = 1L
+  )
+  w5 <- tf_register(
+    x,
+    method = "affine",
+    type = "shift",
+    template = template,
+    max_iter = 5L
+  )
+  expect_equal(as.matrix(w1), as.matrix(w5))
+})
+
+test_that("tf_register Procrustes iteration runs and improves for affine", {
+  withr::local_seed(42)
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+
+  w1 <- tf_register(x, method = "affine", type = "shift", max_iter = 1L)
+  w3 <- tf_register(x, method = "affine", type = "shift", max_iter = 3L)
+  expect_s3_class(w3, "tfd_reg")
+  expect_length(w3, 3)
+
+  # Procrustes iteration should not increase residual variance
+  aligned_1 <- tf_unwarp(x, w1)
+  aligned_3 <- tf_unwarp(x, w3)
+  var_1 <- mean(as.matrix(aligned_1 - mean(aligned_1))^2, na.rm = TRUE)
+  var_3 <- mean(as.matrix(aligned_3 - mean(aligned_3))^2, na.rm = TRUE)
+  expect_lte(var_3, var_1 + 1e-6)
+})
+
+test_that("tf_register Procrustes iteration handles irregular affine updates", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+
+  expect_no_error(
+    w <- suppressWarnings(tf_register(
+      x,
+      method = "affine",
+      type = "shift",
+      max_iter = 2L,
+      shift_range = c(0.05, 0.2)
+    ))
+  )
+  expect_s3_class(w, "tfd_reg")
+  expect_length(w, length(x))
+})
+
+test_that("tf_register Procrustes iteration runs for FDA", {
+  skip_if_not_installed("fda")
+  withr::local_seed(42)
+  t <- seq(0, 1, length.out = 101)
+  x <- tfd(
+    t(sapply(c(-0.05, 0, 0.05), function(s) sin(2 * pi * (t + s)))),
+    arg = t
+  )
+
+  # max_iter=3 should work without error
+  w <- tf_register(x, method = "fda", max_iter = 3L)
+  expect_s3_class(w, "tfd_reg")
+  expect_length(w, 3)
+})
+
+test_that("SRVF with template=NULL gives same result regardless of max_iter", {
+  skip_if_not_installed("fdasrvf")
+  withr::local_seed(42)
+  t <- seq(0, 1, length.out = 101)
+  x <- tfd(
+    t(sapply(c(-0.05, 0, 0.05), function(s) sin(2 * pi * (t + s)))),
+    arg = t
+  )
+
+  # SRVF Karcher mean: max_iter should be ignored
+  w1 <- tf_register(x, method = "srvf", max_iter = 1L)
+  w5 <- tf_register(x, method = "srvf", max_iter = 5L)
+  expect_equal(as.matrix(w1), as.matrix(w5))
+})

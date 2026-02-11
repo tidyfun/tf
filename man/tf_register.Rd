@@ -8,7 +8,9 @@ tf_register(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark")
+  method = c("srvf", "fda", "affine", "landmark"),
+  max_iter = 1L,
+  tol = 1e-04
 )
 }
 \arguments{
@@ -33,6 +35,22 @@ Default template is the arithmetic mean.
 \item \code{"landmark"}: piecewise-linear warps that align user-specified landmark
 features. Requires \code{landmarks} argument.
 }}
+
+\item{max_iter}{integer: maximum number of Procrustes-style template
+refinement iterations when \code{template = NULL}. The iteration cycle is:
+(1) estimate template as mean of (aligned) curves, (2) register all curves
+to current template, (3) update template as mean of newly aligned curves,
+(4) repeat until convergence or \code{max_iter} reached.
+Ignored when \code{template} is provided (no refinement needed) or for
+\code{method = "landmark"} (template not used).
+For \code{method = "srvf"} with \code{template = NULL}, the outer Procrustes loop
+is skipped regardless of \code{max_iter} because \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}
+already computes the Karcher mean internally.
+Default is \code{1L} (single-shot, backward-compatible).}
+
+\item{tol}{numeric: convergence tolerance for template refinement. Iteration
+stops when the relative change in the template (L2 norm) falls below \code{tol}.
+Default is \code{1e-4}.}
 }
 \value{
 \code{tfd} vector of warping functions with the same length as \code{x}.
