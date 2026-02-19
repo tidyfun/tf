@@ -72,7 +72,10 @@ an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
 functions, obviously).
 }
 \description{
-Various constructor methods for \code{tfd}-objects.
+Various constructor methods for \code{tfd}-objects.\cr
+\code{tfd} objects contain vectors of function evaluations at observed \code{arg}-values,
+either all at the same \code{arg}-values (\code{tfd_reg}) or at different \code{arg}-values (\code{tfd_irreg}).
+\code{NA}-functions are represented by \code{NULL}-entries in that list.
 
 \code{tfd.matrix} accepts a numeric matrix with one function per
 \emph{row} (!). If \code{arg} is not provided, it tries to guess \code{arg} from the
@@ -110,6 +113,8 @@ See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
 \code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of
 implementations of this.
 }
+
+\code{tfd}-objects are list-\code{vctrs} of numeric vectors containing function evaluations
 }
 \examples{
 # turn irregular to regular tfd by evaluating on a common grid:

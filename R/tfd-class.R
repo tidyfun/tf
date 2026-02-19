@@ -1,3 +1,19 @@
+warn_na_entries_created <- function(na_indices) {
+  n_entries <- length(na_indices)
+  entry_label <- if (n_entries == 1) "entry" else "entries"
+  function_label <- if (n_entries == 1) "function" else "functions"
+  index_label <- if (n_entries == 1) "index" else "indices"
+  shown_indices <- head(na_indices, 10)
+  shown_string <- paste(shown_indices, collapse = ", ")
+  if (n_entries > 10) {
+    shown_string <- paste0(shown_string, ", ...")
+  }
+  cli::cli_warn(c(
+    "{n_entries} {.code NA} {entry_label} (empty {function_label}) created.",
+    i = "Affected {index_label}: {shown_string}"
+  ))
+}
+
 new_tfd <- function(
   arg = NULL,
   datalist = NULL,
@@ -71,18 +87,17 @@ new_tfd <- function(
         list(arg = this_arg, value = unname(x[!is.na(x)]))
       }
     )
-    n_null <- sum(map_lgl(datalist, is.null))
+    nas <- map_lgl(datalist, is.null)
+    n_null <- sum(nas)
     if (n_null > 0) {
-      cli::cli_warn(
-        "{n_null} {.code NA} entries (empty functions) created."
-      )
+      warn_na_entries_created(which(nas))
     }
     arg <- numeric(0)
     class <- "tfd_irreg"
   } else {
     nas <- map_lgl(datalist, \(x) is.null(x) || allMissing(x))
     if (any(nas)) {
-      cli::cli_warn("{sum(nas)} {.code NA} entries (empty functions) created.")
+      warn_na_entries_created(which(nas))
     }
     datalist <- map_if(datalist, nas, \(x) NULL)
     arg <- list(arg[[1]])
@@ -110,7 +125,14 @@ new_tfd <- function(
 
 #' Constructors for vectors of "raw" functional data
 #'
-#' Various constructor methods for `tfd`-objects.
+#' Various constructor methods for `tfd`-objects.\cr
+#' `tfd` objects contain vectors of function evaluations at observed `arg`-values,
+#' either all at the same `arg`-values (`tfd_reg`) or at different `arg`-values (`tfd_irreg`).
+#' `NA`-functions are represented by `NULL`-entries in that list.
+#'
+#' @details
+#' `tfd`-objects are list-`vctrs` of numeric vectors containing function
+#' evaluations.
 #'
 #' **`evaluator`**: must be the (quoted or bare) name of a
 #' function with signature `function(x, arg, evaluations)` that returns
@@ -130,6 +152,7 @@ new_tfd <- function(
 #' See `tf:::zoo_wrapper` and `tf:::tf_approx_linear`, which is simply
 #' `zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)`, for examples of
 #' implementations of this.
+#'
 #'
 #' @param data a `matrix`, `data.frame` or `list` of suitable shape, or another
 #'   `tf`-object. when this argument is `NULL` (i.e. when calling `tfd()`) this
@@ -355,7 +378,9 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
       # subset arg for per-function arg lists (length > 1) to match non-NA data
       arg_for_eval <- if (length(arg) > 1) arg[!na_mask] else arg
       non_na_evals <- tf_evaluate(
-        data[!na_mask], arg = arg_for_eval, evaluator = evaluator_f
+        data[!na_mask],
+        arg = arg_for_eval,
+        evaluator = evaluator_f
       )
       evaluations <- vector("list", length(data))
       evaluations[!na_mask] <- non_na_evals
@@ -407,10 +432,14 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
 
     # prune NAs from arg and evaluations (non-null entries only)
     full_arg[non_null] <- map2(
-      full_arg[non_null], nas, \(x, y) if (length(y)) x[-y] else x
+      full_arg[non_null],
+      nas,
+      \(x, y) if (length(y)) x[-y] else x
     )
     evaluations[non_null] <- map2(
-      evaluations[non_null], nas, \(x, y) if (length(y)) x[-y] else x
+      evaluations[non_null],
+      nas,
+      \(x, y) if (length(y)) x[-y] else x
     )
 
     # collapse back to shared arg only if originally shared and NAs were uniform

@@ -67,16 +67,28 @@ spark_rep_tf <- function(
     use_index <- seq(binwidth, gridlength, length = bins) |>
       round() |>
       unique()
-    evals <- f |>
-      tf_smooth(method = "rollmean", k = binwidth, align = "right") |>
-      tf_evaluations() |>
-      map(`[`, use_index) |>
-      suppressMessages()
+    nas <- is.na(f)
+    evals <- vector("list", length(f))
+    if (any(!nas)) {
+      evals[!nas] <- f[!nas] |>
+        tf_smooth(
+          method = "rollmean",
+          k = binwidth,
+          align = "right",
+          fill = "extend",
+          verbose = FALSE
+        ) |>
+        tf_evaluations() |>
+        map(`[`, use_index)
+    }
   }
   if (is.null(scale_f)) {
     evals_unlisted <- unlist(evals, use.names = FALSE)
-    if (!is.null(evals_unlisted) && length(evals_unlisted) > 0 &&
-      any(!is.na(evals_unlisted))) {
+    if (
+      !is.null(evals_unlisted) &&
+        length(evals_unlisted) > 0 &&
+        any(!is.na(evals_unlisted))
+    ) {
       scale_f <- range(evals_unlisted, na.rm = TRUE)
     } else {
       scale_f <- c(0, 1)
@@ -266,7 +278,9 @@ format.tf <- function(
   }
 
   if (prefix) {
-    prefix <- if (!is.null(names(x)) && isTRUE(all(nzchar(names(x), keepNA = TRUE)))) {
+    prefix <- if (
+      !is.null(names(x)) && isTRUE(all(nzchar(names(x), keepNA = TRUE)))
+    ) {
       names(x)[seq_along(str)]
     } else {
       paste0("[", seq_along(str), "]")
