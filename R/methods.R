@@ -16,7 +16,7 @@ tf_arg <- function(f) UseMethod("tf_arg")
 tf_arg.default <- function(f) .NotYetImplemented()
 
 #' @export
-tf_arg.tfd_irreg <- function(f) map(f, "arg")
+tf_arg.tfd_irreg <- function(f) map(f, \(x) if (is.null(x)) numeric(0) else x$arg)
 
 #' @export
 tf_arg.tfd_reg <- function(f) attr(f, "arg")[[1]]
@@ -40,14 +40,20 @@ tf_evaluations.tfd_reg <- function(f) {
 
 #' @export
 tf_evaluations.tfd_irreg <- function(f) {
-  map(f, "value")
+  map(f, \(x) if (is.null(x)) NULL else x$value)
 }
 
 #' @export
 tf_evaluations.tfb <- function(f) {
-  evals <- map(f, \(x) drop(attr(f, "basis_matrix") %*% x) |> unname())
+  evals <- map(f, \(x) {
+    if (is.null(x)) return(NULL)
+    drop(attr(f, "basis_matrix") %*% x) |> unname()
+  })
   if (!is_tfb_fpc(f) && vec_size(f) > 0) {
-    evals <- map(evals, attr(f, "family")$linkinv)
+    evals <- map(evals, \(x) {
+      if (is.null(x)) return(NULL)
+      attr(f, "family")$linkinv(x)
+    })
   }
   evals
 }
@@ -225,7 +231,7 @@ is.na.tf <- function(x) {
 #' @rdname tfmethods
 #' @export
 is.na.tfd_irreg <- function(x) {
-  map_lgl(unclass(x), \(x) is.null(x$value) || is.na(x$value[1]))
+  map_lgl(unclass(x), \(x) is.null(x) || is.null(x$value) || is.na(x$value[1]))
 }
 
 #-------------------------------------------------------------------------------

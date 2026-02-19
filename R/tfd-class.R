@@ -1,3 +1,19 @@
+warn_na_entries_created <- function(na_indices) {
+  n_entries <- length(na_indices)
+  entry_label <- if (n_entries == 1) "entry" else "entries"
+  function_label <- if (n_entries == 1) "function" else "functions"
+  index_label <- if (n_entries == 1) "index" else "indices"
+  shown_indices <- head(na_indices, 10)
+  shown_string <- paste(shown_indices, collapse = ", ")
+  if (n_entries > 10) {
+    shown_string <- paste0(shown_string, ", ...")
+  }
+  cli::cli_warn(c(
+    "{n_entries} {.code NA} {entry_label} (empty {function_label}) created.",
+    i = "Affected {index_label}: {shown_string}"
+  ))
+}
+
 new_tfd <- function(
   arg = NULL,
   datalist = NULL,
@@ -66,28 +82,24 @@ new_tfd <- function(
       datalist,
       arg,
       function(x, y) {
+        if (is.null(x) || allMissing(x)) return(NULL)
         this_arg <- unname(y[!is.na(x)])
         list(arg = this_arg, value = unname(x[!is.na(x)]))
       }
     )
-    n_evals <- map(datalist, \(x) length(x$value))
-    if (any(n_evals == 0)) {
-      cli::cli_warn(
-        "{sum(n_evals == 0)} {.code NA} entries (empty functions) created."
-      )
+    nas <- map_lgl(datalist, is.null)
+    n_null <- sum(nas)
+    if (n_null > 0) {
+      warn_na_entries_created(which(nas))
     }
-    datalist <- map_if(
-      datalist,
-      n_evals == 0,
-      \(x) list(arg = domain[1], value = NA)
-    )
     arg <- numeric(0)
     class <- "tfd_irreg"
   } else {
-    nas <- map_lgl(datalist, anyNA)
+    nas <- map_lgl(datalist, \(x) is.null(x) || allMissing(x))
     if (any(nas)) {
-      cli::cli_warn("{sum(nas)} {.code NA} entries (empty functions) created.")
+      warn_na_entries_created(which(nas))
     }
+    datalist <- map_if(datalist, nas, \(x) NULL)
     arg <- list(arg[[1]])
     class <- "tfd_reg"
   }
@@ -113,7 +125,14 @@ new_tfd <- function(
 
 #' Constructors for vectors of "raw" functional data
 #'
-#' Various constructor methods for `tfd`-objects.
+#' Various constructor methods for `tfd`-objects.\cr
+#' `tfd` objects contain vectors of function evaluations at observed `arg`-values,
+#' either all at the same `arg`-values (`tfd_reg`) or at different `arg`-values (`tfd_irreg`).
+#' `NA`-functions are represented by `NULL`-entries in that list.
+#'
+#' @details
+#' `tfd`-objects are list-`vctrs` of numeric vectors containing function
+#' evaluations.
 #'
 #' **`evaluator`**: must be the (quoted or bare) name of a
 #' function with signature `function(x, arg, evaluations)` that returns
@@ -133,6 +152,7 @@ new_tfd <- function(
 #' See `tf:::zoo_wrapper` and `tf:::tf_approx_linear`, which is simply
 #' `zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)`, for examples of
 #' implementations of this.
+#'
 #'
 #' @param data a `matrix`, `data.frame` or `list` of suitable shape, or another
 #'   `tf`-object. when this argument is `NULL` (i.e. when calling `tfd()`) this
@@ -345,36 +365,85 @@ tfd.tf <- function(data, arg = NULL, domain = NULL, evaluator = NULL, ...) {
   domain <- (domain %||% unlist(arg, use.names = FALSE) %||% tf_domain(data)) |>
     range()
   re_eval <- !is.null(arg)
+  na_mask <- is.na(data)
   arg <- ensure_list(arg %||% tf_arg(data))
-  evaluations <- if (re_eval) {
+
+  if (any(na_mask) && re_eval) {
+    # process only non-NA entries, keep NULLs for NA entries
     evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
-    tf_evaluate(data, arg = arg, evaluator = evaluator_f)
+    if (all(na_mask)) {
+      evaluations <- vector("list", length(data))
+      evaluations[] <- list(NULL)
+    } else {
+      # subset arg for per-function arg lists (length > 1) to match non-NA data
+      arg_for_eval <- if (length(arg) > 1) arg[!na_mask] else arg
+      non_na_evals <- tf_evaluate(
+        data[!na_mask],
+        arg = arg_for_eval,
+        evaluator = evaluator_f
+      )
+      evaluations <- vector("list", length(data))
+      evaluations[!na_mask] <- non_na_evals
+      evaluations[na_mask] <- list(NULL)
+    }
+  } else if (re_eval) {
+    evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
+    evaluations <- tf_evaluate(data, arg = arg, evaluator = evaluator_f)
   } else {
-    tf_evaluations(data)
+    evaluations <- tf_evaluations(data)
   }
-  nas <- map(evaluations, \(x) which(is.na(x)))
+  # handle NAs within non-NULL evaluations (e.g. from interpolation outside domain)
+  non_null <- !map_lgl(evaluations, is.null)
+  nas <- map(evaluations[non_null], \(x) which(is.na(x)))
   if (re_eval && any(lengths(nas))) {
-    evaluations <- map2(evaluations, nas, \(x, y) if (length(y)) x[-y] else x)
-    # check if all NAs occur at the same args and try to make a regular tfd if so
-    na_args <- map2(arg, nas, \(x, y) x[y])
-    if (!all(duplicated(na_args)[-1])) {
+    n <- length(evaluations)
+    was_shared <- length(arg) == 1
+
+    # normalize arg to per-function (length n) for uniform processing
+    if (was_shared) {
+      full_arg <- vector("list", n)
+      full_arg[non_null] <- list(arg[[1]])
+      full_arg[!non_null] <- list(numeric(0))
+    } else {
+      full_arg <- arg
+    }
+
+    # extract NA arg positions for warning (before pruning)
+    na_arg_vals <- map2(full_arg[non_null], nas, \(x, y) x[y])
+    same_nas <- all(duplicated(na_arg_vals)[-1])
+    n_na <- length(unlist(nas, use.names = FALSE))
+
+    if (!same_nas) {
       cli::cli_warn(c(
-        i = "{length(unlist(nas, use.names = FALSE))} evaluations were {.code NA}",
+        i = "{n_na} evaluations were {.code NA}",
         x = "Returning irregular {.cls tfd}."
       ))
     } else {
-      na_arg_string <- prettyNum(na_args[[1]]) |> paste(collapse = ", ")
+      na_arg_string <- prettyNum(na_arg_vals[[1]]) |> paste(collapse = ", ")
       if (nchar(na_arg_string) > options()$width) {
         na_arg_string <- substr(na_arg_string, 1, options()$width - 15) |>
           paste0("[... truncated]")
       }
       cli::cli_warn(c(
-        i = "All {length(unlist(nas, use.names = FALSE))} evaluations on {.code arg = ({na_arg_string})} were {.code NA}",
+        i = "All {n_na} evaluations on {.code arg = ({na_arg_string})} were {.code NA}",
         x = "Returning regular data {.cls tfd_reg} on the reduced grid."
       ))
-      nas <- nas[1]
     }
-    arg <- map2(arg, nas, \(x, y) if (length(y)) x[-y] else x)
+
+    # prune NAs from arg and evaluations (non-null entries only)
+    full_arg[non_null] <- map2(
+      full_arg[non_null],
+      nas,
+      \(x, y) if (length(y)) x[-y] else x
+    )
+    evaluations[non_null] <- map2(
+      evaluations[non_null],
+      nas,
+      \(x, y) if (length(y)) x[-y] else x
+    )
+
+    # collapse back to shared arg only if originally shared and NAs were uniform
+    arg <- if (same_nas && was_shared) full_arg[non_null][1] else full_arg
   }
   names(evaluations) <- names(data)
   new_tfd(
@@ -431,7 +500,10 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
-  ret <- map2(tf_evaluations(data), arg, \(x, y) list(arg = y, value = x))
+  ret <- map2(tf_evaluations(data), arg, \(x, y) {
+    if (is.null(x)) return(NULL)
+    list(arg = y, value = x)
+  })
   attributes(ret) <- attributes(data)
   attr(ret, "arg") <- numeric(0)
   class(ret)[1] <- "tfd_irreg"

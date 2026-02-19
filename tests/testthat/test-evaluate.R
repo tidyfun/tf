@@ -21,3 +21,25 @@ test_that("tf_evaluate.tfb works", {
   )
   expect_equal(tf_evaluate(smoo_tfb, arg = 0.5), tf_evaluate(smoo_tfb, 0.5))
 })
+
+test_that("tf_evaluate.tfb keeps NA entries for shared arg", {
+  t <- seq(0, 1, length.out = 51)
+  mixed <- tfd(
+    list(
+      1 + abs(sin(2 * pi * t)),
+      -1 - abs(cos(2 * pi * t)),
+      1 + abs(sin(4 * pi * t))
+    ),
+    arg = t
+  )
+  b <- suppressWarnings(tfb(mixed, k = 7, verbose = FALSE))
+  b_na <- suppressWarnings(log(b))
+
+  eval_point <- tf_evaluate(b_na, arg = 0.5)
+  expect_length(eval_point, length(b_na))
+  expect_true(is.na(eval_point[[2]]))
+
+  eval_grid <- tf_evaluate(b_na, arg = seq(0, 1, length.out = 5))
+  expect_length(eval_grid, length(b_na))
+  expect_equal(eval_grid[[2]], rep(NA_real_, 5))
+})

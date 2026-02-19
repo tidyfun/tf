@@ -108,3 +108,16 @@ test_that("deriv & tf_integrate are reversible (approximately)", {
   expect_equal(f_pc[, dgrid], f_pc3[, dgrid], tolerance = 0.1)
   expect_equal(tf_integrate(f_pc), tf_integrate(f[1:3]), tolerance = 0.01)
 })
+
+test_that("calculus methods are quiet and preserve existing NA entries", {
+  f_na <- tf_rgp(4, arg = grid)
+  f_na[2] <- f_na[2] * NA_real_
+
+  d_na <- expect_no_warning(tf_derive(f_na))
+  i_def <- expect_no_warning(tf_integrate(f_na))
+  i_indef <- expect_no_warning(tf_integrate(f_na, definite = FALSE))
+
+  expect_true(is.na(d_na[2]))
+  expect_true(is.na(i_indef[2]))
+  expect_true(is.na(i_def[2]))
+})

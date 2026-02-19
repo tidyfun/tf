@@ -82,3 +82,41 @@ test_that("tfd works consistently for partially missing data", {
     tfd(x_mat) |> suppressWarnings()
   )
 })
+
+test_that("NA creation warning uses singular/plural wording and lists indices", {
+  x_one_na <- rbind(
+    1:5,
+    rep(NA_real_, 5)
+  )
+  expect_warning(
+    tfd(x_one_na, arg = 1:5),
+    "1 `NA` entry \\(empty function\\) created\\."
+  )
+  expect_warning(
+    tfd(x_one_na, arg = 1:5),
+    "Affected index: 2"
+  )
+
+  x_two_na <- rbind(
+    rep(NA_real_, 5),
+    1:5,
+    rep(NA_real_, 5)
+  )
+  expect_warning(
+    tfd(x_two_na, arg = 1:5),
+    "2 `NA` entries \\(empty functions\\) created\\."
+  )
+  expect_warning(
+    tfd(x_two_na, arg = 1:5),
+    "Affected indices: 1, 3"
+  )
+
+  x_many_na <- rbind(
+    1:5,
+    matrix(NA_real_, nrow = 12, ncol = 5)
+  )
+  expect_warning(
+    tfd(x_many_na, arg = 1:5),
+    "Affected indices: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, \\.{3}"
+  )
+})
