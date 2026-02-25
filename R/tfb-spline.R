@@ -43,7 +43,7 @@ new_tfb_spline <- function(
   if (s_args$bs == "ad") {
     cli::cli_warn(c(
       x = "Adaptive smooths with ({.code bs = 'ad'}) not implemented yet.",
-      i = "Return value uses  {.code bs = 'cr'} instead."
+      i = "Return value uses {.code bs = 'cr'} instead."
     ))
     s_args$bs <- "cr"
   }
@@ -376,7 +376,7 @@ tfb_spline.list <- function(
       cli::cli_abort("{.arg arg} must be supplied.")
     }
     if (length(arg) != length(data) || any(lengths(arg) != lens)) {
-      cli::cli_abort("length of {.arg arg} does not match {.arg data}.")
+      cli::cli_abort("Length of {.arg arg} does not match {.arg data}.")
     }
     data <- map2(arg, data, \(x, y) data_frame0(arg = x, value = y))
   }
@@ -424,7 +424,7 @@ tfb_spline.fd <- function(
     {
       cli::cli_warn(c(
         "exact {.cls fd} conversion not implemented for this {.pkg fda} basis type.",
-        x = "Using {.pkg mgcv} basis 'bs', original basis type was {.val {data$basis$type}}.",
+        x = "Using {.pkg mgcv} basis {.val bs}, original basis type was {.val {data$basis$type}}.",
         i = "Only {.pkg fda}-compatible B-Spline and Fourier bases are implemented in {.pkg tf}."
       ))
       "bs"
@@ -439,7 +439,7 @@ tfb_spline.fd <- function(
     arg <- seq(domain[1], domain[2], length.out = 100)
     if (verbose) {
       cli::cli_inform(
-        "No {.arg arg} provided, using {length(arg)} equally spaced points over domain [{domain[1]}, {domain[2]}]"
+        "No {.arg arg} provided, using {length(arg)} equally spaced points over domain [{domain[1]}, {domain[2]}]."
       )
     }
   }
@@ -447,7 +447,7 @@ tfb_spline.fd <- function(
   if (bs == "bs" && k < 4) {
     k <- 4
     cli::cli_warn(
-      "no. of basis functions {.arg k} set to 4 (was {data$basis$nbasis})"
+      "No. of basis functions {.arg k} set to 4 (was {data$basis$nbasis})."
     )
   }
   # use (unpenalized) fit to *smoothed* data by default, not to data$y!

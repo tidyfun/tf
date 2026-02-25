@@ -292,12 +292,12 @@ tfd.list <- function(
       }
       if (length(arg) != length(data)) {
         cli::cli_abort(
-          "length of {.arg arg}-list does not match {.arg data}-list"
+          "Length of {.arg arg} list does not match {.arg data} list."
         )
       }
       if (any(lengths(arg)[!empty] != lengths(where_na)[!empty])) {
         cli::cli_abort(
-          "lengths of {.arg arg}-vectors do not match lengths of {.arg data}-list entries"
+          "Lengths of {.arg arg} vectors do not match lengths of {.arg data} list entries."
         )
       }
       arg <- map2(arg, where_na, \(x, y) x[!y])
@@ -468,7 +468,7 @@ tfd.default <- function(
 ) {
   if (!missing(data)) {
     cli::cli_warn(
-      "Input {.arg data} not recognized class; returning prototype of length 0."
+      "Input {.arg data} not a recognized class; returning prototype of length 0."
     )
   }
   datalist <- list()

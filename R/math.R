@@ -33,7 +33,7 @@ Math.tfd <- function(x, ...) {
 Math.tfb <- function(x, ...) {
   genericname <- .Generic
   cli::cli_warn(
-    "Potentially lossy cast to {.cls tfd} and back in {genericname}({.cls {vec_ptype_full(x)}})"
+    "Potentially lossy cast to {.cls tfd} and back in {.fn {genericname}}({.cls {vec_ptype_full(x)}})."
   )
   basis_args <- attr(x, "basis_args")
   eval <- fun_math(tfd(x), .Generic)

@@ -96,7 +96,7 @@
     new_j <- map2(j, ensure_list(tf_arg(x)), \(x, y) !(x %in% y))
     if (any(unlist(new_j, use.names = FALSE))) {
       cli::cli_warn(c(
-        i = "{.code interpolate = FALSE} & no values present for some {.arg j}",
+        i = "{.code interpolate = FALSE} and no values present for some {.arg j}",
         x = "{.code NA}s created."
       ))
     }
