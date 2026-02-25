@@ -41,10 +41,11 @@ as.data.frame.tf <- function(
 as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg)) {
     arg <- tf_arg(x)
+    if (is_irreg(x)) {
+      arg <- sort_unique(unlist(arg), simplify = TRUE)
+    }
   }
-  if (is_irreg(x)) {
-    arg <- sort_unique(arg, simplify = TRUE)
-  }
+  
   if (is_tfb(x)) interpolate <- TRUE
   assert_arg_vector(arg, x, check_unique = FALSE)
   x[, arg, interpolate = interpolate, matrix = TRUE]
