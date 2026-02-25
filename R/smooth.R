@@ -53,7 +53,7 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
 #' f_lowess <- tf_smooth(f, "lowess")
 #' # these methods ignore the distances between arg-values:
 #' f_mean <- tf_smooth(f, "rollmean")
-#' f_median <- tf_smooth(f, "rollmean", k = 31)
+#' f_median <- tf_smooth(f, "rollmedian", k = 31)
 #' f_sg <- tf_smooth(f, "savgol", fl = 31)
 #' layout(t(1:4))
 #' plot(f, points = FALSE, main = "original")

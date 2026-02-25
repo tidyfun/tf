@@ -32,15 +32,15 @@ zoo_wrapper <- function(f, ...) {
 #' - `tf_approx_none` in order to not inter-/extrapolate ever (i.e., [zoo::na.fill()] with `fill = NA`)
 #' - `tf_approx_fill_extend` for linear interpolation and constant extrapolation
 #' (i.e., [zoo::na.fill()] with `fill = "extend"`)
-#' - `tf_approx_locf` for "last observation carried forward"  (i.e.,
-#' [zoo::na.locf()] with `na.rm = FALSE` and
+#' - `tf_approx_locf` for "last observation carried forward" (i.e.,
+#' [zoo::na.locf()] with `na.rm = FALSE`)
 #' - `tf_approx_nocb` for "next observation carried backward" (i.e.,
 #' [zoo::na.locf()] with `na.rm = FALSE, fromLast = TRUE`).
 #'
 #' For implementing your own, see source code of `tf:::zoo_wrapper`.
 #'
 #' @rdname tf_approx
-#' @seealso tfd
+#' @seealso [tfd()]
 #' @export
 #' @param x new `arg` values to approximate/interpolate/extrapolate the function for.
 #' @param arg the `arg` values of the `evaluations`.

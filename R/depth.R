@@ -10,7 +10,6 @@
 #' other functions (scale of 0 (lowest) to 1 (highest)).
 #' The two are closely related -- for functions that never cross other functions,
 #' MBD is \eqn{-2(MEI - 0.5)^2 + .5}.
-#
 #'
 #' @param x `tf` (or a matrix of evaluations).
 #' @param depth currently available: `"MBD"`, i.e. modified 2-band depth, and `"MEI"`.

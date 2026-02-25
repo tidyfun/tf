@@ -48,8 +48,8 @@ with \code{na.rm = FALSE}),
 \item \code{tf_approx_none} in order to not inter-/extrapolate ever (i.e., \code{\link[zoo:na.fill]{zoo::na.fill()}} with \code{fill = NA})
 \item \code{tf_approx_fill_extend} for linear interpolation and constant extrapolation
 (i.e., \code{\link[zoo:na.fill]{zoo::na.fill()}} with \code{fill = "extend"})
-\item \code{tf_approx_locf} for "last observation carried forward"  (i.e.,
-\code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE} and
+\item \code{tf_approx_locf} for "last observation carried forward" (i.e.,
+\code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE})
 \item \code{tf_approx_nocb} for "next observation carried backward" (i.e.,
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
 }
@@ -57,7 +57,7 @@ with \code{na.rm = FALSE}),
 For implementing your own, see source code of \code{tf:::zoo_wrapper}.
 }
 \seealso{
-tfd
+\code{\link[=tfd]{tfd()}}
 
 Other tidyfun inter/extrapolation functions: 
 \code{\link{tf_evaluate}()},

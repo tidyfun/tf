@@ -145,8 +145,8 @@ new_tfd <- function(
 #' with `na.rm = FALSE`),
 #' - `tf_approx_fill_extend` for linear interpolation and constant extrapolation
 #' (i.e., [zoo::na.fill()] with `fill = "extend"`)
-#' - `tf_approx_locf` for "last observation carried forward"  (i.e.,
-#' [zoo::na.locf()] with `na.rm = FALSE` and
+#' - `tf_approx_locf` for "last observation carried forward" (i.e.,
+#' [zoo::na.locf()] with `na.rm = FALSE`)
 #' - `tf_approx_nocb` for "next observation carried backward" (i.e.,
 #' [zoo::na.locf()] with `na.rm = FALSE, fromLast = TRUE`).
 #' See `tf:::zoo_wrapper` and `tf:::tf_approx_linear`, which is simply
@@ -160,7 +160,7 @@ new_tfd <- function(
 #' @param ... not used in `tfd`, except for `tfd.tf` -- specify `arg` and
 #'   `interpolate = TRUE` to turn an irregular `tfd` into a regular one, see
 #'   examples.
-#' @returns an `tfd`-object (or a `data.frame`/`matrix` for the conversion
+#' @returns a `tfd`-object (or a `data.frame`/`matrix` for the conversion
 #'   functions, obviously).
 #' @family tfd-class
 #' @export
