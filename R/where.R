@@ -17,7 +17,7 @@
 #'   condition about the functions, see examples and details.
 #' @param return for each entry in `f`, `tf_where` either returns *all* `arg`
 #'   for which `cond` is true, the *first*, the *last* or their *range* or
-#'   logical flags whether the functions fullfill the condition *any*where. For
+#'   logical flags whether the functions fulfill the condition *any*where. For
 #'   `"range"`, note that `cond` may not be true for all `arg` values in this
 #'   range, though, this is not checked.
 #' @param arg optional `arg`-values on which to evaluate `f` and check `cond`,

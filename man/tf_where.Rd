@@ -22,7 +22,7 @@ condition about the functions, see examples and details.}
 
 \item{return}{for each entry in \code{f}, \code{tf_where} either returns \emph{all} \code{arg}
 for which \code{cond} is true, the \emph{first}, the \emph{last} or their \emph{range} or
-logical flags whether the functions fullfill the condition \emph{any}where. For
+logical flags whether the functions fulfill the condition \emph{any}where. For
 \code{"range"}, note that \code{cond} may not be true for all \code{arg} values in this
 range, though, this is not checked.}
 
@@ -56,7 +56,7 @@ of the usual \code{dplyr} tricks are available as well, see examples.\cr
 Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
 }
 \examples{
-\dontshow{if (rlang::is_installed("dplyr")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("dplyr")) withAutoprint(\{ # examplesIf}
 lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
 tf_where(lin, value \%inr\% c(-1, 0.5))
 tf_where(lin, value \%inr\% c(-1, 0.5), "range")

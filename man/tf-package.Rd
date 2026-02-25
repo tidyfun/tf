@@ -16,7 +16,7 @@ provides the class definitions and methods infrastructure for \code{tidyfun} --
 \item simple descriptive statistics: e.g. \code{\link[=mean.tf]{mean.tf()}}, \code{\link[=median.tf]{median.tf()}}
 \item base graphics functions for such data: \code{\link[=plot.tf]{plot.tf()}}
 \item functions to do smoothing (\code{\link[=tf_smooth.tfd]{tf_smooth.tfd()}}),
-differentiation \code{\link[=tf_derive.tfd]{tf_derive.tfd()}}) and integration (\code{\link[=tf_derive.tfd]{tf_derive.tfd()}})
+differentiation (\code{\link[=tf_derive.tfd]{tf_derive.tfd()}}) and integration (\code{\link[=tf_integrate.tfd]{tf_integrate.tfd()}})
 }
 
 The goal of the add-on package \code{tidyfun} is to make data wrangling and

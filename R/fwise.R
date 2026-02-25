@@ -23,7 +23,7 @@ NULL
 #' @details `tf_fwise` turns `x` into a list of data.frames with columns `arg`
 #' and `values` internally, so the function/formula in `.f` gets a data.frame
 #' `.x` with these columns, see examples below or source code for [tf_fmin()],
-#' [tf_fmax()], etc
+#' [tf_fmax()], etc.
 #' @examples
 #' x <- tf_rgp(3)
 #' layout(t(1:3))

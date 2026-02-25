@@ -67,7 +67,7 @@ that does inter- and extrapolation for them beforehand.
 \code{tf_fwise} turns \code{x} into a list of data.frames with columns \code{arg}
 and \code{values} internally, so the function/formula in \code{.f} gets a data.frame
 \code{.x} with these columns, see examples below or source code for \code{\link[=tf_fmin]{tf_fmin()}},
-\code{\link[=tf_fmax]{tf_fmax()}}, etc
+\code{\link[=tf_fmax]{tf_fmax()}}, etc.
 }
 \section{Functions}{
 \itemize{

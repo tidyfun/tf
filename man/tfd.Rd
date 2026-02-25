@@ -44,7 +44,7 @@ as.tfd_irreg(data, ...)
 returns a prototype of class \code{tfd}.}
 
 \item{...}{not used in \code{tfd}, except for \code{tfd.tf} -- specify \code{arg} and
-\code{ìnterpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
+\code{interpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
 examples.}
 
 \item{arg}{For the \code{list}- and \code{matrix}-methods:
@@ -93,6 +93,9 @@ containing evaluations or a list of 2-column matrices/data.frames with
 \code{NULL} or not a recognised class.
 }
 \details{
+\code{tfd}-objects are list-\code{vctrs} of numeric vectors containing function
+evaluations.
+
 \strong{\code{evaluator}}: must be the (quoted or bare) name of a
 function with signature \verb{function(x, arg, evaluations)} that returns
 the functions' (approximated/interpolated) values at locations \code{x} based on
@@ -110,11 +113,9 @@ with \code{na.rm = FALSE}),
 \item \code{tf_approx_nocb} for "next observation carried backward" (i.e.,
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
 See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
-\code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of
+\code{zoo_wrapper(zoo::na.approx, na.rm = FALSE)}, for examples of
 implementations of this.
 }
-
-\code{tfd}-objects are list-\code{vctrs} of numeric vectors containing function evaluations
 }
 \examples{
 # turn irregular to regular tfd by evaluating on a common grid:
