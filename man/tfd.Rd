@@ -68,7 +68,7 @@ which function.}
 evaluations.}
 }
 \value{
-an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
+a \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
 functions, obviously).
 }
 \description{
@@ -108,8 +108,8 @@ Available \code{evaluator}-functions:
 with \code{na.rm = FALSE}),
 \item \code{tf_approx_fill_extend} for linear interpolation and constant extrapolation
 (i.e., \code{\link[zoo:na.fill]{zoo::na.fill()}} with \code{fill = "extend"})
-\item \code{tf_approx_locf} for "last observation carried forward"  (i.e.,
-\code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE} and
+\item \code{tf_approx_locf} for "last observation carried forward" (i.e.,
+\code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE})
 \item \code{tf_approx_nocb} for "next observation carried backward" (i.e.,
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
 See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
