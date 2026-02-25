@@ -150,7 +150,7 @@ new_tfd <- function(
 #' - `tf_approx_nocb` for "next observation carried backward" (i.e.,
 #' [zoo::na.locf()] with `na.rm = FALSE, fromLast = TRUE`).
 #' See `tf:::zoo_wrapper` and `tf:::tf_approx_linear`, which is simply
-#' `zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)`, for examples of
+#' `zoo_wrapper(zoo::na.approx, na.rm = FALSE)`, for examples of
 #' implementations of this.
 #'
 #'
@@ -158,7 +158,7 @@ new_tfd <- function(
 #'   `tf`-object. when this argument is `NULL` (i.e. when calling `tfd()`) this
 #'   returns a prototype of class `tfd`.
 #' @param ... not used in `tfd`, except for `tfd.tf` -- specify `arg` and
-#'   `ìnterpolate = TRUE` to turn an irregular `tfd` into a regular one, see
+#'   `interpolate = TRUE` to turn an irregular `tfd` into a regular one, see
 #'   examples.
 #' @returns an `tfd`-object (or a `data.frame`/`matrix` for the conversion
 #'   functions, obviously).

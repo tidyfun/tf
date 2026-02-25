@@ -55,7 +55,7 @@ advanced FPCA approaches like \code{refund::fpca_sc()},
 see last example for \code{\link[=tfb_fpc]{tfb_fpc()}}
 }
 \references{
-code adapted from / inspired by \code{mogsa::wsvd()} by Cheng Meng
+code adapted from / inspired by \code{mogsa::wsvd()} by Chen Meng
 and \code{softImpute::softImpute()} by Trevor Hastie and Rahul Mazumder.\cr
 Meng C (2023).
 \emph{mogsa: Multiple omics data integrative clustering and gene set analysis}.
@@ -79,7 +79,7 @@ Other tfb_fpc-class:
 \code{\link{tfb_fpc}()}
 }
 \author{
-Trevor Hastie, Rahul Mazumder, Cheng Meng, Fabian Scheipl
+Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
 }
 \concept{tfb-class}
 \concept{tfb_fpc-class}

@@ -32,8 +32,8 @@
 #' - `npc` how many FPCs were returned for the given `pve` (integer)
 #' - `scoring_function` a function that returns FPC scores for new data
 #'    and given eigenfunctions, see `tf:::.fpc_wsvd_scores` for an example.
-#' @author Trevor Hastie, Rahul Mazumder, Cheng Meng, Fabian Scheipl
-#' @references code adapted from / inspired by `mogsa::wsvd()` by Cheng Meng
+#' @author Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
+#' @references code adapted from / inspired by `mogsa::wsvd()` by Chen Meng
 #'   and `softImpute::softImpute()` by Trevor Hastie and Rahul Mazumder.\cr
 #' `r format_bib("meng2023mogsa", "mazumder2010", "softimpute")`
 #' @family tfb-class

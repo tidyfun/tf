@@ -91,7 +91,7 @@ new_tfb_fpc <- function(
 #' For the FPC basis, any factorization method that accepts a `data.frame` with
 #' columns `id`, `arg`, `value` containing the functional data and returns a
 #' list with eigenfunctions and FPC scores structured like the return object
-#' of [fpc_wsvd()] can be used for the `method`` argument, see example below.
+#' of [fpc_wsvd()] can be used for the `method` argument, see example below.
 #' Note that the mean function, with a fixed "score" of 1 for all functions,
 #' is used as the first basis function for all FPC bases.
 #'

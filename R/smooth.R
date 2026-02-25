@@ -65,7 +65,7 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
 #'   points = FALSE, col = "blue", main = "rolling means &\n medians (red)"
 #' )
 #' lines(f_median, col = "red", alpha = 0.2) # note constant extrapolation at both ends!
-#' plot(f, points = FALSE, main = "orginal and\n savgol (red)")
+#' plot(f, points = FALSE, main = "original and\n savgol (red)")
 #' lines(f_sg, col = "red")
 tf_smooth.tfd <- function(
   x,

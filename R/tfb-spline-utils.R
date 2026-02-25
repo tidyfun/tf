@@ -118,7 +118,7 @@ fit_penalized <- function(
   if (global && gam_args$sp == -1) {
     # find a suitable global level of smoothing based on a pilot estimate
     # uses 10% of curves, at most 100, at least 5
-    # uses median of the smothing parameters on this pilot sample.
+    # uses median of the smoothing parameters on this pilot sample.
     pilot_id <- round(seq(
       from = 1,
       to = nlevels(data$id),
