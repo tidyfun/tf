@@ -26,7 +26,7 @@ evaluated functions.}
 \item{...}{additional arguments to be passed to or from methods.}
 
 \item{arg}{a vector of argument values / evaluation points for \code{x}. Defaults
-to \code{tf_arg(x)}.}
+to \code{tf_arg(x)} (so for \code{x} on irregular grids, this will be the union of all observed \code{arg}-values by default).}
 
 \item{interpolate}{should functions be evaluated (i.e., inter-/extrapolated)
 for values in \code{arg} for which no original data is available? Only relevant
@@ -36,8 +36,8 @@ Basis-represented functional data \code{tfb} are always "interpolated".}
 \value{
 \strong{for \code{as.data.frame.tf}:} if \code{unnest} is \code{FALSE} (default), a
 one-column \code{data.frame} with a \code{tf}-column containing \code{x}. if \code{unnest} is
-\code{TRUE}, a 3-column data frame with columns \code{id} for the (unique) names of
-\code{x} or a numeric identifier, \code{arg} and \code{value}, with each row containing
+\code{TRUE}, a 3-column data frame with columns \code{id} (containing (unique) names of
+\code{x} or a numeric identifier if \code{x} is unnamed), \code{arg}, and \code{value}, with each row containing
 one function evaluation at the original \code{arg}-values.
 
 \strong{for \code{as.matrix.tf}:} a matrix with one row per function and one
