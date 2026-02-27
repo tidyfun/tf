@@ -45,11 +45,11 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' representation with [tfb()] and then computing the derivatives (or integrals)
 #' of those is usually preferable.
 #'
-#' Note that, for some spline bases like `"cr"` or `"tp"` which are constrained
-#' to begin/end linearly, computing second derivatives will produce artefacts at
+#' Note that, for spline bases like `"cr"` or `"tp"` which are constrained to
+#' begin/end linearly, computing *second* derivatives will produce artefacts at
 #' the outer limits of the functions' domain due to these boundary constraints.
-#' Basis `"bs"` does not have this problem for sufficiently high orders, but
-#' tends to yield slightly less stable fits.
+#' Basis `"bs"` does not have this problem for sufficiently high orders (but
+#' tends to yield slightly less stable fits).
 #' @param f a `tf`-object
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
 #' For `tfb_spline`-objects, `order = -1` yields integrals (used internally).
@@ -84,14 +84,12 @@ tf_derive.matrix <- function(f, arg, order = 1, ...) {
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing of function evaluations.
 tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
-  # TODO: should this interpolate back to the original grid? shortens the domain
-  # (slightly), for now. this is necessary so that we don't get NAs when trying
-  # to evaluate derivs over their default domain etc.
-  if (is_irreg(f)) {
-    cli::cli_inform(c(
-      x = "Differentiating over irregular grids can be unstable."
-    ))
-  }
+  # tfd derivation shortens the domain (slightly).
+  # because finite differences give the derivative at the middle of the interval
+  # between the original arg-values, so we lose the first and last arg-value and
+  # get new ones in between.
+  # re-setting the output domain to this shorter interval is necessary so
+  # we don't get NAs when trying to evaluate derivs over the default domain etc.
   assert_count(order)
   na_entries <- is.na(f)
   data <- as.matrix(f, arg, interpolate = TRUE)
@@ -101,6 +99,39 @@ tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
     derived$data,
     derived$arg,
     domain = range(derived$arg) # !! shorter
+  )
+  tf_evaluator(ret) <- attr(f, "evaluator_name")
+  restore_na_entries(ret, na_entries, names(f))
+}
+
+#' @export
+#' @describeIn tf_derive element-wise finite differencing for irregular grids.
+#'   Falls back to `tf_derive.tfd` (interpolating to a common grid) if an
+#'   explicit `arg` vector is supplied.
+tf_derive.tfd_irreg <- function(f, arg, order = 1, ...) {
+  if (!missing(arg)) {
+    return(tf_derive.tfd(f, arg = arg, order = order, ...))
+  }
+  cli::cli_inform(c(
+    x = "Differentiating over irregular grids can be unstable."
+  ))
+  assert_count(order)
+  na_entries <- is.na(f)
+  args <- tf_arg(f)
+  evals <- tf_evaluate(f)
+  derived_data <- vector("list", length(f))
+  derived_args <- vector("list", length(f))
+  for (i in which(!na_entries)) {
+    d <- derive_matrix(rbind(evals[[i]]), args[[i]], order)
+    derived_data[[i]] <- d$data[1, ]
+    derived_args[[i]] <- d$arg
+  }
+  derived_data[na_entries] <- list(NULL)
+  derived_args[na_entries] <- list(NULL)
+  ret <- tfd(
+    derived_data[!na_entries],
+    derived_args[!na_entries],
+    domain = range(unlist(derived_args))
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   restore_na_entries(ret, na_entries, names(f))
