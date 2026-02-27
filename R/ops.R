@@ -263,7 +263,7 @@ tfd_op_tfd <- function(op, x, y) {
 
   if (!same_domain || !same_arg) {
     message <- cli::format_inline(
-      "Attempting <{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  for different",
+      "Attempting <{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}> for different",
       "{ifelse(same_domain, '', ' domains')}",
       "{ifelse(!same_domain & !same_arg, ' and', '')}",
       "{ifelse(same_arg, '', ' argument values')}"
@@ -411,7 +411,7 @@ numeric_op_tfb <- function(op, x, y) {
 
 tfb_op_tfb <- function(op, x, y) {
   cli::cli_warn(
-    "Potentially lossy casts to {.cls tfd} and back for {.cls  {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
+    "Potentially lossy casts to {.cls tfd} and back for {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
   eval <- tfd_op_tfd(op, tfd(x), tfd(y))
   ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)

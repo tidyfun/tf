@@ -64,7 +64,7 @@ test_that("as.matrix.tf works", {
   x_irreg <- tf_sparsify(x)
   expect_warning(
     mat <- as.matrix(x_irreg),
-    "`interpolate = FALSE` & no values present for some `j`"
+    "`interpolate = FALSE` and no values present for some `j`"
   )
   expect_matrix(mat, mode = "numeric", nrows = 3, ncols = 49)
   expect_identical(row.names(mat), as.character(1:3))

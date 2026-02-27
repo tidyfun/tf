@@ -188,7 +188,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
   }
   if (length(ensure_list(value)) != 1) {
     cli::cli_abort(
-      "Can't assign irregular argument list to {.cls class(x)[1]}."
+      "Can't assign irregular argument list to {.cls {class(x)[1]}}."
     )
   }
 
