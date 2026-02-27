@@ -91,6 +91,9 @@ containing evaluations or a list of 2-column matrices/data.frames with
 
 \code{tfd.default} returns class prototype when argument to tfd() is
 \code{NULL} or not a recognised class.
+
+\code{as.tfd_irreg} converts regular \code{tfd} or \code{tfb} objects into
+irregular ones. Mainly used internally for \code{tf_rebase} operations etc.
 }
 \details{
 \code{tfd}-objects are list-\code{vctrs} of numeric vectors containing function

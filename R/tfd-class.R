@@ -494,6 +494,8 @@ as.tfd.default <- function(data, ...) {
 }
 
 #' @rdname tfd
+#' @description `as.tfd_irreg` converts regular `tfd` or `tfb` objects into
+#' irregular ones. Mainly used internally for `tf_rebase` operations etc.
 #' @export
 as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 
