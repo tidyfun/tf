@@ -263,7 +263,7 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   failed <- keep(coef, anyNA)
   if (length(failed) > 0) {
     cli::cli_abort(
-      "Basis representation failed for entries: {.val {toString(unname(failed))}}."
+      "Basis representation failed for entries: {.val {names(failed)}}."
     )
   }
   list(

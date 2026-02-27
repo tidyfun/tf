@@ -20,7 +20,7 @@ find_arg <- function(data, arg) {
     }
     if (is.null(arg) || anyNA(arg)) {
       cli::cli_inform(
-        "Column names not suitable as {.arg arg} values. Using {.code 1:{length(ncol(data))}} instead."
+        "Column names not suitable as {.arg arg} values. Using {.code 1:{ncol(data)}} instead."
       )
       arg <- numeric(0)
     }

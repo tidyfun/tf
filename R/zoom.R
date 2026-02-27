@@ -91,7 +91,7 @@ tf_zoom.tfb <- function(
   args <- prep_tf_zoom_args(f, begin, end)
   if (!args$regular) {
     cli::cli_inform(c(
-      x = "{.fn tf_zoom} was called with varying start or end points - converting to {.code tfd}."
+      x = "{.fn tf_zoom} was called with varying start or end points -- converting to {.cls tfd}."
     ))
     return(tf_zoom(tfd(f), begin, end))
   }
@@ -112,6 +112,6 @@ tf_zoom.tfb_fpc <- function(
   end = tf_domain(f)[2],
   ...
 ) {
-  cli::cli_warn("FPC basis no longer orthonormal on sub-domain.")
+  cli::cli_warn("{.cls tfb_fpc} basis no longer orthonormal on sub-domain.")
   NextMethod()
 }

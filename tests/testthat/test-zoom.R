@@ -47,7 +47,7 @@ test_that("tf_zoom for tfb_spline works", {
 
   expect_message(
     out <- tf_zoom(xb, 0.2, seq(0.3, 1, length.out = length(x))),
-    "with varying start or end points - converting to `tfd`."
+    "was called with varying start or end points --"
   )
   expect_true(is_irreg(out))
 })

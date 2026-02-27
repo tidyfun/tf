@@ -120,7 +120,7 @@ tf_smooth.tfd <- function(
       dots$f <- 0.15
       if (verbose)
         cli::cli_inform(
-          "Using {.code f = {dots$f}} as smoother span for {.val lowess}."
+          "Using {.code f = {dots$f}} as smoother span for {.fn lowess}."
         )
     }
     smoothed <- map(

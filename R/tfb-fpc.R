@@ -17,7 +17,7 @@ new_tfb_fpc <- function(
   }
   if (!is.null(method) && !is.null(basis_from)) {
     cli::cli_abort(
-      "Can't specify both {.arg method} *and* {.arg basis_from} for {.fn new_tfb_fpc}."
+      "Can't specify both {.arg method} {.emph and} {.arg basis_from} for {.fn new_tfb_fpc}."
     )
   }
   arg <- uniquecombs(data$arg, ordered = TRUE) |> unlist(use.names = FALSE)
@@ -237,7 +237,7 @@ tfb_fpc.default <- function(
 ) {
   if (!missing(data)) {
     cli::cli_inform(
-      "Input {.arg data} not recognized class; returning prototype of length 0."
+      "Input {.arg data} not a recognized class; returning prototype of length 0."
     )
   }
 
