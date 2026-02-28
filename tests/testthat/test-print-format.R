@@ -11,8 +11,8 @@ test_that("sparkline formatting is quiet for existing NA entries", {
     )
   )
 
-  expect_true(any(is.na(x)))
-  expect_no_warning(tf:::spark_rep_tf(x, bins = 8))
+  expect_true(anyNA(x))
+  expect_no_warning(spark_rep_tf(x, bins = 8))
   expect_no_warning(format(x, bins = 8))
   expect_no_warning(capture.output(print(x)))
 })
