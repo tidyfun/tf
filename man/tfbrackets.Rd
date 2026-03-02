@@ -23,7 +23,7 @@ when \code{i} is a matrix.}
 \item{j}{The \code{arg} used to evaluate the functions. A (list of) \code{numeric}
 vectors. \emph{NOT} interpreted as a column number but as the argument value of
 the respective functional datum. If \code{j} is missing but \code{matrix} is
-explicitly given, \code{j} defaults to \link{tf_arg(x)}.}
+explicitly given, \code{j} defaults to \link[=tf_arg]{tf_arg(x)}.}
 
 \item{interpolate}{should functions be evaluated (i.e., inter-/extrapolated)
 for values in \code{arg} for which no original data is available? Only relevant for
