@@ -82,7 +82,7 @@
       )
     }
     row_idx <- vec_as_location(
-      as.integer(i[, 1]),
+      i[, 1],
       n = vec_size(x),
       names = names(x),
       missing = "error"
