@@ -299,6 +299,18 @@ format.tf <- function(
   )
 }
 
+#' @export
+vec_ptype_abbr.tfd_reg <- function(x, ...) "tfd_reg"
+
+#' @export
+vec_ptype_abbr.tfd_irreg <- function(x, ...) "tfd_irreg"
+
+#' @export
+vec_ptype_abbr.tfb_spline <- function(x, ...) "tfb_spline"
+
+#' @export
+vec_ptype_abbr.tfb_fpc <- function(x, ...) "tfb_fpc"
+
 # dynamically exported in zzz.R:
 format_glimpse.tf <- function(
   x,
