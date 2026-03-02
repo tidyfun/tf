@@ -23,7 +23,7 @@
 #' @param j The `arg` used to evaluate the functions. A (list of) `numeric`
 #'   vectors. *NOT* interpreted as a column number but as the argument value of
 #'   the respective functional datum. If `j` is missing but `matrix` is
-#'   explicitly given, `j` defaults to [tf_arg(x)].
+#'   explicitly given, `j` defaults to [tf_arg(x)][tf_arg].
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for values in `arg` for which no original data is available? Only relevant for
 #'   the raw data class `tfd`, for which it defaults to `TRUE`. Basis-represented
