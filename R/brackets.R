@@ -74,29 +74,39 @@
       "{.arg interpolate} ignored for data in basis representation."
     )
   }
-  # handle matrix indexing: i is a 2-column matrix of (function index, arg value)
-  if (!missing(i) && is.matrix(i) && ncol(i) == 2) {
+  # decompose matrix i into separate i (row indices) and j (arg values)
+  matrix_i <- FALSE
+  if (!missing(i) && is.matrix(i)) {
+    if (ncol(i) != 2) {
+      cli::cli_abort("Matrix {.arg i} must have exactly 2 columns.")
+    }
     if (!missing(j)) {
       cli::cli_abort(
         "{.arg j} cannot be provided when {.arg i} is a matrix index."
       )
     }
-    row_idx <- vec_as_location(
-      i[, 1],
-      n = vec_size(x),
-      names = names(x),
-      missing = "error"
-    )
-    arg_vals <- as.numeric(i[, 2])
-    evals <- mapply(
-      function(idx, a) tf_evaluate(x[idx], arg = a)[[1]],
-      row_idx, arg_vals
-    )
-    return(as.numeric(evals))
+    j <- as.list(as.numeric(i[, 2]))
+    i <- i[, 1]
+    matrix_i <- TRUE
+    matrix <- FALSE
   }
   # handle i
   if (missing(i)) {
     i <- seq_along(x)
+  } else if (matrix_i) {
+    i <- num_as_location(
+      i,
+      n = vec_size(x),
+      missing = "error",
+      negative = "error",
+      zero = "error"
+    )
+  } else if (is.numeric(i)) {
+    i <- num_as_location(
+      i,
+      n = vec_size(x),
+      missing = "error"
+    )
   } else {
     i <- vec_as_location(
       i,
@@ -145,6 +155,10 @@
       ))
     }
     evals <- map2(evals, new_j, \(x, y) ifelse(y, NA, x))
+  }
+
+  if (matrix_i) {
+    return(as.numeric(unlist(evals)))
   }
 
   if (matrix) {

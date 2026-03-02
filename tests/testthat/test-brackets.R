@@ -48,6 +48,18 @@ test_that("matrix indexing errors for invalid inputs", {
   expect_error(x[cbind(1:3, 1:3), 1:5])
 })
 
+test_that("matrix indexing respects interpolate = FALSE", {
+  x <- tfd(1:5, arg = 1:5)
+
+  # on-grid: returns value; off-grid: returns NA with warning
+  expect_warning(
+    result <- x[cbind(c(1, 1), c(3, 3.5)), interpolate = FALSE],
+    "NA"
+  )
+  expect_equal(result[1], 3)
+  expect_true(is.na(result[2]))
+})
+
 test_that("missing j with explicit matrix= evaluates on default grid", {
   set.seed(42)
   x <- tf_rgp(5, arg = 1:5)
