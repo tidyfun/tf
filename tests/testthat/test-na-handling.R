@@ -283,7 +283,7 @@ test_that("re-eval: shared arg, no NULLs, different extrapolation NAs", {
   )
   y <- suppressWarnings(tfd(x, arg = seq(0.1, 0.9, length.out = 11)))
   expect_s3_class(y, "tfd_irreg")
-  expect_false(any(is.na(y)))
+  expect_false(anyNA(y))
 })
 
 test_that("re-eval: per-function arg, with NULLs, no extrapolation NAs", {

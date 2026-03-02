@@ -59,7 +59,7 @@ test_that("tfd.numeric works", {
 
 test_that("tfd works consistently for partially missing data", {
   x <- tf_rgp(10)
-  x_df <- x |> tf:::tf_2_df()
+  x_df <- x |> tf_2_df()
   x_df[x_df$id == "2", "value"] <- NA
   x_mat <- x |> as.matrix()
   x_mat[2, ] <- NA
@@ -71,7 +71,7 @@ test_that("tfd works consistently for partially missing data", {
   )
 
   x <- tf_rgp(10) |> tf_sparsify(0.8)
-  x_df <- x |> tf:::tf_2_df()
+  x_df <- x |> tf_2_df()
   x_df[x_df$id == "2", "value"] <- NA
   x_mat <- x |> as.matrix() |> suppressWarnings()
   x_mat[2, ] <- NA
