@@ -101,12 +101,6 @@
       negative = "error",
       zero = "error"
     )
-  } else if (is.numeric(i)) {
-    i <- num_as_location(
-      i,
-      n = vec_size(x),
-      missing = "error"
-    )
   } else {
     i <- vec_as_location(
       i,
