@@ -44,8 +44,8 @@ tf_crosscor(x, y, arg = tf_arg(x))
 
 \item{...}{additional arguments for \code{\link[purrr:as_mapper]{purrr::as_mapper()}}.}
 
-\item{na.rm}{a logical (\code{TRUE} or \code{FALSE}) indicating
-    whether missing values should be removed.}
+\item{na.rm}{a logical indicating whether missing values should be
+    removed.}
 
 \item{finite}{logical, indicating if all non-finite elements should
     be omitted.}

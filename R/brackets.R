@@ -15,10 +15,15 @@
 #'
 #' @param x an `tf`.
 #' @param i index of the observations (`integer`ish, `character` or `logical`,
-#'   usual R rules apply).
+#'   usual R rules apply). Can also be a two-column `matrix` for extracting
+#'   specific (function, arg-value) pairs: the first column gives the function
+#'   indices, the second column gives the `arg` values at which to evaluate each
+#'   function. Returns a numeric vector in that case. `j` must not be provided
+#'   when `i` is a matrix.
 #' @param j The `arg` used to evaluate the functions. A (list of) `numeric`
 #'   vectors. *NOT* interpreted as a column number but as the argument value of
-#'   the respective functional datum.
+#'   the respective functional datum. If `j` is missing but `matrix` is
+#'   explicitly given, `j` defaults to [tf_arg(x)][tf_arg].
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for values in `arg` for which no original data is available? Only relevant for
 #'   the raw data class `tfd`, for which it defaults to `TRUE`. Basis-represented
@@ -26,14 +31,16 @@
 #' @param matrix should the result be returned as a `matrix` or as a list of
 #'   `data.frame`s? If `TRUE`, `j` has to be a (list of a) single vector of
 #'   `arg`. See return value.
-#' @returns If `j` is missing, a subset of the functions in `x` as given by
-#'   `i`.\cr If `j` is given and `matrix == TRUE`, a numeric matrix of function
-#'   evaluations in which each row represents one function and each column
-#'   represents one `argval` as given in argument `j`, with an attribute
-#'   `arg`=`j` and row- and column-names derived from `x[i]` and `j`.\cr If
-#'   `j` is given and `matrix == FALSE`, a list of `tbl_df`s with columns
-#'   `arg` = `j` and `value` = evaluations at `j` for each observation in
-#'   `i`.
+#' @returns If `i` is a two-column matrix, a numeric vector of pointwise
+#'   evaluations (one per row of `i`).\cr
+#'   If `j` is missing (and `i` is not a matrix), a subset of the functions in
+#'   `x` as given by `i`.\cr If `j` is given and `matrix == TRUE`, a numeric
+#'   matrix of function evaluations in which each row represents one function
+#'   and each column represents one `argval` as given in argument `j`, with an
+#'   attribute `arg`=`j` and row- and column-names derived from `x[i]` and
+#'   `j`.\cr If `j` is given and `matrix == FALSE`, a list of `tbl_df`s with
+#'   columns `arg` = `j` and `value` = evaluations at `j` for each observation
+#'   in `i`.
 #'
 #' @rdname tfbrackets
 #' @name tfbrackets
@@ -53,6 +60,10 @@
 #' x[1:2, c(4.5, 9)] # returns a matrix of function evaluations
 #' x[1:2, c(4.5, 9), interpolate = FALSE] # NA for arg-values not in the original data
 #' x[-3, seq(1, 9, by = 2), matrix = FALSE] # list of data.frames for each function
+#' # 3. use a 2-column matrix to extract specific (function, arg) pairs:
+#' x[cbind(1:3, c(0, 5, 10))] # one value per function
+#' # 4. use matrix= with a missing j to evaluate on the default arg grid:
+#' x[1:2, , matrix = FALSE] # same as x[1:2, tf_arg(x), matrix = FALSE]
 #' # in order to evaluate a set of observed functions on a new grid and
 #' # save them as a functional data vector again, use `tfd` or `tfb` instead:
 #' tfd(x, arg = seq(0, 10, by = 0.01))
@@ -63,9 +74,33 @@
       "{.arg interpolate} ignored for data in basis representation."
     )
   }
+  # decompose matrix i into separate i (row indices) and j (arg values)
+  matrix_i <- FALSE
+  if (!missing(i) && is.matrix(i)) {
+    if (ncol(i) != 2) {
+      cli::cli_abort("Matrix {.arg i} must have exactly 2 columns.")
+    }
+    if (!missing(j)) {
+      cli::cli_abort(
+        "{.arg j} cannot be provided when {.arg i} is a matrix index."
+      )
+    }
+    j <- as.list(as.numeric(i[, 2]))
+    i <- i[, 1]
+    matrix_i <- TRUE
+    matrix <- FALSE
+  }
   # handle i
   if (missing(i)) {
     i <- seq_along(x)
+  } else if (matrix_i) {
+    i <- num_as_location(
+      i,
+      n = vec_size(x),
+      missing = "error",
+      negative = "error",
+      zero = "error"
+    )
   } else {
     i <- vec_as_location(
       i,
@@ -76,7 +111,20 @@
   }
   x <- vec_slice(x, i)
   if (missing(j)) {
-    return(x)
+    if (!missing(matrix)) {
+      if (isTRUE(matrix)) {
+        arg_vals <- tf_arg(x)
+        if (is.list(arg_vals)) {
+          j <- sort_unique(arg_vals, simplify = TRUE)
+        } else {
+          j <- arg_vals
+        }
+      } else {
+        j <- tf_arg(x)
+      }
+    } else {
+      return(x)
+    }
   }
 
   # handle j
@@ -101,6 +149,10 @@
       ))
     }
     evals <- map2(evals, new_j, \(x, y) ifelse(y, NA, x))
+  }
+
+  if (matrix_i) {
+    return(as.numeric(unlist(evals)))
   }
 
   if (matrix) {
