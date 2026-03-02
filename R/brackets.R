@@ -108,7 +108,16 @@
   x <- vec_slice(x, i)
   if (missing(j)) {
     if (!missing(matrix)) {
-      j <- tf_arg(x)
+      if (isTRUE(matrix)) {
+        arg_vals <- tf_arg(x)
+        if (is.list(arg_vals)) {
+          j <- sort_unique(arg_vals, simplify = TRUE)
+        } else {
+          j <- arg_vals
+        }
+      } else {
+        j <- tf_arg(x)
+      }
     } else {
       return(x)
     }
