@@ -56,7 +56,7 @@ of the usual \code{dplyr} tricks are available as well, see examples.\cr
 Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
 }
 \examples{
-\dontshow{if (rlang::is_installed("dplyr")) withAutoprint(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("dplyr")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 lin <- 1:4 * tfd(seq(-1, 1, length.out = 11), seq(-1, 1, length.out = 11))
 tf_where(lin, value \%inr\% c(-1, 0.5))
 tf_where(lin, value \%inr\% c(-1, 0.5), "range")
