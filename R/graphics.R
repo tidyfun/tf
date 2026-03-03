@@ -41,7 +41,7 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @param type `"spaghetti"`: line plots, `"lasagna"`: heat maps.
 #' @param alpha alpha-value (see [grDevices::rgb()]) for noodle transparency.
 #'   Defaults to 2/(no. of observations). Lower is more transparent.
-#' @param ... additional arguments for [matplot()] ("spaghetti") or
+#' @param ... additional arguments for [graphics::matplot()] ("spaghetti") or
 #'   [image()] ("lasagna").
 #' @returns the plotted `tf`-object, invisibly.
 #' @importFrom graphics matplot image axis
