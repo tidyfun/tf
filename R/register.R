@@ -598,9 +598,45 @@ tf_register.tfd_irreg <- function(
   max_iter = 3L,
   tol = 1e-2
 ) {
-  cli::cli_abort(
-    "{.cls tfd_irreg} objects cannot be registered. Please convert to {.cls tfd_reg} first."
+  assert_tfd(x)
+  method <- match.arg(method)
+  assert_count(max_iter, positive = TRUE)
+  assert_number(tol, lower = 0)
+
+  if (method %in% c("srvf", "fda")) {
+    cli::cli_abort(
+      c(
+        "For {.cls tfd_irreg}, only `affine` and `landmark` registration are currently supported.",
+        "i" = "Convert to {.cls tfd_reg} first to use {.val {method}}."
+      )
+    )
+  }
+  if (method == "landmark") {
+    return(register_landmark(x, ...))
+  }
+
+  arg_list <- ensure_list(tf_arg(x))
+  arg_common <- sort_unique(arg_list, simplify = TRUE)
+  x_common <- suppressWarnings(tfd(x, arg = arg_common))
+  template_common <- if (is.null(template)) {
+    NULL
+  } else {
+    suppressWarnings(tfd(template, arg = arg_common))
+  }
+
+  warp_common <- tf_register.tfd_reg(
+    x = x_common,
+    ...,
+    template = template_common,
+    method = "affine",
+    max_iter = max_iter,
+    tol = tol
   )
+  warp_values <- map(
+    seq_len(length(x)),
+    \(i) tf_evaluate(warp_common[i], arg = arg_list[[i]])[[1]]
+  )
+  tfd(warp_values, arg = arg_list, domain = tf_domain(x))
 }
 
 #-------------------------------------------------------------------------------
@@ -707,6 +743,7 @@ register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   assert_matrix(landmarks, mode = "numeric", nrows = length(x), min.cols = 1)
 
   domain <- tf_domain(x)
+  arg <- tf_arg(x)
   n <- length(x)
   n_landmarks <- ncol(landmarks)
   has_na <- anyNA(landmarks)
@@ -719,6 +756,17 @@ register_landmark <- function(x, landmarks, template_landmarks = NULL) {
     domain,
     n_landmarks
   )
+  warp_on_arg <- \(landmark_row, x_arg) {
+    valid <- !is.na(landmark_row)
+    t_arg <- c(domain[1], template_landmarks[valid], domain[2])
+    w_vals <- c(domain[1], landmark_row[valid], domain[2])
+    approx(t_arg, w_vals, xout = x_arg, rule = 2)$y
+  }
+
+  if (is.list(arg)) {
+    warp_list <- lapply(seq_len(n), \(i) warp_on_arg(landmarks[i, ], arg[[i]]))
+    return(tfd(warp_list, arg = arg, domain = domain))
+  }
 
   if (!has_na) {
     # Fast path: all landmarks present, vectorized construction
@@ -728,12 +776,9 @@ register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   }
 
   # NA-aware path: build per-curve warps using only available landmarks
-  arg <- as.numeric(tf_arg(x))
+  arg <- as.numeric(arg)
   warp_list <- lapply(seq_len(n), \(i) {
-    valid <- !is.na(landmarks[i, ])
-    t_arg <- c(domain[1], template_landmarks[valid], domain[2])
-    w_vals <- c(domain[1], landmarks[i, valid], domain[2])
-    approx(t_arg, w_vals, xout = arg, rule = 2)$y
+    warp_on_arg(landmarks[i, ], arg)
   })
   tfd(do.call(rbind, warp_list), arg = arg)
 }
