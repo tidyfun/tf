@@ -31,20 +31,20 @@ assert_same_domains <- function(x, to) {
   )
 }
 
-assert_arg <- function(arg, x, check_unique = TRUE) {
+assert_arg <- function(arg, x, check_unique = TRUE, .var.name = vname(arg)) {
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
     walk(arg, \(arg) {
       if (!is.null(arg)) {
-        assert_arg_vector(arg, x = x, check_unique = check_unique)
+        assert_arg_vector(arg, x = x, check_unique = check_unique, .var.name = .var.name)
       }
     })
   } else {
-    assert_arg_vector(arg, x, check_unique = check_unique)
+    assert_arg_vector(arg, x, check_unique = check_unique, .var.name = .var.name)
   }
 }
 
-assert_arg_vector <- function(arg, x, check_unique = TRUE) {
+assert_arg_vector <- function(arg, x, check_unique = TRUE, .var.name = vname(arg)) {
   domain_x <- tf_domain(x)
   assert_numeric(
     arg,
@@ -52,7 +52,8 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
     unique = check_unique,
     sorted = TRUE,
     lower = domain_x[1],
-    upper = domain_x[2]
+    upper = domain_x[2],
+    .var.name = .var.name
   )
 }
 
