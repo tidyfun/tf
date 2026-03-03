@@ -25,38 +25,44 @@ have_srvf <- rlang::is_installed("fdasrvf")
 have_fda <- rlang::is_installed("fda")
 ```
 
-This vignette is written in two passes:
+## Registration: Template, Warp, Domain
 
-1. First pages: practical guidance for choosing methods, avoiding common mistakes, and diagnosing results.
-2. Later pages: more detail on method assumptions and a deeper case study.
+Registration aligns functions in time by reducing phase variation (timing differences - "horizontal" variability) while preserving amplitude variation (shape/height differences - "vertical" variability).
 
-## 1) Before You Register: Template, Warp, Domain
+Use registration if:
 
-Registration aligns functions in time by reducing phase variation (timing differences) while trying to preserve amplitude variation (shape/height differences).
-
-Use registration when:
-
-- Curves have broadly similar shapes but shifted or stretched timing.
-- Your scientific question depends on timing alignment.
+- Curves have broadly similar shapes that are shifted, stretched or compressed relative to each other
+    - and your analysis does not care about these timing differences 
+    - or you want to analyze these timing differences separately from shape differences.
 - You can interpret both the **target template** and the resulting warps in domain terms.
 
-Do not treat registration as a default preprocessing step when:
+Do not treat registration as a (default) preprocessing step when:
 
 - Curves come from clearly different shape classes/clusters.
-- Timing differences are not meaningful for your question.
+- Timing differences are not meaningful for your question or cannot be viewed in isolation from shape differences.
 - Heavy warping would create implausible subject-specific timelines.
 
-Core model:
+**Core model:**
 
 \[
 x_i(t) \approx m\left(h_i^{-1}(t)\right)
 \]
 
-- \(m\): template shape you register against.
-- \(h_i\): warping function mapping aligned time \(s\) to observed time \(t\).
-- \(h_i^{-1}\): inverse warping used by `tf_unwarp()` to align observed curves.
+- \(x_i(t)\): observed curve \(i\) at observed times \(t\).
+- \(m\): the "template" function you register against.
+- \(h_i\): warping function mapping aligned time \(s\) ("system time")  to observed time \(t\) ("wallclock time").
+- \(h_i^{-1}\): inverse warping (observed time $\to$ system time) used by `tf_unwarp()` to align observed curves.
 
-### 1.1) What Is the Template?
+**Core workflow in `tf`:**
+
+```r
+# estimate h_i(t):
+x_warpings <- tf_register(x, method = "...")
+# align/register curves by unwarping with h_i^{-1}(t):
+x_registered <- tf_unwarp(x, x_warpings)
+```
+
+### What Is the Template?
 
 Template choice is the most important modeling choice in registration: every estimated warp is relative to that template.
 
@@ -64,31 +70,31 @@ Default template behavior in `tf_register()`:
 
 | Method | Default template behavior | How to override |
 |:--|:--|:--|
-| `srvf` | Karcher-type mean estimated by `fdasrvf` | pass `template = ...` |
-| `fda` | arithmetic mean curve | pass `template = ...` |
+| `srvf` | Karcher-type mean^[The Karcher mean (also called Frechet mean) generalizes the arithmetic mean to curved spaces. Here it is the mean shape on the manifold of warping functions, computed iteratively using the elastic (Fisher-Rao) distance rather than pointwise averaging.] estimated iteratively by `fdasrvf` | pass `template = ...` |
+| `fda` | arithmetic mean curve (estimated iteratively) | pass `template = ...` |
 | `affine` | arithmetic mean curve | pass `template = ...` |
-| `landmark` | column-wise mean of landmarks | pass `template_landmarks = ...` |
+| `landmark` | column-wise mean of landmark locations | pass `template_landmarks = ...` |
 
 Practical rules:
 
-1. If you need interpretable timing relative to a known reference, supply an explicit template.
-2. Keep template and data on the same domain/grid for `srvf` and `fda`.
+1. If you need interpretable warpings relative to a known reference, supply an explicit template.
+2. Template and data need to be on the same domain and grid for `srvf` and `fda`.
 3. Always visualize raw curves and the template together before trusting warps.
 
-### 1.2) What a Warping Function Means
+### What is a Warping Function?
 
-`tf_register()` returns warps \(h_i\). In practice, you usually inspect inverse warps \(h_i^{-1}\) via `tf_invert(warp)` because those are directly used for alignment.
+`tf_register()` returns warps \(h_i\). In practice, you usually inspect inverse warps \(h_i^{-1}\) via `tf_invert(warp)` because those are directly used for alignment: they map observed time points to aligned time points.
 
-- Curves close to the identity line mean little phase correction.
-- Strong local slope changes imply strong local time dilation/compression.
+- Curves close to the identity line imply there is little phase correction.
+- Local slopes different from 1 imply local time dilation ($\tfrac{d}{dt} h_i^{-1}(t) < 1$) or compression ($\tfrac{d}{dt} h_i^{-1}(t) > 1$) of the observed function relative to the template function.
 - Large departures from identity without clear alignment gain indicate over-warping risk.
 
-### 1.3) Domain-Preserving vs Non-domain-preserving Warps
+#### Domain-Preserving vs Non-domain-preserving Warps
 
 This distinction is fundamental for interpretation and edge behavior:
 
-- **Domain-preserving**: warps map domain endpoints to themselves. Typical for `srvf`, `fda`, and `landmark`.
-- **Non-domain-preserving**: warps can shift/scale outside (or into a subset of) the observed domain. Often seen with `affine`.
+- **Domain-preserving**: warps map domain endpoints to themselves. Registration using the `srvf`, `fda`, and `landmark` methods in `tf` is domain preserving.
+- **Non-domain-preserving**: warps can shift or scale outside (or into a subset of) the observed domain. Only available with the `affine` method in `tf`.
 
 Implications:
 
@@ -96,47 +102,101 @@ Implications:
 2. Domain-preserving warps avoid these boundary losses but can still overfit timing.
 3. Method choice is therefore not only about alignment quality; it is also about what time transformation is scientifically admissible.
 
-Core workflow in `tf`:
+Note that the affine shift warp is NOT domain-preserving (it extends beyond [0,1], shown by the clipping), while the smooth and wiggly elastic warps ARE domain-preserving (they start at 0 and end at 1).
 
-```r
-warp <- tf_register(x, method = "...")
-x_reg <- tf_unwarp(x, warp)
+```{r warp-illustration, echo = FALSE, fig.width = 8, fig.height = 3.5}
+# Synthetic illustration of different warp types
+s <- seq(0, 1, length.out = 201)
+
+# Template: Gaussian bump
+template_synth <- exp(-((s - 0.45)^2) / (2 * 0.08^2))
+
+# Warp 1: affine shift (clamped to [0,1])
+h_shift <- pmin(pmax(s + 0.12, 0), 1)
+
+# Warp 2: smooth diffeomorphism (domain-preserving)
+h_smooth_raw <- s + 0.15 * sin(pi * s)
+h_smooth <- (h_smooth_raw - h_smooth_raw[1]) / (h_smooth_raw[201] - h_smooth_raw[1])
+
+# Warp 3: wiggly diffeomorphism (domain-preserving)
+h_wiggly_raw <- s + 0.08 * sin(2 * pi * s) + 0.04 * sin(4 * pi * s)
+h_wiggly <- (h_wiggly_raw - h_wiggly_raw[1]) / (h_wiggly_raw[201] - h_wiggly_raw[1])
+
+# Compose template with warps: m(h(s))
+warped_shift <- approx(s, template_synth, xout = h_shift, rule = 2)$y
+warped_smooth <- approx(s, template_synth, xout = h_smooth, rule = 2)$y
+warped_wiggly <- approx(s, template_synth, xout = h_wiggly, rule = 2)$y
+
+warp_cols <- c("#DF536B", "#2297E6", "#61D04F")
+
+layout(t(1:3))
+par(mar = c(4, 4, 3, 1))
+
+# Left: template
+plot(s, template_synth, type = "l", lwd = 2.5,
+     main = "Template m(s)", xlab = "s", ylab = "m(s)")
+
+# Middle: warping functions
+plot(s, s, type = "l", lty = 3, lwd = 1,
+     main = "Warping Functions h(s)", xlab = "s", ylab = "h(s)",
+     ylim = c(-0.05, 1.15))
+lines(s, h_shift, col = warp_cols[1], lwd = 2)
+lines(s, h_smooth, col = warp_cols[2], lwd = 2)
+lines(s, h_wiggly, col = warp_cols[3], lwd = 2)
+legend("topleft",
+       legend = c("identity", "affine (shift)", "smooth elastic", "wiggly elastic"),
+       col = c("black", warp_cols), lty = c(3, 1, 1, 1), lwd = c(1, 2, 2, 2),
+       cex = 0.75, bty = "n")
+
+# Right: warped templates
+plot(s, template_synth, type = "l", lwd = 2.5, lty = 3,
+     main = "Warped: m(h(s))", xlab = "s", ylab = "m(h(s))",
+     ylim = c(-0.05, 1.1))
+lines(s, warped_shift, col = warp_cols[1], lwd = 2)
+lines(s, warped_smooth, col = warp_cols[2], lwd = 2)
+lines(s, warped_wiggly, col = warp_cols[3], lwd = 2)
+legend("topleft",
+       legend = c("template", "affine (shift)", "smooth elastic", "wiggly elastic"),
+       col = c("black", warp_cols), lty = c(3, 1, 1, 1), lwd = c(1, 2, 2, 2),
+       cex = 0.75, bty = "n")
 ```
 
-## 2) Five-Minute Quick Start (Template-aware Baseline)
 
-This minimal example uses affine shift registration because it has no extra package dependency and provides a fast baseline. We pass an explicit template to make the target shape transparent.
+## Example: Shift Registration with Explicit Template 
+
+This minimal example uses simple shift registration, i.e. the warping model assumes $h_i(t) = t + \delta_i$ (no elastic deformation of the domain, only horizontal shifts of the functions' graphs). 
+We pass an explicit template to make the target shape transparent:
 
 ```{r quickstart, class.source = "fold-show"}
 pinch_small <- pinch[1:10]
-template_affine <- mean(pinch_small)
+template_affine <- pinch[7] |> tf_smooth()
 
-warp_affine <- tf_register(
+pinch_warp_shift <- tf_register(
   pinch_small,
   method = "affine",
   template = template_affine,
   type = "shift"
 )
-pinch_small_reg <- tf_unwarp(pinch_small, warp_affine)
+pinch_small_reg <- tf_unwarp(pinch_small, pinch_warp_shift)
 ```
 
-```{r quickstart-plot}
+```{r quickstart-plot, echo = FALSE, class.source = "fold-show", fig.width = 6, fig.height = 4}
 layout(t(1:3))
 plot(
   pinch_small,
   main = "Original Curves",
-  xlab = "Observed Time [s]",
+  xlab = "Observed Time t [sec]",
   ylab = "Force [N]",
   lwd = 1.5,
   col = alpha_palette
 )
 lines(template_affine, lwd = 2.5, lty = 3)
 plot(
-  tf_invert(warp_affine),
+  tf_invert(pinch_warp_shift),
   points = FALSE,
   main = "Inverse Warping Functions",
-  xlab = "Observed Time [s]",
-  ylab = "Registered Time [s]",
+  xlab = "Observed Time t [sec]",
+  ylab = "Registered Time s [sec]",
   lwd = 1.5,
   col = alpha_palette
 )
@@ -144,10 +204,11 @@ abline(0, 1, lty = 3)
 plot(
   pinch_small_reg,
   main = "Registered Curves",
-  xlab = "Registered Time [s]",
+  xlab = "Registered Time s [sec]",
   ylab = "Force [N]",
   lwd = 1.5,
-  col = alpha_palette
+  col = alpha_palette, 
+  points = FALSE
 )
 ```
 
@@ -159,16 +220,16 @@ Quick success checks:
 - Boundary `NA`s are limited and scientifically acceptable.
 - Resulting timing shifts are domain-plausible.
 
-## 3) Choosing a Registration Method
+## Choosing a Registration Method
 
-> **Provisional guidance:** Method-selection advice in Sections 3/4/5 reflects current package behavior and practical experience. We are running a benchmark study comparing methods under controlled scenarios, so these recommendations may be revised after those results are finalized.
+| Method | Use when | Avoid when | Template handling | Key arguments | Input grid | Typical failure signs | First fallback |
+|:--|:--|:--|:--|:--|:--|:--|:--|
+| `srvf` (default) | Smooth, non-linear timing differences with shared shape family | Very noisy data, sparse grids, highly heterogeneous shapes | Implicit Karcher-type mean unless `template` supplied | `method = "srvf"` | regular only | Unstable warps, over-warping, inconsistent reruns | Smooth more and/or evaluate on finer grids; try `affine` or `landmark` |
+| `fda` | You want continuous-criterion alignment and can tune criterion | Complex phase-amplitude interactions or severe irregularity | Arithmetic mean unless `template` supplied | `method = "fda"`, `crit = 1/2` | regular only | Sensitive to criterion choice, weak alignment gains | Try `srvf` or `affine` |
+| `affine` | Mostly shift/scale timing variability; need interpretable warps | Strong non-linear timing deformation | Arithmetic mean unless `template` supplied | `method = "affine"`, `type`, bounds | regular + irregular | Residual misalignment of local features, boundary `NA`s under stronger shifts/scales | Upgrade to `srvf` |
+| `landmark` | Reliable, repeated landmarks are available across curves | Ambiguous/noisy landmarks or mismatched counts | Uses `template_landmarks` (default: column means) | `method = "landmark"`, `landmarks`, `template_landmarks` | regular + irregular | Forced/broken alignments from bad landmarks | Use `srvf` or `affine` |
 
-| Method | Use when | Avoid when | Template handling | Key arguments | Typical failure signs | First fallback |
-|:--|:--|:--|:--|:--|:--|:--|
-| `srvf` (default) | Smooth, non-linear timing differences with shared shape family | Very noisy data, sparse grids, highly heterogeneous shapes | Implicit Karcher-type mean unless `template` supplied | `method = "srvf"` | Unstable warps, over-warping, inconsistent reruns | Smooth more; try `affine` or `landmark` |
-| `fda` | You want continuous-criterion alignment and can tune criterion | Complex phase-amplitude interactions or severe irregularity | Arithmetic mean unless `template` supplied | `method = "fda"`, `crit = 1/2` | Sensitive to criterion choice, weak alignment gains | Try `srvf` or `affine` |
-| `affine` | Mostly shift/scale timing variability; need interpretable warps | Strong non-linear timing deformation | Arithmetic mean unless `template` supplied | `method = "affine"`, `type`, bounds | Residual misalignment of local features, boundary `NA`s under stronger shifts/scales | Upgrade to `srvf` |
-| `landmark` | Reliable, repeated landmarks are available across curves | Ambiguous/noisy landmarks or mismatched counts | Uses `template_landmarks` (default: column means) | `method = "landmark"`, `landmarks`, `template_landmarks` | Forced/broken alignments from bad landmarks | Use `srvf` or `affine` |
+The `srvf` and `fda` methods require regular grids (`tfd_reg`). The `affine` and `landmark` methods also accept irregular grids (`tfd_irreg`).
 
 Practical default:
 
@@ -176,48 +237,51 @@ Practical default:
 2. Move to `srvf` if you need non-linear timing flexibility.
 3. Use `landmark` when domain landmarks are trusted and central.
 
-## 4) Pitfalls and Likely Failure Modes (Read Before Scaling Up)
+See [Theoretical Background] below for method-specific mathematical details.
 
-> **Provisional guidance:** Method-selection advice in Sections 3/4/5 reflects current package behavior and practical experience. We are running a benchmark study comparing methods under controlled scenarios, so these recommendations may be revised after those results are finalized.
+## Pitfalls and Likely Failure Modes
 
-### A) Multiple shape families (non-identifiability)
+#### Structured shape variation
 
-- **Detect:** Registered curves still form distinct shape clusters.
-- **Do next:** Stratify first; register within clusters; compare cluster-specific results.
+**Issue:** Registered curves still form distinct shape clusters.
 
-### B) Noise dominates phase signal
+**Remedies:** Stratify first; register within clusters; compare cluster-specific results.
 
-- **Detect:** Warps become jagged or highly variable across near-identical curves.
-- **Do next:** Smooth first; reduce basis flexibility; compare before/after sensitivity.
+Registration assumes a single shared template. If curves come from different shape families, a single registration will try to compromise and may distort curves from both groups.
 
-### C) Sparse or irregular grids
+#### Noise dominates phase signal
 
-- **Detect:** Registration quality depends strongly on interpolation grid choices.
-- **Do next:** Re-evaluate to a stable common grid; run sensitivity checks on grid density.
+**Issue:** Warps become jagged, wiggly or highly variable across near-identical curves.
 
-### D) Boundary and overlap artifacts
+**Remedies:** Smooth inputs (more) first; reduce basis flexibility; compare before/after sensitivity.
 
-- **Detect:** `NA` regions after unwarping, especially for aggressive affine shifts/scales.
-- **Do next:** Inspect boundary behavior explicitly; use `keep_new_arg = TRUE` when needed; narrow affine bounds.
+In our benchmarks, SRVF and FDA tended to degrade more gracefully under noise than affine and landmark methods. Pre-smoothing inputs with `tf_smooth()` before registration can help all methods.
 
-### E) Landmark quality issues
+#### Sparse or irregular grids
 
-- **Detect:** Small landmark perturbations cause large warp changes.
-- **Do next:** Validate landmarks visually; use robust landmark definitions; fall back to `srvf`/`affine` when ambiguous.
+**Issue:** Registration quality may be affected strongly by interpolation grid choices.
 
-### F) Over-warping
+**Remedies:** Re-evaluate on a fine, common grid; run sensitivity checks on grid density.
 
-- **Detect:** Large timing distortions with little gain in feature alignment.
-- **Do next:** Prefer simpler method (`affine`), reduce flexibility, or avoid registration for that subset.
+All `tf` registration methods require regular grids (`tfd_reg`). Interpolate sparse or irregular data to a common regular grid first. Grid density can affect results — try at least two grid resolutions to check stability.
 
-### G) Template mismatch
+#### Boundary and overlap artifacts
 
-- **Detect:** Registered curves align to a shape that is not scientifically meaningful for your question.
-- **Do next:** Choose an explicit template (or template landmarks), rerun, and compare conclusions.
+**Issue:** Large `NA` regions after unwarping, especially for aggressive affine shifts/scales.
 
-## 5) Practical Diagnostics Workflow
+**Remedies:** Inspect boundary behavior explicitly; narrow affine bounds via `shift_range`/`scale_range`.
 
-> **Provisional guidance:** Method-selection advice in Sections 3/4/5 reflects current package behavior and practical experience. We are running a benchmark study comparing methods under controlled scenarios, so these recommendations may be revised after those results are finalized.
+This issue is specific to the `affine` method, which is the only non-domain-preserving method in `tf`. The `srvf`, `fda`, and `landmark` methods preserve domain endpoints by construction and do not produce boundary `NA`s.
+
+#### Over-warping
+
+**Issue:** Extreme timing distortions with little gain in feature alignment.
+
+**Remedies:** Prefer simpler methods (`affine`), reduce flexibility, or avoid registration for that subset.
+
+This is primarily a risk with flexible methods (`srvf`, `fda`). Affine warps are constrained by design and rarely over-warp. Comparing results across methods can help detect over-warping: if a flexible method's warps are much more variable than an affine baseline without a clear improvement in alignment, over-warping may be occurring.
+
+## Practical Diagnostics Workflow
 
 After any registration run:
 
@@ -225,32 +289,66 @@ After any registration run:
 2. Plot registered curves and compare key features to the template.
 3. Plot inverse warps and check for plausible deformation.
 4. Quantify one alignment target (e.g., spread of peak locations).
-5. Check boundary support (`NA` rates), especially for affine warps.
+5. Check boundary support (`NA` rates) for affine (non-domain-preserving) warps.
 6. Re-run with at least one alternative method.
 7. Re-run after modest smoothing/grid change; check stability.
 
-```{r diagnostics, class.source = "fold-show"}
-x <- pinch[1:10]
+We demonstrate this workflow below using the `pinch` data with affine shift registration.
 
+```{r diagnostics, class.source = "fold-show"}
+x <- pinch[1:10] 
+
+# Register with affine shift warps:
 warp_aff <- tf_register(x, method = "affine", type = "shift")
 x_aff <- tf_unwarp(x, warp_aff)
 
-peak_before <- as.numeric(tf_landmarks_extrema(x, "max"))
-peak_after_aff <- as.numeric(tf_landmarks_extrema(x_aff, "max"))
+# Check 1: Are global peak locations more concentrated after alignment?
+peak_before <- tf_where(x, value == max(value)) |> as.numeric()
+peak_after_aff <- tf_where(x_aff, value == max(value)) |> as.numeric()
 
 data.frame(
   metric = c("sd_peak_before", "sd_peak_after_affine"),
   value = c(sd(peak_before), sd(peak_after_aff))
 )
 
-na_prop_aff <- mean(vapply(tf_evaluations(x_aff), \(v) mean(is.na(v)), numeric(1)))
+# Check 2: How much boundary support is lost?
+# For shift warps h(t) = t + delta, the shift is readable from the warp directly:
+shifts <- as.numeric(warp_aff[, tf_domain(x)[1]]) - tf_domain(x)[1]
+# Proportion of domain lost to boundary NAs is approximately |delta| / domain_width:
+na_prop_aff <- mean(abs(shifts)) / diff(tf_domain(x))
 na_prop_aff
 ```
 
-```{r diagnostics-optional-srvf, eval = have_srvf, class.source = "fold-show"}
+```{r diagnostics-plot, fig.width = 8, fig.height = 4}
+layout(t(1:4))
+# Original curves:
+plot(x, main = "Original",
+     col = alpha_palette, lwd = 1.5)
+# Inverse warps — should be close to identity for mild shifts:
+plot(tf_invert(warp_aff), points = FALSE,
+     main = "Inverse Warps",
+     xlab = "Observed Time", ylab = "Registered Time",
+     col = alpha_palette, lwd = 1.5)
+abline(0, 1, lty = 3)
+# Registered curves:
+plot(x_aff, main = "Registered",
+     col = alpha_palette, lwd = 1.5, points = FALSE)
+# Peak locations before vs after:
+plot(peak_before, rep(2, length(peak_before)),
+     xlim = tf_domain(x), ylim = c(0.5, 2.5),
+     pch = 4, cex = 1.5, col = alpha_palette,
+     xlab = "Time", ylab = "", yaxt = "n",
+     main = "Peak Locations")
+points(peak_after_aff, rep(1, length(peak_after_aff)),
+       pch = 16, cex = 1.5, col = alpha_palette)
+axis(2, at = c(1, 2), labels = c("After", "Before"), las = 1)
+```
+
+```{r diagnostics-optional-srvf, eval = have_srvf, include = have_srvf, class.source = "fold-show"}
+# Compare with SRVF (non-linear warps):
 warp_srvf <- tf_register(x, method = "srvf")
 x_srvf <- tf_unwarp(x, warp_srvf)
-peak_after_srvf <- as.numeric(tf_landmarks_extrema(x_srvf, "max"))
+peak_after_srvf <- tf_where(x_srvf, value == max(value)) |> as.numeric()
 
 data.frame(
   metric = c("sd_peak_after_affine", "sd_peak_after_srvf"),
@@ -258,17 +356,36 @@ data.frame(
 )
 ```
 
+```{r diagnostics-optional-srvf-plot, eval = have_srvf, include = have_srvf, fig.width = 8, fig.height = 4}
+layout(t(1:4))
+plot(x, main = "Original",
+     col = alpha_palette, lwd = 1.5)
+plot(tf_invert(warp_srvf), points = FALSE,
+     main = "SRVF Inverse Warps",
+     xlab = "Observed Time", ylab = "Registered Time",
+     col = alpha_palette, lwd = 1.5)
+abline(0, 1, lty = 3)
+plot(x_srvf, main = "SRVF Registered",
+     col = alpha_palette, lwd = 1.5, points = FALSE)
+plot(peak_before, rep(2, length(peak_before)),
+     xlim = tf_domain(x), ylim = c(0.5, 2.5),
+     pch = 4, cex = 1.5, col = alpha_palette,
+     xlab = "Time", ylab = "", yaxt = "n",
+     main = "Peak Locations")
+points(peak_after_srvf, rep(1, length(peak_after_srvf)),
+       pch = 16, cex = 1.5, col = alpha_palette)
+axis(2, at = c(1, 2), labels = c("After", "Before"), las = 1)
+```
+
 If different methods disagree strongly and diagnostics are unstable, treat conclusions as low confidence until you resolve data representation and model-choice sensitivity.
 
-## 6) Method Notes and Theoretical Background
+## Theoretical Background
 
-Registration models observed curves as time-deformed versions of a template:
+Registration models observed curves $x_i(t)$ as *time-deformed versions of a template* $m(s)$, where the time deformation is given by a monotone warping function \(h_i(s)\):
 
 \[
 x_i(t) \approx m(h_i^{-1}(t))
 \]
-
-with monotone warping \(h_i\).
 
 Key interpretation:
 
@@ -276,53 +393,175 @@ Key interpretation:
 - \(h_i^{-1}\) maps observed time to aligned time.
 - Slope \(>1\) or \(<1\) indicates local dilation/compression in time.
 
-Method-specific notes:
 
-- **SRVF**: strongest general-purpose option for smooth non-linear timing effects; sensitive to representation/noise.
-- **FDA criteria**: useful alternatives but often require more tuning.
-- **Affine**: constrained but interpretable and fast; excellent baseline.
-- **Landmark**: highly effective when landmarks are reliable; fragile otherwise.
+### SRVF (Square Root Velocity Framework)
 
-## 7) Worked Examples (Later Detail)
+Represents each curve via its square root velocity function (SRVF), $q(t) = \dot{x}(t) / \sqrt{|\dot{x}(t)|}$, and aligns curves by minimizing the elastic (Fisher-Rao) distance between SRVFs. This transforms the non-linear alignment problem into a "simpler" optimization on a Hilbert sphere.
 
-### 7.1 Pinch Data: Cross-method Comparison
+- **Optimization:** Dynamic programming over the space of diffeomorphisms^[smooth, monotone, one-to-one functions, basically.] (via `fdasrvf`).
+- **Template:** Karcher mean on the shape manifold (iterative; see footnote in the [template table][What Is the Template?] above), or user-supplied.
+- **Domain-preserving:** Yes — warps satisfy $h(t_0) = t_0$ and $h(t_1) = t_1$.
+- **Key arguments:** `method = "srvf"`. Pass `template` to override the Karcher mean. Control warp flexibility via `lambda` (default `0` for unrestricted warps) and `penalty_method` (`"roughness"` (default), `"geodesic"`, or `"norm"`).
+- **Strengths:** In our benchmarks, SRVF tended to be the best general-purpose method for smooth non-linear timing effects. Its scale invariance makes it relatively robust to multiplicative amplitude variation.
+- **Weaknesses:** Can be sensitive to noise and curve representation as well as penalization. Shows the most variable performance under template estimation compared to other methods.
+
+### FDA (Continuous Registration Criterion)
+
+Minimizes an integrated criterion measuring the distance between registered curves and the template, using monotone B-spline warping functions enforced via `fda::register.fd()`.
+
+- **Optimization:** Continuous registration criterion (CCC) with monotone spline warps.
+- **Template:** Arithmetic mean (iteratively re-estimated), or user-supplied.
+- **Domain-preserving:** Yes.
+- **Key arguments:** `method = "fda"`. Use `crit = 1` (default) to minimize integrated squared differences, or `crit = 2` to maximize the proportion of variance explained by the first eigenfunction of the registered sample. Control warp flexibility via `nbasis` (default `6`) and smoothness via `lambda` (default `0`). In our experience, `crit = 1` without penalization tends to be considerably less reliable than `crit = 2` or penalized variants — the unpenalized L2 criterion can produce strongly distorted warps.
+- **Strengths:** Tends to be the most stable method under template estimation. 
+- **Weaknesses:** Requires the `fda` package. Results are sensitive to the criterion choice and the spline basis configuration.
+
+### Affine (Shift / Scale)
+
+Models warps as linear functions $h(t) = a \cdot t + b$, with three sub-types:
+
+- `type = "shift"` (default): $a = 1$, only horizontal translation ($b$ free).
+- `type = "scale"`: only uniform time scaling ($a$ free, $b$ derived from centering).
+- `type = "shift_scale"`: both parameters free.
+
+Each curve is aligned independently via bounded L-BFGS-B optimization of the L2 distance to the template.
+
+- **Template:** Arithmetic mean, or user-supplied.
+- **Domain-preserving:** **No** — warps can shift or scale outside the observed domain, producing boundary `NA`s after `tf_unwarp()`.
+- **Input grid:** Supports both regular and irregular grids (`tfd_reg` and `tfd_irreg`).
+- **Key arguments:** `method = "affine"`, `type`, `shift_range`, `scale_range`.
+- **Strengths:** Very fast (typically 100--200x faster than SRVF), highly interpretable parameters, and in our benchmarks near-perfect recovery when the true warps are actually affine.
+- **Weaknesses:** Cannot capture non-linear timing deformation. Boundary `NA`s can be substantial under strong shifts/scales.
+
+### Landmark
+
+Constructs piecewise linear warps by mapping user-specified landmark positions to target positions. No continuous optimization is performed — the warp is fully determined by the landmark correspondence.
+
+- **Template:** Column-wise means of the landmark matrix, or user-supplied `template_landmarks`.
+- **Domain-preserving:** Yes — domain endpoints are used as boundary anchors.
+- **Input grid:** Supports both regular and irregular grids (`tfd_reg` and `tfd_irreg`).
+- **Key arguments:** `method = "landmark"`, `landmarks` (required: $n \times k$ matrix of landmark positions), `template_landmarks` (optional target positions).
+- **Strengths:** Fast and deterministic. In our benchmarks, landmark registration was the most robust method to outlier contamination, and near-perfect when landmarks are correctly identified.
+- **Weaknesses:** Requires the ability to identify reliable, consistent landmarks across all curves. Fragile when features are ambiguous or curves have few identifiable features (e.g., only one peak per curve).
+- **Landmark detection:** `tf_landmarks_extrema()` can automatically detect local maxima, minima, or zero crossings and cluster them across curves - usuablly better to pre-smooth noisy inputs with `tf_smooth()` or `tfb` before calling this function. Results will typically be better for user-defined landmarks that are based on domain knowledge.
+
+## Worked Examples
+
+### Pinch Data: Cross-method Comparison
 
 ```{r pinch-compare, class.source = "fold-show"}
 pinch_small <- pinch[1:10]
 
-warp_aff <- tf_register(pinch_small, method = "affine", type = "shift")
+warp_aff <- tf_register(pinch_small, method = "affine", type = "shift_scale")
 reg_aff <- tf_unwarp(pinch_small, warp_aff)
 
-peak_locs <- tf_landmarks_extrema(pinch_small, "max")
+# tf_landmarks_extrema needs smoothed inputs, otherwise it tends to detect lots of spurious features:
+(pinch_small |> tf_landmarks_extrema(which = "max"))
+# so in this case: simply use the global maximum for each curve
+(peak_locs <- pinch_small |> tf_where(value == max(value)) |> unlist() |> as.matrix())
 warp_lm <- tf_register(pinch_small, method = "landmark", landmarks = peak_locs)
 reg_lm <- tf_unwarp(pinch_small, warp_lm)
+
+# using more than just the peak location as the only landmark will get us better alignment here - 
+# we use the time points where the curve first & last exceeds 3 as well:
+pinch_landmarks  <- cbind(
+  start = pinch_small |> tf_where(value > 3, return = "first") |> unlist(),
+  peak  = peak_locs,
+  end   = pinch_small |> tf_where(value > 3, return = "last") |> unlist()
+)
+warp_lm2 <- tf_register(pinch_small, method = "landmark", landmarks = pinch_landmarks)
+reg_lm2 <- tf_unwarp(pinch_small, warp_lm2)
 ```
+
 
 ```{r pinch-compare-plot, fig.width = 8, fig.height = 8}
-layout(t(matrix(1:4, 2, 2)))
-plot(pinch_small, main = "Original", col = alpha_palette, lwd = 1.5)
-plot(reg_aff, main = "Affine Registered", col = alpha_palette, lwd = 1.5)
-plot(reg_lm, main = "Landmark Registered", col = alpha_palette, lwd = 1.5)
-plot(tf_invert(warp_aff), points = FALSE, main = "Affine Inverse Warps", col = alpha_palette, lwd = 1.5)
+layout(t(matrix(1:12, 4, 3)))
+plot(pinch_small, main = "Original", 
+     col = alpha_palette, lwd = 1.5)
+plot(tf_invert(warp_aff), main = "Affine Inverse Warps", ylab = "",
+     points = FALSE, col = alpha_palette, lwd = 1.5)
 abline(0, 1, lty = 3)
+plot(reg_aff, main = "Affine Registered", 
+     col = alpha_palette, lwd = 1.5, points = FALSE)
+plot(reg_aff, main = "Affine Registered", 
+     type = "lasagna", col = hcl.colors(12, rev = TRUE))
+
+plot.new()
+plot(warp_lm, main = "Landmark Inverse Warps \n (Peak only)", ylab = "",
+     points = FALSE, col = alpha_palette, lwd = 1.5)
+abline(0, 1, lty = 3)
+plot(reg_lm, main = "Landmark Registered", col = alpha_palette, lwd = 1.5)
+plot(reg_lm, main = "Landmark Registered", type = "lasagna", col = hcl.colors(12, rev = TRUE))
+
+plot.new()
+plot(warp_lm2, main = "Landmark Inverse Warps \n (Start + Peak + End)", ylab = "",
+     points = FALSE, col = alpha_palette, lwd = 1.5)
+abline(0, 1, lty = 3)
+plot(reg_lm2, main = "Landmark Registered", col = alpha_palette, lwd = 1.5)
+plot(reg_lm2, main = "Landmark Registered", type = "lasagna", col = hcl.colors(12, rev = TRUE))
 ```
 
-```{r pinch-compare-srvf-fda, eval = have_srvf || have_fda, class.source = "fold-show"}
-if (have_srvf) {
+Note that affine registration with `shift+scale` warps produces some boundary `NA`s because the warps are not domain-preserving, but it does a good job aligning the peaks. Landmark registration with only the peak locations does a decent job aligning the peaks without producing `NA`s, but it does not align the start and end of the curves well. Landmark registration with start + peak + end landmarks does a good job aligning all three features without producing `NA`s.
+
+```{r pinch-compare-srvf-fda, eval = have_srvf && have_fda, class.source = "fold-show"}
+if (have_srvf && have_fda) {
   warp_srvf <- tf_register(pinch_small, method = "srvf")
   reg_srvf <- tf_unwarp(pinch_small, warp_srvf)
-}
-if (have_fda) {
-  warp_fda <- tf_register(pinch_small, method = "fda", crit = 1)
-  reg_fda <- tf_unwarp(pinch_small, warp_fda)
+  warp_fda_unpen <- tf_register(pinch_small, method = "fda")
+  reg_fda_unpen <- tf_unwarp(pinch_small, warp_fda_unpen)
+  warp_fda_pen <- tf_register(pinch_small, method = "fda", lambda = 1e-4)
+  reg_fda_pen <- tf_unwarp(pinch_small, warp_fda_pen)
 }
 ```
 
-### 7.2 Growth Data: Deeper Real-data Workflow
+SRVF and FDA both use non-linear warps and tend to be able to align more complex phase variation than the `affine` method, but their warps are more complex and potentially harder to interpret, and registration can go off the rails more easily (as we can see here with the unpenalized `fda`-registration...).
 
-```{r growth-prep-short, class.source = "fold-show"}
+```{r pinch-compare-srvf-fda-plot, eval = have_srvf && have_fda, fig.width = 8, fig.height = 6}
+if (have_srvf && have_fda) {
+  layout(t(matrix(1:12, 4, 3)))
+
+  plot(pinch_small, main = "Original",
+       col = alpha_palette, lwd = 1.5)
+  plot(tf_invert(warp_srvf), main = "SRVF Inverse Warps", ylab = "",
+       points = FALSE, col = alpha_palette, lwd = 1.5)
+  abline(0, 1, lty = 3)
+  plot(reg_srvf, main = "SRVF Registered",
+       col = alpha_palette, lwd = 1.5, points = FALSE)
+  plot(reg_srvf, main = "SRVF Registered",
+       type = "lasagna", col = hcl.colors(12, rev = TRUE))
+
+  plot.new()
+  plot(tf_invert(warp_fda_unpen), main = "FDA Inverse Warps (unpen.)", ylab = "",
+       points = FALSE, col = alpha_palette, lwd = 1.5)
+  abline(0, 1, lty = 3)
+  plot(reg_fda_unpen, main = "FDA Registered (unpen.)",
+       col = alpha_palette, lwd = 1.5, points = FALSE)
+  plot(reg_fda_unpen, main = "FDA Registered (unpen.)",
+       type = "lasagna", col = hcl.colors(12, rev = TRUE))
+  
+  plot.new()
+  plot(tf_invert(warp_fda_pen), main = "FDA Inverse Warps", ylab = "",
+       points = FALSE, col = alpha_palette, lwd = 1.5)
+  abline(0, 1, lty = 3)
+  plot(reg_fda_pen, main = "FDA Registered",
+       col = alpha_palette, lwd = 1.5, points = FALSE)
+  plot(reg_fda_pen, main = "FDA Registered",
+       type = "lasagna", col = hcl.colors(12, rev = TRUE))
+}
+```
+
+### Growth Data: Deeper Real-data Workflow
+
+The Berkeley growth data contains height measurements for 39 boys and 54 girls aged 1--18. Growth velocity curves (first derivatives of height) show a prominent pubertal growth spurt whose timing varies substantially between individuals — a natural target for registration. We use this dataset to illustrate how data representation, penalization, and landmark choice affect registration quality.
+
+```{r growth-prep, class.source = "fold-show"}
 growth <- tf::growth
-growth$growth <- tfb(
+
+# Raw velocity via finite differences — noisy, only 30 midpoints from 31 measurements:
+growth$raw_vel <- tf_derive(growth$height)
+
+# Smooth velocity via B-spline representation on a denser grid, then derive analytically:
+growth$smooth_vel <- tfb(
   growth$height,
   k = 20,
   bs = "ps",
@@ -330,45 +569,123 @@ growth$growth <- tfb(
   verbose = FALSE
 ) |>
   tf_derive()
-
-if (have_srvf) {
-  growth_warp <- tf_register(growth$growth, method = "srvf")
-} else {
-  growth_warp <- tf_register(growth$growth, method = "affine", type = "shift")
-}
-growth_reg <- tf_unwarp(growth$growth, growth_warp)
 ```
 
-```{r growth-plot-short}
-layout(t(1:3))
-plot(
-  growth$growth,
-  xlab = "Chronological Age [years]",
-  ylab = "Growth [cm/year]",
-  lwd = 1.2
-)
-plot(
-  tf_invert(growth_warp),
-  points = FALSE,
-  xlab = "Chronological Age",
-  ylab = "Biological Age",
-  lwd = 1.2
-)
+#### Data representation matters
+
+The raw finite-difference velocity estimates are jagged (30 irregularly spaced points from the original measurement grid). SRVF registration on these noisy inputs tends to produce wiggly warps that chase noise rather than genuine phase variation. Converting to a smooth representation first gives SRVF clean input and much better results.
+
+```{r growth-raw-vs-smooth, eval = have_srvf, include = have_srvf, class.source = "fold-show"}
+# SRVF on raw (noisy) velocity:
+warp_raw <- tf_register(growth$raw_vel, method = "srvf")
+reg_raw <- tf_unwarp(growth$raw_vel, warp_raw)
+
+# SRVF on smooth velocity:
+warp_smooth <- tf_register(growth$smooth_vel, method = "srvf")
+reg_smooth <- tf_unwarp(growth$smooth_vel, warp_smooth)
+```
+
+```{r growth-raw-vs-smooth-plot, eval = have_srvf, include = have_srvf, fig.width = 8, fig.height = 6}
+layout(t(matrix(1:8, 4, 2)))
+
+plot(growth$raw_vel, main = "Raw Velocity (finite diff.)",
+     xlab = "Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(tf_invert(warp_raw), points = FALSE, main = "SRVF Warps (raw)",
+     xlab = "Chronological Age", ylab = "Registered Age", lwd = 0.8)
 abline(0, 1, lty = 3)
-plot(
-  growth_reg,
-  xlab = "Biological Age [years]",
-  ylab = "Growth [cm/year]",
-  lwd = 1.2
-)
+plot(reg_raw, main = "SRVF Registered (raw)",
+     xlab = "Registered Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(reg_raw, main = "SRVF Registered (raw)",
+     type = "lasagna", col = hcl.colors(12, rev = TRUE))
+
+plot(growth$smooth_vel, main = "Smooth Velocity (tfb deriv.)",
+     xlab = "Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(tf_invert(warp_smooth), points = FALSE, main = "SRVF Warps (smooth)",
+     xlab = "Chronological Age", ylab = "Registered Age", lwd = 0.8)
+abline(0, 1, lty = 3)
+plot(reg_smooth, main = "SRVF Registered (smooth)",
+     xlab = "Registered Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(reg_smooth, main = "SRVF Registered (smooth)",
+     type = "lasagna", col = hcl.colors(12, rev = TRUE))
 ```
 
-For larger studies, keep a diagnostics log per run (data preprocessing, method, key parameters, alignment metrics, and failure notes) so method choices are auditable and reproducible.
+The top row shows warps with local wiggles that reflect noise in the raw velocity estimates rather than genuine timing differences. The bottom row, using smooth velocity curves, produces clean warps that capture the pubertal timing variation — the main feature of interest.
 
-## 8) Default Playbook (Copy/Paste)
+#### Penalization
 
-1. Start with `affine` as a baseline and inspect results.
-2. Move to `srvf` if non-linear timing misalignment remains.
-3. Use `landmark` only with high-confidence landmarks.
-4. Run diagnostics from Section 5 every time.
-5. Treat recommendations in Sections 3/4/5 as provisional pending benchmark updates.
+Even on noisy inputs, SRVF penalization (`lambda > 0`) can help suppress over-warping. Higher `lambda` pulls warps toward the identity (no warping), trading alignment accuracy for warp smoothness.
+
+```{r growth-penalization, eval = have_srvf, include = have_srvf, class.source = "fold-show"}
+# Penalized SRVF on the raw velocity:
+warp_raw_pen <- tf_register(growth$raw_vel, method = "srvf", lambda = 0.1)
+reg_raw_pen <- tf_unwarp(growth$raw_vel, warp_raw_pen)
+```
+
+```{r growth-penalization-plot, eval = have_srvf, include = have_srvf, fig.width = 8, fig.height = 6}
+layout(t(matrix(1:8, 4, 2)))
+
+plot(growth$raw_vel, main = "Raw Velocity",
+     xlab = "Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(tf_invert(warp_raw), points = FALSE, main = "Unpenalized Warps (raw)",
+     xlab = "Chronological Age", ylab = "Registered Age", lwd = 0.8)
+abline(0, 1, lty = 3)
+plot(reg_raw, main = "Unpenalized Registered (raw)",
+     xlab = "Registered Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(reg_raw, main = "Unpenalized Registered (raw)",
+     type = "lasagna", col = hcl.colors(12, rev = TRUE))
+
+plot.new()
+plot(tf_invert(warp_raw_pen), points = FALSE,
+     main = expression("Penalized Warps (raw, " * lambda * " = 0.1)"),
+     xlab = "Chronological Age", ylab = "Registered Age", lwd = 0.8)
+abline(0, 1, lty = 3)
+plot(reg_raw_pen,
+     main = expression("Penalized Registered (raw, " * lambda * " = 0.1)"),
+     xlab = "Registered Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(reg_raw_pen, main = "Penalized Registered (raw)",
+     type = "lasagna", col = hcl.colors(12, rev = TRUE))
+```
+
+Penalization smooths out the worst warp artifacts, but the result is still noisier than registering smooth input in the first place. The best strategy is to pre-smooth, and then use penalization only if the warps still look too flexible.
+
+#### Landmark registration
+
+Landmark registration avoids continuous optimization entirely — it constructs piecewise linear warps from a user-specified correspondence of curve features. For growth velocity, two natural landmarks are the **pre-pubertal trough** (minimum velocity before the growth spurt) and the **pubertal peak** (maximum velocity during puberty). We identify these by searching for the minimum in age 5--(peak-1) and the maximum in age 8--17 on each smooth velocity curve.
+
+```{r growth-landmarks, class.source = "fold-show"}
+# Evaluate smooth velocity on a dense grid for landmark detection:
+growth_grid <- seq(1, 18, length.out = 200)
+growth_vals <- growth$smooth_vel[, growth_grid, matrix = TRUE]
+
+# Pubertal peak: maximum velocity in age 8--17
+mask_peak <- growth_grid >= 8 & growth_grid <= 17
+growth_peaks <- growth_grid[mask_peak][
+  apply(growth_vals[, mask_peak], 1, which.max)
+]
+
+# Pre-pubertal trough: minimum velocity between age 5 and 1 year before the peak
+growth_troughs <- vapply(seq_along(growth_peaks), function(i) {
+  mask <- growth_grid >= 5 & growth_grid <= (growth_peaks[i] - 1)
+  growth_grid[mask][which.min(growth_vals[i, mask])]
+}, numeric(1))
+
+# Build landmark matrix and register:
+growth_lm <- cbind(trough = growth_troughs, peak = growth_peaks)
+warp_lm <- tf_register(growth$smooth_vel, method = "landmark", landmarks = growth_lm)
+reg_lm <- tf_unwarp(growth$smooth_vel, warp_lm)
+```
+
+```{r growth-landmarks-plot, fig.width = 8, fig.height = 4}
+layout(t(1:4))
+plot(growth$smooth_vel, main = "Smooth Velocity",
+     xlab = "Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(tf_invert(warp_lm), points = FALSE, main = "Landmark Inverse Warps",
+     xlab = "Chronological Age", ylab = "Registered Age", lwd = 0.8)
+abline(0, 1, lty = 3)
+plot(reg_lm, main = "Landmark Registered",
+     xlab = "Registered Age [years]", ylab = "cm/year", lwd = 0.8)
+plot(reg_lm, main = "Landmark Registered",
+     type = "lasagna", col = hcl.colors(12, rev = TRUE))
+```
+
+The piecewise linear warps align the pubertal peaks well, with the trough landmarks anchoring the pre-pubertal phase. Compared to SRVF, the warps are simpler and fully interpretable — each segment directly corresponds to a physiological period (childhood, pubertal acceleration, post-peak deceleration). The trade-off is that landmark registration cannot adapt between landmarks, so alignment between the trough and peak depends entirely on those two anchor points.
