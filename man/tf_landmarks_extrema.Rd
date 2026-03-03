@@ -4,14 +4,7 @@
 \alias{tf_landmarks_extrema}
 \title{Find Extrema Locations in Functional Data}
 \usage{
-tf_landmarks_extrema(
-  x,
-  which = "all",
-  smooth = TRUE,
-  threshold = 0.5,
-  boundary_tol = NULL,
-  ...
-)
+tf_landmarks_extrema(x, which = "all", threshold = 0.5, boundary_tol = NULL)
 }
 \arguments{
 \item{x}{a \code{tf} vector.}
@@ -20,9 +13,6 @@ tf_landmarks_extrema(
 minima, and zero crossings), \code{"both"} (maxima and minima), or any subset
 of \code{c("max", "min", "zero")}.}
 
-\item{smooth}{logical: if \code{TRUE} (default for \code{tfd}), smooth curves with
-\code{\link[=tf_smooth]{tf_smooth()}} before feature detection to suppress spurious noise peaks.}
-
 \item{threshold}{numeric in (0, 1]: minimum proportion of curves that must
 contain a feature for it to be retained as a landmark. Defaults to \code{0.5}.}
 
@@ -30,8 +20,6 @@ contain a feature for it to be retained as a landmark. Defaults to \code{0.5}.}
 boundary are dropped (they are redundant with the boundary anchors in
 landmark registration). Defaults to 2x the grid spacing. Set to \code{0} to
 keep all features.}
-
-\item{...}{additional arguments passed to \code{\link[=tf_smooth]{tf_smooth()}}.}
 }
 \value{
 A numeric matrix with one row per function and one column per

@@ -9,7 +9,8 @@ quiet_expected_registration_warnings <- function(expr) {
     "argument-wise `mean` were `NA`",
     "Attempting <tfd_irreg> - <tfd_irreg> for different argument values",
     "interpolate = FALSE.*no values present",
-    "`NA`s created\\."
+    "`NA`s created\\.",
+    "collapsing to unique 'x' values"
   )
 
   withCallingHandlers(
@@ -181,13 +182,71 @@ test_that("tf_register works for SRVF and FDA methods", {
   check_warp(tf_register(x, template = mean(x)), x, "SRVF template")
 
   # FDA: default and non-default crit (tests ... passthrough)
-  check_warp(tf_register(x, method = "fda"), x, "FDA default")
-  check_warp(tf_register(x, method = "fda", crit = 1), x, "FDA crit=1")
+  check_warp(
+    quiet_expected_registration_warnings(tf_register(x, method = "fda")),
+    x,
+    "FDA default"
+  )
+  check_warp(
+    quiet_expected_registration_warnings(tf_register(
+      x,
+      method = "fda",
+      crit = 1
+    )),
+    x,
+    "FDA crit=1"
+  )
 
   # tfd_irreg rejected
   expect_error(
     tf_register(tfd(t(data)) |> tf_sparsify(.2)),
     "objects cannot be registered"
+  )
+})
+
+test_that("tf_register exposes FDA warp basis controls", {
+  skip_if_not_installed("fda")
+  withr::local_seed(123)
+
+  t <- seq(0, 1, length.out = 81)
+  x <- tfd(
+    t(sapply(c(-0.07, 0, 0.06), \(s) sin(2 * pi * (t + s)))),
+    arg = t
+  )
+
+  w_default <- quiet_expected_registration_warnings(
+    tf_register(x, method = "fda")
+  )
+  w_explicit_default <- quiet_expected_registration_warnings(
+    tf_register(
+      x,
+      method = "fda",
+      fda_nbasis = 6L,
+      fda_lambda = 0
+    )
+  )
+  expect_equal(as.matrix(w_default), as.matrix(w_explicit_default))
+
+  expect_no_error(
+    w_tuned <- tf_register(
+      x,
+      method = "fda",
+      crit = 2,
+      fda_nbasis = 8L,
+      fda_lambda = 1e-3
+    )
+  )
+  expect_s3_class(w_tuned, "tfd")
+  expect_length(w_tuned, length(x))
+  expect_identical(tf_domain(w_tuned), tf_domain(x))
+
+  expect_error(
+    tf_register(x, method = "fda", fda_nbasis = 1L),
+    ">= 2"
+  )
+  expect_error(
+    tf_register(x, method = "fda", fda_lambda = -1),
+    ">= 0"
   )
 })
 
@@ -337,7 +396,7 @@ test_that("tf_landmarks_extrema finds correct extrema and zero crossings", {
   expect_equal(both[, 2], minima[, 1])
   expect_equal(attr(both, "feature_types"), c("max", "min"))
 
-  # 2-period sin with smooth = FALSE: structural checks + all types
+  # 2-period sin: structural checks + all types
   t2 <- seq(0, 2, length.out = 201)
   template <- sin(2 * pi * t2)
   x2 <- tfd(
@@ -347,7 +406,7 @@ test_that("tf_landmarks_extrema finds correct extrema and zero crossings", {
     arg = t2
   )
 
-  lm_all <- tf_landmarks_extrema(x2, "all", smooth = FALSE)
+  lm_all <- tf_landmarks_extrema(x2, "all")
   types <- attr(lm_all, "feature_types")
   expect_true(ncol(lm_all) >= 5)
   expect_true("max" %in% types)
@@ -370,7 +429,7 @@ test_that("tf_landmarks_extrema drops boundary features", {
     arg = t
   )
 
-  lm <- tf_landmarks_extrema(x, "both", smooth = FALSE)
+  lm <- tf_landmarks_extrema(x, "both")
   expect_equal(ncol(lm), 1)
   expect_equal(attr(lm, "feature_types"), "max")
   expect_true(all(abs(lm[, 1] - 0.7) < 0.05, na.rm = TRUE))
@@ -386,13 +445,13 @@ test_that("tf_landmarks_extrema detects landmarks on irregular tfd", {
   x_irr <- tfd(vals_list, arg = arg_list)
   expect_true(inherits(x_irr, "tfd_irreg"))
 
-  lm <- tf_landmarks_extrema(x_irr, "max", smooth = FALSE)
+  lm <- tf_landmarks_extrema(x_irr, "max")
   expect_true(is.matrix(lm))
   expect_equal(nrow(lm), 4)
   expect_equal(ncol(lm), 1)
   expect_equal(as.numeric(lm), peak_locs, tolerance = 0.05)
 
-  lm_both <- tf_landmarks_extrema(x_irr, "both", smooth = FALSE)
+  lm_both <- tf_landmarks_extrema(x_irr, "both")
   expect_equal(ncol(lm_both), 1)
   expect_equal(attr(lm_both, "feature_types"), "max")
 
@@ -425,14 +484,14 @@ test_that("tf_landmarks_extrema threshold parameter filters rare features", {
   x <- tfd(vals, arg = t)
 
   # threshold = 0.5 -> only main peak
-  lm_strict <- tf_landmarks_extrema(x, "max", smooth = FALSE, threshold = 0.5)
+  lm_strict <- tf_landmarks_extrema(x, "max", threshold = 0.5)
   expect_true(is.matrix(lm_strict))
   expect_equal(ncol(lm_strict), 1)
   expect_true(all(abs(lm_strict[, 1] - 0.4) < 0.1, na.rm = TRUE))
 
   # threshold = 0.2 -> both peaks, warns about missing landmarks
   expect_warning(
-    lm_loose <- tf_landmarks_extrema(x, "max", smooth = FALSE, threshold = 0.2),
+    lm_loose <- tf_landmarks_extrema(x, "max", threshold = 0.2),
     "missing landmark"
   )
   expect_true(is.matrix(lm_loose))
@@ -447,7 +506,7 @@ test_that("tf_landmarks_extrema warns when no stable landmarks found", {
   x_const <- tfd(rbind(rep(1, 101), rep(2, 101), rep(3, 101)), arg = t)
 
   expect_warning(
-    lm <- tf_landmarks_extrema(x_const, "max", smooth = FALSE),
+    lm <- tf_landmarks_extrema(x_const, "max"),
     "No stable landmarks"
   )
   expect_true(is.matrix(lm))
@@ -456,7 +515,7 @@ test_that("tf_landmarks_extrema warns when no stable landmarks found", {
   expect_equal(attr(lm, "feature_types"), character(0))
 
   expect_warning(
-    lm_both <- tf_landmarks_extrema(x_const, "both", smooth = FALSE),
+    lm_both <- tf_landmarks_extrema(x_const, "both"),
     "No stable landmarks"
   )
   expect_equal(ncol(lm_both), 0)

@@ -81,9 +81,9 @@ fit_method <- function(data, config_name, use_true_template = TRUE) {
   detected_landmarks <- NULL
 
   if (config_name == "landmark_auto") {
-    # Auto-detect landmarks
+    # Auto-detect landmarks (smooth first to suppress noise)
     lm_detected <- tryCatch(
-      tf_landmarks_extrema(x, "both"),
+      tf_landmarks_extrema(tf_smooth(x, verbose = FALSE), "both"),
       error = function(e) NULL
     )
     if (is.null(lm_detected)) {

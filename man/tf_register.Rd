@@ -9,14 +9,17 @@ tf_register(
   ...,
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
-  max_iter = 1L,
-  tol = 1e-04
+  max_iter = 3L,
+  tol = 0.01,
+  nbasis = 6L,
+  lambda = 0
 )
 }
 \arguments{
 \item{x}{a \code{tf} vector of functions to register.}
 
-\item{...}{method-specific arguments (see Details).}
+\item{...}{additional method-specific arguments passed to backend routines
+(for example \code{crit} for \code{method = "fda"}).}
 
 \item{template}{an optional \code{tf} vector of length 1 to use as the template.
 If \code{NULL}, a default template is computed (method-dependent).
@@ -30,7 +33,7 @@ For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}. De
 Default template is the arithmetic mean.
 \item \code{"affine"}: affine (linear) registration with warps of the form
 \eqn{h(t) = a \cdot t + b}. Simpler than elastic registration, appropriate
-when phase variability consists only of shifts and/or uniform scaling.
+when phase variability consists only of shifts and/or uniform speed-up/slow-down.
 Default template is the arithmetic mean.
 \item \code{"landmark"}: piecewise-linear warps that align user-specified landmark
 features. Requires \code{landmarks} argument.
@@ -46,11 +49,11 @@ Ignored when \code{template} is provided (no refinement needed) or for
 For \code{method = "srvf"} with \code{template = NULL}, the outer Procrustes loop
 is skipped regardless of \code{max_iter} because \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}
 already computes the Karcher mean internally.
-Default is \code{1L} (single-shot, backward-compatible).}
+Default is \code{3L}.}
 
 \item{tol}{numeric: convergence tolerance for template refinement. Iteration
 stops when the relative change in the template (L2 norm) falls below \code{tol}.
-Default is \code{1e-4}.}
+Default is \code{1e-2}.}
 }
 \value{
 \code{tfd} vector of warping functions with the same length as \code{x}.
@@ -63,8 +66,29 @@ Registration removes phase variation (horizontal shifts and stretches) while
 preserving amplitude (i.e., vertical) variation, making it easier to analyze
 the intrinsic shape characteristics of functional data.
 }
-\section{Method-specific arguments passed via \code{...}}{
+\section{Important method-specific arguments (passed via \code{...})}{
 
+
+\strong{For \code{method = "srvf"}:}
+\describe{
+\item{\code{lambda}}{non-negative number: penalty controlling the flexibility of
+warpings (default is \code{0} for unrestricted warps).}
+\item{\code{penalty_method}}{cost function used to penalize warping functions.
+Defaults to \code{"roughness"} (norm of their second derivative),
+\code{"geodesic"} uses the geodesic distance to the identity and \code{"norm"} uses
+Euclidean distance to the identity.} }
+
+\strong{For \code{method = "fda"}:}
+\describe{
+\item{\code{nbasis}}{integer: number of B-spline basis functions for the monotone
+warp basis (default \code{6L}, minimum 2).}
+\item{\code{lambda}}{non-negative number: roughness penalty for the warp basis
+(default \code{0} for unpenalized warping).}
+\item{\code{crit}}{registration criterion passed via \code{...} to
+\code{\link[fda:register.fd]{fda::register.fd()}}. Defaults to \code{2} for
+first-eigenfunction variance criterion,
+alternative is \code{1} for integrated squared error.}
+}
 
 \strong{For \code{method = "affine"}:}
 \describe{
@@ -88,7 +112,7 @@ Default is column-wise mean of \code{landmarks}.}
 }
 
 \examples{
-\dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) withAutoprint(\{ # examplesIf}
 # Elastic registration (SRVF method)
 height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)

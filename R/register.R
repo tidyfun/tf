@@ -312,7 +312,8 @@ tf_unwarp.tfb <- function(x, warp, ...) {
 #' the intrinsic shape characteristics of functional data.
 #'
 #' @param x a `tf` vector of functions to register.
-#' @param ... method-specific arguments (see Details).
+#' @param ... additional method-specific arguments passed to backend routines
+#'   (for example `crit` for `method = "fda"`).
 #' @param template an optional `tf` vector of length 1 to use as the template.
 #'   If `NULL`, a default template is computed (method-dependent).
 #'   Not used for `method = "landmark"`.
@@ -323,7 +324,7 @@ tf_unwarp.tfb <- function(x, warp, ...) {
 #'     Default template is the arithmetic mean.
 #'   * `"affine"`: affine (linear) registration with warps of the form
 #'     \eqn{h(t) = a \cdot t + b}. Simpler than elastic registration, appropriate
-#'     when phase variability consists only of shifts and/or uniform scaling.
+#'     when phase variability consists only of shifts and/or uniform speed-up/slow-down.
 #'     Default template is the arithmetic mean.
 #'   * `"landmark"`: piecewise-linear warps that align user-specified landmark
 #'     features. Requires `landmarks` argument.
@@ -337,12 +338,33 @@ tf_unwarp.tfb <- function(x, warp, ...) {
 #'   For `method = "srvf"` with `template = NULL`, the outer Procrustes loop
 #'   is skipped regardless of `max_iter` because [fdasrvf::time_warping()]
 #'   already computes the Karcher mean internally.
-#'   Default is `1L` (single-shot, backward-compatible).
+#'   Default is `3L`.
 #' @param tol numeric: convergence tolerance for template refinement. Iteration
 #'   stops when the relative change in the template (L2 norm) falls below `tol`.
-#'   Default is `1e-4`.
+#'   Default is `1e-2`.
 #'
-#' @section Method-specific arguments passed via `...`:
+#' @section Important method-specific arguments (passed via `...`):
+#'
+#' **For `method = "srvf"`:**
+#' \describe{
+#' \item{`lambda`}{non-negative number: penalty controlling the flexibility of
+#' warpings (default is `0` for unrestricted warps).}
+#' \item{`penalty_method`}{cost function used to penalize warping functions.
+#' Defaults to `"roughness"` (norm of their second derivative),
+#' `"geodesic"` uses the geodesic distance to the identity and `"norm"` uses
+#' Euclidean distance to the identity.} }
+#'
+#' **For `method = "fda"`:**
+#' \describe{
+#'   \item{`nbasis`}{integer: number of B-spline basis functions for the monotone
+#'     warp basis (default `6L`, minimum 2).}
+#'   \item{`lambda`}{non-negative number: roughness penalty for the warp basis
+#'     (default `0` for unpenalized warping).}
+#'   \item{`crit`}{registration criterion passed via `...` to
+#'     [fda::register.fd()]. Defaults to `2` for
+#'     first-eigenfunction variance criterion,
+#'     alternative is `1` for integrated squared error.}
+#' }
 #'
 #' **For `method = "affine"`:**
 #' \describe{
@@ -401,8 +423,10 @@ tf_register <- function(
   ...,
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
-  max_iter = 1L,
-  tol = 1e-4
+  max_iter = 3L,
+  tol = 1e-2,
+  nbasis = 6L,
+  lambda = 0
 ) {
   UseMethod("tf_register")
 }
@@ -414,12 +438,18 @@ tf_register.tfd_reg <- function(
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
   max_iter = 1L,
-  tol = 1e-4
+  tol = 1e-4,
+  nbasis = 6L,
+  lambda = 0
 ) {
   assert_tfd(x)
   method <- match.arg(method)
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
+  if (method == "fda") {
+    assert_int(nbasis, lower = 2)
+    assert_number(lambda, lower = 0)
+  }
 
   # Landmark method doesn't use template, uses landmarks instead
   if (method == "landmark") {
@@ -474,7 +504,13 @@ tf_register.tfd_reg <- function(
     warps <- switch(
       method,
       srvf = tf_register_srvf(x, current_template, ...),
-      fda = tf_register_fda(x, current_template, ...),
+      fda = tf_register_fda(
+        x,
+        current_template,
+        ...,
+        nbasis = nbasis,
+        lambda = lambda
+      ),
       affine = register_affine(x, template = current_template, ...)
     )
 
@@ -539,8 +575,8 @@ tf_register.tfb <- function(
   ...,
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
-  max_iter = 1L,
-  tol = 1e-4
+  max_iter = 3L,
+  tol = 1e-2
 ) {
   x |>
     as.tfd() |>
@@ -559,8 +595,8 @@ tf_register.tfd_irreg <- function(
   ...,
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
-  max_iter = 1L,
-  tol = 1e-4
+  max_iter = 3L,
+  tol = 1e-2
 ) {
   cli::cli_abort(
     "{.cls tfd_irreg} objects cannot be registered. Please convert to {.cls tfd_reg} first."
@@ -602,8 +638,16 @@ tf_register_srvf <- function(x, template, ...) {
   tfd(warp, arg = arg)
 }
 
-tf_register_fda <- function(x, template, ...) {
+tf_register_fda <- function(
+  x,
+  template,
+  ...,
+  nbasis = 6L,
+  lambda = 0
+) {
   rlang::check_installed("fda")
+  assert_int(nbasis, lower = 2)
+  assert_number(lambda, lower = 0)
 
   yfd <- tf_2_fd(x)
   if (is.null(template)) {
@@ -612,8 +656,33 @@ tf_register_fda <- function(x, template, ...) {
     y0fd <- tf_2_fd(template)
   }
 
+  dots <- list(...)
+  if (!is.null(dots$WfdParobj)) {
+    if (nbasis != 6L || lambda != 0) {
+      cli::cli_warn(
+        "{.arg WfdParobj} supplied via {.arg ...}; ignoring {.arg nbasis}/{.arg lambda}."
+      )
+    }
+    WfdParobj <- dots$WfdParobj
+    dots$WfdParobj <- NULL
+  } else {
+    warp_basis <- fda::create.bspline.basis(
+      rangeval = tf_domain(x),
+      nbasis = nbasis
+    )
+    warp_fd0 <- fda::fd(
+      coef = matrix(0, nrow = nbasis, ncol = length(x)),
+      basisobj = warp_basis
+    )
+    WfdParobj <- fda::fdPar(warp_fd0, lambda = lambda)
+  }
+
+  register_args <- c(
+    list(y0fd = y0fd, yfd = yfd, WfdParobj = WfdParobj, dbglev = 0),
+    dots
+  )
   utils::capture.output(
-    ret <- fda::register.fd(y0fd = y0fd, yfd = yfd, dbglev = 0, ...)
+    ret <- do.call(fda::register.fd, register_args)
   )
   arg <- tf_arg(x)
   n <- length(arg)
@@ -735,15 +804,12 @@ validate_template_landmarks <- function(
 #' @param which character: which features to detect. Either `"all"` (maxima,
 #'   minima, and zero crossings), `"both"` (maxima and minima), or any subset
 #'   of `c("max", "min", "zero")`.
-#' @param smooth logical: if `TRUE` (default for `tfd`), smooth curves with
-#'   [tf_smooth()] before feature detection to suppress spurious noise peaks.
 #' @param threshold numeric in (0, 1]: minimum proportion of curves that must
 #'   contain a feature for it to be retained as a landmark. Defaults to `0.5`.
 #' @param boundary_tol numeric: features within this distance of the domain
 #'   boundary are dropped (they are redundant with the boundary anchors in
 #'   landmark registration). Defaults to 2x the grid spacing. Set to `0` to
 #'   keep all features.
-#' @param ... additional arguments passed to [tf_smooth()].
 #' @returns A numeric matrix with one row per function and one column per
 #'   landmark, sorted left-to-right on the domain. Has attribute
 #'   `"feature_types"` (character vector of `"max"`, `"min"`, or `"zero"` for
@@ -759,10 +825,8 @@ validate_template_landmarks <- function(
 tf_landmarks_extrema <- function(
   x,
   which = "all",
-  smooth = TRUE,
   threshold = 0.5,
-  boundary_tol = NULL,
-  ...
+  boundary_tol = NULL
 ) {
   assert_tf(x)
   assert_number(threshold, lower = 0, upper = 1)
@@ -777,15 +841,9 @@ tf_landmarks_extrema <- function(
   }
   assert_subset(which, c("max", "min", "zero"))
 
-  # Smooth tfd to suppress noise-induced spurious features
-  x_proc <- x
-  if (smooth && inherits(x, "tfd")) {
-    x_proc <- tf_smooth(x, verbose = FALSE, ...)
-  }
-
-  domain <- tf_domain(x_proc)
+  domain <- tf_domain(x)
   # Get per-curve arg grids for feature detection
-  arg_list <- tf_arg(x_proc)
+  arg_list <- tf_arg(x)
   if (!is.list(arg_list)) {
     # Regular tfd: single shared grid → replicate for uniform interface
     arg_list <- rep(list(as.numeric(arg_list)), n)
@@ -798,7 +856,7 @@ tf_landmarks_extrema <- function(
   }
 
   # --- Detect features per curve (each on its own grid) ---
-  features <- detect_landmarks(x_proc, arg_list, which)
+  features <- detect_landmarks(x, arg_list, which)
 
   # --- Drop boundary features ---
   features <- lapply(features, \(f) {
@@ -816,7 +874,10 @@ tf_landmarks_extrema <- function(
   clusters <- cluster_landmarks(features, n, bandwidth, threshold)
 
   if (nrow(clusters) == 0) {
-    cli::cli_warn("No stable landmarks detected across curves.")
+    cli::cli_warn(c(
+      "No stable landmarks detected across curves.",
+      "i" = "Pre-smoothing with {.fun tf_smooth} can help suppress spurious features."
+    ))
     lm_mat <- matrix(NA_real_, nrow = n, ncol = 0)
     attr(lm_mat, "feature_types") <- character(0)
     return(lm_mat)
@@ -832,7 +893,8 @@ tf_landmarks_extrema <- function(
     cols_with_na <- which(na_per_col > 0)
     cli::cli_warn(c(
       "{n_na} missing landmark{?s} across {length(cols_with_na)} column{?s}.",
-      "i" = "Some curves lack features near {round(clusters$center[cols_with_na], 3)}."
+      "i" = "Some curves lack features near {round(clusters$center[cols_with_na], 3)}.",
+      "i" = "Pre-smoothing with {.fun tf_smooth} can help suppress spurious features."
     ))
   }
 
