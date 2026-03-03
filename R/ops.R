@@ -363,7 +363,7 @@ tfb_na_result <- function(eval, ref_tfb) {
 tfb_multdiv_numeric <- function(op, x, y) {
   # dispatch to general operator implementation (i.e. cast to tfd and back)
   # if link functions are involved:
-  if (is_tfb_spline(x) && attributes(x)$family$link != "identity") {
+  if (is_tfb_spline(x) && attr(x, "family")$link != "identity") {
     return(tfb_op_numeric(op, x, y))
   }
   # if not, * and / can simply be applied to the basis coefficients:
@@ -447,9 +447,7 @@ tfb_plusminus_tfb <- function(op, x, y) {
   }
   # dispatch to general operator implementation (i.e. cast to tfd and back)
   # if link functions are involved
-  if (
-    !all(c(attributes(x)$family$link, attributes(y)$family$link) == "identity")
-  ) {
+  if (!all(c(attr(x, "family")$link, attr(y, "family")$link) == "identity")) {
     return(tfb_op_tfb(op, x, y))
   }
   ret <- map2(
