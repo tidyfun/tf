@@ -16,6 +16,8 @@
 
 ## Bug fixes
 
+* `tf_derive()` for `tfd` objects now uses centered finite differences,
+  preserving the original domain and grid (#59)
 * major overhaul of NA handling: NA entries are now consistently represented as
   `NULL` internally; fixes for `tf_arg()`, `tf_evaluate()`, `tf_smooth()`,
   `tfd()` conversion, `is.na()`, printing, and arithmetic with NA entries

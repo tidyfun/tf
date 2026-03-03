@@ -41,14 +41,14 @@ Derivatives of \code{tf}-objects use finite differences of the evaluations for
 \code{tfd} and finite differences of the basis functions for \code{tfb}.
 }
 \details{
-The derivatives of \code{tfd} objects use centered finite differences, e.g. for
-first derivatives \eqn{f'((t_i + t_{i+1})/2) \approx \frac{f(t_i) +
-f(t_{i+1})}{t_{i+1} - t_i}}, so the \strong{domains of differentiated \code{tfd} will
-shrink (slightly) at both ends} and \strong{the returned object contains function
-evaluations at the midpoints of the original \code{arg}-grid.} Unless the \code{tfd}
-has a rather fine and regular grid, representing the data in a suitable basis
-representation with \code{\link[=tfb]{tfb()}} and then computing the derivatives (or integrals)
-of those is usually preferable.
+The derivatives of \code{tfd} objects use second-order accurate central differences
+for interior points and first-order one-sided differences at boundaries,
+using the second-order accurate formula for non-uniform grids from
+\code{numpy.gradient} (Fornberg, 1988).
+Domain and grid of the returned object are identical to the input. Unless the
+\code{tfd} has a rather fine and regular grid, representing the data in a suitable
+basis representation with \code{\link[=tfb]{tfb()}} and then computing the derivatives (or
+integrals) of those is usually preferable.
 
 Note that, for spline bases like \code{"cr"} or \code{"tp"} which are constrained to
 begin/end linearly, computing \emph{second} derivatives will produce artefacts at
