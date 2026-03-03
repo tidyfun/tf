@@ -184,11 +184,85 @@ test_that("tf_register works for SRVF and FDA methods", {
   check_warp(tf_register(x, method = "fda"), x, "FDA default")
   check_warp(tf_register(x, method = "fda", crit = 1), x, "FDA crit=1")
 
-  # tfd_irreg rejected
+  # tfd_irreg: SRVF/FDA are currently unsupported
   expect_error(
-    tf_register(tfd(t(data)) |> tf_sparsify(.2)),
-    "objects cannot be registered"
+    tf_register(tfd(t(data)) |> tf_sparsify(.2), method = "srvf"),
+    "only `affine` and `landmark` registration are currently supported"
   )
+  expect_error(
+    tf_register(tfd(t(data)) |> tf_sparsify(.2), method = "fda"),
+    "only `affine` and `landmark` registration are currently supported"
+  )
+})
+
+test_that("tf_register supports affine registration for irregular tfd", {
+  withr::local_seed(99)
+  t <- seq(0, 1, length.out = 101)
+  shifts <- c(-0.09, 0, 0.08)
+  x_vals <- lapply(
+    shifts,
+    \(s) sin(2 * pi * (t + s))
+  )
+  arg_list <- list(
+    sort(c(seq(0, 1, length.out = 45), runif(8))),
+    seq(0, 1, length.out = 63),
+    seq(0, 1, length.out = 87)
+  )
+  x_irreg <- tfd(
+    lapply(seq_along(arg_list), \(i) {
+      approx(t, x_vals[[i]], xout = arg_list[[i]], rule = 2)$y
+    }),
+    arg = arg_list
+  )
+
+  template <- tfd(
+    sin(2 * pi * seq(0, 1, length.out = 51)),
+    arg = seq(0, 1, length.out = 51)
+  )
+  warp <- quiet_expected_registration_warnings(tf_register(
+    x_irreg,
+    method = "affine",
+    type = "shift",
+    template = template,
+    max_iter = 2L
+  ))
+
+  expect_s3_class(warp, "tfd_irreg")
+  expect_length(warp, length(x_irreg))
+  expect_identical(tf_domain(warp), tf_domain(x_irreg))
+  expect_identical(tf_arg(warp), tf_arg(x_irreg))
+
+  warp_vals <- tf_evaluations(warp)
+  for (i in seq_along(warp_vals)) {
+    expect_true(all(diff(warp_vals[[i]]) > 0))
+    expect_equal(warp_vals[[i]][1], tf_domain(x_irreg)[1], tolerance = 0.2)
+    expect_equal(
+      warp_vals[[i]][length(warp_vals[[i]])],
+      tf_domain(x_irreg)[2],
+      tolerance = 0.2
+    )
+  }
+})
+
+test_that("tf_register supports landmark registration for irregular tfd", {
+  withr::local_seed(321)
+  peaks <- c(0.3, 0.5, 0.7)
+  arg_list <- lapply(c(51, 71, 93), \(n) sort(c(0, 1, runif(n - 2))))
+  x_irreg <- tfd(
+    lapply(seq_along(peaks), \(i) dnorm(arg_list[[i]], peaks[i], 0.08)),
+    arg = arg_list
+  )
+  landmarks <- matrix(peaks, ncol = 1)
+
+  warp <- tf_register(x_irreg, method = "landmark", landmarks = landmarks)
+  expect_s3_class(warp, "tfd_irreg")
+  expect_length(warp, length(x_irreg))
+  expect_identical(tf_arg(warp), tf_arg(x_irreg))
+  expect_identical(tf_domain(warp), tf_domain(x_irreg))
+
+  target_peak <- mean(peaks)
+  warp_at_target <- as.numeric(tf_evaluate(warp, arg = target_peak))
+  expect_equal(warp_at_target, peaks, tolerance = 0.02)
 })
 
 test_that("tf_register dispatches correctly for tfb subclasses", {
