@@ -424,9 +424,7 @@ tf_register <- function(
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
   max_iter = 3L,
-  tol = 1e-2,
-  nbasis = 6L,
-  lambda = 0
+  tol = 1e-2
 ) {
   UseMethod("tf_register")
 }
@@ -437,10 +435,8 @@ tf_register.tfd_reg <- function(
   ...,
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
-  max_iter = 1L,
-  tol = 1e-4,
-  nbasis = 6L,
-  lambda = 0
+  max_iter = 3L,
+  tol = 1e-4
 ) {
   assert_tfd(x)
   method <- match.arg(method)
