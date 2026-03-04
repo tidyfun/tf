@@ -83,6 +83,42 @@ test_that("basic antiderivatives work", {
   )
 })
 
+test_that("calculus works for tfb_spline with non-identity link", {
+  set.seed(481)
+  f_pos <- exp(tf_rgp(4, arg = grid, nugget = 0) / 4)
+  f_link <- tfb(
+    f_pos,
+    k = 35,
+    bs = "tp",
+    family = gaussian(link = "log"),
+    verbose = FALSE
+  )
+
+  d1 <- expect_no_error(tf_derive(f_link, order = 1))
+  d2 <- expect_no_error(tf_derive(f_link, order = 2))
+  d1_ref <- tf_derive(tfd(f_link), order = 1)
+  d2_ref <- tf_derive(tfd(f_link), order = 2)
+  expect_s3_class(d1, "tfd")
+  expect_s3_class(d2, "tfd")
+  expect_equal(d1[, dgrid], d1_ref[, dgrid], tolerance = 1e-8)
+  expect_equal(d2[, dgrid], d2_ref[, dgrid], tolerance = 1e-8)
+
+  i1 <- expect_no_error(tf_integrate(f_link, definite = FALSE))
+  i1_ref <- tf_integrate(tfd(f_link), definite = FALSE)
+  expect_s3_class(i1, "tfd")
+  expect_equal(i1[, dgrid], i1_ref[, dgrid], tolerance = 1e-8)
+
+  int_grid <- seq(-0.8, 0.8, length.out = 21)
+  i2 <- expect_no_error(tf_integrate(
+    f_link,
+    lower = -1,
+    upper = 1,
+    definite = FALSE
+  ))
+  i2_ref <- tf_integrate(tfd(f_link), lower = -1, upper = 1, definite = FALSE)
+  expect_equal(i2[, int_grid], i2_ref[, int_grid], tolerance = 1e-5)
+})
+
 test_that("deriv & tf_integrate are reversible (approximately)", {
   set.seed(1337)
   f <- tf_rgp(10, arg = grid, nugget = 0)
