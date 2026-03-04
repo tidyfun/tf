@@ -146,13 +146,22 @@ tf_derive.tfb_spline <- function(f, arg = tf_arg(f), order = 1, ...) {
       "Can't integrate or derive previously integrated or derived {.cls tfb_spline}."
     )
   }
-  if (attr(f, "family")$link != "identity") {
-    cli::cli_abort(
-      "Can't integrate or derive {.cls tfb_spline} with non-identity link function."
-    )
-  }
-  assert_arg(arg, f)
   assert_choice(order, choices = c(-1, 1, 2))
+  assert_arg(arg, f)
+  if (attr(f, "family")$link != "identity") {
+    f_tfd <- tfd(f, arg = arg)
+    if (order == -1) {
+      dots <- list(...)
+      return(tf_integrate(
+        f_tfd,
+        arg = arg,
+        lower = dots$lower %||% min(arg),
+        upper = dots$upper %||% max(arg),
+        definite = FALSE
+      ))
+    }
+    return(tf_derive(f_tfd, arg = arg, order = order))
+  }
   s_args <- attr(f, "basis_args")
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
