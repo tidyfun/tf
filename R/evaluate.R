@@ -88,18 +88,26 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   assert_arg(arg, object, check_unique = FALSE)
   if (length(arg) == 1) {
     arg <- unlist(arg, use.names = FALSE)
-    evals <- evaluate_tfb_once(
-      x = arg,
-      arg = tf_arg(object),
-      coefs = do.call(cbind, coef(object)),
-      basis = attr(object, "basis"),
-      X = attr(object, "basis_matrix")
-    )
-    ret <- if (length(arg) == 1) {
-      # avoid cast to simple vector for point evaluations
-      split(evals, seq_along(evals))
-    } else {
-      split(evals, col(as.matrix(evals)))
+    na_entries <- is.na(object)
+    ret <- vector("list", length(object))
+    if (any(!na_entries)) {
+      evals <- evaluate_tfb_once(
+        x = arg,
+        arg = tf_arg(object),
+        coefs = do.call(cbind, coef(object[!na_entries])),
+        basis = attr(object, "basis"),
+        X = attr(object, "basis_matrix")
+      )
+      ret_non_na <- if (length(arg) == 1) {
+        # avoid cast to simple vector for point evaluations
+        split(evals, seq_along(evals))
+      } else {
+        split(evals, col(as.matrix(evals)))
+      }
+      ret[!na_entries] <- ret_non_na
+    }
+    if (any(na_entries)) {
+      ret[na_entries] <- list(rep(NA_real_, length(arg)))
     }
   } else {
     ret <- pmap(

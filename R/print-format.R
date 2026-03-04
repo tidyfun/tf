@@ -1,3 +1,13 @@
+# safe range of evaluations, returning c(NA, NA) when all entries are NA/NULL
+safe_range_evals <- function(x) {
+  evals <- unlist(tf_evaluations(x), use.names = FALSE)
+  if (is.null(evals) || length(evals) == 0 || allMissing(evals)) {
+    c(NA, NA)
+  } else {
+    range(evals, na.rm = TRUE)
+  }
+}
+
 # create string representation for a tf.
 string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
   digits_eval <- digits %||% options()$digits
@@ -46,7 +56,7 @@ string_rep_tf <- function(f, signif_arg = NULL, show = 3, digits = NULL, ...) {
 spark_rep_tf <- function(
   f,
   bins = -1,
-  scale_f = range(unlist(evals), na.rm = TRUE)
+  scale_f = NULL
 ) {
   arg <- tf_arg(f)
   gridlength <- length(arg)
@@ -57,15 +67,36 @@ spark_rep_tf <- function(
     use_index <- seq(binwidth, gridlength, length = bins) |>
       round() |>
       unique()
-    evals <- f |>
-      tf_smooth(method = "rollmean", k = binwidth, align = "right") |>
-      tf_evaluations() |>
-      map(`[`, use_index) |>
-      suppressMessages()
+    nas <- is.na(f)
+    evals <- vector("list", length(f))
+    if (any(!nas)) {
+      evals[!nas] <- f[!nas] |>
+        tf_smooth(
+          method = "rollmean",
+          k = binwidth,
+          align = "right",
+          fill = "extend",
+          verbose = FALSE
+        ) |>
+        tf_evaluations() |>
+        map(`[`, use_index)
+    }
+  }
+  if (is.null(scale_f)) {
+    evals_unlisted <- unlist(evals, use.names = FALSE)
+    if (
+      !is.null(evals_unlisted) &&
+        length(evals_unlisted) > 0 &&
+        any(!is.na(evals_unlisted))
+    ) {
+      scale_f <- range(evals_unlisted, na.rm = TRUE)
+    } else {
+      scale_f <- c(0, 1)
+    }
   }
   # handle constant functions
   range_f <- diff(scale_f)
-  if (range_f == 0) {
+  if (range_f == 0 || !is.finite(range_f)) {
     scaled <- map(evals, function(x) rep(0.5, length(x)))
   } else {
     scaled <- map(evals, function(x) {
@@ -120,9 +151,7 @@ spark_rep_tf <- function(
 #' tfd(cosine, arg = t^3)
 print.tf <- function(x, n = 6, ...) {
   domain <- tf_domain(x) |> map_chr(format, ...)
-  evals <- unlist(tf_evaluations(x), use.names = FALSE)
-  range <- if (!is.null(evals)) range(tf_evaluations(x), na.rm = TRUE) else
-    c(NA, NA)
+  range <- safe_range_evals(x)
   range <- range |> map_chr(format, ...) |> suppressWarnings()
   cat(paste0(
     ifelse(is_irreg(x), "irregular ", ""),
@@ -150,8 +179,8 @@ print.tfd_reg <- function(x, n = 6, ...) {
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
   len <- length(x)
   if (len > 0) {
-    evals <- unlist(tf_evaluations(x), use.names = FALSE)
-    scale_ <- if (!is.null(evals)) range(evals, na.rm = TRUE) else NULL
+    range_ <- safe_range_evals(x)
+    scale_ <- if (any(!is.na(range_))) range_ else NULL
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
     if (n < len) {
@@ -165,7 +194,7 @@ print.tfd_reg <- function(x, n = 6, ...) {
 #' @export
 print.tfd_irreg <- function(x, n = 6, ...) {
   NextMethod()
-  nas <- map_lgl(tf_evaluations(x), \(x) length(x) == 1 && all(is.na(x)))
+  nas <- is.na(x)
   n_evals <- tf_count(x[!nas])
   if (length(n_evals) > 0) {
     cat(paste0(
@@ -199,7 +228,8 @@ print.tfb <- function(x, n = 5, ...) {
   cat(" in basis representation")
   len <- vec_size(x)
   if (len > 0) {
-    scale_ <- range(tf_evaluations(x), na.rm = TRUE)
+    range_ <- safe_range_evals(x)
+    scale_ <- if (any(!is.na(range_))) range_ else NULL
     cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
     format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
       cat(sep = "\n")
@@ -243,12 +273,14 @@ format.tf <- function(
     str <- spark_rep_tf(
       x,
       bins = dots$bins %||% floor(width / 3),
-      scale_f = dots$scale_f %||% range(tf_evaluations(x), na.rm = TRUE)
+      scale_f = dots$scale_f %||% safe_range_evals(x)
     )
   }
 
   if (prefix) {
-    prefix <- if (!is.null(names(x)) && all(nzchar(names(x), keepNA = TRUE))) {
+    prefix <- if (
+      !is.null(names(x)) && isTRUE(all(nzchar(names(x), keepNA = TRUE)))
+    ) {
       names(x)[seq_along(str)]
     } else {
       paste0("[", seq_along(str), "]")
@@ -266,6 +298,18 @@ format.tf <- function(
     use.names = FALSE
   )
 }
+
+#' @export
+vec_ptype_abbr.tfd_reg <- function(x, ...) "tfd_reg"
+
+#' @export
+vec_ptype_abbr.tfd_irreg <- function(x, ...) "tfd_irreg"
+
+#' @export
+vec_ptype_abbr.tfb_spline <- function(x, ...) "tfb_spline"
+
+#' @export
+vec_ptype_abbr.tfb_fpc <- function(x, ...) "tfb_fpc"
 
 # dynamically exported in zzz.R:
 format_glimpse.tf <- function(

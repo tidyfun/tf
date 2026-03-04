@@ -44,7 +44,7 @@ as.tfd_irreg(data, ...)
 returns a prototype of class \code{tfd}.}
 
 \item{...}{not used in \code{tfd}, except for \code{tfd.tf} -- specify \code{arg} and
-\code{ìnterpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
+\code{interpolate = TRUE} to turn an irregular \code{tfd} into a regular one, see
 examples.}
 
 \item{arg}{For the \code{list}- and \code{matrix}-methods:
@@ -68,11 +68,14 @@ which function.}
 evaluations.}
 }
 \value{
-an \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
+a \code{tfd}-object (or a \code{data.frame}/\code{matrix} for the conversion
 functions, obviously).
 }
 \description{
-Various constructor methods for \code{tfd}-objects.
+Various constructor methods for \code{tfd}-objects.\cr
+\code{tfd} objects contain vectors of function evaluations at observed \code{arg}-values,
+either all at the same \code{arg}-values (\code{tfd_reg}) or at different \code{arg}-values (\code{tfd_irreg}).
+\code{NA}-functions are represented by \code{NULL}-entries in that list.
 
 \code{tfd.matrix} accepts a numeric matrix with one function per
 \emph{row} (!). If \code{arg} is not provided, it tries to guess \code{arg} from the
@@ -88,8 +91,14 @@ containing evaluations or a list of 2-column matrices/data.frames with
 
 \code{tfd.default} returns class prototype when argument to tfd() is
 \code{NULL} or not a recognised class.
+
+\code{as.tfd_irreg} converts regular \code{tfd} or \code{tfb} objects into
+irregular ones. Mainly used internally for \code{tf_rebase} operations etc.
 }
 \details{
+\code{tfd}-objects are list-\code{vctrs} of numeric vectors containing function
+evaluations.
+
 \strong{\code{evaluator}}: must be the (quoted or bare) name of a
 function with signature \verb{function(x, arg, evaluations)} that returns
 the functions' (approximated/interpolated) values at locations \code{x} based on
@@ -102,12 +111,12 @@ Available \code{evaluator}-functions:
 with \code{na.rm = FALSE}),
 \item \code{tf_approx_fill_extend} for linear interpolation and constant extrapolation
 (i.e., \code{\link[zoo:na.fill]{zoo::na.fill()}} with \code{fill = "extend"})
-\item \code{tf_approx_locf} for "last observation carried forward"  (i.e.,
-\code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE} and
+\item \code{tf_approx_locf} for "last observation carried forward" (i.e.,
+\code{\link[zoo:na.locf]{zoo::na.locf()}} with \code{na.rm = FALSE})
 \item \code{tf_approx_nocb} for "next observation carried backward" (i.e.,
 \code{\link[zoo:na.locf]{zoo::na.locf()}} with \verb{na.rm = FALSE, fromLast = TRUE}).
 See \code{tf:::zoo_wrapper} and \code{tf:::tf_approx_linear}, which is simply
-\code{zoo_wrapper(zoo::na.tf_approx, na.rm = FALSE)}, for examples of
+\code{zoo_wrapper(zoo::na.approx, na.rm = FALSE)}, for examples of
 implementations of this.
 }
 }

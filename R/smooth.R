@@ -53,7 +53,7 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
 #' f_lowess <- tf_smooth(f, "lowess")
 #' # these methods ignore the distances between arg-values:
 #' f_mean <- tf_smooth(f, "rollmean")
-#' f_median <- tf_smooth(f, "rollmean", k = 31)
+#' f_median <- tf_smooth(f, "rollmedian", k = 31)
 #' f_sg <- tf_smooth(f, "savgol", fl = 31)
 #' layout(t(1:4))
 #' plot(f, points = FALSE, main = "original")
@@ -65,7 +65,7 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
 #'   points = FALSE, col = "blue", main = "rolling means &\n medians (red)"
 #' )
 #' lines(f_median, col = "red", alpha = 0.2) # note constant extrapolation at both ends!
-#' plot(f, points = FALSE, main = "orginal and\n savgol (red)")
+#' plot(f, points = FALSE, main = "original and\n savgol (red)")
 #' lines(f_sg, col = "red")
 tf_smooth.tfd <- function(
   x,
@@ -120,7 +120,7 @@ tf_smooth.tfd <- function(
       dots$f <- 0.15
       if (verbose)
         cli::cli_inform(
-          "Using {.code f = {dots$f}} as smoother span for {.val lowess}."
+          "Using {.code f = {dots$f}} as smoother span for {.fn lowess}."
         )
     }
     smoothed <- map(

@@ -263,7 +263,7 @@ tfd_op_tfd <- function(op, x, y) {
 
   if (!same_domain || !same_arg) {
     message <- cli::format_inline(
-      "Attempting <{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}>  for different",
+      "Attempting <{vec_ptype_full(x)}> {op} <{vec_ptype_full(y)}> for different",
       "{ifelse(same_domain, '', ' domains')}",
       "{ifelse(!same_domain & !same_arg, ' and', '')}",
       "{ifelse(same_arg, '', ' argument values')}"
@@ -274,7 +274,10 @@ tfd_op_tfd <- function(op, x, y) {
     ))
   }
 
-  evals_ret <- map2(x_, y_, \(x, y) do.call(op, list(x, y)))
+  evals_ret <- map2(x_, y_, \(x, y) {
+    if (is.null(x) || is.null(y)) return(NULL)
+    do.call(op, list(x, y))
+  })
   if (vec_size(x) >= vec_size(y)) {
     names(evals_ret) <- names(x)
   } else {
@@ -306,9 +309,16 @@ tfd_op_tfd <- function(op, x, y) {
 
 tfd_op_numeric <- function(op, x, y, ...) {
   assert_compatible_size(op, x, y)
-  ret <- map2(tf_evaluations(x), y, \(x, y) do.call(op, list(x, y)))
+  ret <- map2(tf_evaluations(x), y, \(x, y) {
+    if (is.null(x)) return(NULL)
+    result <- do.call(op, list(x, y))
+    if (allMissing(result)) NULL else result
+  })
   if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, \(.arg, .ret) list(arg = .arg, value = .ret))
+    ret <- map2(tf_arg(x), ret, \(.arg, .ret) {
+      if (is.null(.ret)) return(NULL)
+      list(arg = .arg, value = .ret)
+    })
   }
   attributes(ret) <- attributes(x)
   if (vec_size(y) > 1) {
@@ -320,9 +330,16 @@ tfd_op_numeric <- function(op, x, y, ...) {
 # some code-duplication here, this makes non-commutative ops work for tfd and numeric
 numeric_op_tfd <- function(op, x, y) {
   assert_compatible_size(op, x, y)
-  ret <- map2(x, tf_evaluations(y), \(x, y) do.call(op, list(x, y)))
+  ret <- map2(x, tf_evaluations(y), \(x, y) {
+    if (is.null(y)) return(NULL)
+    result <- do.call(op, list(x, y))
+    if (allMissing(result)) NULL else result
+  })
   if (is_irreg(y)) {
-    ret <- map2(tf_arg(y), ret, \(.arg, .ret) list(arg = .arg, value = .ret))
+    ret <- map2(tf_arg(y), ret, \(.arg, .ret) {
+      if (is.null(.ret)) return(NULL)
+      list(arg = .arg, value = .ret)
+    })
   }
   attributes(ret) <- attributes(y)
   if (vec_size(x) > 1) {
@@ -331,16 +348,30 @@ numeric_op_tfd <- function(op, x, y) {
   ret
 }
 
+# construct a tfb shell with NULL entries, using ref_tfb for attributes
+tfb_na_result <- function(eval, ref_tfb) {
+  result <- vector("list", length(eval))
+  result[] <- list(NULL)
+  names(result) <- names(eval)
+  attributes(result) <- attributes(ref_tfb)
+  names(result) <- names(eval)
+  result
+}
+
 #-------------------------------------------------------------------------------
 
 tfb_multdiv_numeric <- function(op, x, y) {
   # dispatch to general operator implementation (i.e. cast to tfd and back)
   # if link functions are involved:
-  if (is_tfb_spline(x) && attributes(x)$family$link != "identity") {
+  if (is_tfb_spline(x) && attr(x, "family")$link != "identity") {
     return(tfb_op_numeric(op, x, y))
   }
   # if not, * and / can simply be applied to the basis coefficients:
-  ret <- map2(vec_data(x), y, \(x, y) do.call(op, list(e1 = x, e2 = y)))
+  ret <- map2(vec_data(x), y, \(x, y) {
+    if (is.null(x)) return(NULL)
+    result <- do.call(op, list(e1 = x, e2 = y))
+    if (allMissing(result)) NULL else result
+  })
   attributes(ret) <- attributes(x)
   ret
 }
@@ -350,6 +381,19 @@ tfb_op_numeric <- function(op, x, y) {
     "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
   eval <- tfd_op_numeric(op, tfd(x), y)
+  na_entries <- is.na(eval)
+  if (all(na_entries)) return(tfb_na_result(eval, x))
+  if (any(na_entries)) {
+    rebased <- tf_rebase(
+      eval[!na_entries],
+      x[!na_entries],
+      penalized = FALSE,
+      verbose = FALSE
+    )
+    result <- tfb_na_result(eval, rebased)
+    result[!na_entries] <- unclass(rebased)
+    return(result)
+  }
   tf_rebase(eval, x, penalized = FALSE, verbose = FALSE)
   #TODO: restore sp afterwards so all properties are preserved?
 }
@@ -359,15 +403,41 @@ numeric_op_tfb <- function(op, x, y) {
     "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
   eval <- numeric_op_tfd(op, x, tfd(y))
+  na_entries <- is.na(eval)
+  if (all(na_entries)) return(tfb_na_result(eval, y))
+  if (any(na_entries)) {
+    rebased <- tf_rebase(
+      eval[!na_entries],
+      y[!na_entries],
+      penalized = FALSE,
+      verbose = FALSE
+    )
+    result <- tfb_na_result(eval, rebased)
+    result[!na_entries] <- unclass(rebased)
+    return(result)
+  }
   tf_rebase(eval, y, penalized = FALSE, verbose = FALSE) #TODO: see tfb_op_numeric
 }
 
 tfb_op_tfb <- function(op, x, y) {
   cli::cli_warn(
-    "Potentially lossy casts to {.cls tfd} and back for {.cls  {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
+    "Potentially lossy casts to {.cls tfd} and back for {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
   eval <- tfd_op_tfd(op, tfd(x), tfd(y))
   ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)
+  na_entries <- is.na(eval)
+  if (all(na_entries)) return(tfb_na_result(eval, ret_ptype))
+  if (any(na_entries)) {
+    rebased <- tf_rebase(
+      eval[!na_entries],
+      ret_ptype,
+      penalized = FALSE,
+      verbose = FALSE
+    )
+    result <- tfb_na_result(eval, rebased)
+    result[!na_entries] <- unclass(rebased)
+    return(result)
+  }
   tf_rebase(eval, ret_ptype, penalized = FALSE, verbose = FALSE) #TODO: see tfb_op_numeric
 }
 
@@ -392,15 +462,17 @@ tfb_plusminus_tfb <- function(op, x, y) {
   }
   # dispatch to general operator implementation (i.e. cast to tfd and back)
   # if link functions are involved
-  if (
-    !all(c(attributes(x)$family$link, attributes(y)$family$link) == "identity")
-  ) {
+  if (!all(c(attr(x, "family")$link, attr(y, "family")$link) == "identity")) {
     return(tfb_op_tfb(op, x, y))
   }
   ret <- map2(
     vec_data(x),
     vec_data(y),
-    \(x, y) do.call(op, list(e1 = x, e2 = y))
+    \(x, y) {
+      if (is.null(x) || is.null(y)) return(NULL)
+      result <- do.call(op, list(e1 = x, e2 = y))
+      if (allMissing(result)) NULL else result
+    }
   )
   attributes(ret) <- if (vec_size(x) >= vec_size(y)) {
     attributes(x)

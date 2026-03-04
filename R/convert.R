@@ -11,8 +11,8 @@
 #' @param x a `tf` object.
 #' @returns **for `as.data.frame.tf`:** if `unnest` is `FALSE` (default), a
 #'   one-column `data.frame` with a `tf`-column containing `x`. if `unnest` is
-#'   `TRUE`, a 3-column data frame with columns `id` for the (unique) names of
-#'   `x` or a numeric identifier, `arg` and `value`, with each row containing
+#'   `TRUE`, a 3-column data frame with columns `id` (containing (unique) names of
+#'   `x` or a numeric identifier if `x` is unnamed), `arg`, and `value`, with each row containing
 #'   one function evaluation at the original `arg`-values.
 #' @export
 #' @family tidyfun converters
@@ -29,7 +29,7 @@ as.data.frame.tf <- function(
 
 #' @rdname converters
 #' @param arg a vector of argument values / evaluation points for `x`. Defaults
-#'   to `tf_arg(x)`.
+#'   to `tf_arg(x)` (so for `x` on irregular grids, this will be the union of all observed `arg`-values by default).
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for values in `arg` for which no original data is available? Only relevant
 #'   for the raw data class `tfd`, for which it defaults to `FALSE`.
@@ -45,6 +45,7 @@ as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
       arg <- sort_unique(arg, simplify = TRUE)
     }
   }
+
   if (is_tfb(x)) interpolate <- TRUE
   assert_arg_vector(arg, x, check_unique = FALSE)
   x[, arg, interpolate = interpolate, matrix = TRUE]

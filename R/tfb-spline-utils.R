@@ -118,7 +118,7 @@ fit_penalized <- function(
   if (global && gam_args$sp == -1) {
     # find a suitable global level of smoothing based on a pilot estimate
     # uses 10% of curves, at most 100, at least 5
-    # uses median of the smothing parameters on this pilot sample.
+    # uses median of the smoothing parameters on this pilot sample.
     pilot_id <- round(seq(
       from = 1,
       to = nlevels(data$id),
@@ -263,7 +263,7 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
   failed <- keep(coef, anyNA)
   if (length(failed) > 0) {
     cli::cli_abort(
-      "Basis representation failed for entries: {.val {toString(unname(failed))}}."
+      "Basis representation failed for entries: {.val {names(failed)}}."
     )
   }
   sp_out <- NULL

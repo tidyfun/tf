@@ -22,7 +22,7 @@ condition about the functions, see examples and details.}
 
 \item{return}{for each entry in \code{f}, \code{tf_where} either returns \emph{all} \code{arg}
 for which \code{cond} is true, the \emph{first}, the \emph{last} or their \emph{range} or
-logical flags whether the functions fullfill the condition \emph{any}where. For
+logical flags whether the functions fulfill the condition \emph{any}where. For
 \code{"range"}, note that \code{cond} may not be true for all \code{arg} values in this
 range, though, this is not checked.}
 

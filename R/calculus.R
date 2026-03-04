@@ -59,6 +59,21 @@ tf_invert.tfb <- function(x, ...) {
 }
 
 
+# reinsert NULL entries for previously missing functions while preserving tf attrs
+restore_na_entries <- function(tf_non_na, na_entries, names_out) {
+  if (!any(na_entries)) {
+    return(setNames(tf_non_na, names_out))
+  }
+  ret <- vector("list", length(na_entries))
+  if (any(!na_entries)) {
+    ret[!na_entries] <- unclass(tf_non_na)
+  }
+  ret[na_entries] <- list(NULL)
+  attributes(ret) <- attributes(tf_non_na)
+  names(ret) <- names_out
+  ret
+}
+
 #-------------------------------------------------------------------------------
 
 #' Differentiating functional data: approximating derivative functions
@@ -75,11 +90,11 @@ tf_invert.tfb <- function(x, ...) {
 #' representation with [tfb()] and then computing the derivatives (or integrals)
 #' of those is usually preferable.
 #'
-#' Note that, for some spline bases like `"cr"` or `"tp"` which are constrained
-#' to begin/end linearly, computing second derivatives will produce artefacts at
+#' Note that, for spline bases like `"cr"` or `"tp"` which are constrained to
+#' begin/end linearly, computing *second* derivatives will produce artefacts at
 #' the outer limits of the functions' domain due to these boundary constraints.
-#' Basis `"bs"` does not have this problem for sufficiently high orders, but
-#' tends to yield slightly less stable fits.
+#' Basis `"bs"` does not have this problem for sufficiently high orders (but
+#' tends to yield slightly less stable fits).
 #' @param f a `tf`-object
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
 #' For `tfb_spline`-objects, `order = -1` yields integrals (used internally).
@@ -114,25 +129,57 @@ tf_derive.matrix <- function(f, arg, order = 1, ...) {
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing of function evaluations.
 tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
-  # TODO: should this interpolate back to the original grid? shortens the domain
-  # (slightly), for now. this is necessary so that we don't get NAs when trying
-  # to evaluate derivs over their default domain etc.
-  if (is_irreg(f)) {
-    cli::cli_inform(c(
-      x = "Differentiating over irregular grids can be unstable."
-    ))
-  }
+  # tfd derivation shortens the domain (slightly).
+  # because finite differences give the derivative at the middle of the interval
+  # between the original arg-values, so we lose the first and last arg-value and
+  # get new ones in between.
+  # re-setting the output domain to this shorter interval is necessary so
+  # we don't get NAs when trying to evaluate derivs over the default domain etc.
   assert_count(order)
+  na_entries <- is.na(f)
   data <- as.matrix(f, arg, interpolate = TRUE)
   arg <- as.numeric(colnames(data))
-  derived <- derive_matrix(data, arg, order)
+  derived <- derive_matrix(data[!na_entries, , drop = FALSE], arg, order)
   ret <- tfd(
     derived$data,
     derived$arg,
     domain = range(derived$arg) # !! shorter
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
-  setNames(ret, names(f))
+  restore_na_entries(ret, na_entries, names(f))
+}
+
+#' @export
+#' @describeIn tf_derive element-wise finite differencing for irregular grids.
+#'   Falls back to `tf_derive.tfd` (interpolating to a common grid) if an
+#'   explicit `arg` vector is supplied.
+tf_derive.tfd_irreg <- function(f, arg, order = 1, ...) {
+  if (!missing(arg)) {
+    return(tf_derive.tfd(f, arg = arg, order = order, ...))
+  }
+  cli::cli_inform(c(
+    x = "Differentiating over irregular grids can be unstable."
+  ))
+  assert_count(order)
+  na_entries <- is.na(f)
+  args <- tf_arg(f)
+  evals <- tf_evaluate(f)
+  derived_data <- vector("list", length(f))
+  derived_args <- vector("list", length(f))
+  for (i in which(!na_entries)) {
+    d <- derive_matrix(rbind(evals[[i]]), args[[i]], order)
+    derived_data[[i]] <- d$data[1, ]
+    derived_args[[i]] <- d$arg
+  }
+  derived_data[na_entries] <- list(NULL)
+  derived_args[na_entries] <- list(NULL)
+  ret <- tfd(
+    derived_data[!na_entries],
+    derived_args[!na_entries],
+    domain = range(unlist(derived_args))
+  )
+  tf_evaluator(ret) <- attr(f, "evaluator_name")
+  restore_na_entries(ret, na_entries, names(f))
 }
 
 #' @export
@@ -144,13 +191,26 @@ tf_derive.tfb_spline <- function(f, arg = tf_arg(f), order = 1, ...) {
       "Can't integrate or derive previously integrated or derived {.cls tfb_spline}."
     )
   }
-  if (attr(f, "family")$link != "identity") {
-    cli::cli_abort(
-      "Can't integrate or derive {.cls tfb_spline} with non-identity link function."
-    )
-  }
-  assert_arg(arg, f)
   assert_choice(order, choices = c(-1, 1, 2))
+  assert_arg(arg, f)
+  if (attr(f, "family")$link != "identity") {
+    cli::cli_inform(c(
+      i = "Using {.cls tfd} fallback for calculus on {.cls tfb_spline} with non-identity link.",
+      i = "Returning derivatives/integrals on response scale as {.cls tfd}."
+    ))
+    f_tfd <- tfd(f, arg = arg)
+    if (order == -1) {
+      dots <- list(...)
+      return(tf_integrate(
+        f_tfd,
+        arg = arg,
+        lower = dots$lower %||% min(arg),
+        upper = dots$upper %||% max(arg),
+        definite = FALSE
+      ))
+    }
+    return(tf_derive(f_tfd, arg = arg, order = order))
+  }
   s_args <- attr(f, "basis_args")
   s_call <- as.call(c(quote(s), quote(arg), s_args))
   s_spec <- eval(s_call)
@@ -248,6 +308,49 @@ tf_integrate.tfd <- function(
     ensure_list(limits),
     \(x, y) c(y[1], x[x > y[1] & x < y[2]], y[2])
   )
+  na_entries <- is.na(f)
+
+  if (definite && any(na_entries)) {
+    arg_non_na <- if (length(arg) == 1) arg else arg[!na_entries]
+    if (any(!na_entries)) {
+      evaluations <- tf_evaluate(f[!na_entries], arg_non_na)
+      quads <- map2(
+        arg_non_na,
+        evaluations,
+        \(x, y) quad_trapez(arg = x, evaluations = y)
+      )
+    } else {
+      quads <- list()
+    }
+    ret <- rep(NA_real_, length(f))
+    if (any(!na_entries)) {
+      ret[!na_entries] <- map_dbl(quads, sum)
+    }
+    return(setNames(ret, names(f)))
+  }
+
+  if (!definite && length(arg) == 1 && any(na_entries)) {
+    arg_non_na <- arg
+    if (any(!na_entries)) {
+      evaluations <- tf_evaluate(f[!na_entries], arg_non_na)
+      quads <- map(
+        evaluations,
+        \(y) quad_trapez(arg = arg_non_na[[1]], evaluations = y)
+      )
+      data_non_na <- map(quads, cumsum)
+      names(data_non_na) <- names(f)[!na_entries]
+    } else {
+      data_non_na <- matrix(numeric(), nrow = 0, ncol = length(arg_non_na[[1]]))
+    }
+    ret <- tfd(
+      data = data_non_na,
+      arg = arg_non_na[[1]],
+      domain = as.numeric(limits),
+      evaluator = !!attr(f, "evaluator_name")
+    )
+    return(restore_na_entries(ret, na_entries, names(f)))
+  }
+
   evaluations <- tf_evaluate(f, arg)
   quads <- map2(arg, evaluations, \(x, y) quad_trapez(arg = x, evaluations = y))
   if (definite) {

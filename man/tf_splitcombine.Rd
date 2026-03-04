@@ -16,8 +16,8 @@ tf_combine(..., strict = FALSE)
 \item{splits}{numeric vector containing \code{arg}-values at which to split.}
 
 \item{include}{which of the end points defined by \code{splits} to include in each
-of the resulting split functions. Defaults to \code{"both"}, other options are "\code{left}" or
-"\code{right}". See examples.}
+of the resulting split functions. Defaults to \code{"both"}, other options are \code{"left"} or
+\code{"right"}. See examples.}
 
 \item{...}{\code{tf}-objects of identical lengths to combine}
 

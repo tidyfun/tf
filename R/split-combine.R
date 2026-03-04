@@ -6,8 +6,8 @@
 #' @param x a `tf` object.
 #' @param splits numeric vector containing `arg`-values at which to split.
 #' @param include which of the end points defined by `splits` to include in each
-#'  of the resulting split functions. Defaults to `"both"`, other options are "`left`" or
-#'   "`right`". See examples.
+#'  of the resulting split functions. Defaults to `"both"`, other options are `"left"` or
+#'   `"right"`. See examples.
 #'
 #' @return for `tf_split`: a list of `tf` objects.
 #' @export
@@ -88,7 +88,7 @@ tf_combine <- function(..., strict = FALSE) {
   map(tfs, assert_tf)
   sizes <- map_int(tfs, vec_size)
   if (!all(duplicated(sizes)[-1])) {
-    cli::cli_abort("can't {.fn tf_combine} objects of different sizes")
+    cli::cli_abort("Can't {.fn tf_combine} objects of different sizes.")
   }
   size <- sizes[1]
 
@@ -107,7 +107,7 @@ tf_combine <- function(..., strict = FALSE) {
     max_overlap <- apply(arg_maxs, 1, \(x) is.unsorted(as.numeric(x)))
     if (any(min_overlap) || any(max_overlap)) {
       cli::cli_abort(
-        "{.fn tf_arg}-ranges of input data are not strictly ordered."
+        "{.fn tf_arg} ranges of input data are not strictly ordered."
       )
     }
   }
@@ -131,7 +131,7 @@ tf_combine <- function(..., strict = FALSE) {
   if (length(duplicates)) {
     if (strict) {
       cli::cli_abort(
-        "can't combine functions with multiple values at same argument."
+        "Can't combine functions with multiple values at the same argument."
       )
     }
     cli::cli_alert_warning(

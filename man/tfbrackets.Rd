@@ -14,11 +14,16 @@
 \item{x}{an \code{tf}.}
 
 \item{i}{index of the observations (\code{integer}ish, \code{character} or \code{logical},
-usual R rules apply).}
+usual R rules apply). Can also be a two-column \code{matrix} for extracting
+specific (function, arg-value) pairs: the first column gives the function
+indices, the second column gives the \code{arg} values at which to evaluate each
+function. Returns a numeric vector in that case. \code{j} must not be provided
+when \code{i} is a matrix.}
 
 \item{j}{The \code{arg} used to evaluate the functions. A (list of) \code{numeric}
 vectors. \emph{NOT} interpreted as a column number but as the argument value of
-the respective functional datum.}
+the respective functional datum. If \code{j} is missing but \code{matrix} is
+explicitly given, \code{j} defaults to \link[=tf_arg]{tf_arg(x)}.}
 
 \item{interpolate}{should functions be evaluated (i.e., inter-/extrapolated)
 for values in \code{arg} for which no original data is available? Only relevant for
@@ -36,14 +41,16 @@ so subassignment never changes the type of \code{x} but may do a
 potentially lossy cast of \code{value} to the type of \code{x} (with a warning).}
 }
 \value{
-If \code{j} is missing, a subset of the functions in \code{x} as given by
-\code{i}.\cr If \code{j} is given and \code{matrix == TRUE}, a numeric matrix of function
-evaluations in which each row represents one function and each column
-represents one \code{argval} as given in argument \code{j}, with an attribute
-\code{arg}=\code{j} and row- and column-names derived from \code{x[i]} and \code{j}.\cr If
-\code{j} is given and \code{matrix == FALSE}, a list of \code{tbl_df}s with columns
-\code{arg} = \code{j} and \code{value} = evaluations at \code{j} for each observation in
-\code{i}.
+If \code{i} is a two-column matrix, a numeric vector of pointwise
+evaluations (one per row of \code{i}).\cr
+If \code{j} is missing (and \code{i} is not a matrix), a subset of the functions in
+\code{x} as given by \code{i}.\cr If \code{j} is given and \code{matrix == TRUE}, a numeric
+matrix of function evaluations in which each row represents one function
+and each column represents one \code{argval} as given in argument \code{j}, with an
+attribute \code{arg}=\code{j} and row- and column-names derived from \code{x[i]} and
+\code{j}.\cr If \code{j} is given and \code{matrix == FALSE}, a list of \code{tbl_df}s with
+columns \code{arg} = \code{j} and \code{value} = evaluations at \code{j} for each observation
+in \code{i}.
 }
 \description{
 These functions access, subset, replace and evaluate \code{tf} objects.
@@ -74,6 +81,10 @@ x[-(2:3)]
 x[1:2, c(4.5, 9)] # returns a matrix of function evaluations
 x[1:2, c(4.5, 9), interpolate = FALSE] # NA for arg-values not in the original data
 x[-3, seq(1, 9, by = 2), matrix = FALSE] # list of data.frames for each function
+# 3. use a 2-column matrix to extract specific (function, arg) pairs:
+x[cbind(1:3, c(0, 5, 10))] # one value per function
+# 4. use matrix= with a missing j to evaluate on the default arg grid:
+x[1:2, , matrix = FALSE] # same as x[1:2, tf_arg(x), matrix = FALSE]
 # in order to evaluate a set of observed functions on a new grid and
 # save them as a functional data vector again, use `tfd` or `tfb` instead:
 tfd(x, arg = seq(0, 10, by = 0.01))

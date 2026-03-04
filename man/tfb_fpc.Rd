@@ -78,7 +78,7 @@ missingness.\cr
 For the FPC basis, any factorization method that accepts a \code{data.frame} with
 columns \code{id}, \code{arg}, \code{value} containing the functional data and returns a
 list with eigenfunctions and FPC scores structured like the return object
-of \code{\link[=fpc_wsvd]{fpc_wsvd()}} can be used for the `method`` argument, see example below.
+of \code{\link[=fpc_wsvd]{fpc_wsvd()}} can be used for the \code{method} argument, see example below.
 Note that the mean function, with a fixed "score" of 1 for all functions,
 is used as the first basis function for all FPC bases.
 }

@@ -4,6 +4,7 @@
 \alias{tf_derive}
 \alias{tf_derive.matrix}
 \alias{tf_derive.tfd}
+\alias{tf_derive.tfd_irreg}
 \alias{tf_derive.tfb_spline}
 \alias{tf_derive.tfb_fpc}
 \title{Differentiating functional data: approximating derivative functions}
@@ -13,6 +14,8 @@ tf_derive(f, arg, order = 1, ...)
 \method{tf_derive}{matrix}(f, arg, order = 1, ...)
 
 \method{tf_derive}{tfd}(f, arg = tf_arg(f), order = 1, ...)
+
+\method{tf_derive}{tfd_irreg}(f, arg, order = 1, ...)
 
 \method{tf_derive}{tfb_spline}(f, arg = tf_arg(f), order = 1, ...)
 
@@ -47,17 +50,21 @@ has a rather fine and regular grid, representing the data in a suitable basis
 representation with \code{\link[=tfb]{tfb()}} and then computing the derivatives (or integrals)
 of those is usually preferable.
 
-Note that, for some spline bases like \code{"cr"} or \code{"tp"} which are constrained
-to begin/end linearly, computing second derivatives will produce artefacts at
+Note that, for spline bases like \code{"cr"} or \code{"tp"} which are constrained to
+begin/end linearly, computing \emph{second} derivatives will produce artefacts at
 the outer limits of the functions' domain due to these boundary constraints.
-Basis \code{"bs"} does not have this problem for sufficiently high orders, but
-tends to yield slightly less stable fits.
+Basis \code{"bs"} does not have this problem for sufficiently high orders (but
+tends to yield slightly less stable fits).
 }
 \section{Methods (by class)}{
 \itemize{
 \item \code{tf_derive(matrix)}: row-wise finite differences
 
 \item \code{tf_derive(tfd)}: derivatives by finite differencing of function evaluations.
+
+\item \code{tf_derive(tfd_irreg)}: element-wise finite differencing for irregular grids.
+Falls back to \code{tf_derive.tfd} (interpolating to a common grid) if an
+explicit \code{arg} vector is supplied.
 
 \item \code{tf_derive(tfb_spline)}: derivatives by finite differencing of spline basis functions.
 

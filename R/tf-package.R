@@ -8,7 +8,7 @@
 #'   - simple descriptive statistics: e.g. [mean.tf()], [median.tf()]
 #'   - base graphics functions for such data: [plot.tf()]
 #'   - functions to do smoothing ([tf_smooth.tfd()]),
-#'     differentiation [tf_derive.tfd()]) and integration ([tf_derive.tfd()])
+#'     differentiation ([tf_derive.tfd()]) and integration ([tf_integrate.tfd()])
 #'
 #'
 #' The goal of the add-on package `tidyfun` is to make data wrangling and

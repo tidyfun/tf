@@ -10,7 +10,6 @@
 #' other functions (scale of 0 (lowest) to 1 (highest)).
 #' The two are closely related -- for functions that never cross other functions,
 #' MBD is \eqn{-2(MEI - 0.5)^2 + .5}.
-#
 #'
 #' @param x `tf` (or a matrix of evaluations).
 #' @param depth currently available: `"MBD"`, i.e. modified 2-band depth, and `"MEI"`.
@@ -76,7 +75,7 @@ mbd <- function(x, arg = seq_len(ncol(x))) {
   # TODO: does this need "ties.method = min" or max instead?
   ranks <- apply(x, 2, rank, na.last = "keep", ties.method = "average")
   weights <- {
-    # assign half interval length to 2nd/nxt-to-last points to 1st and last
+    # assign half interval length to 2nd/next-to-last points to 1st and last
     # point, assign other half intervals to intermediate points
     lengths <- diff(arg) / 2
     (c(lengths, 0) + c(0, lengths)) / diff(range(arg))
@@ -92,7 +91,7 @@ mei <- function(x, arg = seq_len(ncol(x))) {
   if (nrow(x) == 1) return(0.5)
   n <- nrow(x)
   weights <- {
-    # assign half interval distance from 2nd/nxt-to-last points to 1st and last
+    # assign half interval distance from 2nd/next-to-last points to 1st and last
     # point, assign other half intervals to intermediate points
     lengths <- diff(arg) / 2
     (c(lengths, 0) + c(0, lengths)) / diff(range(arg))

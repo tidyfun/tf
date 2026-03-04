@@ -39,7 +39,11 @@ assert_arg <- function(arg, x, check_unique = TRUE, null_ok = FALSE) {
   }
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
-    walk(arg, \(arg) assert_arg_vector(arg, x = x, check_unique = check_unique))
+    walk(arg, \(arg) {
+      if (!is.null(arg)) {
+        assert_arg_vector(arg, x = x, check_unique = check_unique)
+      }
+    })
   } else {
     assert_arg_vector(arg, x, check_unique = check_unique)
   }
@@ -70,13 +74,17 @@ assert_compatible_size <- function(op, x, y) {
   }
 }
 
-assert_tf <- function(x) assert_class(x, "tf")
-
-assert_tfd <- function(x, null_ok = FALSE) {
-  assert_class(x, "tfd", null.ok = null_ok)
+assert_tf <- function(x, .var.name = vname(x)) {
+  assert_class(x, "tf", .var.name = .var.name)
 }
 
-assert_tfb <- function(x) assert_class(x, "tfb")
+assert_tfd <- function(x, null_ok = FALSE, .var.name = vname(x)) {
+  assert_class(x, "tfd", null.ok = null_ok, .var.name = .var.name)
+}
+
+assert_tfb <- function(x, .var.name = vname(x)) {
+  assert_class(x, "tfb", .var.name = .var.name)
+}
 
 # "strict" does not allow stretching/compressing or truncation of domain
 # (i.e. strict allows only bijective time transformations)
