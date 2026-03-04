@@ -69,11 +69,17 @@ assert_compatible_size <- function(op, x, y) {
   }
 }
 
-assert_tf <- function(x) assert_class(x, "tf")
+assert_tf <- function(x, .var.name = vname(x)) {
+  assert_class(x, "tf", .var.name = .var.name)
+}
 
-assert_tfd <- function(x) assert_class(x, "tfd")
+assert_tfd <- function(x, .var.name = vname(x)) {
+  assert_class(x, "tfd", .var.name = .var.name)
+}
 
-assert_tfb <- function(x) assert_class(x, "tfb")
+assert_tfb <- function(x, .var.name = vname(x)) {
+  assert_class(x, "tfb", .var.name = .var.name)
+}
 
 check_limit <- function(x, f) {
   domain <- tf_domain(f)

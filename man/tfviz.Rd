@@ -44,7 +44,7 @@ Defaults to \code{TRUE} for irregular \code{tfd} and \code{FALSE} for all others
 \item{alpha}{alpha-value (see \code{\link[grDevices:rgb]{grDevices::rgb()}}) for noodle transparency.
 Defaults to 2/(no. of observations). Lower is more transparent.}
 
-\item{...}{additional arguments for \code{\link[=matplot]{matplot()}} ("spaghetti") or
+\item{...}{additional arguments for \code{\link[graphics:matplot]{graphics::matplot()}} ("spaghetti") or
 \code{\link[=image]{image()}} ("lasagna").}
 
 \item{arg}{evaluation grid (vector).}
