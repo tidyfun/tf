@@ -149,6 +149,10 @@ tf_derive.tfb_spline <- function(f, arg = tf_arg(f), order = 1, ...) {
   assert_choice(order, choices = c(-1, 1, 2))
   assert_arg(arg, f)
   if (attr(f, "family")$link != "identity") {
+    cli::cli_inform(c(
+      i = "Using {.cls tfd} fallback for calculus on {.cls tfb_spline} with non-identity link.",
+      i = "Returning derivatives/integrals on response scale as {.cls tfd}."
+    ))
     f_tfd <- tfd(f, arg = arg)
     if (order == -1) {
       dots <- list(...)
