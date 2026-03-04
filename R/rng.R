@@ -146,6 +146,12 @@ tf_rgp <- function(
 #' @export
 #' @rdname tf_jiggle
 #' @family tidyfun RNG functions
+#' @examples
+#' set.seed(1)
+#' (x <- tf_rgp(2, arg = 21L))
+#' (x_jig <- tf_jiggle(x, amount = 0.2))
+#' (x_sp <- tf_sparsify(x, dropout = 0.3))
+#' c(is_irreg(x_jig), is_irreg(x_sp))
 tf_jiggle <- function(f, amount = 0.4, ...) {
   assert_tfd(f)
   assert_number(amount, lower = 0, upper = 0.5)

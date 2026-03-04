@@ -36,7 +36,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Fabian Scheipl \email{fabian.scheipl@googlemail.com} (\href{https://orcid.org/0000-0001-8172-3603}{ORCID})
+\strong{Maintainer}: Fabian Scheipl \email{fabian.scheipl@googlemail.com} (\href{https://orcid.org/0000-0001-8172-3603}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{

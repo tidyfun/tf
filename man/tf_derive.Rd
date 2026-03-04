@@ -71,6 +71,14 @@ explicit \code{arg} vector is supplied.
 \item \code{tf_derive(tfb_fpc)}: derivatives by finite differencing of FPC basis functions.
 
 }}
+\examples{
+arg <- seq(0, 1, length.out = 31)
+x <- tfd(rbind(arg^2, sin(2 * pi * arg)), arg = arg)
+dx <- tf_derive(x)
+x
+dx
+tf_arg(dx)
+}
 \seealso{
 Other tidyfun calculus functions: 
 \code{\link{tf_integrate}()}

@@ -251,6 +251,11 @@ new_tfb_spline <- function(
 #' @inheritParams tfb
 #' @returns a `tfb`-object
 #' @seealso [mgcv::smooth.terms()] for spline basis options.
+#' @examples
+#' arg <- seq(0, 1, length.out = 21)
+#' mat <- rbind(sin(2 * pi * arg), cos(2 * pi * arg))
+#' fit <- tfb_spline(mat, arg = arg, k = 8, penalized = FALSE, verbose = FALSE)
+#' fit
 #' @family tfb-class
 #' @family tfb_spline-class
 #' @export

@@ -44,6 +44,14 @@ See \strong{\code{\link[=tfb_spline]{tfb_spline()}}} for more details on spline 
 default). See \strong{\code{\link[=tfb_fpc]{tfb_fpc()}}} for using an functional principal component
 representation with an orthonormal basis estimated from the data instead.
 }
+\examples{
+arg <- seq(0, 1, length.out = 21)
+x <- tfd(rbind(sin(2 * pi * arg), cos(2 * pi * arg)), arg = arg)
+xb <- tfb(x, k = 8, penalized = FALSE)
+xb
+
+as.tfb(x, basis = "spline", k = 8)
+}
 \seealso{
 Other tfb-class: 
 \code{\link{fpc_wsvd}()},

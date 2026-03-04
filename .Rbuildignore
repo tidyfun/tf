@@ -26,6 +26,7 @@
 ^_pkgdown\.yml$
 ^attic$
 ^vignettes$
+^.worktrees$
 ^codecov\.yml$
 ^compose\.ya?ml$
 ^cran-comments\.md$

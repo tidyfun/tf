@@ -24,6 +24,13 @@
 #' @param ... further arguments for [tfb_spline()] or [tfb_fpc()].
 #' @returns a `tfb`-object (or a `data.frame`/`matrix` for the conversion
 #'   functions, obviously).
+#' @examples
+#' arg <- seq(0, 1, length.out = 21)
+#' x <- tfd(rbind(sin(2 * pi * arg), cos(2 * pi * arg)), arg = arg)
+#' xb <- tfb(x, k = 8, penalized = FALSE)
+#' xb
+#'
+#' as.tfb(x, basis = "spline", k = 8)
 #' @rdname tfb
 #' @family tfb-class
 #' @export

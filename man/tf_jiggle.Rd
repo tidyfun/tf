@@ -31,6 +31,13 @@ Randomly create some irregular functional data from regular ones.
 \item \strong{sparsify} it by removing (100*\code{dropout})\% of the function values
 }
 }
+\examples{
+set.seed(1)
+(x <- tf_rgp(2, arg = 21L))
+(x_jig <- tf_jiggle(x, amount = 0.2))
+(x_sp <- tf_sparsify(x, dropout = 0.3))
+c(is_irreg(x_jig), is_irreg(x_sp))
+}
 \seealso{
 Other tidyfun RNG functions: 
 \code{\link{tf_rgp}()}

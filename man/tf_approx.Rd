@@ -33,11 +33,17 @@ a vector of values of the function defined by the given
 \eqn{(x_i, f(x_i))}=\verb{(arg, evaluations)}-tuples at new argument values \code{x}.
 }
 \description{
-These are the currently available \code{evaluator}-functions for \code{tfd}-objects,
-which control how the entries are inter-/extrapolated to previously unseen
-\code{arg}-values. They all are merely wrappers around \code{\link[zoo:na.fill]{zoo::na.fill()}},
-\code{\link[zoo:na.approx]{zoo::na.approx()}}, etc... Note that these are not meant to be called directly --
-they are internal functions used by \code{\link[=tf_evaluate.tfd]{tf_evaluate.tfd()}} to do its thing.
+These are exported evaluator callbacks for \code{tfd} objects. They control how
+function values are inter-/extrapolated to previously unseen \code{arg} values and
+are used by \code{\link[=tf_evaluate]{tf_evaluate()}}.
+
+In typical use, set an evaluator when constructing a \code{tfd}
+(\code{tfd(..., evaluator = tf_approx_linear)}) or replace it later via
+\code{tf_evaluator(x) <- tf_approx_none}.
+
+These helpers are wrappers around \code{\link[zoo:na.fill]{zoo::na.fill()}}, \code{\link[zoo:na.approx]{zoo::na.approx()}}, etc.
+and all share the same signature (\code{x}, \code{arg}, \code{evaluations}), so they can
+also be called directly.
 
 The list:
 \itemize{
@@ -55,6 +61,18 @@ with \code{na.rm = FALSE}),
 }
 
 For implementing your own, see source code of \code{tf:::zoo_wrapper}.
+}
+\examples{
+x <- tfd(matrix(c(0, 1), nrow = 1), arg = c(0, 1))
+tf_evaluate(x, c(0, 0.5, 1))
+tf_evaluator(x) <- tf_approx_none
+tf_evaluate(x, c(0, 0.5, 1))
+
+tf_approx_linear(
+  x = c(0, 0.5, 1),
+  arg = c(0, 1),
+  evaluations = c(0, 1)
+)
 }
 \seealso{
 \code{\link[=tfd]{tfd()}}

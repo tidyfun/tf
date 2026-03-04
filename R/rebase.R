@@ -16,6 +16,10 @@
 #' @param ... forwarded to the `tfb` or `tfd` constructors.
 #' @returns a `tf`-vector containing the data of `object` in the same representation
 #'   as `basis_from` (potentially modified by the arguments given in `...`).
+#' @examples
+#' x <- tf_rgp(3)
+#' xb <- tfb(x, k = 8, penalized = FALSE, verbose = FALSE)
+#' tf_rebase(tf_rgp(3), xb)
 #'
 #' @export
 tf_rebase <- function(object, basis_from, arg = tf_arg(basis_from), ...) {

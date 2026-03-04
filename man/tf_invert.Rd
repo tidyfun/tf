@@ -24,5 +24,5 @@ x <- tfd(rbind(2 * arg, arg^2), arg = arg)
 x_inv <- tf_invert(x)
 layout(t(1:2))
 plot(x, main = "original functions", ylab = "")
-plot(x_inv, main = "inverted functions", ylab = "")
+plot(x_inv, main = "inverted functions", ylab = "", points = FALSE)
 }

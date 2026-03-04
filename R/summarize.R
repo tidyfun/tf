@@ -60,6 +60,14 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
 #'   median, the *pointwise* min and max of `x`, and the *pointwise* min and max
 #'   of the central half of the functions in `x`, as defined by MBD (see
 #'   [tf_depth()]).
+#' @examples
+#' set.seed(123)
+#' x <- tf_rgp(1) * 1:5
+#' mean(x)
+#' median(x, depth = "pointwise")
+#' sd(x)
+#' var(x)
+#' summary(x)
 #' @name tfsummaries
 #' @family tidyfun summary functions
 #' @seealso [tf_fwise()]

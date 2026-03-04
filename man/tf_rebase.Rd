@@ -46,3 +46,9 @@ some other  \code{tf}-vector
 some other \code{tf}-vector.
 
 }}
+\examples{
+x <- tf_rgp(3)
+xb <- tfb(x, k = 8, penalized = FALSE, verbose = FALSE)
+tf_rebase(tf_rgp(3), xb)
+
+}

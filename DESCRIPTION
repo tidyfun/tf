@@ -2,7 +2,7 @@ Package: tf
 Title: S3 Classes and Methods for Tidy Functional Data
 Version: 0.4.0
 Authors@R: c(
-    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre"),
+    person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8172-3603")),
     person("Jeff", "Goldsmith", role = "aut"),
     person("Maximilian", "Mücke", role = "aut",
@@ -18,14 +18,15 @@ Authors@R: c(
     person("Chen", "Meng", role = "ctb",
            comment = "mogsa author")
   )
-Description: Defines S3 vector data types for vectors of functional data
-    (grid-based, spline-based or functional principal components-based)
-    with all arithmetic and summary methods, plotting, derivation, integration 
-    and smoothing, registration, data import and export, and data wrangling, such
-    as re-evaluating, subsetting, sub-assigning, zooming into sub-domains,
-    or extracting functional features like minima/maxima and their
-    locations.  The implementation allows including such vectors in data
-    frames for joint analysis of functional and scalar variables.
+Description: Provides S3 vector types for functional data represented on
+    grids, in spline bases, or via functional principal components.
+    Supports arithmetic and summary methods, plotting, derivation,
+    integration, smoothing, registration, and data import/export for these
+    functional vectors. Includes data-wrangling tools for re-evaluation,
+    subsetting, sub-assignment, zooming into sub-domains, and extracting
+    functional features such as minima, maxima, and their locations.
+    Enables joint analysis of functional and scalar variables by integrating
+    functional vectors into standard data frames.
 License: AGPL (>= 3)
 URL: https://tidyfun.github.io/tf/, https://github.com/tidyfun/tf/
 BugReports: https://github.com/tidyfun/tf/issues

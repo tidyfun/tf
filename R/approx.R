@@ -17,11 +17,17 @@ zoo_wrapper <- function(f, ...) {
 #' @title Inter- and extrapolation functions for `tfd`-objects
 #'
 #' @description
-#' These are the currently available `evaluator`-functions for `tfd`-objects,
-#' which control how the entries are inter-/extrapolated to previously unseen
-#' `arg`-values. They all are merely wrappers around [zoo::na.fill()],
-#' [zoo::na.approx()], etc... Note that these are not meant to be called directly --
-#' they are internal functions used by [tf_evaluate.tfd()] to do its thing.
+#' These are exported evaluator callbacks for `tfd` objects. They control how
+#' function values are inter-/extrapolated to previously unseen `arg` values and
+#' are used by [tf_evaluate()].
+#'
+#' In typical use, set an evaluator when constructing a `tfd`
+#' (`tfd(..., evaluator = tf_approx_linear)`) or replace it later via
+#' `tf_evaluator(x) <- tf_approx_none`.
+#'
+#' These helpers are wrappers around [zoo::na.fill()], [zoo::na.approx()], etc.
+#' and all share the same signature (`x`, `arg`, `evaluations`), so they can
+#' also be called directly.
 #'
 #' The list:
 #'
@@ -48,6 +54,17 @@ zoo_wrapper <- function(f, ...) {
 #' @returns a vector of values of the function defined by the given
 #'   \eqn{(x_i, f(x_i))}=`(arg, evaluations)`-tuples at new argument values `x`.
 #' @family tidyfun inter/extrapolation functions
+#' @examples
+#' x <- tfd(matrix(c(0, 1), nrow = 1), arg = c(0, 1))
+#' tf_evaluate(x, c(0, 0.5, 1))
+#' tf_evaluator(x) <- tf_approx_none
+#' tf_evaluate(x, c(0, 0.5, 1))
+#'
+#' tf_approx_linear(
+#'   x = c(0, 0.5, 1),
+#'   arg = c(0, 1),
+#'   evaluations = c(0, 1)
+#' )
 tf_approx_linear <- zoo_wrapper(na.approx, na.rm = FALSE)
 
 #' @rdname tf_approx

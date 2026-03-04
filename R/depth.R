@@ -5,11 +5,11 @@
 #'  - Modified Band-2 Depth
 #'  - Modified Epigraph Index.
 #'
-#' Roughly, modified band depth computes the centrality
-#' of a function (scale of 0 (extreme) to 0.5 (central)), while the epigraph index computes how often it is above
-#' other functions (scale of 0 (lowest) to 1 (highest)).
-#' The two are closely related -- for functions that never cross other functions,
-#' MBD is \eqn{-2(MEI - 0.5)^2 + .5}.
+#' Roughly, modified band depth computes the centrality of a function (scale of
+#' 0 (extreme) to 0.5 (most central)), while the epigraph index computes how
+#' often andd for how long it is below other functions (scale of 1 (lowest) to 0
+#' (highest)). The two are closely related -- for functions that never cross
+#' other functions: \eqn{MBD = -2(MEI - 0.5)^2 + .5}.
 #'
 #' @param x `tf` (or a matrix of evaluations).
 #' @param depth currently available: `"MBD"`, i.e. modified 2-band depth, and `"MEI"`.
@@ -19,6 +19,10 @@
 #'   tf_depth.
 #' @returns vector of tf_depth values
 #' @references `r format_bib("sun2012exact", "lopez2009concept",  "lopez2011half")`
+#' @examples
+#' x <- tf_rgp(3)/3 + 1:3
+#' tf_depth(x, depth = "MBD")
+#' tf_depth(x, depth = "MEI")
 #' @export
 #' @rdname tf_depth
 #' @family tidyfun ordering and ranking functions

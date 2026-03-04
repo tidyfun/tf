@@ -3,7 +3,7 @@
 ## New features
 
 * `tf_register()` & co implement registration methods (SRVF, affine, landmark, 
-  `fda`-style) for aligning functions.
+  `fda`-style) for aligning functions and analyzing phase variability.
 * `tf_split()` / `tf_combine()` for splitting functions into sub-domain
   fragments and re-combining them
 * `tf_rgp()` gains a `"brownian_bridge"` covariance option and can generate

@@ -67,6 +67,15 @@ statistic. See \code{\link[=tf_fwise]{tf_fwise()}} for scalar summaries
 (e.g. \code{tf_fmean} for means, \code{tf_fmax} for max. values) of each entry
 in a \code{tf}-vector.
 }
+\examples{
+set.seed(123)
+x <- tf_rgp(1) * 1:5
+mean(x)
+median(x, depth = "pointwise")
+sd(x)
+var(x)
+summary(x)
+}
 \seealso{
 \code{\link[=tf_fwise]{tf_fwise()}}
 

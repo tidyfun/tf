@@ -218,6 +218,12 @@ objects using Fourier- or B-spline bases, other \code{fda}-style bases are not i
 when data is missing
 
 }}
+\examples{
+arg <- seq(0, 1, length.out = 21)
+mat <- rbind(sin(2 * pi * arg), cos(2 * pi * arg))
+fit <- tfb_spline(mat, arg = arg, k = 8, penalized = FALSE, verbose = FALSE)
+fit
+}
 \seealso{
 \code{\link[mgcv:smooth.terms]{mgcv::smooth.terms()}} for spline basis options.
 

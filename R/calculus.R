@@ -31,7 +31,7 @@ quad_trapez <- function(arg, evaluations) {
 #' x_inv <- tf_invert(x)
 #' layout(t(1:2))
 #' plot(x, main = "original functions", ylab = "")
-#' plot(x_inv, main = "inverted functions", ylab = "")
+#' plot(x_inv, main = "inverted functions", ylab = "", points = FALSE)
 tf_invert <- function(x, ...) {
   UseMethod("tf_invert")
 }
@@ -103,6 +103,13 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' @param ... not used
 #' @returns a `tf` (with slightly different `arg` or `basis` for the
 #'   derivatives, see details).
+#' @examples
+#' arg <- seq(0, 1, length.out = 31)
+#' x <- tfd(rbind(arg^2, sin(2 * pi * arg)), arg = arg)
+#' dx <- tf_derive(x)
+#' x
+#' dx
+#' tf_arg(dx)
 #' @export
 #' @family tidyfun calculus functions
 tf_derive <- function(f, arg, order = 1, ...) UseMethod("tf_derive")
@@ -273,6 +280,12 @@ tf_derive.tfb_fpc <- function(f, arg = tf_arg(f), order = 1, ...) {
 #' @returns For `definite = TRUE`, the definite integrals of the functions in
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives
+#' @examples
+#' arg <- seq(0, 1, length.out = 11)
+#' x <- tfd(rbind(arg, arg^2), arg = arg)
+#' tf_integrate(x)
+#' anti <- tf_integrate(x, definite = FALSE)
+#' tf_arg(anti)
 #' @export
 #' @family tidyfun calculus functions
 tf_integrate <- function(f, arg, lower, upper, ...) {

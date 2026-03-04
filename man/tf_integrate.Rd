@@ -59,6 +59,13 @@ alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 \verb{[lower, upper]}, e.g. a \code{tfd} or \code{tfb} object representing \eqn{F(t) \approx
 \int^{t}_{lower}f(s)ds}, for \eqn{t \in}\verb{[lower, upper]}, is returned.
 }
+\examples{
+arg <- seq(0, 1, length.out = 11)
+x <- tfd(rbind(arg, arg^2), arg = arg)
+tf_integrate(x)
+anti <- tf_integrate(x, definite = FALSE)
+tf_arg(anti)
+}
 \seealso{
 Other tidyfun calculus functions: 
 \code{\link{tf_derive}()}
