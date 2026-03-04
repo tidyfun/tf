@@ -8,7 +8,7 @@ test_that("NA entries are NULL in tfd_reg via concatenation", {
   expect_length(y, 4)
   expect_equal(is.na(y), c(FALSE, FALSE, FALSE, TRUE), ignore_attr = "names")
   expect_null(unclass(y)[[4]])
-  expect_no_error(print(y))
+  expect_no_error(capture.output(print(y)))
 })
 
 test_that("NA entries are NULL in tfd_reg via assignment", {
@@ -22,7 +22,7 @@ test_that("NA entries are NULL in tfd_reg via assignment", {
   )
   expect_null(unclass(x)[[2]])
   expect_null(unclass(x)[[4]])
-  expect_no_error(print(x))
+  expect_no_error(capture.output(print(x)))
 })
 
 test_that("NA entries are NULL in tfd_irreg", {
@@ -65,7 +65,7 @@ test_that("tfd + tfd propagates NULL entries", {
   x <- tf_rgp(3)
   y <- tf_rgp(3)
   y[2] <- NA
-  z <- x + y
+  z <- suppressWarnings(x + y)
   expect_true(is.na(z)[2])
   expect_null(unclass(z)[[2]])
   expect_false(is.na(z)[1])
@@ -86,14 +86,14 @@ test_that("irregular arithmetic with NA_real_ produces NULL entries", {
   y <- x - NA_real_
   expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
   for (i in 1:3) expect_null(unclass(y)[[i]])
-  expect_no_error(print(y))
+  expect_no_error(capture.output(print(y)))
 })
 
 test_that("Math ops preserve NULL entries and convert all-NA to NULL", {
   set.seed(1234)
   x <- tf_rgp(3)
   x[2] <- NA
-  y <- log(x)
+  y <- suppressWarnings(log(x))
   expect_true(is.na(y)[2])
   expect_null(unclass(y)[[2]])
 
@@ -115,12 +115,15 @@ test_that("Math.tfb handles NULL entries correctly", {
     ),
     arg = t
   )
-  b <- suppressWarnings(tfb(mixed, k = 7, verbose = FALSE))
+  b <- suppressWarnings(suppressMessages({
+    capture.output(b <- tfb(mixed, k = 7, verbose = FALSE))
+    b
+  }))
   y <- suppressWarnings(log(b))
   expect_true(is_tfb(y))
   expect_equal(is.na(y), c(FALSE, TRUE, FALSE), ignore_attr = "names")
   expect_null(unclass(y)[[2]])
-  expect_no_error(print(y))
+  expect_no_error(capture.output(print(y)))
 })
 
 test_that("all-NA objects print correctly", {
@@ -161,7 +164,10 @@ test_that("subsetting preserves NULL entries", {
 
 test_that("tfb arithmetic with NA_real_ produces NULL entries and returns tfb", {
   set.seed(1234)
-  x <- tf_rgp(3) |> tfb(k = 15, verbose = FALSE)
+  x <- suppressMessages({
+    capture.output(x <- tf_rgp(3) |> tfb(k = 15, verbose = FALSE))
+    x
+  })
   y <- suppressWarnings(x + NA_real_)
   expect_true(is_tfb(y))
   expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
@@ -187,7 +193,7 @@ test_that("data.frame constructor handles all-NA rows", {
   x <- suppressWarnings(tfd(df))
   expect_true(is.na(x)[2])
   expect_null(unclass(x)[[2]])
-  expect_no_error(print(x))
+  expect_no_error(capture.output(print(x)))
 })
 
 # --- tf_arg accessor for tfd_irreg with NAs ---
