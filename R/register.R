@@ -48,11 +48,16 @@
 #' layout(t(1:3))
 #' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 #' # register the functions:
-#' warp_estimate <- tf_register(x)
+#' if (require(fdasrvf)) {
+#'   warp_estimate <- tf_register(x)
+#' } else {
+#'   warp_estimate <- tf_register(x, method = "affine", type = "shift_scale")
+#' }
 #' registered <- tf_unwarp(x, warp_estimate)
-#' layout(t(1:2))
-#' plot(warp_estimate, col = 1:5); lines(warp, lty = 2, col = 1:5)
-#' plot(registered, col = 1:5); lines(template, lty = 2)
+#' layout(t(1:3))
+#' plot(x, col = 1:5)
+#' plot(warp_estimate, col = 1:5); lines(warp, lty = 3, lwd = 1.5, col = 1:5)
+#' plot(registered, col = 1:5, points = FALSE); lines(template, lty = 2)
 #' @export
 #' @author Maximilian Muecke
 tf_warp <- function(x, warp, ...) {
