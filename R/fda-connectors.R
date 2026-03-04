@@ -6,7 +6,8 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
 
   # enforce odd bs.dim
   bs.dim <- object$bs.dim
-  if (bs.dim <= 0) cli::cli_abort("Fourier basis needs a positive {.arg bs.dim}.")
+  if (bs.dim <= 0)
+    cli::cli_abort("Fourier basis needs a positive {.arg bs.dim}.")
   if (bs.dim %% 2 == 0) {
     cli::cli_inform(
       "Fourier basis dimension is even, incrementing by 1 to enforce odd."

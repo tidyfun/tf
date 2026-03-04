@@ -266,10 +266,18 @@ fit_ml <- function(data, spec_object, gam_args, arg_u, penalized, sp = -1) {
       "Basis representation failed for entries: {.val {names(failed)}}."
     )
   }
+  sp_out <- NULL
+  if (penalized) {
+    if (fixed_sp) {
+      sp_out <- rep(as.numeric(sp)[1], length(ret))
+    } else {
+      sp_out <- map_dbl(ret, "sp")
+    }
+  }
   list(
     coef = coef,
     pve = map_dbl(ret, "pve"),
-    sp = if (penalized && !fixed_sp) map_dbl(ret, "sp") else NULL
+    sp = sp_out
   )
 }
 

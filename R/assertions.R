@@ -7,7 +7,9 @@ domain_contains <- function(x, to) {
 assert_domain_x_in_to <- function(x, to) {
   # can (try to) cast losslessly if domain of 'to' contains domain of 'x'
 
-  if (domain_contains(x, to)) return(TRUE)
+  if (domain_contains(x, to)) {
+    return(TRUE)
+  }
 
   stop_incompatible_cast(
     x = x,
@@ -31,7 +33,10 @@ assert_same_domains <- function(x, to) {
   )
 }
 
-assert_arg <- function(arg, x, check_unique = TRUE) {
+assert_arg <- function(arg, x, check_unique = TRUE, null_ok = FALSE) {
+  if (null_ok && is.null(arg)) {
+    return()
+  }
   if (is.list(arg)) {
     assert_true(length(arg) %in% c(1, length(x)))
     walk(arg, \(arg) {
@@ -48,11 +53,11 @@ assert_arg_vector <- function(arg, x, check_unique = TRUE) {
   domain_x <- tf_domain(x)
   assert_numeric(
     arg,
+    lower = domain_x[1],
+    upper = domain_x[2],
     any.missing = FALSE,
     unique = check_unique,
-    sorted = TRUE,
-    lower = domain_x[1],
-    upper = domain_x[2]
+    sorted = TRUE
   )
 }
 
@@ -73,12 +78,46 @@ assert_tf <- function(x, .var.name = vname(x)) {
   assert_class(x, "tf", .var.name = .var.name)
 }
 
-assert_tfd <- function(x, .var.name = vname(x)) {
-  assert_class(x, "tfd", .var.name = .var.name)
+assert_tfd <- function(x, null_ok = FALSE, .var.name = vname(x)) {
+  assert_class(x, "tfd", null.ok = null_ok, .var.name = .var.name)
 }
 
 assert_tfb <- function(x, .var.name = vname(x)) {
   assert_class(x, "tfb", .var.name = .var.name)
+}
+
+# "strict" does not allow stretching/compressing or truncation of domain
+# (i.e. strict allows only bijective time transformations)
+assert_warp <- function(warp, x, strict = FALSE) {
+  assert_tfd(warp)
+  if (length(x) != length(warp)) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
+  }
+  domain_x <- tf_domain(x)
+  domain_warp <- tf_domain(warp)
+  if (!all(domain_x == domain_warp)) {
+    cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
+  }
+  assert_monotonic(warp)
+  if (strict) {
+    bad_range <- !map_lgl(tf_frange(warp), \(x) all(x == domain_x))
+    if (any(bad_range)) {
+      cli::cli_abort(
+        "{.arg warp} domain and range must be the same. Not equal at index: {.val {which(bad_range)}}."
+      )
+    }
+  }
+  invisible(warp)
+}
+
+assert_monotonic <- function(x, .var.name = vname(x)) {
+  bad <- !map_lgl(tf_evaluations(x), is_monotonic)
+  if (any(bad)) {
+    cli::cli_abort(
+      "{.arg { .var.name}} must be monotonic. Not monotonic at index: {.val {which(bad)}}."
+    )
+  }
+  invisible(x)
 }
 
 check_limit <- function(x, f) {

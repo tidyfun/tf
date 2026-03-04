@@ -68,5 +68,78 @@ bibentries <- c(
     pages = "621--625",
     year = "2010",
     publisher = "NIH Public Access"
+  ),
+  tucker2013generative = bibentry(
+    "article",
+    title = "Generative models for functional data using phase and amplitude separation",
+    author = "J. Derek Tucker and Wei Wu and Anuj Srivastava",
+    journal = "Computational Statistics & Data Analysis",
+    volume = "61",
+    pages = "50-66",
+    year = "2013",
+    issn = "0167-9473",
+    doi = "https://doi.org/10.1016/j.csda.2012.12.001",
+    url = "https://www.sciencedirect.com/science/article/pii/S0167947312004227"
+  ),
+  srivastava2011registration = bibentry(
+    "misc",
+    title = "Registration of Functional Data Using Fisher-Rao Metric",
+    author = "Anuj Srivastava and Wei Wu and Sebastian Kurtek and Eric Klassen and J. S. Marron",
+    year = "2011",
+    eprint = "1103.3817",
+    archivePrefix = "arXiv",
+    primaryClass = "math.ST",
+    url = "https://arxiv.org/abs/1103.3817",
+  ),
+  ramsay2009functional = bibentry(
+    "book",
+    title = "Functional Data Analysis with R and MATLAB",
+    author = "Ramsay, James O. and Hooker, Giles and Graves, Spencer",
+    year = "2009",
+    edition = "1",
+    publisher = "Springer New York",
+    address = "New York",
+    series = "Use R!",
+    pages = "XII, 202",
+    isbn = "978-0-387-98184-0",
+    doi = "10.1007/978-0-387-98185-7",
+  ),
+  ramsay2005functional = bibentry(
+    "book",
+    title = "Functional Data Analysis",
+    author = "Ramsay, James O. and Silverman, Bernard W.",
+    year = "2005",
+    edition = "2nd",
+    publisher = "Springer",
+    address = "New York",
+    series = "Springer Series in Statistics",
+    isbn = "978-0-387-40080-8",
+  ),
+  ramsay2002applied = bibentry(
+    "book",
+    title = "Applied Functional Data Analysis",
+    author = "Ramsay, James O. and Silverman, Bernard W.",
+    year = "2002",
+    publisher = "Springer"
+  ),
+  tuddenham1954physical = bibentry(
+    "article",
+    title = "Physical growth of California boys and girls from birth to eighteen years",
+    author = "Tuddenham, Read D",
+    journal = "University of California Publications in Child Development",
+    volume = "1",
+    pages = "183--364",
+    year = "1954"
+  ),
+  olshen1989gait = bibentry(
+    "article",
+    title = "Gait Analysis and the Bootstrap",
+    author = "Olshen, Richard A and Biden, Edmund N and Wyatt, Marilynn P and Sutherland, David H",
+    journal = "The Annals of Statistics",
+    volume = "17",
+    number = "4",
+    pages = "1419--1440",
+    year = "1989",
+    publisher = "Institute of Mathematical Statistics"
   )
 )

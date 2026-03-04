@@ -46,9 +46,6 @@ expect_cast_result <- function(
   # for some reason names get shifted around in attributes list so check separately:
   expect_equal(names(cast), names(x))
 
-  print(str(attributes(unname(cast))))
-  print(str(attributes(unname(to))))
-
   expect_identical(
     attributes(unname(cast))[-ignore],
     attributes(unname(to))[-ignore]

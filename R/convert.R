@@ -29,7 +29,7 @@ as.data.frame.tf <- function(
 
 #' @rdname converters
 #' @param arg a vector of argument values / evaluation points for `x`. Defaults
-#'   to `tf_arg(x)` (so for `x` on irregular grids, this will be the union of all observed `arg`-values by default). 
+#'   to `tf_arg(x)` (so for `x` on irregular grids, this will be the union of all observed `arg`-values by default).
 #' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
 #'   for values in `arg` for which no original data is available? Only relevant
 #'   for the raw data class `tfd`, for which it defaults to `FALSE`.
@@ -45,7 +45,7 @@ as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
       arg <- sort_unique(arg, simplify = TRUE)
     }
   }
-  
+
   if (is_tfb(x)) interpolate <- TRUE
   assert_arg_vector(arg, x, check_unique = FALSE)
   x[, arg, interpolate = interpolate, matrix = TRUE]

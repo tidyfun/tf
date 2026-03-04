@@ -25,7 +25,9 @@ find_arg <- function(data, arg) {
       arg <- numeric(0)
     }
   }
-  if (length(arg) == 0) arg <- seq_len(ncol(data))
+  if (length(arg) == 0) {
+    arg <- seq_len(ncol(data))
+  }
   assert_numeric(arg, any.missing = FALSE)
   if (length(arg) != ncol(data)) {
     cli::cli_abort("{.arg arg} must have same length as {.arg data}.")
@@ -116,7 +118,9 @@ compare_tf_attribs <- function(
   a1 <- attributes(e1)
   a2 <- attributes(e2)
   attribs <- union(names(a1), names(a2))
-  if (length(ignore)) attribs <- attribs[!(attribs %in% ignore)]
+  if (length(ignore)) {
+    attribs <- attribs[!(attribs %in% ignore)]
+  }
   .compare <- function(a, b) {
     if (is.null(a) != is.null(b)) {
       return(FALSE)
@@ -206,15 +210,14 @@ unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)
   }
-  if (is.character(x)) x <- sub("$^", "NA", x)
+  if (is.character(x)) {
+    x <- sub("^$", "NA", x)
+  }
   x <- make.names(as.character(x), unique = TRUE)
   x
 }
 
-na_to_0 <- function(x) {
-  x[is.na(x)] <- 0
-  x
-}
+na_to_0 <- function(x) replace(x, is.na(x), 0)
 
 sort_unique <- function(x, simplify = FALSE) {
   if (simplify) {
@@ -224,6 +227,11 @@ sort_unique <- function(x, simplify = FALSE) {
 }
 
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
+
+is_monotonic <- function(x) {
+  d <- diff(x)
+  all(d >= 0) || all(d <= 0)
+}
 
 # Source: <https://github.com/mlr-org/mlr3misc/blob/main/R/format_bib.R>
 # by Michel Lang (copied here Feb 2024)

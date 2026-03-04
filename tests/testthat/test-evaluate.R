@@ -13,7 +13,10 @@ test_that("tf_evaluate.tfd works for irregular", {
 })
 
 test_that("tf_evaluate.tfb works", {
-  smoo_tfb <- tfb(smoo, penalized = FALSE, verbose = FALSE)
+  smoo_tfb <- suppressMessages({
+    capture.output(smoo_tfb <- tfb(smoo, penalized = FALSE, verbose = FALSE))
+    smoo_tfb
+  })
   expect_identical(tf_evaluate(smoo_tfb), tf_evaluations(smoo_tfb))
   expect_equal(
     tf_evaluate(smoo_tfb, arg = tf_arg(smoo_tfb)),
@@ -32,7 +35,10 @@ test_that("tf_evaluate.tfb keeps NA entries for shared arg", {
     ),
     arg = t
   )
-  b <- suppressWarnings(tfb(mixed, k = 7, verbose = FALSE))
+  b <- suppressWarnings(suppressMessages({
+    capture.output(b <- tfb(mixed, k = 7, verbose = FALSE))
+    b
+  }))
   b_na <- suppressWarnings(log(b))
 
   eval_point <- tf_evaluate(b_na, arg = 0.5)

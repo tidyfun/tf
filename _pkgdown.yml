@@ -38,6 +38,14 @@ reference:
   - tf_derive
   - tf_integrate
   - tf_smooth
+- title: Registering and warping
+  desc: Functions for registering, and warping functional data
+  contents:
+  - tf_register
+  - tf_landmarks_extrema
+  - tf_warp
+  - tf_unwarp
+  - tf_invert
 - title: Visualization & Display
   desc: Graphics functions and print formats
   contents:
@@ -66,6 +74,12 @@ reference:
   - unique_id
   - vctrs
   - tf
+- title: Data
+  desc: Real world functional data
+  contents:
+  - gait
+  - growth
+  - pinch
 navbar:
   type: default
   left:
@@ -76,3 +90,9 @@ navbar:
 development:
   mode: auto
 
+articles:
+- title: Registration
+  navbar: Registration
+  contents:
+  - registration2
+  - registration

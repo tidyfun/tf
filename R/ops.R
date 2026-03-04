@@ -384,7 +384,12 @@ tfb_op_numeric <- function(op, x, y) {
   na_entries <- is.na(eval)
   if (all(na_entries)) return(tfb_na_result(eval, x))
   if (any(na_entries)) {
-    rebased <- tf_rebase(eval[!na_entries], x[!na_entries], penalized = FALSE, verbose = FALSE)
+    rebased <- tf_rebase(
+      eval[!na_entries],
+      x[!na_entries],
+      penalized = FALSE,
+      verbose = FALSE
+    )
     result <- tfb_na_result(eval, rebased)
     result[!na_entries] <- unclass(rebased)
     return(result)
@@ -401,7 +406,12 @@ numeric_op_tfb <- function(op, x, y) {
   na_entries <- is.na(eval)
   if (all(na_entries)) return(tfb_na_result(eval, y))
   if (any(na_entries)) {
-    rebased <- tf_rebase(eval[!na_entries], y[!na_entries], penalized = FALSE, verbose = FALSE)
+    rebased <- tf_rebase(
+      eval[!na_entries],
+      y[!na_entries],
+      penalized = FALSE,
+      verbose = FALSE
+    )
     result <- tfb_na_result(eval, rebased)
     result[!na_entries] <- unclass(rebased)
     return(result)
@@ -418,7 +428,12 @@ tfb_op_tfb <- function(op, x, y) {
   na_entries <- is.na(eval)
   if (all(na_entries)) return(tfb_na_result(eval, ret_ptype))
   if (any(na_entries)) {
-    rebased <- tf_rebase(eval[!na_entries], ret_ptype, penalized = FALSE, verbose = FALSE)
+    rebased <- tf_rebase(
+      eval[!na_entries],
+      ret_ptype,
+      penalized = FALSE,
+      verbose = FALSE
+    )
     result <- tfb_na_result(eval, rebased)
     result[!na_entries] <- unclass(rebased)
     return(result)
