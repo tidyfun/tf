@@ -89,10 +89,3 @@ navbar:
     href: reference/index.html
 development:
   mode: auto
-
-articles:
-- title: Registration
-  navbar: Registration
-  contents:
-  - registration2
-  - registration

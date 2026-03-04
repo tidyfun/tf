@@ -2,12 +2,14 @@
 
 ## New features
 
-* new `tf_split()` / `tf_combine()` for splitting functions into sub-domain
+* `tf_register()` & co implement registration methods (SRVF, affine, landmark, 
+  `fda`-style) for aligning functions.
+* `tf_split()` / `tf_combine()` for splitting functions into sub-domain
   fragments and re-combining them
 * `tf_rgp()` gains a `"brownian_bridge"` covariance option and can generate
   irregular data via the new `irreg` argument
 * `tfb_spline()` now converts `fda::fd` and `fda::fdSmooth` objects directly
-* mgcv-style Fourier basis constructor for use in `tfb_spline()`
+* `mgcv`-style Fourier basis constructor for use in `tfb_spline()`
 * sparklines in `print()` / `format()` for all `tf` subtypes
 * `tf_where()` now defaults to `arg = tf_arg(x)`, consistent with other functions
 * `as.matrix()` for irregular `tfd` now always interpolates to a common grid
@@ -23,6 +25,8 @@
 
 ## Other changes
 
+* `tf_derive` and `tf_integrate` can now handle `tfb` with non-identity link functions
+  by falling back to `tfd`-calculus methods (and returning `tfd` objects).
 * `tfd_irreg` arithmetic now operates on intersection of arg-values instead
   of failing when arg-values are not identical
 * `tfb` arithmetic fix

@@ -5,10 +5,10 @@ Authors@R: c(
     person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8172-3603")),
     person("Jeff", "Goldsmith", role = "aut"),
+    person("Maximilian", "Mücke", role = "aut",
+           comment = c(ORCID = "0009-0000-9432-9795")),
     person("Julia", "Wrobel", role = "ctb",
            comment = c(ORCID = "0000-0001-6783-1421")),
-    person("Maximilian", "Mücke", role = "ctb",
-           comment = c(ORCID = "0009-0000-9432-9795")),
     person("Sebastian", "Fischer", role = "ctb",
            comment = c(ORCID = "0000-0002-9609-3197")),
     person("Trevor", "Hastie", role = "ctb",
@@ -20,8 +20,8 @@ Authors@R: c(
   )
 Description: Defines S3 vector data types for vectors of functional data
     (grid-based, spline-based or functional principal components-based)
-    with all arithmetic and summary methods, derivation, integration and
-    smoothing, plotting, data import and export, and data wrangling, such
+    with all arithmetic and summary methods, plotting, derivation, integration 
+    and smoothing, registration, data import and export, and data wrangling, such
     as re-evaluating, subsetting, sub-assigning, zooming into sub-domains,
     or extracting functional features like minima/maxima and their
     locations.  The implementation allows including such vectors in data

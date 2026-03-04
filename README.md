@@ -29,7 +29,8 @@ subclasses `tfd` and `tfb`, use the
 [**`vctrs`**](https://vctrs.r-lib.org/)-framework, can be operated on
 using most standard functions (`+`, `mean()`, `c()`, etc.) as well as
 several new functions in `tf` that implement operations specific for
-*functional* data (`tf_smooth`, `tf_derive`, `tf_integrate`).
+*functional* data (`tf_smooth`, `tf_derive`, `tf_integrate`,
+`tf_register`, …).
 
 **Crucially**, vectors of class `tf` can be included in data frames
 containing other variables, for simple and reliable data manipulation.
@@ -62,6 +63,8 @@ pak::pak("tidyfun/tf")
 - new **data types** for representing functional data: `tfd` & `tfb`
 - arithmetic **operators** and descriptive **statistics** for such data
 - basic **graphics** functions for `tf` vectors
+- derivatives and integrals of `tf`-objects
+- registration (alignment) of `tf`-objects
 - basic data **wrangling** for functional data: reshaping from list
   columns to wide to long and back, interpolating on different grids,
   filtering and zooming, etc.
