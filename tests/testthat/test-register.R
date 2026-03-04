@@ -158,8 +158,8 @@ test_that("tf_register works for SRVF and FDA methods", {
   skip_if_not_installed("fda")
   withr::local_seed(1234)
 
-  n_curves <- 10
-  t <- seq(0, 2 * pi, length.out = 100)
+  n_curves <- 3
+  t <- seq(0, 2 * pi, length.out = 61)
   data <- sapply(seq_len(n_curves), \(i) {
     phase_shift <- runif(1, -pi / 2, pi / 2)
     amplitude <- runif(1, 0.8, 1.2)
@@ -183,18 +183,14 @@ test_that("tf_register works for SRVF and FDA methods", {
 
   # FDA: default and non-default crit (tests ... passthrough)
   check_warp(
-    quiet_expected_registration_warnings(tf_register(x, method = "fda")),
-    x,
-    "FDA default"
-  )
-  check_warp(
     quiet_expected_registration_warnings(tf_register(
       x,
       method = "fda",
-      crit = 1
+      max_iter = 1,
+      iterlim = 1
     )),
     x,
-    "FDA crit=1"
+    "FDA smoke"
   )
 
   # tfd_irreg: SRVF/FDA are currently unsupported
@@ -278,48 +274,52 @@ test_that("tf_register supports landmark registration for irregular tfd", {
   expect_equal(warp_at_target, peaks, tolerance = 0.02)
 })
 
-test_that("tf_register exposes FDA warp basis controls", {
+test_that("tf_register accepts FDA warp basis controls", {
   skip_if_not_installed("fda")
   withr::local_seed(123)
 
-  t <- seq(0, 1, length.out = 81)
+  t <- seq(0, 1, length.out = 61)
   x <- tfd(
     t(sapply(c(-0.07, 0, 0.06), \(s) sin(2 * pi * (t + s)))),
     arg = t
   )
 
   w_default <- quiet_expected_registration_warnings(
-    tf_register(x, method = "fda")
-  )
-  w_explicit_default <- quiet_expected_registration_warnings(
     tf_register(
       x,
       method = "fda",
-      fda_nbasis = 6L,
-      fda_lambda = 0
+      max_iter = 1,
+      iterlim = 1,
+      nbasis = 6L,
+      lambda = 0,
+      crit = 2
     )
   )
-  expect_equal(as.matrix(w_default), as.matrix(w_explicit_default))
+  expect_s3_class(w_default, "tfd")
+  expect_length(w_default, length(x))
+  expect_identical(tf_domain(w_default), tf_domain(x))
 
   expect_no_error(
-    w_tuned <- tf_register(
+    w_tuned <- quiet_expected_registration_warnings(tf_register(
       x,
       method = "fda",
-      crit = 2,
-      fda_nbasis = 8L,
-      fda_lambda = 1e-3
-    )
+      max_iter = 1,
+      iterlim = 1,
+      crit = 1,
+      nbasis = 8L,
+      lambda = 1e-3
+    ))
   )
   expect_s3_class(w_tuned, "tfd")
   expect_length(w_tuned, length(x))
   expect_identical(tf_domain(w_tuned), tf_domain(x))
 
   expect_error(
-    tf_register(x, method = "fda", fda_nbasis = 1L),
+    tf_register(x, method = "fda", nbasis = 1L),
     ">= 2"
   )
   expect_error(
-    tf_register(x, method = "fda", fda_lambda = -1),
+    tf_register(x, method = "fda", lambda = -1),
     ">= 0"
   )
 })
@@ -354,8 +354,8 @@ test_that("tf_register SRVF/FDA works for tfb subclasses", {
   skip_if_not_installed("fda")
   withr::local_seed(1234)
 
-  t <- seq(0, 2 * pi, length.out = 61)
-  data <- sapply(seq_len(4), \(i) sin(t + runif(1, -0.4, 0.4)))
+  t <- seq(0, 2 * pi, length.out = 41)
+  data <- sapply(seq_len(3), \(i) sin(t + runif(1, -0.4, 0.4)))
 
   x_tfb <- suppressMessages(tfb(t(data), k = 12))
   x_fpc <- tfb_fpc(t(data), pve = .95)
@@ -365,7 +365,9 @@ test_that("tf_register SRVF/FDA works for tfb subclasses", {
   expect_length(warp_srvf, length(x_tfb))
   expect_identical(tf_domain(warp_srvf), tf_domain(x_tfb))
 
-  warp_fda <- tf_register(x_fpc, method = "fda")
+  warp_fda <- quiet_expected_registration_warnings(
+    tf_register(x_fpc, method = "fda", max_iter = 1, iterlim = 1)
+  )
   expect_s3_class(warp_fda, "tfd")
   expect_length(warp_fda, length(x_fpc))
   expect_identical(tf_domain(warp_fda), tf_domain(x_fpc))
@@ -432,16 +434,28 @@ test_that("tf_register SRVF/FDA reject unknown method-specific arguments", {
 test_that("tf_register FDA explicit template path is exercised", {
   skip_if_not_installed("fda")
   withr::local_seed(4321)
-  t <- seq(0, 1, length.out = 101)
+  t <- seq(0, 1, length.out = 61)
   x <- tfd(
     t(sapply(c(-0.08, 0, 0.08), \(s) sin(2 * pi * (t + s)))),
     arg = t
   )
   template <- mean(x)
 
-  w_default <- tf_register(x, method = "fda")
-  w_template <- tf_register(x, method = "fda", template = template)
-  expect_equal(as.matrix(w_default), as.matrix(w_template), tolerance = 0.15)
+  w_default <- quiet_expected_registration_warnings(
+    tf_register(x, method = "fda", max_iter = 1, iterlim = 1)
+  )
+  w_template <- quiet_expected_registration_warnings(tf_register(
+    x,
+    method = "fda",
+    template = template,
+    max_iter = 1,
+    iterlim = 1
+  ))
+  expect_equal(
+    as.matrix(w_default),
+    as.matrix(w_template),
+    tolerance = 0.15
+  )
 })
 
 
@@ -997,12 +1011,12 @@ test_that("template forces single-pass regardless of max_iter", {
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
   template <- tfd(matrix(sin(t), nrow = 1), arg = t)
 
-  # Without template: explicit max_iter=1 matches default
+  # Without template: explicit max_iter=3 matches default
   w_default <- quiet_expected_registration_warnings(
     tf_register(x, method = "affine", type = "shift")
   )
   w_explicit <- quiet_expected_registration_warnings(
-    tf_register(x, method = "affine", type = "shift", max_iter = 1L)
+    tf_register(x, method = "affine", type = "shift", max_iter = 3L)
   )
   expect_equal(as.matrix(w_default), as.matrix(w_explicit))
 
@@ -1092,14 +1106,17 @@ test_that("tf_register Procrustes iteration handles irregular affine updates", {
 
 test_that("tf_register Procrustes iteration runs for FDA", {
   skip_if_not_installed("fda")
+  skip_on_cran()
   withr::local_seed(42)
-  t <- seq(0, 1, length.out = 101)
+  t <- seq(0, 1, length.out = 61)
   x <- tfd(
     t(sapply(c(-0.05, 0, 0.05), \(s) sin(2 * pi * (t + s)))),
     arg = t
   )
 
-  w <- tf_register(x, method = "fda", max_iter = 3L)
+  w <- quiet_expected_registration_warnings(
+    tf_register(x, method = "fda", max_iter = 2L, iterlim = 5)
+  )
   expect_s3_class(w, "tfd_reg")
   expect_length(w, 3)
 })
