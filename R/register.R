@@ -61,146 +61,6 @@ tf_warp <- function(x, warp, ...) {
   assert_warp(warp, x)
   UseMethod("tf_warp")
 }
-
-coerce_warp_to_tfd <- function(warp) {
-  if (is_tfb(warp)) {
-    return(as.tfd(warp))
-  }
-  warp
-}
-
-strictify_boundary_ties <- function(values, domain, tol_abs) {
-  n_values <- length(values)
-  if (n_values <= 1) {
-    return(values)
-  }
-
-  diffs <- diff(values)
-  is_increasing <- all(diffs >= 0)
-  is_decreasing <- all(diffs <= 0)
-  if (!is_increasing && !is_decreasing) {
-    return(values)
-  }
-
-  tie_pos <- which(diffs == 0)
-  if (length(tie_pos) == 0) {
-    return(values)
-  }
-  near_boundary <- abs(values - domain[1]) <= tol_abs |
-    abs(values - domain[2]) <= tol_abs
-  tie_near_boundary <- near_boundary[tie_pos] | near_boundary[tie_pos + 1]
-  if (!all(tie_near_boundary)) {
-    return(values)
-  }
-
-  domain_span <- diff(domain)
-  if (domain_span <= 0) {
-    return(values)
-  }
-  eps <- min(tol_abs, domain_span / (max(1, n_values - 1) * 2))
-  if (eps <= 0) {
-    return(values)
-  }
-
-  adjusted <- if (is_increasing) {
-    cummax(values) + eps * seq.int(0, n_values - 1)
-  } else {
-    -cummax(-values) - eps * seq.int(0, n_values - 1)
-  }
-
-  shift_min <- domain[1] - min(adjusted)
-  shift_max <- domain[2] - max(adjusted)
-  if (shift_min <= shift_max) {
-    shift <- min(max(0, shift_min), shift_max)
-    return(adjusted + shift)
-  }
-
-  if (is_increasing) {
-    return(seq(domain[1], domain[2], length.out = n_values))
-  }
-  seq(domain[2], domain[1], length.out = n_values)
-}
-
-stabilize_warp_values <- function(
-  values,
-  domain,
-  tol = sqrt(.Machine$double.eps)
-) {
-  tol_abs <- max(1, diff(domain)) * tol
-  values[values < domain[1] & values >= domain[1] - tol_abs] <- domain[1]
-  values[values > domain[2] & values <= domain[2] + tol_abs] <- domain[2]
-  values <- strictify_boundary_ties(values, domain = domain, tol_abs = tol_abs)
-  values
-}
-
-apply_tfb_warp <- function(fun, x, warp, dots = list()) {
-  # keep_new_arg forced to FALSE here, otherwise basis matrix blows up:
-  # would keep every unique gridpoint & cause plots to fail (resolution too small)
-  warp <- coerce_warp_to_tfd(warp)
-  if (isTRUE(dots$keep_new_arg)) {
-    cli::cli_warn(
-      "{.arg keep_new_arg} reset to FALSE - not applicable for {.cls tfb}."
-    )
-    dots$keep_new_arg <- FALSE
-  }
-  args <- c(list(x = as.tfd(x), warp = warp), dots)
-  do.call(fun, args) |> tf_rebase(x)
-}
-
-is_non_domain_preserving_warp <- function(warp_evals, domain) {
-  any(map_lgl(warp_evals, \(warp_vals) {
-    finite_vals <- warp_vals[is.finite(warp_vals)]
-    if (length(finite_vals) == 0) {
-      return(TRUE)
-    }
-    warp_min <- min(finite_vals)
-    warp_max <- max(finite_vals)
-    # Check for expansion OR shrinkage
-    warp_min < domain[1] ||
-      warp_max > domain[2] ||
-      warp_min > domain[1] + 1e-10 ||
-      warp_max < domain[2] - 1e-10
-  }))
-}
-
-unwarp_non_domain_preserving <- function(
-  arg_list,
-  x_evals,
-  warp_evals,
-  domain,
-  evaluator_name
-) {
-  # Build (arg, value) pairs for each function, keeping only valid points
-  valid_data <- pmap(
-    list(arg_list, x_evals, warp_evals),
-    \(arg_i, x_vals, warp_vals) {
-      # warp_vals = h(arg_i), we want x(h(arg_i)) at each arg point
-      # Use rule=1 to get NA where warp goes outside original domain
-      reg_vals <- approx(arg_i, x_vals, xout = warp_vals, rule = 1)$y
-      valid <- !is.na(reg_vals)
-      list(arg = arg_i[valid], value = reg_vals[valid])
-    }
-  )
-
-  # Create irregular tfd with only valid points
-  new_tfd(
-    arg = map(valid_data, "arg"),
-    datalist = map(valid_data, "value"),
-    regular = FALSE,
-    domain = domain,
-    evaluator = evaluator_name
-  )
-}
-
-unwarp_domain_preserving <- function(x_evals, warp_evals, arg_list, domain) {
-  inv_warp <- tfd(warp_evals, arg = arg_list, domain = domain) |>
-    tf_invert(domain = domain) |>
-    tfd(arg = arg_list, domain = domain)
-  inv_warp_evals <- tf_evaluations(inv_warp) |>
-    map(\(vals) stabilize_warp_values(vals, domain))
-  tfd(x_evals, arg = inv_warp_evals, domain = domain)
-}
-
 #' @rdname tf_warp
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
@@ -438,25 +298,21 @@ tf_register.tfd_reg <- function(
   max_iter = 3L,
   tol = 1e-4
 ) {
+  dots <- list(...)
   assert_tfd(x)
   method <- match.arg(method)
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
-  if (method == "fda") {
-    assert_int(nbasis, lower = 2)
-    assert_number(lambda, lower = 0)
-  }
 
   # Landmark method doesn't use template, uses landmarks instead
   if (method == "landmark") {
-    return(register_landmark(x, ...))
+    return(do.call(tf_register_landmark, c(list(x = x), dots)))
   }
 
   # SRVF with no template: Karcher mean handles iteration internally
   # (skip outer Procrustes loop regardless of max_iter)
   if (method == "srvf" && is.null(template)) {
-    rlang::check_dots_used()
-    return(tf_register_srvf(x, template = NULL, ...))
+    return(do.call(tf_register_srvf, c(list(x = x, template = NULL), dots)))
   }
 
   # Initial template
@@ -487,10 +343,6 @@ tf_register.tfd_reg <- function(
     }
   }
 
-  if (method %in% c("srvf", "fda")) {
-    rlang::check_dots_used()
-  }
-
   # Procrustes iteration (single pass when max_iter=1 or template given)
   arg <- tf_arg(x)
   domain_length <- diff(tf_domain(x))
@@ -499,15 +351,24 @@ tf_register.tfd_reg <- function(
   for (iter in seq_len(max_iter)) {
     warps <- switch(
       method,
-      srvf = tf_register_srvf(x, current_template, ...),
-      fda = tf_register_fda(
-        x,
-        current_template,
-        ...,
-        nbasis = nbasis,
-        lambda = lambda
+      srvf = do.call(
+        tf_register_srvf,
+        c(list(x = x, template = current_template), dots)
       ),
-      affine = register_affine(x, template = current_template, ...)
+      fda = do.call(
+        tf_register_fda,
+        c(
+          list(
+            x = x,
+            template = current_template
+          ),
+          dots
+        )
+      ),
+      affine = do.call(
+        tf_register_affine,
+        c(list(x = x, template = current_template), dots)
+      )
     )
 
     aligned <- tf_unwarp(x, warps)
@@ -608,7 +469,7 @@ tf_register.tfd_irreg <- function(
     )
   }
   if (method == "landmark") {
-    return(register_landmark(x, ...))
+    return(tf_register_landmark(x, ...))
   }
 
   arg_list <- ensure_list(tf_arg(x))
@@ -673,13 +534,22 @@ tf_register_srvf <- function(x, template, ...) {
 tf_register_fda <- function(
   x,
   template,
-  ...,
-  nbasis = 6L,
-  lambda = 0
+  ...
 ) {
   rlang::check_installed("fda")
+
+  dots <- list(...)
+
+  nbasis <- dots$nbasis %||% 6L
+  dots$nbasis <- NULL
+
+  lambda <- dots$lambda %||% 0
+  dots$lambda <- NULL
+  dots$crit <- dots$crit %||% 2
+
   assert_int(nbasis, lower = 2)
   assert_number(lambda, lower = 0)
+  assert_choice(dots$crit, choices = c(1, 2))
 
   yfd <- tf_2_fd(x)
   if (is.null(template)) {
@@ -688,7 +558,6 @@ tf_register_fda <- function(
     y0fd <- tf_2_fd(template)
   }
 
-  dots <- list(...)
   if (!is.null(dots$WfdParobj)) {
     if (nbasis != 6L || lambda != 0) {
       cli::cli_warn(
@@ -734,7 +603,7 @@ tf_register_fda <- function(
 
 # Internal: Landmark registration implementation
 # Called by tf_register() with method = "landmark"
-register_landmark <- function(x, landmarks, template_landmarks = NULL) {
+tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   assert_tf(x)
   assert_matrix(landmarks, mode = "numeric", nrows = length(x), min.cols = 1)
 
@@ -779,370 +648,14 @@ register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   tfd(do.call(rbind, warp_list), arg = arg)
 }
 
-# Helper: validate landmark matrix
-validate_landmarks <- function(landmarks, domain, n, n_landmarks) {
-  # Check strictly increasing within each row (skip NAs)
-  for (i in seq_len(n)) {
-    row_vals <- landmarks[i, !is.na(landmarks[i, ])]
-    if (length(row_vals) > 1 && !all(diff(row_vals) > 0)) {
-      cli::cli_abort(
-        "Landmarks must be strictly increasing within each row. Problem at row {i}."
-      )
-    }
-  }
-  # Check strictly inside domain (skip NAs).
-  # Landmarks at exact domain boundaries would create duplicate knots when
-
-  # boundaries are appended in register_landmark().
-  lm_vals <- landmarks[!is.na(landmarks)]
-  if (
-    length(lm_vals) > 0 &&
-      (any(lm_vals <= domain[1]) || any(lm_vals >= domain[2]))
-  ) {
-    cli::cli_abort(c(
-      "All landmarks must be strictly inside the domain ({domain[1]}, {domain[2]}).",
-      "i" = "Boundary landmarks are redundant with the domain anchors."
-    ))
-  }
-  invisible(landmarks)
-}
-
-# Helper: validate and return template landmarks
-validate_template_landmarks <- function(
-  template,
-  landmarks,
-  domain,
-  n_landmarks
-) {
-  if (is.null(template)) {
-    return(colMeans(landmarks, na.rm = TRUE))
-  }
-
-  assert_numeric(template, len = n_landmarks, any.missing = FALSE)
-
-  if (n_landmarks > 1 && !all(diff(template) > 0)) {
-    cli::cli_abort("Template landmarks must be strictly increasing.")
-  }
-  if (any(template < domain[1]) || any(template > domain[2])) {
-    cli::cli_abort(
-      "Template landmarks must be within the domain [{domain[1]}, {domain[2]}]."
-    )
-  }
-  template
-}
-
-#' Find Extrema Locations in Functional Data
-#'
-#' Find landmark locations for registration
-#'
-#' Detects local maxima, minima, and/or zero crossings in each function and
-#' returns a landmark matrix suitable for [tf_register()] with
-#' `method = "landmark"`. Uses position-based clustering across curves to
-#' establish feature correspondence and majority-count filtering to discard
-#' unstable landmarks.
-#'
-#' @param x a `tf` vector.
-#' @param which character: which features to detect. Either `"all"` (maxima,
-#'   minima, and zero crossings), `"both"` (maxima and minima), or any subset
-#'   of `c("max", "min", "zero")`.
-#' @param threshold numeric in (0, 1]: minimum proportion of curves that must
-#'   contain a feature for it to be retained as a landmark. Defaults to `0.5`.
-#' @param boundary_tol numeric: features within this distance of the domain
-#'   boundary are dropped (they are redundant with the boundary anchors in
-#'   landmark registration). Defaults to 2x the grid spacing. Set to `0` to
-#'   keep all features.
-#' @returns A numeric matrix with one row per function and one column per
-#'   landmark, sorted left-to-right on the domain. Has attribute
-#'   `"feature_types"` (character vector of `"max"`, `"min"`, or `"zero"` for
-#'   each column). Contains `NA` where a curve is missing a landmark.
-#' @seealso [tf_register()] with `method = "landmark"`
-#' @export
-#' @family registration functions
-#' @examples
-#' t <- seq(0, 1, length.out = 101)
-#' x <- tfd(t(sapply(c(0.3, 0.5, 0.7), function(s) dnorm(t, s, 0.1))), arg = t)
-#' tf_landmarks_extrema(x, "max")
-#' tf_landmarks_extrema(x, "both")
-tf_landmarks_extrema <- function(
-  x,
-  which = "all",
-  threshold = 0.5,
-  boundary_tol = NULL
-) {
-  assert_tf(x)
-  assert_number(threshold, lower = 0, upper = 1)
-  if (!is.null(boundary_tol)) assert_number(boundary_tol, lower = 0)
-  n <- length(x)
-
-  # Parse `which`
-  if (identical(which, "all")) {
-    which <- c("max", "min", "zero")
-  } else if (identical(which, "both")) {
-    which <- c("max", "min")
-  }
-  assert_subset(which, c("max", "min", "zero"))
-
-  domain <- tf_domain(x)
-  # Get per-curve arg grids for feature detection
-  arg_list <- tf_arg(x)
-  if (!is.list(arg_list)) {
-    # Regular tfd: single shared grid → replicate for uniform interface
-    arg_list <- rep(list(as.numeric(arg_list)), n)
-  }
-  # Representative grid spacing (for bandwidth/boundary defaults)
-  grid_spacing <- median(vapply(arg_list, \(a) median(diff(a)), numeric(1)))
-
-  if (is.null(boundary_tol)) {
-    boundary_tol <- 2 * grid_spacing
-  }
-
-  # --- Detect features per curve (each on its own grid) ---
-  features <- detect_landmarks(x, arg_list, which)
-
-  # --- Drop boundary features ---
-  features <- lapply(features, \(f) {
-    if (nrow(f) == 0) return(f)
-    interior <- f$position > (domain[1] + boundary_tol) &
-      f$position < (domain[2] - boundary_tol)
-    f[interior, , drop = FALSE]
-  })
-
-  # --- Cluster features across curves ---
-  # Bandwidth controls how far apart features (across different curves) can be
-  # and still be considered the same landmark. Default: 15% of domain range,
-  # which handles moderate warping. Increase for heavily warped data.
-  bandwidth <- max(5 * grid_spacing, 0.15 * diff(domain))
-  clusters <- cluster_landmarks(features, n, bandwidth, threshold)
-
-  if (nrow(clusters) == 0) {
-    cli::cli_warn(c(
-      "No stable landmarks detected across curves.",
-      "i" = "Pre-smoothing with {.fun tf_smooth} can help suppress spurious features."
-    ))
-    lm_mat <- matrix(NA_real_, nrow = n, ncol = 0)
-    attr(lm_mat, "feature_types") <- character(0)
-    return(lm_mat)
-  }
-
-  # --- Build landmark matrix ---
-  lm_mat <- build_landmark_matrix(features, clusters, n, bandwidth)
-
-  # --- Check for NAs ---
-  n_na <- sum(is.na(lm_mat))
-  if (n_na > 0) {
-    na_per_col <- colSums(is.na(lm_mat))
-    cols_with_na <- which(na_per_col > 0)
-    cli::cli_warn(c(
-      "{n_na} missing landmark{?s} across {length(cols_with_na)} column{?s}.",
-      "i" = "Some curves lack features near {round(clusters$center[cols_with_na], 3)}.",
-      "i" = "Pre-smoothing with {.fun tf_smooth} can help suppress spurious features."
-    ))
-  }
-
-  lm_mat
-}
-
-# --- Landmark Detection Helpers ------------------------------------------------
-
-#' Detect local extrema and zero crossings per curve
-#' @param x tf object (already smoothed if needed)
-#' @param arg_list list of numeric vectors: per-curve evaluation grids
-#' @param which character vector: subset of c("max", "min", "zero")
-#' @returns list of n data.frames with columns (position, type)
-#' @keywords internal
-detect_landmarks <- function(x, arg_list, which) {
-  x_evals <- tf_evaluations(x)
-  n <- length(x)
-  need_extrema <- any(c("max", "min") %in% which)
-  need_zero <- "zero" %in% which
-
-  lapply(seq_len(n), \(i) {
-    vals <- x_evals[[i]]
-    arg_i <- arg_list[[i]]
-    positions <- numeric(0)
-    types <- character(0)
-
-    if (need_extrema) {
-      dv <- diff(vals)
-      # Compare sign of consecutive differences to find local extrema.
-      # Local max: slope positive then negative (dv[j] > 0, dv[j+1] < 0).
-      # Local min: slope negative then positive (dv[j] < 0, dv[j+1] > 0).
-      # Extremum is at arg_i[j + 1] (the middle point of the 3-point window).
-      for (j in seq_len(length(dv) - 1)) {
-        if ("max" %in% which && dv[j] > 0 && dv[j + 1] < 0) {
-          positions <- c(positions, arg_i[j + 1])
-          types <- c(types, "max")
-        }
-        if ("min" %in% which && dv[j] < 0 && dv[j + 1] > 0) {
-          positions <- c(positions, arg_i[j + 1])
-          types <- c(types, "min")
-        }
-      }
-    }
-
-    if (need_zero) {
-      for (j in seq_len(length(vals) - 1)) {
-        if (vals[j] * vals[j + 1] < 0) {
-          # Strict sign change: interpolate zero position
-          pos <- arg_i[j] -
-            vals[j] * (arg_i[j + 1] - arg_i[j]) / (vals[j + 1] - vals[j])
-          positions <- c(positions, pos)
-          types <- c(types, "zero")
-        } else if (
-          vals[j] == 0 &&
-            j > 1 &&
-            j < length(vals) - 1 &&
-            sign(vals[j - 1]) != sign(vals[j + 1]) &&
-            vals[j - 1] != 0 &&
-            vals[j + 1] != 0
-        ) {
-          # Exact zero at grid point with sign change around it
-          positions <- c(positions, arg_i[j])
-          types <- c(types, "zero")
-        }
-      }
-    }
-
-    ord <- order(positions)
-    data.frame(
-      position = positions[ord],
-      type = types[ord],
-      stringsAsFactors = FALSE
-    )
-  })
-}
-
-#' Cluster detected features across curves by position
-#'
-#' Clusters within each feature type separately (max with max, min with min,
-#' etc.) to avoid merging adjacent features of different types. Then combines
-#' and sorts by position.
-#'
-#' @param features list of per-curve data.frames from detect_landmarks()
-#' @param n number of curves
-#' @param bandwidth merge distance for clustering
-#' @param threshold minimum proportion of curves for a cluster to be retained
-#' @returns data.frame with columns: center, type, count, proportion
-#' @keywords internal
-cluster_landmarks <- function(features, n, bandwidth, threshold) {
-  # Pool all features with curve ID
-  all_f <- do.call(
-    rbind,
-    lapply(seq_along(features), \(i) {
-      f <- features[[i]]
-      if (nrow(f) == 0) return(NULL)
-      data.frame(
-        position = f$position,
-        type = f$type,
-        curve = i,
-        stringsAsFactors = FALSE
-      )
-    })
-  )
-
-  if (is.null(all_f) || nrow(all_f) == 0) {
-    return(data.frame(
-      center = numeric(0),
-      type = character(0),
-      count = integer(0),
-      proportion = numeric(0)
-    ))
-  }
-
-  # Cluster within each feature type separately, then combine
-  feature_types <- unique(all_f$type)
-  all_clusters <- list()
-
-  for (ftype in feature_types) {
-    sub <- all_f[all_f$type == ftype, , drop = FALSE]
-    sub <- sub[order(sub$position), ]
-    if (nrow(sub) == 0) next
-
-    # Greedy clustering: merge features within bandwidth of cluster center
-    cur <- list(positions = sub$position[1], curves = sub$curve[1])
-
-    for (i in seq_len(nrow(sub))[-1]) {
-      if (sub$position[i] - mean(cur$positions) <= bandwidth) {
-        cur$positions <- c(cur$positions, sub$position[i])
-        cur$curves <- c(cur$curves, sub$curve[i])
-      } else {
-        all_clusters[[length(all_clusters) + 1]] <- list(
-          center = mean(cur$positions),
-          type = ftype,
-          count = length(unique(cur$curves))
-        )
-        cur <- list(positions = sub$position[i], curves = sub$curve[i])
-      }
-    }
-    all_clusters[[length(all_clusters) + 1]] <- list(
-      center = mean(cur$positions),
-      type = ftype,
-      count = length(unique(cur$curves))
-    )
-  }
-
-  result <- data.frame(
-    center = vapply(all_clusters, `[[`, numeric(1), "center"),
-    type = vapply(all_clusters, `[[`, character(1), "type"),
-    count = vapply(all_clusters, `[[`, integer(1), "count"),
-    stringsAsFactors = FALSE
-  )
-  result$proportion <- result$count / n
-
-  # Filter by threshold, then sort by position
-  result <- result[result$proportion >= threshold, , drop = FALSE]
-  result[order(result$center), , drop = FALSE]
-}
-
-#' Build landmark matrix by matching per-curve features to clusters
-#' @param features list of per-curve data.frames
-#' @param clusters data.frame from cluster_landmarks()
-#' @param n number of curves
-#' @param bandwidth matching distance
-#' @returns n x k matrix with feature_types attribute
-#' @keywords internal
-build_landmark_matrix <- function(features, clusters, n, bandwidth) {
-  k <- nrow(clusters)
-  lm_mat <- matrix(NA_real_, nrow = n, ncol = k)
-
-  for (i in seq_len(n)) {
-    f <- features[[i]]
-    if (nrow(f) == 0) next
-    used <- logical(nrow(f))
-    prev_pos <- -Inf
-    for (j in seq_len(k)) {
-      # Find features of matching type within bandwidth, not yet assigned,
-      # and strictly after the previous matched position (ensures monotonicity)
-      matches <- which(
-        abs(f$position - clusters$center[j]) <= bandwidth &
-          f$type == clusters$type[j] &
-          !used &
-          f$position > prev_pos
-      )
-      if (length(matches) > 0) {
-        best <- matches[which.min(abs(
-          f$position[matches] - clusters$center[j]
-        ))]
-        lm_mat[i, j] <- f$position[best]
-        used[best] <- TRUE
-        prev_pos <- f$position[best]
-      }
-    }
-  }
-
-  attr(lm_mat, "feature_types") <- clusters$type
-  lm_mat
-}
-
 #-------------------------------------------------------------------------------
 
 # Internal: Affine registration implementation
 # Called by tf_register() with method = "affine"
 #' @importFrom stats approx optim
-register_affine <- function(
+tf_register_affine <- function(
   x,
   template = NULL,
-
   type = c("shift", "scale", "shift_scale"),
   shift_range = NULL,
   scale_range = NULL

@@ -10,9 +10,7 @@ tf_register(
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
   max_iter = 3L,
-  tol = 0.01,
-  nbasis = 6L,
-  lambda = 0
+  tol = 0.01
 )
 }
 \arguments{
