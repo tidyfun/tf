@@ -88,8 +88,8 @@ assert_tfb <- function(x, .var.name = vname(x)) {
 
 # "strict" does not allow stretching/compressing or truncation of domain
 # (i.e. strict allows only bijective time transformations)
-assert_warp <- function(warp, x, strict = FALSE) {
-  assert_tfd(warp)
+assert_warp <- function(warp, x, strict = FALSE, .var.name = vname(warp)) {
+  assert_tfd(warp, .var.name = .var.name)
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
   }
@@ -98,7 +98,7 @@ assert_warp <- function(warp, x, strict = FALSE) {
   if (!all(domain_x == domain_warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same domain.")
   }
-  assert_monotonic(warp)
+  assert_monotonic(warp, .var.name = .var.name)
   if (strict) {
     bad_range <- !map_lgl(tf_frange(warp), \(x) all(x == domain_x))
     if (any(bad_range)) {

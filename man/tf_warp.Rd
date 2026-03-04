@@ -76,7 +76,7 @@ x <- tf_warp(rep(1, 5) * template, warp)
 layout(t(1:3))
 plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 # register the functions:
-if (require(fdasrvf)) {
+if (requireNamespace("fdasrvf", quietly = TRUE)) {
   warp_estimate <- tf_register(x)
 } else {
   warp_estimate <- tf_register(x, method = "affine", type = "shift_scale")

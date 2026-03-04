@@ -48,7 +48,7 @@
 #' layout(t(1:3))
 #' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 #' # register the functions:
-#' if (require(fdasrvf)) {
+#' if (requireNamespace("fdasrvf", quietly = TRUE)) {
 #'   warp_estimate <- tf_register(x)
 #' } else {
 #'   warp_estimate <- tf_register(x, method = "affine", type = "shift_scale")
@@ -66,6 +66,7 @@ tf_warp <- function(x, warp, ...) {
   assert_warp(warp, x)
   UseMethod("tf_warp")
 }
+
 #' @rdname tf_warp
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
@@ -84,6 +85,7 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   }
   ret
 }
+
 #' @rdname tf_warp
 #' @export
 tf_warp.tfb <- function(x, warp, ...) {
@@ -100,6 +102,7 @@ tf_unwarp <- function(x, warp, ...) {
   assert_warp(warp, x)
   UseMethod("tf_unwarp")
 }
+
 #' @rdname tf_warp
 #' @export
 tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
