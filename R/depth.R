@@ -7,7 +7,7 @@
 #'
 #' Roughly, modified band depth computes the centrality of a function (scale of
 #' 0 (extreme) to 0.5 (most central)), while the epigraph index computes how
-#' often andd for how long it is below other functions (scale of 1 (lowest) to 0
+#' often and for how long it is below other functions (scale of 1 (lowest) to 0
 #' (highest)). The two are closely related -- for functions that never cross
 #' other functions: \eqn{MBD = -2(MEI - 0.5)^2 + .5}.
 #'
