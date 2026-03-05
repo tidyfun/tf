@@ -4,26 +4,17 @@
 \alias{tf_warp}
 \alias{tf_warp.tfd}
 \alias{tf_warp.tfb}
-\alias{tf_unwarp}
-\alias{tf_unwarp.tfd}
-\alias{tf_unwarp.tfb}
-\title{Elastic Deformation: warp and unwarp \code{tf} vectors}
+\title{Elastic Deformation: warp and align \code{tf} vectors}
 \usage{
 tf_warp(x, warp, ...)
 
 \method{tf_warp}{tfd}(x, warp, ..., keep_new_arg = FALSE)
 
 \method{tf_warp}{tfb}(x, warp, ...)
-
-tf_unwarp(x, warp, ...)
-
-\method{tf_unwarp}{tfd}(x, warp, ..., keep_new_arg = FALSE)
-
-\method{tf_unwarp}{tfb}(x, warp, ...)
 }
 \arguments{
 \item{x}{\code{tf} vector of functions. For \code{tf_warp()}, these should be
-registered/aligned functions and unaligned functions for \code{tf_unwarp()}.}
+registered/aligned functions and unaligned functions for \code{tf_align()}.}
 
 \item{warp}{\code{tf} vector of warping functions used for transformation. See Details.}
 
@@ -35,7 +26,7 @@ registered/aligned functions and unaligned functions for \code{tf_unwarp()}.}
 \value{
 \itemize{
 \item \code{tf_warp()}: the warped \code{tf} vector (un-registered functions)
-\item \code{tf_unwarp()}: the unwarped \code{tf} vector (registered/aligned functions)
+\item \code{tf_align()}: the aligned \code{tf} vector (registered functions)
 }
 }
 \description{
@@ -43,7 +34,7 @@ These functions stretch and/or compress regions of the domain of functional data
 \itemize{
 \item \code{tf_warp()} applies warping functions to aligned (registered) functional data
 to recover the original unregistered curves: \eqn{x(s) \to x(h(s)) = x(t)}.
-\item \code{tf_unwarp()} applies the \emph{inverse} warping function to unregistered data
+\item \code{tf_align()} applies the \emph{inverse} warping function to unregistered data
 to obtain aligned (registered) functions: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 }
 }
@@ -77,16 +68,24 @@ layout(t(1:3))
 plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 # register the functions:
 if (require(fdasrvf)) {
-  warp_estimate <- tf_register(x)
+  reg <- tf_register(x)
 } else {
-  warp_estimate <- tf_register(x, method = "affine", type = "shift_scale")
+  reg <- tf_register(x, method = "affine", type = "shift_scale")
 }
-registered <- tf_unwarp(x, warp_estimate)
 layout(t(1:3))
 plot(x, col = 1:5)
-plot(warp_estimate, col = 1:5); lines(warp, lty = 3, lwd = 1.5, col = 1:5)
-plot(registered, col = 1:5, points = FALSE); lines(template, lty = 2)
+plot(tf_inv_warps(reg), col = 1:5); lines(tf_invert(warp), lty = 3, lwd = 1.5, col = 1:5)
+plot(tf_aligned(reg), col = 1:5, points = FALSE); lines(template, lty = 2)
+}
+\seealso{
+Other registration functions: 
+\code{\link{tf_align}()},
+\code{\link{tf_estimate_warps}()},
+\code{\link{tf_landmarks_extrema}()},
+\code{\link{tf_register}()},
+\code{\link{tf_registration}}
 }
 \author{
-Maximilian Muecke
+Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
 }
+\concept{registration functions}

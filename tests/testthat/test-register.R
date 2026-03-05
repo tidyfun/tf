@@ -1,4 +1,4 @@
-# --- tf_warp / tf_unwarp -------------------------------------------------------
+# --- tf_warp / tf_align -------------------------------------------------------
 
 quiet_expected_registration_warnings <- function(expr) {
   expected_patterns <- c(
@@ -30,7 +30,7 @@ quiet_expected_registration_warnings <- function(expr) {
   )
 }
 
-test_that("tf_warp and tf_unwarp are inverses", {
+test_that("tf_warp and tf_align are inverses", {
   withr::local_seed(1234)
   # Two representative domains: one non-standard, one wide
   min_t <- c(-2, 1)
@@ -52,28 +52,28 @@ test_that("tf_warp and tf_unwarp are inverses", {
 
     # keep_new_arg = TRUE returns tfd_irreg
     expect_s3_class(tf_warp(x, w, keep_new_arg = TRUE), "tfd_irreg")
-    expect_s3_class(tf_unwarp(x, w, keep_new_arg = TRUE), "tfd_irreg")
+    expect_s3_class(tf_align(x, w, keep_new_arg = TRUE), "tfd_irreg")
 
     # Both inverse directions
-    expect_equal(tf_unwarp(tf_warp(x, w), w), x, tolerance = 0.1)
-    expect_equal(tf_warp(tf_unwarp(x, w), w), x, tolerance = 0.1)
+    expect_equal(tf_align(tf_warp(x, w), w), x, tolerance = 0.1)
+    expect_equal(tf_warp(tf_align(x, w), w), x, tolerance = 0.1)
   })
 })
 
-test_that("tf_warp/tf_unwarp identity roundtrip", {
+test_that("tf_warp/tf_align identity roundtrip", {
   t <- seq(-1, 2, length.out = 50)
   f0 <- tfd(cos(t), t)
   x <- rep(f0, 5)
   w <- rep(tfd(t, arg = t), 5)
   # Identity warp: both directions exact
-  expect_identical(tf_unwarp(tf_warp(x, w), w), x)
-  expect_identical(tf_warp(tf_unwarp(x, w), w), x)
+  expect_identical(tf_align(tf_warp(x, w), w), x)
+  expect_identical(tf_warp(tf_align(x, w), w), x)
   # Also with keep_new_arg
-  expect_identical(tf_unwarp(tf_warp(x, w, keep_new_arg = TRUE), w), x)
-  expect_identical(tf_warp(tf_unwarp(x, w, keep_new_arg = TRUE), w), x)
+  expect_identical(tf_align(tf_warp(x, w, keep_new_arg = TRUE), w), x)
+  expect_identical(tf_warp(tf_align(x, w, keep_new_arg = TRUE), w), x)
 })
 
-test_that("tf_warp and tf_unwarp accept tfb warps", {
+test_that("tf_warp and tf_align accept tfb warps", {
   t <- seq(-10, 10, length.out = 101)
   x <- tfd(
     t(sapply(c(-0.2, 0, 0.15), \(s) sin((t - s) * 0.3))),
@@ -83,12 +83,12 @@ test_that("tf_warp and tf_unwarp accept tfb warps", {
   warp_tfb <- suppressMessages(tfb(warp_tfd, k = 9))
 
   expect_no_error(x_unreg <- tf_warp(x, warp_tfb))
-  expect_no_error(x_reg <- tf_unwarp(x_unreg, warp_tfb))
+  expect_no_error(x_reg <- tf_align(x_unreg, warp_tfb))
   expect_s3_class(x_unreg, "tfd")
   expect_s3_class(x_reg, "tfd")
 })
 
-test_that("tf_warp/tf_unwarp reset keep_new_arg for tfb and warn", {
+test_that("tf_warp/tf_align reset keep_new_arg for tfb and warn", {
   t <- seq(0, 1, length.out = 51)
   x_tfb <- suppressMessages(tfb(
     matrix(sin(2 * pi * t), nrow = 1),
@@ -104,13 +104,13 @@ test_that("tf_warp/tf_unwarp reset keep_new_arg for tfb and warn", {
   expect_s3_class(warped, "tfb")
 
   expect_warning(
-    unwarped <- tf_unwarp(x_tfb, warp, keep_new_arg = TRUE),
+    unwarped <- tf_align(x_tfb, warp, keep_new_arg = TRUE),
     "reset to FALSE"
   )
   expect_s3_class(unwarped, "tfb")
 })
 
-test_that("tf_unwarp handles irregular grids with non-domain-preserving warps", {
+test_that("tf_align handles irregular grids with non-domain-preserving warps", {
   arg_x <- list(
     seq(0, 1, length.out = 41),
     seq(0, 1, length.out = 73)
@@ -133,27 +133,154 @@ test_that("tf_unwarp handles irregular grids with non-domain-preserving warps", 
   )
   warp_tfb <- suppressMessages(tfb(warp_tfd, k = 9))
 
-  ret_irreg <- tf_unwarp(x, warp_tfd, keep_new_arg = TRUE)
+  ret_irreg <- tf_align(x, warp_tfd, keep_new_arg = TRUE)
   expect_s3_class(ret_irreg, "tfd_irreg")
   expect_length(ret_irreg, length(x))
   expect_identical(tf_domain(ret_irreg), tf_domain(x))
 
-  ret_irreg_tfb <- tf_unwarp(x, warp_tfb, keep_new_arg = TRUE)
+  ret_irreg_tfb <- tf_align(x, warp_tfb, keep_new_arg = TRUE)
   expect_s3_class(ret_irreg_tfb, "tfd_irreg")
   expect_length(ret_irreg_tfb, length(x))
   expect_identical(tf_domain(ret_irreg_tfb), tf_domain(x))
 
   ret_grid <- quiet_expected_registration_warnings(
-    tf_unwarp(x, warp_tfd, keep_new_arg = FALSE)
+    tf_align(x, warp_tfd, keep_new_arg = FALSE)
   )
   expect_length(ret_grid, length(x))
   expect_identical(tf_domain(ret_grid), tf_domain(x))
 })
 
 
-# --- tf_register main ---------------------------------------------------------
+# --- tf_registration class ----------------------------------------------------
 
-test_that("tf_register works for SRVF and FDA methods", {
+test_that("tf_register returns tf_registration object", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  expect_s3_class(reg, "tf_registration")
+  expect_length(reg, length(x))
+
+  # Accessors work
+  expect_s3_class(tf_aligned(reg), "tfd")
+  expect_s3_class(tf_inv_warps(reg), "tfd")
+  expect_s3_class(tf_template(reg), "tfd")
+  expect_length(tf_aligned(reg), length(x))
+  expect_length(tf_inv_warps(reg), length(x))
+  expect_length(tf_template(reg), 1)
+
+  # Direct slot access
+  expect_identical(reg$registered, tf_aligned(reg))
+  expect_identical(reg$inv_warps, tf_inv_warps(reg))
+  expect_identical(reg$template, tf_template(reg))
+  expect_true(is.call(reg$call))
+  expect_identical(reg$x, x)
+})
+
+test_that("tf_register store_x = FALSE omits original data", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift", store_x = FALSE)
+  )
+  expect_s3_class(reg, "tf_registration")
+  expect_null(reg$x)
+})
+
+test_that("tf_registration print works", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  expect_no_error(print(reg))
+})
+
+test_that("tf_registration summary works", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  s <- summary(reg)
+  expect_s3_class(s, "summary.tf_registration")
+  expect_true(is.call(s$call))
+  expect_equal(s$n, 3)
+  expect_true(is.finite(s$amp_var_reduction))
+
+  # Warp deviation quantiles (relative to domain length)
+  expect_length(s$inv_warp_dev_quantiles, 7)
+  expect_true(all(is.finite(s$inv_warp_dev_quantiles)))
+  expect_true(all(s$inv_warp_dev_quantiles >= 0))
+
+  # Domain loss quantiles
+  expect_length(s$domain_loss_quantiles, 7)
+  expect_true(all(is.finite(s$domain_loss_quantiles)))
+
+  # Warp slope stats
+  expect_length(s$inv_warp_slope_range, 2)
+  expect_true(s$inv_warp_slope_range["min"] > 0) # monotone warps
+  expect_length(s$inv_warp_min_slopes, 7)
+  expect_length(s$inv_warp_max_slopes, 7)
+
+  expect_true(s$has_original)
+  expect_no_error(print(s))
+
+  # summary with store_x = FALSE
+  reg2 <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift", store_x = FALSE)
+  )
+  s2 <- summary(reg2)
+  expect_true(is.na(s2$amp_var_reduction))
+  expect_false(s2$has_original)
+})
+
+test_that("tf_registration plot works", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  pdf(tempfile(fileext = ".pdf"))
+  expect_no_error(plot(reg))
+  dev.off()
+
+  # Also with store_x = FALSE (2 panels instead of 3)
+  reg2 <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift", store_x = FALSE)
+  )
+  pdf(tempfile(fileext = ".pdf"))
+  expect_no_error(plot(reg2))
+  dev.off()
+})
+
+test_that("tf_registration subsetting works", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+
+  sub <- reg[1:2]
+  expect_s3_class(sub, "tf_registration")
+  expect_length(sub, 2)
+  expect_length(tf_aligned(sub), 2)
+  expect_length(tf_inv_warps(sub), 2)
+  expect_length(tf_template(sub), 1) # template unchanged
+  expect_length(sub$x, 2)
+})
+
+
+# --- tf_estimate_warps --------------------------------------------------------
+
+test_that("tf_estimate_warps works for SRVF and FDA methods", {
   skip_if_not_installed("fdasrvf")
   skip_if_not_installed("fda")
   withr::local_seed(1234)
@@ -178,12 +305,12 @@ test_that("tf_register works for SRVF and FDA methods", {
   x <- tfd(t(data))
 
   # SRVF: default (Karcher mean) and explicit template
-  check_warp(tf_register(x), x, "SRVF default")
-  check_warp(tf_register(x, template = mean(x)), x, "SRVF template")
+  check_warp(tf_estimate_warps(x), x, "SRVF default")
+  check_warp(tf_estimate_warps(x, template = mean(x)), x, "SRVF template")
 
   # FDA: default and non-default crit (tests ... passthrough)
   check_warp(
-    quiet_expected_registration_warnings(tf_register(
+    quiet_expected_registration_warnings(tf_estimate_warps(
       x,
       method = "fda",
       max_iter = 1,
@@ -195,16 +322,28 @@ test_that("tf_register works for SRVF and FDA methods", {
 
   # tfd_irreg: SRVF/FDA are currently unsupported
   expect_error(
-    tf_register(tfd(t(data)) |> tf_sparsify(.2), method = "srvf"),
+    tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "srvf"),
     "only `affine` and `landmark` registration are currently supported"
   )
   expect_error(
-    tf_register(tfd(t(data)) |> tf_sparsify(.2), method = "fda"),
+    tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "fda"),
     "only `affine` and `landmark` registration are currently supported"
   )
 })
 
-test_that("tf_register supports affine registration for irregular tfd", {
+test_that("tf_estimate_warps returns tfd (not tf_registration)", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+
+  warp <- quiet_expected_registration_warnings(
+    tf_estimate_warps(x, method = "affine", type = "shift")
+  )
+  expect_s3_class(warp, "tfd")
+  expect_false(inherits(warp, "tf_registration"))
+  expect_true(!is.null(attr(warp, "template")))
+})
+
+test_that("tf_estimate_warps supports affine registration for irregular tfd", {
   withr::local_seed(99)
   t <- seq(0, 1, length.out = 101)
   shifts <- c(-0.09, 0, 0.08)
@@ -228,7 +367,7 @@ test_that("tf_register supports affine registration for irregular tfd", {
     sin(2 * pi * seq(0, 1, length.out = 51)),
     arg = seq(0, 1, length.out = 51)
   )
-  warp <- quiet_expected_registration_warnings(tf_register(
+  warp <- quiet_expected_registration_warnings(tf_estimate_warps(
     x_irreg,
     method = "affine",
     type = "shift",
@@ -253,7 +392,7 @@ test_that("tf_register supports affine registration for irregular tfd", {
   }
 })
 
-test_that("tf_register supports landmark registration for irregular tfd", {
+test_that("tf_estimate_warps supports landmark registration for irregular tfd", {
   withr::local_seed(321)
   peaks <- c(0.3, 0.5, 0.7)
   arg_list <- lapply(c(51, 71, 93), \(n) sort(c(0, 1, runif(n - 2))))
@@ -263,7 +402,11 @@ test_that("tf_register supports landmark registration for irregular tfd", {
   )
   landmarks <- matrix(peaks, ncol = 1)
 
-  warp <- tf_register(x_irreg, method = "landmark", landmarks = landmarks)
+  warp <- tf_estimate_warps(
+    x_irreg,
+    method = "landmark",
+    landmarks = landmarks
+  )
   expect_s3_class(warp, "tfd_irreg")
   expect_length(warp, length(x_irreg))
   expect_identical(tf_arg(warp), tf_arg(x_irreg))
@@ -274,7 +417,7 @@ test_that("tf_register supports landmark registration for irregular tfd", {
   expect_equal(warp_at_target, peaks, tolerance = 0.02)
 })
 
-test_that("tf_register accepts FDA warp basis controls", {
+test_that("tf_estimate_warps accepts FDA warp basis controls", {
   skip_if_not_installed("fda")
   withr::local_seed(123)
 
@@ -285,7 +428,7 @@ test_that("tf_register accepts FDA warp basis controls", {
   )
 
   w_default <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "fda",
       max_iter = 1,
@@ -300,7 +443,7 @@ test_that("tf_register accepts FDA warp basis controls", {
   expect_identical(tf_domain(w_default), tf_domain(x))
 
   expect_no_error(
-    w_tuned <- quiet_expected_registration_warnings(tf_register(
+    w_tuned <- quiet_expected_registration_warnings(tf_estimate_warps(
       x,
       method = "fda",
       max_iter = 1,
@@ -315,16 +458,16 @@ test_that("tf_register accepts FDA warp basis controls", {
   expect_identical(tf_domain(w_tuned), tf_domain(x))
 
   expect_error(
-    tf_register(x, method = "fda", nbasis = 1L),
+    tf_estimate_warps(x, method = "fda", nbasis = 1L),
     ">= 2"
   )
   expect_error(
-    tf_register(x, method = "fda", lambda = -1),
+    tf_estimate_warps(x, method = "fda", lambda = -1),
     ">= 0"
   )
 })
 
-test_that("tf_register dispatches correctly for tfb subclasses", {
+test_that("tf_estimate_warps dispatches correctly for tfb subclasses", {
   withr::local_seed(1234)
   t <- seq(0, 2 * pi, length.out = 100)
   data <- sapply(seq_len(5), \(i) {
@@ -334,7 +477,7 @@ test_that("tf_register dispatches correctly for tfb subclasses", {
   # Use cheap affine method (not SRVF/FDA) to test class dispatch
   x_tfb <- suppressMessages(tfb(t(data), k = 20))
   warp_tfb <- quiet_expected_registration_warnings(
-    tf_register(x_tfb, method = "affine", type = "shift")
+    tf_estimate_warps(x_tfb, method = "affine", type = "shift")
   )
   expect_s3_class(warp_tfb, "tfd")
   expect_length(warp_tfb, length(x_tfb))
@@ -342,14 +485,14 @@ test_that("tf_register dispatches correctly for tfb subclasses", {
 
   x_fpc <- tfb_fpc(t(data), pve = .95)
   warp_fpc <- quiet_expected_registration_warnings(
-    tf_register(x_fpc, method = "affine", type = "shift")
+    tf_estimate_warps(x_fpc, method = "affine", type = "shift")
   )
   expect_s3_class(warp_fpc, "tfd")
   expect_length(warp_fpc, length(x_fpc))
   expect_identical(tf_domain(warp_fpc), tf_domain(x_fpc))
 })
 
-test_that("tf_register SRVF/FDA works for tfb subclasses", {
+test_that("tf_estimate_warps SRVF/FDA works for tfb subclasses", {
   skip_if_not_installed("fdasrvf")
   skip_if_not_installed("fda")
   withr::local_seed(1234)
@@ -360,20 +503,20 @@ test_that("tf_register SRVF/FDA works for tfb subclasses", {
   x_tfb <- suppressMessages(tfb(t(data), k = 12))
   x_fpc <- tfb_fpc(t(data), pve = .95)
 
-  warp_srvf <- tf_register(x_tfb, method = "srvf")
+  warp_srvf <- tf_estimate_warps(x_tfb, method = "srvf")
   expect_s3_class(warp_srvf, "tfd")
   expect_length(warp_srvf, length(x_tfb))
   expect_identical(tf_domain(warp_srvf), tf_domain(x_tfb))
 
   warp_fda <- quiet_expected_registration_warnings(
-    tf_register(x_fpc, method = "fda", max_iter = 1, iterlim = 1)
+    tf_estimate_warps(x_fpc, method = "fda", max_iter = 1, iterlim = 1)
   )
   expect_s3_class(warp_fda, "tfd")
   expect_length(warp_fda, length(x_fpc))
   expect_identical(tf_domain(warp_fda), tf_domain(x_fpc))
 })
 
-test_that("tf_register validates SRVF/FDA templates", {
+test_that("tf_estimate_warps validates SRVF/FDA templates", {
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(2 * pi * t), cos(2 * pi * t))), arg = t)
 
@@ -382,11 +525,11 @@ test_that("tf_register validates SRVF/FDA templates", {
     arg = t
   )
   expect_error(
-    tf_register(x, method = "srvf", template = template_bad_len),
+    tf_estimate_warps(x, method = "srvf", template = template_bad_len),
     "length 1 or the same length"
   )
   expect_error(
-    tf_register(x, method = "fda", template = template_bad_len),
+    tf_estimate_warps(x, method = "fda", template = template_bad_len),
     "length 1 or the same length"
   )
 
@@ -395,43 +538,43 @@ test_that("tf_register validates SRVF/FDA templates", {
     arg = seq(0, 2, length.out = 51)
   )
   expect_error(
-    tf_register(x, method = "srvf", template = template_bad_domain),
+    tf_estimate_warps(x, method = "srvf", template = template_bad_domain),
     "same domain"
   )
   expect_error(
-    tf_register(x, method = "fda", template = template_bad_domain),
+    tf_estimate_warps(x, method = "fda", template = template_bad_domain),
     "same domain"
   )
 
   t2 <- seq(0, 1, length.out = 61)
   template_bad_grid <- tfd(sin(2 * pi * t2), arg = t2)
   expect_error(
-    tf_register(x, method = "srvf", template = template_bad_grid),
+    tf_estimate_warps(x, method = "srvf", template = template_bad_grid),
     "same grid"
   )
   expect_error(
-    tf_register(x, method = "fda", template = template_bad_grid),
+    tf_estimate_warps(x, method = "fda", template = template_bad_grid),
     "same grid"
   )
 })
 
-test_that("tf_register SRVF/FDA reject unknown method-specific arguments", {
+test_that("tf_estimate_warps SRVF/FDA reject unknown method-specific arguments", {
   skip_if_not_installed("fdasrvf")
   skip_if_not_installed("fda")
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(2 * pi * t), sin(2 * pi * (t + 0.05)))), arg = t)
 
   expect_error(
-    tf_register(x, method = "srvf", unknown_arg = 1),
+    tf_estimate_warps(x, method = "srvf", unknown_arg = 1),
     "unused argument|unused arguments|formal argument"
   )
   expect_error(
-    tf_register(x, method = "fda", unknown_arg = 1),
+    tf_estimate_warps(x, method = "fda", unknown_arg = 1),
     "unused argument|unused arguments|formal argument"
   )
 })
 
-test_that("tf_register FDA explicit template path is exercised", {
+test_that("tf_estimate_warps FDA explicit template path is exercised", {
   skip_if_not_installed("fda")
   withr::local_seed(4321)
   t <- seq(0, 1, length.out = 61)
@@ -442,9 +585,9 @@ test_that("tf_register FDA explicit template path is exercised", {
   template <- mean(x)
 
   w_default <- quiet_expected_registration_warnings(
-    tf_register(x, method = "fda", max_iter = 1, iterlim = 1)
+    tf_estimate_warps(x, method = "fda", max_iter = 1, iterlim = 1)
   )
-  w_template <- quiet_expected_registration_warnings(tf_register(
+  w_template <- quiet_expected_registration_warnings(tf_estimate_warps(
     x,
     method = "fda",
     template = template,
@@ -543,10 +686,10 @@ test_that("tf_landmarks_extrema detects landmarks on irregular tfd", {
   expect_equal(ncol(lm_both), 1)
   expect_equal(attr(lm_both, "feature_types"), "max")
 
-  # Full chain: detection -> registration -> unwarp
+  # Full chain: detection -> registration -> align
   x_reg <- tfd(x_irr, arg = seq(0, 1, length.out = 101))
-  warp <- tf_register(x_reg, method = "landmark", landmarks = lm)
-  aligned <- tf_unwarp(x_reg, warp)
+  warp <- tf_estimate_warps(x_reg, method = "landmark", landmarks = lm)
+  aligned <- tf_align(x_reg, warp)
   aligned_peaks <- tf_where(aligned, value == max(value), "first")
   expect_equal(aligned_peaks, rep(mean(peak_locs), 4), tolerance = 0.03)
 })
@@ -623,7 +766,7 @@ test_that("landmark registration aligns to default and custom template", {
   landmarks <- matrix(peak_locs, ncol = 1)
 
   # Default template (mean of landmarks = 0.5)
-  warp <- tf_register(x, method = "landmark", landmarks)
+  warp <- tf_estimate_warps(x, method = "landmark", landmarks = landmarks)
   expect_s3_class(warp, "tfd")
   expect_length(warp, length(x))
   expect_identical(tf_domain(warp), tf_domain(x))
@@ -633,7 +776,7 @@ test_that("landmark registration aligns to default and custom template", {
 
   # Custom template
   custom_template <- 0.4
-  warp2 <- tf_register(
+  warp2 <- tf_estimate_warps(
     x,
     method = "landmark",
     landmarks = landmarks,
@@ -642,8 +785,8 @@ test_that("landmark registration aligns to default and custom template", {
   warp_at_custom <- as.numeric(warp2[, custom_template])
   expect_equal(warp_at_custom, peak_locs, tolerance = 1e-10)
 
-  # After unwarping with custom template, peaks aligned near template
-  x_aligned <- tf_unwarp(x, warp2)
+  # After aligning with custom template, peaks aligned near template
+  x_aligned <- tf_align(x, warp2)
   aligned_peaks <- tf_where(x_aligned, value == max(value), "first")
   expect_equal(aligned_peaks, rep(custom_template, 3), tolerance = 0.02)
 })
@@ -658,7 +801,7 @@ test_that("register_landmark handles NA landmarks correctly", {
   lm_mat[, 1] <- peak_locs
   lm_mat[1:3, 2] <- c(0.75, 0.78, 0.80)
 
-  warp <- tf_register(x, method = "landmark", landmarks = lm_mat)
+  warp <- tf_estimate_warps(x, method = "landmark", landmarks = lm_mat)
   expect_s3_class(warp, "tfd")
   expect_length(warp, 5)
 
@@ -676,19 +819,23 @@ test_that("register_landmark handles NA landmarks correctly", {
   }
 })
 
-test_that("tf_register landmark method validates input", {
+test_that("tf_estimate_warps landmark method validates input", {
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(t * pi), sin(t * pi + 0.1))), arg = t)
 
   # Wrong number of rows
   expect_error(
-    tf_register(x, method = "landmark", matrix(c(0.3, 0.5, 0.7), ncol = 1)),
+    tf_estimate_warps(
+      x,
+      method = "landmark",
+      landmarks = matrix(c(0.3, 0.5, 0.7), ncol = 1)
+    ),
     "rows"
   )
 
   # Non-increasing landmarks
   expect_error(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "landmark",
       landmarks = matrix(c(0.5, 0.3, 0.4, 0.2), ncol = 2, byrow = TRUE)
@@ -698,7 +845,7 @@ test_that("tf_register landmark method validates input", {
 
   # Landmarks outside domain
   expect_error(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "landmark",
       landmarks = matrix(c(-0.1, 1.1), ncol = 1)
@@ -708,7 +855,7 @@ test_that("tf_register landmark method validates input", {
 
   # Template landmarks wrong length
   expect_error(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "landmark",
       landmarks = matrix(c(0.3, 0.5), ncol = 1),
@@ -761,7 +908,7 @@ test_that("affine registration produces linear warps for all types", {
 
   check_linear(
     quiet_expected_registration_warnings(
-      tf_register(
+      tf_estimate_warps(
         x_shift,
         method = "affine",
         template = template1,
@@ -772,20 +919,20 @@ test_that("affine registration produces linear warps for all types", {
   )
   check_linear(
     quiet_expected_registration_warnings(
-      tf_register(x_scale, method = "affine", type = "scale")
+      tf_estimate_warps(x_scale, method = "affine", type = "scale")
     ),
     "scale"
   )
   check_linear(
     quiet_expected_registration_warnings(
-      tf_register(x_ss, method = "affine", type = "shift_scale")
+      tf_estimate_warps(x_ss, method = "affine", type = "shift_scale")
     ),
     "shift_scale"
   )
 
   # Scale centering: warp(midpoint) ~ midpoint
   warp_scale <- quiet_expected_registration_warnings(
-    tf_register(x_scale, method = "affine", type = "scale")
+    tf_estimate_warps(x_scale, method = "affine", type = "scale")
   )
   center <- 0.5
   warp_at_center <- as.numeric(warp_scale[, center])
@@ -800,7 +947,7 @@ test_that("affine shift produces warps that recover shift direction", {
   x_shifted_right <- tfd(sin(t + 0.3), arg = t)
 
   warp_left <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x_shifted_left,
       method = "affine",
       template = template,
@@ -810,7 +957,7 @@ test_that("affine shift produces warps that recover shift direction", {
   mean_shift_left <- mean(tf_evaluations(warp_left)[[1]] - t)
 
   warp_right <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x_shifted_right,
       method = "affine",
       template = template,
@@ -862,9 +1009,9 @@ test_that("affine registration aligns functions to template", {
 
   check_alignment <- function(x, type) {
     warps <- quiet_expected_registration_warnings(
-      tf_register(x, method = "affine", template = template, type = type)
+      tf_estimate_warps(x, method = "affine", template = template, type = type)
     )
-    x_reg <- quiet_expected_registration_warnings(tf_unwarp(x, warps))
+    x_reg <- quiet_expected_registration_warnings(tf_align(x, warps))
 
     # Domain preserved (replaces former standalone smoke test)
     expect_identical(
@@ -902,9 +1049,9 @@ test_that("affine registered functions may have NA at boundaries", {
 
   template <- tfd(sin(t), arg = t)
   warp <- quiet_expected_registration_warnings(
-    tf_register(x, method = "affine", template = template, type = "shift")
+    tf_estimate_warps(x, method = "affine", template = template, type = "shift")
   )
-  x_aligned <- quiet_expected_registration_warnings(tf_unwarp(x, warp))
+  x_aligned <- quiet_expected_registration_warnings(tf_align(x, warp))
 
   evals <- tf_evaluations(x_aligned)
   expect_length(evals, length(true_shifts))
@@ -917,12 +1064,12 @@ test_that("affine registered functions may have NA at boundaries", {
   )
 })
 
-test_that("tf_register affine method validates input", {
+test_that("tf_estimate_warps affine method validates input", {
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(t * pi), sin(t * pi + 0.1))), arg = t)
 
   expect_error(
-    tf_register(x, method = "affine", template = x),
+    tf_estimate_warps(x, method = "affine", template = x),
     "length 1"
   )
 
@@ -931,17 +1078,25 @@ test_that("tf_register affine method validates input", {
     arg = seq(0, 2, length.out = 51)
   )
   expect_error(
-    tf_register(x, method = "affine", template = x2),
+    tf_estimate_warps(x, method = "affine", template = x2),
     "same domain"
   )
 
-  expect_error(tf_register(x, method = "affine", shift_range = c(0.5)))
-  expect_error(tf_register(x, method = "affine", shift_range = c(0.5, 0.3)))
-  expect_error(tf_register(x, method = "affine", scale_range = c(-1, 2)))
-  expect_error(tf_register(x, method = "affine", scale_range = c(0.5, NA)))
+  expect_error(
+    tf_estimate_warps(x, method = "affine", shift_range = c(0.5))
+  )
+  expect_error(
+    tf_estimate_warps(x, method = "affine", shift_range = c(0.5, 0.3))
+  )
+  expect_error(
+    tf_estimate_warps(x, method = "affine", scale_range = c(-1, 2))
+  )
+  expect_error(
+    tf_estimate_warps(x, method = "affine", scale_range = c(0.5, NA))
+  )
 })
 
-test_that("tf_register affine method respects custom bounds", {
+test_that("tf_estimate_warps affine method respects custom bounds", {
   arg <- seq(0, 1, length.out = 101)
   template <- tfd(sin(2 * pi * arg), arg = arg)
 
@@ -950,7 +1105,7 @@ test_that("tf_register affine method respects custom bounds", {
 
   # Default bounds find the shift
   warp_default <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "affine",
       template = template,
@@ -962,7 +1117,7 @@ test_that("tf_register affine method respects custom bounds", {
 
   # Restrictive bounds hit boundary
   warp_restricted <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "affine",
       template = template,
@@ -976,7 +1131,7 @@ test_that("tf_register affine method respects custom bounds", {
   # Custom scale bounds
   x_scaled <- tfd(sin(2 * pi * (arg / 0.6 + 0.5 * (1 - 1 / 0.6))), arg = arg)
   warp_scale <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x_scaled,
       method = "affine",
       template = template,
@@ -992,17 +1147,21 @@ test_that("tf_register affine method respects custom bounds", {
 
 # --- Procrustes Iteration (max_iter / tol) ------------------------------------
 
-test_that("tf_register rejects invalid max_iter and tol", {
+test_that("tf_estimate_warps rejects invalid max_iter and tol", {
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
-  expect_error(tf_register(x, method = "affine", type = "shift", max_iter = 0L))
-  expect_error(tf_register(
+  expect_error(
+    tf_estimate_warps(x, method = "affine", type = "shift", max_iter = 0L)
+  )
+  expect_error(tf_estimate_warps(
     x,
     method = "affine",
     type = "shift",
     max_iter = -1L
   ))
-  expect_error(tf_register(x, method = "affine", type = "shift", tol = -1))
+  expect_error(
+    tf_estimate_warps(x, method = "affine", type = "shift", tol = -1)
+  )
 })
 
 test_that("template forces single-pass regardless of max_iter", {
@@ -1013,16 +1172,16 @@ test_that("template forces single-pass regardless of max_iter", {
 
   # Without template: explicit max_iter=3 matches default
   w_default <- quiet_expected_registration_warnings(
-    tf_register(x, method = "affine", type = "shift")
+    tf_estimate_warps(x, method = "affine", type = "shift")
   )
   w_explicit <- quiet_expected_registration_warnings(
-    tf_register(x, method = "affine", type = "shift", max_iter = 3L)
+    tf_estimate_warps(x, method = "affine", type = "shift", max_iter = 3L)
   )
   expect_equal(as.matrix(w_default), as.matrix(w_explicit))
 
   # With template: max_iter=1 and max_iter=5 are identical
   w1 <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "affine",
       type = "shift",
@@ -1031,7 +1190,7 @@ test_that("template forces single-pass regardless of max_iter", {
     )
   )
   w5 <- quiet_expected_registration_warnings(
-    tf_register(
+    tf_estimate_warps(
       x,
       method = "affine",
       type = "shift",
@@ -1042,24 +1201,24 @@ test_that("template forces single-pass regardless of max_iter", {
   expect_equal(as.matrix(w1), as.matrix(w5))
 })
 
-test_that("tf_register Procrustes iteration runs and improves for affine", {
+test_that("tf_estimate_warps Procrustes iteration runs and improves for affine", {
   withr::local_seed(42)
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
 
   w1 <- quiet_expected_registration_warnings(
-    tf_register(x, method = "affine", type = "shift", max_iter = 1L)
+    tf_estimate_warps(x, method = "affine", type = "shift", max_iter = 1L)
   )
   w3 <- quiet_expected_registration_warnings(
-    tf_register(x, method = "affine", type = "shift", max_iter = 3L)
+    tf_estimate_warps(x, method = "affine", type = "shift", max_iter = 3L)
   )
   expect_s3_class(w3, "tfd_reg")
   expect_length(w3, 3)
 
   # Procrustes iteration should not increase residual variance.
   # Interpolate to a common regular grid to avoid irregular-grid arithmetic warnings.
-  aligned_1 <- quiet_expected_registration_warnings(tf_unwarp(x, w1))
-  aligned_3 <- quiet_expected_registration_warnings(tf_unwarp(x, w3))
+  aligned_1 <- quiet_expected_registration_warnings(tf_align(x, w1))
+  aligned_3 <- quiet_expected_registration_warnings(tf_align(x, w3))
   arg <- tf_arg(x)
   aligned_1_mat <- quiet_expected_registration_warnings(
     as.matrix(tf_interpolate(aligned_1, arg = arg))
@@ -1085,13 +1244,13 @@ test_that("tf_register Procrustes iteration runs and improves for affine", {
   expect_lte(var_3, var_1 + 1e-6)
 })
 
-test_that("tf_register Procrustes iteration handles irregular affine updates", {
+test_that("tf_estimate_warps Procrustes iteration handles irregular affine updates", {
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
 
   expect_no_error(
     w <- quiet_expected_registration_warnings(
-      tf_register(
+      tf_estimate_warps(
         x,
         method = "affine",
         type = "shift",
@@ -1104,7 +1263,7 @@ test_that("tf_register Procrustes iteration handles irregular affine updates", {
   expect_length(w, length(x))
 })
 
-test_that("tf_register Procrustes iteration runs for FDA", {
+test_that("tf_estimate_warps Procrustes iteration runs for FDA", {
   skip_if_not_installed("fda")
   skip_on_cran()
   withr::local_seed(42)
@@ -1115,7 +1274,7 @@ test_that("tf_register Procrustes iteration runs for FDA", {
   )
 
   w <- quiet_expected_registration_warnings(
-    tf_register(x, method = "fda", max_iter = 2L, iterlim = 5)
+    tf_estimate_warps(x, method = "fda", max_iter = 2L, iterlim = 5)
   )
   expect_s3_class(w, "tfd_reg")
   expect_length(w, 3)
@@ -1130,7 +1289,7 @@ test_that("SRVF with template=NULL gives same result regardless of max_iter", {
     arg = t
   )
 
-  w1 <- tf_register(x, method = "srvf", max_iter = 1L)
-  w5 <- tf_register(x, method = "srvf", max_iter = 5L)
+  w1 <- tf_estimate_warps(x, method = "srvf", max_iter = 1L)
+  w5 <- tf_estimate_warps(x, method = "srvf", max_iter = 5L)
   expect_equal(as.matrix(w1), as.matrix(w5))
 })

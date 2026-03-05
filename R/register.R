@@ -1,11 +1,11 @@
-#' Elastic Deformation: warp and unwarp `tf` vectors
-
+#' Elastic Deformation: warp and align `tf` vectors
+#'
 #' @description
 #' These functions stretch and/or compress regions of the domain of functional data:
 #'
 #' - `tf_warp()` applies warping functions to aligned (registered) functional data
 #' to recover the original unregistered curves: \eqn{x(s) \to x(h(s)) = x(t)}.
-#' - `tf_unwarp()` applies the *inverse* warping function to unregistered data
+#' - `tf_align()` applies the *inverse* warping function to unregistered data
 #' to obtain aligned (registered) functions: \eqn{x(t) \to x(h^{-1}(t)) = x(s)}.
 #'
 #' @details
@@ -25,14 +25,14 @@
 #'
 #'
 #' @param x `tf` vector of functions. For `tf_warp()`, these should be
-#'   registered/aligned functions and unaligned functions for `tf_unwarp()`.
+#'   registered/aligned functions and unaligned functions for `tf_align()`.
 #' @param warp `tf` vector of warping functions used for transformation. See Details.
 #' @param ... additional arguments passed to [tfd()].
 #' @param keep_new_arg keep new `arg` values after (un)warping or return
 #'   `tfd` vector on `arg` values of the input (default `FALSE` is the latter)? See Details.
 #' @returns
 #' * `tf_warp()`: the warped `tf` vector (un-registered functions)
-#' * `tf_unwarp()`: the unwarped `tf` vector (registered/aligned functions)
+#' * `tf_align()`: the aligned `tf` vector (registered functions)
 #'
 #' @examples
 #' # generate "template" function shape on [0, 1]:
@@ -49,17 +49,17 @@
 #' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 #' # register the functions:
 #' if (require(fdasrvf)) {
-#'   warp_estimate <- tf_register(x)
+#'   reg <- tf_register(x)
 #' } else {
-#'   warp_estimate <- tf_register(x, method = "affine", type = "shift_scale")
+#'   reg <- tf_register(x, method = "affine", type = "shift_scale")
 #' }
-#' registered <- tf_unwarp(x, warp_estimate)
 #' layout(t(1:3))
 #' plot(x, col = 1:5)
-#' plot(warp_estimate, col = 1:5); lines(warp, lty = 3, lwd = 1.5, col = 1:5)
-#' plot(registered, col = 1:5, points = FALSE); lines(template, lty = 2)
+#' plot(tf_inv_warps(reg), col = 1:5); lines(tf_invert(warp), lty = 3, lwd = 1.5, col = 1:5)
+#' plot(tf_aligned(reg), col = 1:5, points = FALSE); lines(template, lty = 2)
 #' @export
-#' @author Maximilian Muecke
+#' @author Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
+#' @family registration functions
 tf_warp <- function(x, warp, ...) {
   rlang::check_dots_used()
   warp <- coerce_warp_to_tfd(warp)
@@ -92,17 +92,31 @@ tf_warp.tfb <- function(x, warp, ...) {
 
 #-------------------------------------------------------------------------------
 
-#' @rdname tf_warp
+#' Apply warping functions to align functional data
+#'
+#' `tf_align()` applies the *inverse* warping function to unregistered data
+#' to obtain aligned (registered) functions.
+#'
+#' @inheritParams tf_warp
+#' @returns the aligned `tf` vector (registered functions)
+#' @family registration functions
+#' @examples
+#' # Estimate warps, then align manually:
+#' t <- seq(0, 2 * pi, length.out = 101)
+#' x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+#' warps <- tf_estimate_warps(x, method = "affine", type = "shift")
+#' aligned <- tf_align(x, warps)
+#' plot(aligned, col = 1:3)
 #' @export
-tf_unwarp <- function(x, warp, ...) {
+tf_align <- function(x, warp, ...) {
   rlang::check_dots_used()
   warp <- coerce_warp_to_tfd(warp)
   assert_warp(warp, x)
-  UseMethod("tf_unwarp")
+  UseMethod("tf_align")
 }
-#' @rdname tf_warp
+#' @rdname tf_align
 #' @export
-tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
+tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   assert_flag(keep_new_arg)
   if (length(x) != length(warp)) {
     cli::cli_abort("{.arg x} and {.arg warp} must have the same length.")
@@ -160,21 +174,128 @@ tf_unwarp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
     return(ret)
   }
 }
-#' @rdname tf_warp
+#' @rdname tf_align
 #' @export
-tf_unwarp.tfb <- function(x, warp, ...) {
-  apply_tfb_warp(tf_unwarp, x = x, warp = warp, dots = list(...))
+tf_align.tfb <- function(x, warp, ...) {
+  apply_tfb_warp(tf_align, x = x, warp = warp, dots = list(...))
 }
 
 #-------------------------------------------------------------------------------
 
 #' Register / align a `tf` vector against a template function
 #'
-#' `tf_register()` performs functional data registration (alignment) by finding
-#' warping functions that optimally align a set of functions to a template function.
-#' Registration removes phase variation (horizontal shifts and stretches) while
-#' preserving amplitude (i.e., vertical) variation, making it easier to analyze
-#' the intrinsic shape characteristics of functional data.
+#' `tf_register()` is the high-level entry point for functional data registration.
+#' It estimates warping functions, applies them to align the data, and returns a
+#' [tf_registration] result object containing the aligned curves, inverse
+#' warping functions (observed to aligned time), and template. Use
+#' [tf_aligned()], [tf_inv_warps()], and [tf_template()] to extract components.
+#'
+#' For a lower-level interface that returns only warping functions (without
+#' performing alignment), see [tf_estimate_warps()].
+#'
+#' @param x a `tf` vector of functions to register.
+#' @param ... additional method-specific arguments passed to backend routines
+#'   (for example `crit` for `method = "fda"`). See [tf_estimate_warps()] for
+#'   method-specific argument documentation.
+#' @param template an optional `tf` vector of length 1 to use as the template.
+#'   If `NULL`, a default template is computed (method-dependent).
+#'   Not used for `method = "landmark"`.
+#' @param method the registration method to use:
+#'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
+#'   * `"fda"`: continuous-criterion registration via [fda::register.fd()].
+#'   * `"affine"`: affine (linear) registration.
+#'   * `"landmark"`: piecewise-linear warps aligning user-specified landmarks.
+#' @param max_iter integer: maximum Procrustes-style template refinement
+#'   iterations. Default `3L`.
+#' @param tol numeric: convergence tolerance for template refinement.
+#'   Default `1e-2`.
+#' @param store_x logical: store original data in the result object?
+#'   Default `TRUE`. Set to `FALSE` to save memory.
+#' @inheritSection tf_estimate_warps Important method-specific arguments (passed via `...`)
+#' @returns A [tf_registration] object. Access components with
+#'   [tf_aligned()], [tf_inv_warps()], [tf_template()].
+#'
+#' @references
+#' Ramsay JO, Hooker G, Graves S (2009).
+#' *Functional Data Analysis with R and MATLAB.* Springer, New York.
+#' \doi{10.1007/978-0-387-98185-7}.
+#'
+#' Srivastava A, Wu W, Kurtek S, Klassen E, Marron JS (2011).
+#' "Registration of Functional Data Using Fisher-Rao Metric."
+#' *arXiv:1103.3817.*
+#'
+#' Tucker JD, Wu W, Srivastava A (2013).
+#' "Generative models for functional data using phase and amplitude separation."
+#' *Computational Statistics & Data Analysis*, **61**, 50--66.
+#' \doi{10.1016/j.csda.2012.12.001}.
+#' @export
+#' @author Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
+#' @family registration functions
+#'
+#' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
+#' # Elastic registration (SRVF method)
+#' height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
+#' growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
+#' reg <- tf_register(growth_female)
+#' layout(t(1:3))
+#' plot(growth_female, xlab = "Chronological Age", ylab = "Growth Rate (cm/year)")
+#' plot(tf_inv_warps(reg), xlab = "Chronological Age", ylab = "Biological Age")
+#' plot(tf_aligned(reg), xlab = "Biological Age", ylab = "Growth Rate (cm/year)")
+#'
+#' @examples
+#' # Affine registration (shift only)
+#' t <- seq(0, 2 * pi, length.out = 101)
+#' x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
+#' reg <- tf_register(x, method = "affine", type = "shift")
+#' plot(tf_aligned(reg), col = 1:3)
+#'
+#' # Landmark registration
+#' peaks <- tf_landmarks_extrema(x, "max")
+#' reg <- tf_register(x, method = "landmark", landmarks = peaks)
+#' plot(tf_aligned(reg), col = 1:3)
+#'
+tf_register <- function(
+  x,
+  ...,
+  template = NULL,
+  method = c("srvf", "fda", "affine", "landmark"),
+  max_iter = 3L,
+  tol = 1e-2,
+  store_x = TRUE
+) {
+  cl <- match.call()
+  method <- match.arg(method)
+  assert_tf(x)
+  assert_flag(store_x)
+  warps <- tf_estimate_warps(
+    x,
+    ...,
+    template = template,
+    method = method,
+    max_iter = max_iter,
+    tol = tol
+  )
+  registered <- tf_align(x, warps)
+  tmpl <- attr(warps, "template") %||%
+    (if (method != "landmark") template) %||%
+    suppressWarnings(mean(registered))
+  new_tf_registration(
+    registered = registered,
+    inv_warps = tf_invert(warps),
+    template = tmpl,
+    x = if (store_x) x else NULL,
+    call = cl
+  )
+}
+
+#-------------------------------------------------------------------------------
+
+#' Estimate warping functions for registration
+#'
+#' `tf_estimate_warps()` is the low-level workhorse for functional data
+#' registration. It estimates warping functions that align a set of functions to
+#' a template, but does *not* apply them. For a one-shot interface that also
+#' aligns the data, see [tf_register()].
 #'
 #' @param x a `tf` vector of functions to register.
 #' @param ... additional method-specific arguments passed to backend routines
@@ -251,39 +372,17 @@ tf_unwarp.tfb <- function(x, warp, ...) {
 #'     Default is column-wise mean of `landmarks`.}
 #' }
 #'
-#' @returns `tfd` vector of warping functions with the same length as `x`.
-#'   Apply with [tf_unwarp()] to obtain registered functions.
+#' @returns `tfd` vector of (forward) warping functions \eqn{h_i(s) = t}
+#'   with the same length as `x`.
+#'   Apply with [tf_align()] to obtain registered functions, or use
+#'   [tf_invert()] to obtain inverse warps \eqn{h_i^{-1}(t) = s}.
+#'   The returned warps carry an `attr(, "template")` with the template used
+#'   (`NULL` for landmark registration, which has no template).
 #'
-#' @references
-#' `r format_bib("ramsay2009functional", "srivastava2011registration", "tucker2013generative")`
 #' @export
-#' @author Maximilian Muecke
+#' @author Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
 #' @family registration functions
-#'
-#' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
-#' # Elastic registration (SRVF method)
-#' height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
-#' growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
-#' layout(t(1:3))
-#' plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
-#' warp <- tf_register(growth_female)
-#' plot(warp, xlab = "Chronological Age", ylab = "Biological Age")
-#' growth_female_reg <- tf_unwarp(growth_female, warp)
-#' plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
-#'
-#' @examples
-#' # Affine registration (shift only)
-#' t <- seq(0, 2 * pi, length.out = 101)
-#' x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
-#' warp <- tf_register(x, method = "affine", type = "shift")
-#' plot(tf_unwarp(x, warp), col = 1:3)
-#'
-#' # Landmark registration
-#' peaks <- tf_landmarks_extrema(x, "max")
-#' warp <- tf_register(x, method = "landmark", landmarks = peaks)
-#' plot(tf_unwarp(x, warp), col = 1:3)
-#'
-tf_register <- function(
+tf_estimate_warps <- function(
   x,
   ...,
   template = NULL,
@@ -291,17 +390,17 @@ tf_register <- function(
   max_iter = 3L,
   tol = 1e-2
 ) {
-  UseMethod("tf_register")
+  UseMethod("tf_estimate_warps")
 }
 
 #' @export
-tf_register.tfd_reg <- function(
+tf_estimate_warps.tfd_reg <- function(
   x,
   ...,
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
   max_iter = 3L,
-  tol = 1e-4
+  tol = 1e-2
 ) {
   dots <- list(...)
   assert_tfd(x)
@@ -311,7 +410,9 @@ tf_register.tfd_reg <- function(
 
   # Landmark method doesn't use template, uses landmarks instead
   if (method == "landmark") {
-    return(do.call(tf_register_landmark, c(list(x = x), dots)))
+    warps <- do.call(tf_register_landmark, c(list(x = x), dots))
+    attr(warps, "template") <- NULL
+    return(warps)
   }
 
   # SRVF with no template: Karcher mean handles iteration internally
@@ -352,6 +453,7 @@ tf_register.tfd_reg <- function(
   arg <- tf_arg(x)
   domain_length <- diff(tf_domain(x))
   best_warps <- NULL
+  best_template <- current_template
   best_obj <- Inf
   for (iter in seq_len(max_iter)) {
     warps <- switch(
@@ -376,7 +478,7 @@ tf_register.tfd_reg <- function(
       )
     )
 
-    aligned <- tf_unwarp(x, warps)
+    aligned <- tf_align(x, warps)
     aligned_on_arg <- suppressWarnings(tf_interpolate(aligned, arg = arg))
     template_on_arg <- suppressWarnings(tfd(current_template, arg = arg))
     template_vec <- tf_evaluate(template_on_arg, arg = arg)[[1]]
@@ -397,6 +499,7 @@ tf_register.tfd_reg <- function(
         break
       }
       best_warps <- warps
+      best_template <- current_template
       best_obj <- obj
     } else if (is.null(best_warps)) {
       best_warps <- warps
@@ -414,6 +517,7 @@ tf_register.tfd_reg <- function(
     }
     new_template <- tfd(matrix(new_tmpl_vec, nrow = 1), arg = arg)
     # Convergence check based on integrated squared change.
+    # tol^2 because we compare squared norms
     delta <- suppressWarnings(
       tf_integrate((new_template - template_on_arg)^2, arg = arg)
     )
@@ -428,11 +532,14 @@ tf_register.tfd_reg <- function(
     }
     current_template <- new_template
   }
-  best_warps %||% warps
+  result <- best_warps %||% warps
+  attr(result, "template") <- if (!is.null(best_warps)) best_template else
+    current_template
+  result
 }
 
 #' @export
-tf_register.tfb <- function(
+tf_estimate_warps.tfb <- function(
   x,
   ...,
   template = NULL,
@@ -442,7 +549,7 @@ tf_register.tfb <- function(
 ) {
   x |>
     as.tfd() |>
-    tf_register(
+    tf_estimate_warps(
       template = template,
       method = method,
       max_iter = max_iter,
@@ -452,7 +559,7 @@ tf_register.tfb <- function(
 }
 
 #' @export
-tf_register.tfd_irreg <- function(
+tf_estimate_warps.tfd_irreg <- function(
   x,
   ...,
   template = NULL,
@@ -474,7 +581,9 @@ tf_register.tfd_irreg <- function(
     )
   }
   if (method == "landmark") {
-    return(tf_register_landmark(x, ...))
+    warps <- tf_register_landmark(x, ...)
+    attr(warps, "template") <- NULL
+    return(warps)
   }
 
   arg_list <- ensure_list(tf_arg(x))
@@ -486,7 +595,7 @@ tf_register.tfd_irreg <- function(
     suppressWarnings(tfd(template, arg = arg_common))
   }
 
-  warp_common <- tf_register.tfd_reg(
+  warp_common <- tf_estimate_warps.tfd_reg(
     x = x_common,
     ...,
     template = template_common,
@@ -494,11 +603,14 @@ tf_register.tfd_irreg <- function(
     max_iter = max_iter,
     tol = tol
   )
+  tmpl <- attr(warp_common, "template")
   warp_values <- map(
     seq_len(length(x)),
     \(i) tf_evaluate(warp_common[i], arg = arg_list[[i]])[[1]]
   )
-  tfd(warp_values, arg = arg_list, domain = tf_domain(x))
+  result <- tfd(warp_values, arg = arg_list, domain = tf_domain(x))
+  attr(result, "template") <- tmpl
+  result
 }
 
 #-------------------------------------------------------------------------------
@@ -512,28 +624,37 @@ tf_register_srvf <- function(x, template, ...) {
   upr <- domain[2]
 
   # Karcher mean
-  x <- as.matrix(x)
+  x_mat <- as.matrix(x)
   if (is.null(template)) {
-    ret <- suppressMessages(fdasrvf::time_warping(f = t(x), time = arg, ...))
+    ret <- suppressMessages(fdasrvf::time_warping(
+      f = t(x_mat),
+      time = arg,
+      ...
+    ))
     warp <- t(ret$warping_functions)
+    # Extract Karcher mean as template
+    tmpl <- tfd(matrix(ret$fmean, nrow = 1), arg = arg)
   } else {
     is_single_template <- length(template) == 1
-    template <- as.matrix(template)
-    warp <- matrix(nrow = nrow(x), ncol = ncol(x))
-    for (i in seq_len(nrow(x))) {
+    template_mat <- as.matrix(template)
+    warp <- matrix(nrow = nrow(x_mat), ncol = ncol(x_mat))
+    for (i in seq_len(nrow(x_mat))) {
       warp[i, ] <- fdasrvf::pair_align_functions(
-        f1 = if (is_single_template) template[1, ] else template[i, ],
-        f2 = x[i, ],
+        f1 = if (is_single_template) template_mat[1, ] else template_mat[i, ],
+        f2 = x_mat[i, ],
         time = arg,
         ...
       )$gam
     }
+    tmpl <- template
   }
   warp <- lwr + (upr - lwr) * warp
   # avoid numerical over/underflow issue:
   warp[, 1] <- arg[1]
   warp[, length(arg)] <- arg[length(arg)]
-  tfd(warp, arg = arg)
+  result <- tfd(warp, arg = arg)
+  attr(result, "template") <- tmpl
+  result
 }
 
 tf_register_fda <- function(
@@ -601,13 +722,20 @@ tf_register_fda <- function(
   # avoid numerical over/underflow issues:
   warp[1, ] <- lwr
   warp[n, ] <- upr
-  tfd(t(warp), arg = arg)
+  result <- tfd(t(warp), arg = arg)
+  # Attach the template used (the y0fd converted back, or original template)
+  attr(result, "template") <- template %||%
+    tfd(
+      matrix(fda::eval.fd(arg, y0fd), nrow = 1),
+      arg = arg
+    )
+  result
 }
 
 #-------------------------------------------------------------------------------
 
 # Internal: Landmark registration implementation
-# Called by tf_register() with method = "landmark"
+# Called by tf_estimate_warps() with method = "landmark"
 tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   assert_tf(x)
   assert_matrix(landmarks, mode = "numeric", nrows = length(x), min.cols = 1)
@@ -656,7 +784,7 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
 #-------------------------------------------------------------------------------
 
 # Internal: Affine registration implementation
-# Called by tf_register() with method = "affine"
+# Called by tf_estimate_warps() with method = "affine"
 #' @importFrom stats approx optim
 tf_register_affine <- function(
   x,
@@ -702,7 +830,9 @@ tf_register_affine <- function(
   ) |>
     do.call(what = rbind)
 
-  tfd(warp_mat, arg = arg)
+  result <- tfd(warp_mat, arg = arg)
+  attr(result, "template") <- template
+  result
 }
 
 # Helper: validate template for affine registration
@@ -769,7 +899,7 @@ affine_config <- function(
 optimize_affine_warp <- function(x_vec, template_vec, arg, domain, config) {
   # Objective: L2 distance after warping
   # Use rule=2 (extrapolate) for optimizer to work smoothly
-  # Final tf_unwarp will use rule=1 (NA) for proper incomplete functions
+  # Final tf_align will use rule=1 (NA) for proper incomplete functions
   objective <- function(params) {
     ab <- extract_affine_params(params, config)
     warp_values <- create_affine_warp(ab$a, ab$b, arg)

@@ -10,14 +10,16 @@ tf_register(
   template = NULL,
   method = c("srvf", "fda", "affine", "landmark"),
   max_iter = 3L,
-  tol = 0.01
+  tol = 0.01,
+  store_x = TRUE
 )
 }
 \arguments{
 \item{x}{a \code{tf} vector of functions to register.}
 
 \item{...}{additional method-specific arguments passed to backend routines
-(for example \code{crit} for \code{method = "fda"}).}
+(for example \code{crit} for \code{method = "fda"}). See \code{\link[=tf_estimate_warps]{tf_estimate_warps()}} for
+method-specific argument documentation.}
 
 \item{template}{an optional \code{tf} vector of length 1 to use as the template.
 If \code{NULL}, a default template is computed (method-dependent).
@@ -26,43 +28,34 @@ Not used for \code{method = "landmark"}.}
 \item{method}{the registration method to use:
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
-For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}. Default template is the Karcher mean.
 \item \code{"fda"}: continuous-criterion registration via \code{\link[fda:register.fd]{fda::register.fd()}}.
-Default template is the arithmetic mean.
-\item \code{"affine"}: affine (linear) registration with warps of the form
-\eqn{h(t) = a \cdot t + b}. Simpler than elastic registration, appropriate
-when phase variability consists only of shifts and/or uniform speed-up/slow-down.
-Default template is the arithmetic mean.
-\item \code{"landmark"}: piecewise-linear warps that align user-specified landmark
-features. Requires \code{landmarks} argument.
+\item \code{"affine"}: affine (linear) registration.
+\item \code{"landmark"}: piecewise-linear warps aligning user-specified landmarks.
 }}
 
-\item{max_iter}{integer: maximum number of Procrustes-style template
-refinement iterations when \code{template = NULL}. The iteration cycle is:
-(1) estimate template as mean of (aligned) curves, (2) register all curves
-to current template, (3) update template as mean of newly aligned curves,
-(4) repeat until convergence or \code{max_iter} reached.
-Ignored when \code{template} is provided (no refinement needed) or for
-\code{method = "landmark"} (template not used).
-For \code{method = "srvf"} with \code{template = NULL}, the outer Procrustes loop
-is skipped regardless of \code{max_iter} because \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}
-already computes the Karcher mean internally.
-Default is \code{3L}.}
+\item{max_iter}{integer: maximum Procrustes-style template refinement
+iterations. Default \code{3L}.}
 
-\item{tol}{numeric: convergence tolerance for template refinement. Iteration
-stops when the relative change in the template (L2 norm) falls below \code{tol}.
-Default is \code{1e-2}.}
+\item{tol}{numeric: convergence tolerance for template refinement.
+Default \code{1e-2}.}
+
+\item{store_x}{logical: store original data in the result object?
+Default \code{TRUE}. Set to \code{FALSE} to save memory.}
 }
 \value{
-\code{tfd} vector of warping functions with the same length as \code{x}.
-Apply with \code{\link[=tf_unwarp]{tf_unwarp()}} to obtain registered functions.
+A \link{tf_registration} object. Access components with
+\code{\link[=tf_aligned]{tf_aligned()}}, \code{\link[=tf_inv_warps]{tf_inv_warps()}}, \code{\link[=tf_template]{tf_template()}}.
 }
 \description{
-\code{tf_register()} performs functional data registration (alignment) by finding
-warping functions that optimally align a set of functions to a template function.
-Registration removes phase variation (horizontal shifts and stretches) while
-preserving amplitude (i.e., vertical) variation, making it easier to analyze
-the intrinsic shape characteristics of functional data.
+\code{tf_register()} is the high-level entry point for functional data registration.
+It estimates warping functions, applies them to align the data, and returns a
+\link{tf_registration} result object containing the aligned curves, inverse
+warping functions (observed to aligned time), and template. Use
+\code{\link[=tf_aligned]{tf_aligned()}}, \code{\link[=tf_inv_warps]{tf_inv_warps()}}, and \code{\link[=tf_template]{tf_template()}} to extract components.
+}
+\details{
+For a lower-level interface that returns only warping functions (without
+performing alignment), see \code{\link[=tf_estimate_warps]{tf_estimate_warps()}}.
 }
 \section{Important method-specific arguments (passed via \code{...})}{
 
@@ -114,45 +107,47 @@ Default is column-wise mean of \code{landmarks}.}
 # Elastic registration (SRVF method)
 height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
+reg <- tf_register(growth_female)
 layout(t(1:3))
-plot(growth_female, xlab = "Chronological Age (years)", ylab = "Growth Rate (cm/year)")
-warp <- tf_register(growth_female)
-plot(warp, xlab = "Chronological Age", ylab = "Biological Age")
-growth_female_reg <- tf_unwarp(growth_female, warp)
-plot(growth_female_reg, xlab = "Biological Age (years)", ylab = "Growth Rate (cm/year)")
+plot(growth_female, xlab = "Chronological Age", ylab = "Growth Rate (cm/year)")
+plot(tf_inv_warps(reg), xlab = "Chronological Age", ylab = "Biological Age")
+plot(tf_aligned(reg), xlab = "Biological Age", ylab = "Growth Rate (cm/year)")
 \dontshow{\}) # examplesIf}
 # Affine registration (shift only)
 t <- seq(0, 2 * pi, length.out = 101)
 x <- tfd(t(sapply(c(-0.3, 0, 0.3), function(s) sin(t + s))), arg = t)
-warp <- tf_register(x, method = "affine", type = "shift")
-plot(tf_unwarp(x, warp), col = 1:3)
+reg <- tf_register(x, method = "affine", type = "shift")
+plot(tf_aligned(reg), col = 1:3)
 
 # Landmark registration
 peaks <- tf_landmarks_extrema(x, "max")
-warp <- tf_register(x, method = "landmark", landmarks = peaks)
-plot(tf_unwarp(x, warp), col = 1:3)
+reg <- tf_register(x, method = "landmark", landmarks = peaks)
+plot(tf_aligned(reg), col = 1:3)
 
 }
 \references{
-Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
-\emph{Functional Data Analysis with R and MATLAB},  series Use R!, 1 edition.
-Springer New York, New York.
-ISBN 978-0-387-98184-0, \doi{10.1007/978-0-387-98185-7}.
+Ramsay JO, Hooker G, Graves S (2009).
+\emph{Functional Data Analysis with R and MATLAB.} Springer, New York.
+\doi{10.1007/978-0-387-98185-7}.
 
 Srivastava A, Wu W, Kurtek S, Klassen E, Marron JS (2011).
-\dQuote{Registration of Functional Data Using Fisher-Rao Metric.}
-1103.3817, \url{https://arxiv.org/abs/1103.3817}.
+"Registration of Functional Data Using Fisher-Rao Metric."
+\emph{arXiv:1103.3817.}
 
 Tucker JD, Wu W, Srivastava A (2013).
-\dQuote{Generative models for functional data using phase and amplitude separation.}
-\emph{Computational Statistics & Data Analysis}, \bold{61}, 50-66.
-ISSN 0167-9473, \doi{https://doi.org/10.1016/j.csda.2012.12.001}, \url{https://www.sciencedirect.com/science/article/pii/S0167947312004227}.
+"Generative models for functional data using phase and amplitude separation."
+\emph{Computational Statistics & Data Analysis}, \strong{61}, 50--66.
+\doi{10.1016/j.csda.2012.12.001}.
 }
 \seealso{
 Other registration functions: 
-\code{\link{tf_landmarks_extrema}()}
+\code{\link{tf_align}()},
+\code{\link{tf_estimate_warps}()},
+\code{\link{tf_landmarks_extrema}()},
+\code{\link{tf_registration}},
+\code{\link{tf_warp}()}
 }
 \author{
-Maximilian Muecke
+Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
 }
 \concept{registration functions}

@@ -78,7 +78,7 @@ bibentries <- c(
     pages = "50-66",
     year = "2013",
     issn = "0167-9473",
-    doi = "https://doi.org/10.1016/j.csda.2012.12.001",
+    doi = "10.1016/j.csda.2012.12.001",
     url = "https://www.sciencedirect.com/science/article/pii/S0167947312004227"
   ),
   srivastava2011registration = bibentry(

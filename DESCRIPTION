@@ -85,6 +85,7 @@ Collate:
     'rebase.R'
     'register-utils.R'
     'register.R'
+    'registration-class.R'
     'rng.R'
     'smooth.R'
     'soft-impute-svd.R'
