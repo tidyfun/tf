@@ -48,8 +48,8 @@
 #' layout(t(1:3))
 #' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 #' # register the functions:
-#' if (require(fdasrvf)) {
-#'   reg <- tf_register(x)
+#' if (requireNamespace("fdasrvf", quietly = TRUE)) {
+#'   warp_estimate <- tf_register(x)
 #' } else {
 #'   reg <- tf_register(x, method = "affine", type = "shift_scale")
 #' }
@@ -66,6 +66,7 @@ tf_warp <- function(x, warp, ...) {
   assert_warp(warp, x)
   UseMethod("tf_warp")
 }
+
 #' @rdname tf_warp
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
@@ -84,6 +85,7 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   }
   ret
 }
+
 #' @rdname tf_warp
 #' @export
 tf_warp.tfb <- function(x, warp, ...) {
@@ -464,13 +466,7 @@ tf_estimate_warps.tfd_reg <- function(
       ),
       fda = do.call(
         tf_register_fda,
-        c(
-          list(
-            x = x,
-            template = current_template
-          ),
-          dots
-        )
+        c(list(x = x, template = current_template), dots)
       ),
       affine = do.call(
         tf_register_affine,
@@ -605,7 +601,7 @@ tf_estimate_warps.tfd_irreg <- function(
   )
   tmpl <- attr(warp_common, "template")
   warp_values <- map(
-    seq_len(length(x)),
+    seq_along(x),
     \(i) tf_evaluate(warp_common[i], arg = arg_list[[i]])[[1]]
   )
   result <- tfd(warp_values, arg = arg_list, domain = tf_domain(x))
@@ -797,18 +793,15 @@ tf_register_affine <- function(
   type <- match.arg(type)
 
   # Validate range parameters
-  if (!is.null(shift_range)) {
-    assert_numeric(shift_range, len = 2, sorted = TRUE, any.missing = FALSE)
-  }
-  if (!is.null(scale_range)) {
-    assert_numeric(
-      scale_range,
-      len = 2,
-      lower = 1e-10,
-      sorted = TRUE,
-      any.missing = FALSE
-    )
-  }
+  assert_numeric(shift_range, len = 2, sorted = TRUE, any.missing = FALSE, null.ok = TRUE)
+  assert_numeric(
+    scale_range,
+    len = 2,
+    lower = 1e-10,
+    sorted = TRUE,
+    any.missing = FALSE,
+    null.ok = TRUE
+  )
 
   domain <- tf_domain(x)
   template <- validate_affine_template(template, x, domain)
