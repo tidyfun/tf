@@ -1,0 +1,3023 @@
+---
+title: "Registration Method Benchmark"
+subtitle: "Internal Report — tf Package (PR #193)"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    code-fold: true
+    theme: flatly
+    fig-width: 10
+    fig-height: 6
+    self-contained: true
+execute:
+  cache: true
+  warning: false
+  message: false
+---
+
+::: {.callout-note appearance="simple"}
+## Executive Summary
+
+**Study 1 (oracle template):**
+
+1. **SRVF is the best general-purpose method** — lowest warp MISE on smooth-warp DGPs (S3-S7, S10) across all noise levels and severities.
+2. **Affine methods win when correctly specified** — `affine_shift` on S1 and `affine_ss` on S11 achieve near-zero MISE, but degrade sharply on smooth-warp DGPs.
+3. **Landmark oracle is unbeatable on landmark DGPs** — near-exact warp recovery on S8/S9; `landmark_auto` is competitive when features are detectable (harmonic template) but fragile on sigbump (only 1 extremum).
+4. **Noise degrades all methods monotonically**, but SRVF and FDA are most robust; affine and landmark methods are more sensitive.
+5. **Overall failure rate is 0.2%** — dominated by `landmark_auto` on sigbump DGPs (insufficient features). All other methods are highly reliable.
+
+**Study 2 (estimated template):**
+
+6. **Template estimation effects are heterogeneous** — SRVF shows the widest variance (2.5x degradation on S4, 0.84x on S6b), affine methods are most stable (0.9–1.1x across all DGPs), and FDA methods show moderate degradation (1.0–1.4x). All methods degrade on DGPs with additive amplitude (S7).
+7. **Method rankings are largely preserved** — despite variable degradation, the best method per DGP rarely changes between oracle and estimated template settings, confirming that Study 1's qualitative conclusions generalize to practical use.
+
+**Study 3 (outlier contamination):**
+
+8. **`landmark_auto` is essentially immune to contamination** — median degradation ratio of 1.06× under 10% contamination, regardless of outlier type. This makes it the most robust method when outliers are expected.
+9. **SRVF and `fda_crit1` are the most outlier-sensitive** — median degradation ratios of 9.5× and 10× respectively. Both rely on global curve shape, which contamination distorts.
+10. **`fda_default` shows moderate robustness** (2× degradation), while affine methods fall in between (3.7–5.6×).
+11. **Dose-response (S4, amplitude outliers)** shows `fda_default` and `landmark_auto` plateau as contamination increases from 5% to 20%, while other methods degrade roughly proportionally.
+
+**Study 4 (real-data templates):**
+
+12. **SRVF generalizes well to real-data templates** — rank 1 on 3 of 6 real-data DGPs (R1a/pinch, R2a/growth, R3a/gait), consistent with its dominance on synthetic smooth-warp DGPs.
+13. **Rankings are more heterogeneous on real data** — no single method dominates all DGPs. `fda_crit1` wins on R2b (correlated amplitude), `landmark_auto` wins on R1b (shift warp), and `fda_default` is competitive on gait DGPs.
+14. **0% failure rate across all real-data DGPs**, confirming methods are robust to diverse template shapes. R3a/R3b results are preliminary (10 reps vs 100 for others).
+
+**Post-hoc analysis:** Pareto fronts, pairwise win probabilities, ranking stability, and failure diagnostics — see @sec-posthoc.
+:::
+
+# Setup {.unnumbered}
+
+```{r}
+#| label: setup
+#| cache: false
+library(ggplot2)
+library(gt)
+library(patchwork)
+library(dplyr)
+library(tidyr)
+library(scales)
+
+base_dir <- here::here("attic", "sim-registration")
+results_dir <- file.path(base_dir, "results")
+
+source(file.path(base_dir, "sim-dgp.R"))
+source(file.path(base_dir, "sim-config.R"))
+source(file.path(base_dir, "sim-metrics.R"))
+source(file.path(base_dir, "sim-methods.R"))
+```
+
+```{r}
+#| label: load-results
+results <- readRDS(file.path(results_dir, "results_combined_all.rds"))
+results$not_applicable <- (results$method == "landmark_oracle" &
+                             !results$dgp %in% c("S8", "S9"))
+
+cat(sprintf(
+  "Loaded %d rows | DGPs: %s | Methods: %s | Failure rate: %.1f%%\n",
+  nrow(results),
+  paste(sort(unique(results$dgp)), collapse = ", "),
+  paste(sort(unique(results$method)), collapse = ", "),
+  100 * mean(results$failure)
+))
+```
+
+```{r}
+#| label: load-notemplate
+#| cache: false
+results_notemplate <- readRDS(file.path(results_dir, "results_combined_notemplate.rds"))
+results_notemplate$not_applicable <- FALSE
+
+cat(sprintf(
+  "Study 2: %d rows | DGPs: %s | Methods: %s | Failure rate: %.1f%%\n",
+  nrow(results_notemplate),
+  paste(sort(unique(results_notemplate$dgp)), collapse = ", "),
+  paste(sort(unique(results_notemplate$method)), collapse = ", "),
+  100 * mean(results_notemplate$failure)
+))
+
+# Build paired dataset: inner join Study 1 and Study 2 on matching design cells
+# Pairable DGPs (7): S1, S4, S5, S6b, S7, S8, S11
+# Not pairable (3): S2, S6a, S10 — no overlapping (noise_sd, severity) cells
+join_keys <- c("dgp", "method", "noise_sd", "severity", "n_curves", "n_grid", "rep")
+template_methods <- c("srvf", "fda_default", "fda_crit1", "affine_shift", "affine_ss")
+pair_cols <- c(join_keys, "warp_mise", "aligned_mise", "time", "failure")
+
+# Deduplicate before merging: S4 appears in both interaction and sensitivity
+# grids with identical seeds/results. Take first occurrence per key set.
+s1_for_pair <- results[, pair_cols]
+dupe_mask <- duplicated(s1_for_pair[join_keys])
+if (any(dupe_mask)) {
+  # Defensive check: verify duplicated rows have identical deterministic metrics
+  # (time differs across runs — non-deterministic — so only check MISE & failure)
+  dupe_keys <- s1_for_pair[dupe_mask, join_keys, drop = FALSE]
+  first_rows <- merge(dupe_keys, s1_for_pair[!dupe_mask, ], by = join_keys)
+  dupe_rows <- merge(dupe_keys, s1_for_pair[dupe_mask, ], by = join_keys)
+  check_cols <- c("warp_mise", "aligned_mise", "failure")
+  stopifnot(
+    "Duplicated Study 1 rows have different metric values" =
+      identical(first_rows[check_cols], dupe_rows[check_cols])
+  )
+  cat(sprintf("Dropped %d duplicate Study 1 rows (verified identical)\n",
+              sum(dupe_mask)))
+}
+s1_for_pair <- s1_for_pair[!dupe_mask, ]
+
+stopifnot(
+  "Study 1 keys not unique after dedup" = !any(duplicated(s1_for_pair[join_keys])),
+  "Study 2 keys not unique" = !any(duplicated(results_notemplate[join_keys]))
+)
+
+results_paired <- merge(
+  s1_for_pair,
+  results_notemplate[, pair_cols],
+  by = join_keys, suffixes = c("_oracle", "_estimated")
+)
+
+cat(sprintf(
+  "Paired dataset: %d rows | Pairable DGPs: %s\n",
+  nrow(results_paired),
+  paste(sort(unique(results_paired$dgp)), collapse = ", ")
+))
+```
+
+```{r}
+#| label: theme-and-labels
+#| cache: false
+
+# --- Custom theme ---
+theme_bench <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", size = rel(1.1)),
+      plot.subtitle = element_text(color = "grey40"),
+      strip.text = element_text(face = "bold"),
+      legend.position = "bottom",
+      panel.grid.minor = element_blank()
+    )
+}
+
+# --- Method colors and labels ---
+method_colors <- c(
+  srvf = "#1b9e77",
+  fda_default = "#d95f02",
+  fda_crit1 = "#e6ab02",
+  affine_shift = "#7570b3",
+  affine_ss = "#a6761d",
+  landmark_auto = "#e7298a",
+  landmark_oracle = "#666666"
+)
+
+method_labels <- c(
+  srvf = "SRVF",
+  fda_default = "FDA (default)",
+  fda_crit1 = "FDA (crit=1)",
+  affine_shift = "Affine (shift)",
+  affine_ss = "Affine (shift+scale)",
+  landmark_auto = "Landmark (auto)",
+  landmark_oracle = "Landmark (oracle)"
+)
+
+dgp_labels <- c(
+  S1 = "S1: sigbump/shift/none",
+  S2 = "S2: sigbump/shift/mult",
+  S3 = "S3: harmonic/smooth/none",
+  S4 = "S4: sigbump/smooth/none",
+  S5 = "S5: sigbump/smooth/mult",
+  S6a = "S6a: sigbump/smooth/corr(deriv)",
+  S6b = "S6b: sigbump/smooth/corr(orth)",
+  S7 = "S7: sigbump/smooth/additive",
+  S8 = "S8: harmonic/landmark/none",
+  S9 = "S9: harmonic/landmark/mult",
+  S10 = "S10: sigbump/smooth/rank2",
+  S11 = "S11: sigbump/affine/none"
+)
+
+# --- Helper: summarize metric with MC SE ---
+summarize_metric <- function(df, group_vars, metric) {
+  df <- df[!df$failure & !is.na(df[[metric]]), ]
+  if (nrow(df) == 0) return(data.frame())
+  formula <- as.formula(paste(metric, "~", paste(group_vars, collapse = " + ")))
+  agg_mean <- aggregate(formula, data = df, FUN = mean)
+  agg_sd <- aggregate(formula, data = df, FUN = function(x) {
+    if (length(x) > 1) sd(x) else NA_real_
+  })
+  agg_n <- aggregate(formula, data = df, FUN = length)
+  out <- agg_mean
+  names(out)[names(out) == metric] <- "mean"
+  out$sd <- agg_sd[[metric]]
+  out$n <- agg_n[[metric]]
+  out$se <- out$sd / sqrt(out$n)
+  out
+}
+
+# --- Helper: case study warp visualization ---
+# Takes generate_data() output + named list of fit_method() results.
+# Returns a patchwork: top row = observed curves + true warps,
+# then per-method rows of estimated warps + aligned curves.
+plot_case_study <- function(data, fits, title = NULL, highlight_idx = NULL) {
+  arg <- data$arg
+  n <- length(data$x)
+
+  # Validate: at least one method produced results
+  valid_fits <- Filter(function(f) !is.null(f$warp_est) && !is.null(f$aligned), fits)
+  if (length(valid_fits) == 0) {
+    stop("No valid method fits (all returned NULL warp_est or aligned)")
+  }
+
+  base_colors <- rep("steelblue", n)
+  base_alphas <- rep(0.35, n)
+  if (!is.null(highlight_idx)) {
+    highlight_idx <- highlight_idx[highlight_idx >= 1 & highlight_idx <= n]
+    base_colors[highlight_idx] <- "red"
+    base_alphas[highlight_idx] <- 0.7
+  }
+
+  # Helper: tf object → long data.frame
+  tf_to_df <- function(tf_obj) {
+    mat <- as.matrix(tf_obj)
+    stopifnot("Grid mismatch in plot_case_study" = ncol(mat) == length(arg))
+    data.frame(
+      arg = rep(arg, times = nrow(mat)),
+      value = as.vector(t(mat)),
+      id = rep(seq_len(nrow(mat)), each = length(arg)),
+      color = rep(base_colors, each = length(arg)),
+      alpha = rep(base_alphas, each = length(arg))
+    )
+  }
+
+  # Observed curves
+  obs_df <- tf_to_df(data$x)
+  tmpl_vals <- tf_evaluations(data$template)[[1]]
+  tmpl_df <- data.frame(arg = arg, value = tmpl_vals)
+  p_obs <- ggplot(obs_df, aes(arg, value, group = id)) +
+    geom_line(aes(color = color, alpha = alpha), linewidth = 0.3) +
+    scale_color_identity() + scale_alpha_identity() +
+    geom_line(data = tmpl_df, aes(group = NULL), linewidth = 1,
+              linetype = "dashed", color = "black") +
+    labs(title = "Observed", x = "t", y = "x(t)") +
+    theme_bench(base_size = 9)
+
+  # True warps
+  true_df <- tf_to_df(data$warps)
+  p_true <- ggplot(true_df, aes(arg, value, group = id)) +
+    geom_line(aes(color = color, alpha = alpha), linewidth = 0.3) +
+    scale_color_identity() + scale_alpha_identity() +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+    labs(title = "True warps", x = "s", y = "h(s)") +
+    theme_bench(base_size = 9)
+
+  method_plots <- list()
+  for (nm in names(fits)) {
+    fit <- fits[[nm]]
+    if (is.null(fit$warp_est) || is.null(fit$aligned)) next
+
+    w_df <- tf_to_df(fit$warp_est)
+    p_w <- ggplot(w_df, aes(arg, value, group = id)) +
+      geom_line(aes(color = color, alpha = alpha), linewidth = 0.3) +
+      scale_color_identity() + scale_alpha_identity() +
+      geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+      labs(title = paste(nm, "— warps"), x = "s", y = "h(s)") +
+      theme_bench(base_size = 9)
+
+    a_df <- tf_to_df(fit$aligned)
+    p_a <- ggplot(a_df, aes(arg, value, group = id)) +
+      geom_line(aes(color = color, alpha = alpha), linewidth = 0.3) +
+      scale_color_identity() + scale_alpha_identity() +
+      geom_line(data = tmpl_df, aes(group = NULL), linewidth = 1,
+                linetype = "dashed", color = "black") +
+      labs(title = paste(nm, "— aligned"), x = "t", y = "x(t)") +
+      theme_bench(base_size = 9)
+
+    method_plots <- c(method_plots, list(p_w, p_a))
+  }
+
+  all_plots <- c(list(p_obs, p_true), method_plots)
+  p <- wrap_plots(all_plots, ncol = 2, byrow = TRUE)
+  if (!is.null(title)) p <- p + plot_annotation(title = title)
+  p
+}
+```
+
+
+# Benchmark Design (ADEMP)
+
+## Aims
+
+Compare warp recovery, alignment quality, and robustness of 4 registration paradigms (SRVF, FDA continuous-criterion, affine, landmark) across 12 data-generating processes spanning different phase variability types and amplitude variation patterns.
+
+## Data-Generating Processes
+
+```{r}
+#| label: dgp-table
+dgp_info <- data.frame(
+  DGP = names(dgp_labels),
+  Template = c("sigbump", "sigbump", "harmonic", "sigbump", "sigbump",
+               "sigbump", "sigbump", "sigbump", "harmonic", "harmonic",
+               "sigbump", "sigbump"),
+  Phase = c("shift", "shift", "smooth", "smooth", "smooth",
+            "smooth", "smooth", "smooth", "landmark", "landmark",
+            "smooth", "affine"),
+  Amplitude = c("none", "rank-1 mult", "none", "none", "rank-1 mult",
+                "corr (deriv)", "corr (orth)", "additive", "none",
+                "rank-1 mult", "rank-2", "none"),
+  `Well-specified` = c("affine(shift)", "affine(shift)", "SRVF", "SRVF",
+                       "SRVF", "stress test", "SRVF", "SRVF",
+                       "landmark", "landmark", "SRVF", "affine(ss)"),
+  check.names = FALSE
+)
+
+dgp_info |>
+  gt() |>
+  tab_header(title = "12 Data-Generating Processes") |>
+  cols_label(
+    DGP = "DGP",
+    `Well-specified` = "Best-specified method"
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#f0f8ff"),
+    locations = cells_body(rows = Phase == "smooth")
+  )
+```
+
+The 12 DGPs span four types of phase variability (shift, smooth elastic, landmark-based, full affine) crossed with five amplitude patterns (none, multiplicative, correlated, additive, rank-2). Each DGP has a "best-specified" method whose assumptions match the data-generating mechanism exactly. This design ensures every method has scenarios where it should win (when well-specified) and scenarios where it is misspecified, providing a fair comparison.
+
+::: {.callout-tip collapse="true" title="DGP Component Details (formulas & rationale)"}
+
+**General observation model.** Each observed curve is
+$$x_i(t) \;=\; A_i\!\bigl[m\bigl(h_i(t)\bigr)\bigr] \;+\; \varepsilon_i(t), \qquad \varepsilon_i(t)\sim\mathcal N(0,\sigma^2_\text{noise}),$$
+where $m$ is the template, $h_i$ is the warping function (phase variability), $A_i[\cdot]$ applies amplitude variation, and $\varepsilon_i$ is i.i.d. Gaussian noise.
+
+#### Templates
+
+| Template | Formula |
+|:---------|:--------|
+| **sigbump** | $m(t) = \Phi\!\left(\frac{t-0.2}{0.03}\right) + 0.3\,\varphi\!\left(\frac{t-0.7}{0.08}\right) - 0.5$ &ensp; (sigmoid + Gaussian bump) |
+| **harmonic** | $m(t) = \sin(2\pi t) + 0.5\sin(4\pi t)$ |
+
+#### Phase variability types
+
+**Shift** (S1, S2 — non-domain-preserving):
+$$h_i(s) = s + b_i, \quad b_i \sim \text{Uniform}\!\left(-\tfrac{s\cdot\Delta}{4},\; \tfrac{s\cdot\Delta}{4}\right), \quad b_i \leftarrow b_i - \bar{b}$$
+where $s$ denotes severity and $\Delta = \max(\text{arg}) - \min(\text{arg})$. Warps are parallel translations; the post-hoc centering $b_i \leftarrow b_i - \bar{b}$ enforces identifiability ($\mathbb{E}[b]=0$). The affine (shift) method is exactly specified here.
+
+**Smooth elastic** (S3–S7, S10 — domain-preserving):
+$$g_i \sim \mathcal{GP}(0,\, k), \quad f_i(t) = \exp\!\bigl(s\cdot(g_i(t) - \bar g)\bigr), \quad h_i(t) = \frac{\int_0^t f_i(u)\,du}{\int_0^1 f_i(u)\,du}$$
+The exp-integrate-normalize construction guarantees $h_i(0)=0$, $h_i(1)=1$, and $h_i' > 0$ (monotonicity). Severity $s$ scales the GP amplitude, controlling the degree of warping. SRVF is the best-specified method for this warp class.
+
+**Landmark** (S8, S9 — domain-preserving, piecewise-linear):
+Let $\tau_1,\dots,\tau_K$ be the template's local extrema. Each curve's observed landmarks are
+$$\tau_{ik} = \tau_k + \varepsilon_{ik}, \quad \varepsilon_{ik}\sim\mathcal{N}(0,\,(0.05 s)^2),$$
+clamped to the domain interior and sorted. The warp $h_i$ is the piecewise-linear interpolant mapping template landmarks to observed landmarks, anchored at domain endpoints ($h_i(0)=0$, $h_i(1)=1$). Landmark registration with oracle landmarks is exactly specified.
+
+**Full affine** (S11 — non-domain-preserving):
+$$h_i(s) = a_i s + b_i, \qquad
+\begin{aligned}
+a_i &\sim \text{TruncNorm}(1,\,(0.05 s)^2,\;[1-0.15 s,\;1+0.15 s])\\
+b_i &\sim \text{TruncNorm}(0,\,(0.03 s)^2,\;[-0.07 s,\;0.07 s])
+\end{aligned}$$
+Post-hoc re-centered: $a_i \leftarrow a_i - \bar a + 1$, $b_i \leftarrow b_i - \bar b$. Combines time-scaling with shifts. The affine (shift+scale) method is exactly specified.
+
+#### Amplitude patterns
+
+| Pattern | Observation model | Parameter distributions | Rationale |
+|:--------|:------------------|:------------------------|:----------|
+| **none** | $x_i(t) = m(h_i(t))$ | — | Pure registration; isolates phase variability. |
+| **multiplicative** (rank-1) | $x_i(t) = a_i\, m(h_i(t))$ | $a_i \sim \text{LogN}(-\sigma_a^2/2,\;\sigma_a^2)$, $\mathbb{E}[a_i]=1$ | Curves are rescaled versions of the warped template. SRVF is invariant to this by construction. |
+| **correlated (deriv)** | $x_i(t) = m(h_i(t)) + c_i\,\phi_{\text{deriv}}(t)$ | $c_i = \sigma_a(\rho\, z_{d,i} + \sqrt{1-\rho^2}\, z_i)$; $z_{d,i} = (d_i - \bar d)/s_d$, $z_i\sim\mathcal N(0,1)$, $\rho=0.6$ | $\phi_\text{deriv} = m'/\lVert m'\rVert_2$ — amplitude variation along the template derivative is nearly collinear with small phase shifts (Taylor: $m(h+\delta)\approx m(h)+\delta m'$), making registration intrinsically hard. Serves as a **stress test** (S6a). |
+| **correlated (orth)** | $x_i(t) = m(h_i(t)) + c_i\,\phi_{\text{orth}}(t)$ | Same $c_i$ as above | $\phi_\text{orth} = [(t-0.5)^2 - \text{proj}_{m'}(t-0.5)^2]\,/\,\lVert\cdot\rVert_2$ — orthogonal to $m'$, so amplitude and phase are geometrically separated. Still correlated with warp magnitude. Tests whether methods exploit this separation (S6b). |
+| **additive** | $x_i(t) = m(h_i(t)) + b_i$ | $b_i\sim\mathcal{N}(0,\sigma_a^2)$ | Vertical shift; confounds the curve mean. Every method should handle this, but template-matching methods may be biased (S7). |
+| **rank-2** | $x_i(t) = a_i\, m(h_i(t)) + c_i$ | $a_i$ as multiplicative; $c_i\sim\mathcal{N}(0,\sigma_a^2)$ | Combines multiplicative rescaling with additive offset — two-dimensional amplitude subspace. More realistic than rank-1 (S10). |
+
+Default amplitude SD is $\sigma_a = 0.3$ (synthetic DGPs) or $\sigma_a = 0.5$ (real-data DGPs).
+
+:::
+
+## Methods
+
+```{r}
+#| label: methods-table
+method_info <- data.frame(
+  Config = names(method_labels),
+  Label = unname(method_labels),
+  Call = c(
+    'tf_register(x, template, method="srvf")',
+    'tf_register(x, template, method="fda")',
+    'tf_register(x, template, method="fda", crit=1)',
+    'tf_register(x, template, method="affine", type="shift")',
+    'tf_register(x, template, method="affine", type="shift_scale")',
+    'tf_register(x, method="landmark", landmarks=tf_landmarks_extrema(x))',
+    'tf_register(x, method="landmark", landmarks=true_lm, template_landmarks=true_tlm)'
+  ),
+  Applicable = c(rep("All 12 DGPs", 6), "S8, S9 only")
+)
+
+method_info |>
+  gt() |>
+  tab_header(title = "7 Method Configurations") |>
+  cols_label(Config = "Config ID", Label = "Label",
+             Call = "R Call", Applicable = "Applicable DGPs") |>
+  tab_style(
+    style = cell_text(font = "monospace", size = "small"),
+    locations = cells_body(columns = Call)
+  )
+```
+
+All template-based methods (SRVF, FDA, affine) receive the true template to isolate warp estimation quality from template estimation error. Landmark methods use detected or oracle landmarks instead. The `landmark_oracle` config is restricted to S8/S9 (harmonic template) where true landmark positions are known. All 6 general methods are applied to all 12 DGPs, including misspecified settings, to test robustness.
+
+## Performance Measures
+
+```{r}
+#| label: metrics-table
+metrics_info <- data.frame(
+  Metric = c("Warp MISE", "Interior Warp MISE", "Aligned MISE",
+             "Alignment CC", "Amplitude RMSE", "Landmark Error",
+             "Warp Roughness", "Boundary NA Rate", "Time/curve",
+             "Failure Rate"),
+  Type = c("primary", "primary", "primary",
+           "secondary", "secondary", "secondary",
+           "diagnostic", "diagnostic", "diagnostic", "diagnostic"),
+  Formula = c(
+    "mean(integral((w_est - w_true)^2))",
+    "same, restricted to [0.1, 0.9]",
+    "mean(integral((aligned - template)^2))",
+    "mean(crosscor(aligned, template))",
+    "sqrt(mean((a_est - a_true)^2))",
+    "mean(|detected - true|)",
+    "mean(integral(w''(t)^2))",
+    "fraction NA at boundaries",
+    "elapsed / n_curves",
+    "fraction failed"
+  )
+)
+
+metrics_info |>
+  gt() |>
+  tab_header(title = "10 Performance Measures") |>
+  tab_style(
+    style = cell_text(font = "monospace", size = "small"),
+    locations = cells_body(columns = Formula)
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#fff3e0"),
+    locations = cells_body(rows = Type == "primary")
+  )
+```
+
+The three primary metrics capture complementary aspects of registration quality: warp MISE measures how well the estimated time-warping function matches the truth, interior warp MISE does the same but avoids boundary artifacts for non-domain-preserving warps, and aligned MISE assesses the practical alignment quality after applying the estimated warp. Secondary and diagnostic metrics provide additional insights into amplitude separation, landmark accuracy, computational cost, and potential pathologies (over-wiggly warps, boundary NAs).
+
+## Experimental Design
+
+```{r}
+#| label: design-summary
+design_summary <- results |>
+  group_by(grid_name) |>
+  summarise(
+    cells = n_distinct(dgp, n_curves, n_grid, noise_sd, severity, method),
+    runs = n(),
+    .groups = "drop"
+  )
+
+design_summary |>
+  bind_rows(summarise(design_summary, grid_name = "TOTAL",
+                      cells = sum(cells), runs = sum(runs))) |>
+  gt() |>
+  tab_header(title = "Design Grid Summary") |>
+  cols_label(grid_name = "Grid", cells = "Unique Cells", runs = "Total Runs") |>
+  fmt_number(columns = c(cells, runs), decimals = 0) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(rows = grid_name == "TOTAL")
+  )
+```
+
+The benchmark uses four grids: a core factorial grid (5 key DGPs fully crossed with noise and severity), an interaction grid probing noise-amplitude interplay, sensitivity arms varying one factor at a time on S4, and a supplementary grid covering all remaining DGPs at fewer reps. The total of ~23K runs provides Monte Carlo SEs of approximately 0.001-0.01 for warp MISE, sufficient to distinguish methods at practical significance thresholds.
+
+# DGP Showcase
+
+Each tab shows one DGP: raw observed curves (left, blue) overlaid with the true template (dashed), true warping functions (middle, coral) relative to the identity (dashed grey), and the template alone (right). The spread of the warps around the identity shows the severity of phase variability; the spread of the observed curves around the template reflects both phase and amplitude variation. DGPs with shift warps (S1, S2) show parallel-translated warps; smooth warps (S3-S7, S10) show smooth deviations from the identity; landmark warps (S8, S9) show piecewise-linear deviations.
+
+```{r}
+#| label: dgp-showcase-fn
+
+plot_dgp_showcase <- function(dgp_name, n = 20, n_grid = 101,
+                              severity = 0.5, noise_sd = 0, seed = 42) {
+  data <- generate_data(dgp_name, n = n, n_grid = n_grid,
+                        severity = severity, noise_sd = noise_sd, seed = seed)
+  arg <- data$arg
+
+  # Extract matrices
+  x_mat <- as.matrix(data$x)
+  w_mat <- as.matrix(data$warps)
+  tmpl_vals <- tf_evaluations(data$template)[[1]]
+
+  # Curves data: t(mat) gives row-major order (all args for curve 1, then curve 2, ...)
+  # so arg must cycle per curve and id must repeat each for all args
+  n_arg <- length(arg)
+  curves_df <- data.frame(
+    arg = rep(arg, times = n),
+    value = as.vector(t(x_mat)),
+    id = rep(seq_len(n), each = n_arg)
+  )
+  tmpl_df <- data.frame(arg = arg, value = tmpl_vals)
+
+  # Warps data
+  warps_df <- data.frame(
+    arg = rep(arg, times = n),
+    value = as.vector(t(w_mat)),
+    id = rep(seq_len(n), each = n_arg)
+  )
+  id_df <- data.frame(arg = arg, value = arg)
+
+  p1 <- ggplot(curves_df, aes(arg, value, group = id)) +
+    geom_line(alpha = 0.4, linewidth = 0.3, color = "steelblue") +
+    geom_line(data = tmpl_df, aes(arg, value), inherit.aes = FALSE,
+              linewidth = 1.2, linetype = "dashed", color = "black") +
+    labs(title = "Observed Curves", x = "t", y = "x(t)") +
+    theme_bench()
+
+  p2 <- ggplot(warps_df, aes(arg, value, group = id)) +
+    geom_line(alpha = 0.4, linewidth = 0.3, color = "coral") +
+    geom_line(data = id_df, aes(arg, value), inherit.aes = FALSE,
+              linewidth = 1, linetype = "dashed", color = "grey40") +
+    labs(title = "True Warps", x = "s", y = "h(s)") +
+    theme_bench()
+
+  spec <- dgp_spec(dgp_name)
+  p3_title <- sprintf("%s | %s | %s", spec$template, spec$phase, spec$amplitude)
+  p3 <- ggplot(tmpl_df, aes(arg, value)) +
+    geom_line(linewidth = 1.2) +
+    labs(title = p3_title, x = "t", y = "m(t)") +
+    theme_bench()
+
+  p1 + p2 + p3 + plot_annotation(title = dgp_labels[dgp_name])
+}
+```
+
+::: {.panel-tabset}
+
+```{r}
+#| label: dgp-showcase-tabs
+#| results: asis
+#| fig-height: 8
+#| fig-width: 12
+for (dgp in names(dgp_labels)) {
+  cat(sprintf("\n## %s\n\n", dgp))
+  p_clean <- plot_dgp_showcase(dgp, noise_sd = 0) +
+    plot_annotation(subtitle = "Clean (noise_sd = 0)")
+  p_noisy <- plot_dgp_showcase(dgp, noise_sd = 0.2) +
+    plot_annotation(subtitle = "Noisy (noise_sd = 0.2)")
+  p_combined <- (p_clean / p_noisy) +
+    plot_annotation(title = dgp_labels[dgp])
+  print(p_combined)
+  cat("\n\n")
+}
+```
+
+:::
+
+
+# Main Results
+
+::: {.panel-tabset}
+
+## Heatmap
+
+The heatmap shows mean warp MISE (log10 scale) for each method-DGP combination on the core grid, averaged over noise and severity levels. Cell labels and colors both encode log10(MISE), where more negative values (darker) indicate better warp recovery. `landmark_oracle` is excluded from the heatmap because its near-zero MISE on S8/S9 compresses the color scale for all other comparisons; it achieves near-perfect recovery by definition (oracle landmarks). The remaining methods reveal a clear pattern: well-specified methods (e.g., affine_shift on S1) achieve very low MISE, while misspecified methods show dramatically higher errors. SRVF consistently achieves competitive MISE across smooth-warp DGPs.
+
+```{r}
+#| label: fig-heatmap
+#| fig-cap: "Mean warp MISE by method and DGP (core grid, averaged over noise and severity). Color encodes log10(MISE). landmark_oracle excluded (near-zero MISE on S8/S9 compresses color scale)."
+#| fig-height: 7
+#| fig-width: 11
+
+core_res <- results[results$grid_name == "core" & !results$failure &
+                      !results$not_applicable, ]
+heatmap_data <- summarize_metric(core_res, c("dgp", "method"), "warp_mise")
+
+# Exclude landmark_oracle: its near-zero MISE on S8/S9 compresses the color
+# scale, making it hard to distinguish the other methods.
+heatmap_data <- heatmap_data[heatmap_data$method != "landmark_oracle", ]
+
+# Order DGPs and methods
+heatmap_data$dgp <- factor(heatmap_data$dgp, levels = names(dgp_labels))
+heatmap_data$method <- factor(heatmap_data$method,
+                              levels = setdiff(names(method_labels), "landmark_oracle"))
+
+# Dynamic text color: dark text on light tiles, white on dark
+# Floor at 1e-10 to avoid log10(0) = -Inf
+heatmap_data$log_mise <- log10(pmax(heatmap_data$mean, 1e-10))
+mise_range <- range(heatmap_data$log_mise, na.rm = TRUE)
+heatmap_data$text_color <- ifelse(
+  scales::rescale(heatmap_data$log_mise, from = mise_range) > 0.6,
+  "white", "black"
+)
+
+ggplot(heatmap_data, aes(x = method, y = dgp, fill = log_mise)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.1f", log_mise), color = text_color),
+            size = 2.8, show.legend = FALSE) +
+  scale_color_identity() +
+  scale_fill_viridis_c(name = "log10(MISE)", option = "plasma",
+                       direction = -1) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_discrete(labels = function(x) sub(":.*", "", dgp_labels[x])) +
+  labs(title = "Warp MISE Heatmap", x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+## Boxplots
+
+The boxplots show the full distribution of warp MISE for each method, faceted by DGP. The log scale on the y-axis spans several orders of magnitude, reflecting the wide performance gaps between well-specified and misspecified methods. Within each DGP, the box widths and whisker lengths indicate variability across Monte Carlo reps. Methods with tight distributions are more reliable; long upper whiskers signal occasional poor fits. Exact-zero MISE values (from perfect affine recovery) are excluded since they cannot appear on the log scale.
+
+```{r}
+#| label: fig-boxplots
+#| fig-cap: "Warp MISE distributions per method, faceted by core DGPs. Note log scale on y-axis."
+#| fig-height: 10
+#| fig-width: 12
+
+core_res$method_f <- factor(core_res$method, levels = names(method_labels),
+                            labels = method_labels)
+core_res$dgp_f <- factor(core_res$dgp, levels = names(dgp_labels),
+                         labels = sub(":.*", "", dgp_labels[names(dgp_labels)]))
+
+# Filter warp_mise > 0 for log scale (exact zeros occur for well-specified affine;
+# these represent perfect recovery and are shown as rank-1 in the rankings table)
+n_zero <- sum(core_res$warp_mise == 0, na.rm = TRUE)
+if (n_zero > 0) cat(sprintf("Note: %d rows with exact zero MISE excluded from log-scale boxplot.\n", n_zero))
+ggplot(core_res[!is.na(core_res$warp_mise) & core_res$warp_mise > 0, ],
+       aes(x = method_f, y = warp_mise, fill = method)) +
+  geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.3) +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_fill_manual(values = method_colors, guide = "none") +
+  labs(title = "Warp MISE Distributions", x = NULL, y = "Warp MISE (log scale)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+```
+
+## Rankings
+
+The rankings table assigns each method a rank (1=best) within each DGP based on mean warp MISE. Green cells indicate better performance, red cells indicate worse. A method that ranks 1st on its well-specified DGP but poorly elsewhere is specialized; a method that consistently ranks 2nd-3rd everywhere is a generalist. SRVF is expected to rank 1st on smooth-warp DGPs and 2nd-3rd on shift/affine DGPs where it is not the correct model.
+
+```{r}
+#| label: tbl-rankings
+#| tbl-cap: "Method rankings by DGP (core grid). Rank 1 = best (lowest mean warp MISE). Green = better, red = worse."
+
+rankings <- summarize_metric(core_res, c("dgp", "method"), "warp_mise")
+rankings <- rankings |>
+  group_by(dgp) |>
+  mutate(rank = rank(mean, ties.method = "min")) |>
+  ungroup()
+
+rank_wide <- rankings |>
+  select(dgp, method, rank) |>
+  pivot_wider(names_from = method, values_from = rank)
+
+rank_wide |>
+  gt(rowname_col = "dgp") |>
+  tab_header(title = "Method Rankings by DGP (Rank 1 = Best)") |>
+  cols_label(!!!setNames(as.list(method_labels[intersect(names(method_labels),
+                                                          names(rank_wide))]),
+                          intersect(names(method_labels), names(rank_wide)))) |>
+  data_color(
+    columns = where(is.numeric),
+    palette = c("#c7e9c0", "#e5f5e0", "white", "white", "#fee0d2", "#fcbba1", "#fc9272")
+  )
+```
+
+
+:::
+
+# Must-Answer Questions
+
+::: {.panel-tabset}
+
+## SRVF Losses
+
+This section answers: "On which DGPs and how often does SRVF lose to the best competitor?" For each Monte Carlo rep, we compute the difference between SRVF's warp MISE and the best competitor's MISE. Positive values mean SRVF is worse. The boxplot shows these paired differences by DGP: boxes entirely below zero indicate SRVF dominance, boxes above zero indicate consistent losses. The accompanying table quantifies the fraction of reps where SRVF loses and identifies the most common winner.
+
+```{r}
+#| label: fig-srvf-vs-best
+#| fig-cap: "Paired comparison: SRVF warp MISE minus best competitor's MISE per DGP. Positive values = SRVF is worse."
+#| fig-height: 5
+
+# For each (dgp, noise_sd, severity, rep), compute SRVF MISE - min(other methods)
+core_wide <- core_res |>
+  filter(!is.na(warp_mise)) |>
+  select(dgp, noise_sd, severity, rep, method, warp_mise)
+
+srvf_vals <- core_wide |> filter(method == "srvf")
+others <- core_wide |> filter(method != "srvf")
+
+best_others <- others |>
+  group_by(dgp, noise_sd, severity, rep) |>
+  summarise(best_other_mise = min(warp_mise, na.rm = TRUE),
+            best_method = method[which.min(warp_mise)],
+            .groups = "drop")
+
+# left_join to keep all SRVF reps; reps where ALL others failed get NA
+paired <- left_join(srvf_vals, best_others,
+                    by = c("dgp", "noise_sd", "severity", "rep"))
+paired <- paired[!is.na(paired$best_other_mise), ]
+paired$diff <- paired$warp_mise - paired$best_other_mise
+paired$dgp_f <- factor(paired$dgp, levels = names(dgp_labels))
+
+ggplot(paired, aes(x = dgp_f, y = diff, fill = diff > 0)) +
+  geom_boxplot(outlier.size = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  scale_fill_manual(values = c("TRUE" = "#fc9272", "FALSE" = "#a1d99b"),
+                    guide = "none") +
+  labs(title = "SRVF vs Best Competitor (Paired Differences)",
+       subtitle = "Positive = SRVF is worse than the best alternative",
+       x = "DGP", y = "MISE(SRVF) - MISE(best other)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+#| label: srvf-loss-summary
+# Fraction of reps where SRVF is NOT best, by DGP
+srvf_loss <- paired |>
+  group_by(dgp) |>
+  summarise(
+    pct_srvf_loses = mean(diff > 0) * 100,
+    median_diff = median(diff),
+    most_common_winner = names(sort(table(best_method), decreasing = TRUE))[1],
+    .groups = "drop"
+  )
+
+srvf_loss |>
+  gt() |>
+  tab_header(title = "When SRVF Loses") |>
+  cols_label(dgp = "DGP", pct_srvf_loses = "% Reps SRVF Loses",
+             median_diff = "Median Diff", most_common_winner = "Most Common Winner") |>
+  fmt_number(columns = c(pct_srvf_loses, median_diff), decimals = 2)
+```
+
+## Landmarks
+
+This section evaluates `landmark_auto`'s ability to detect features in the observed curves. The boxplot shows detection error (mean absolute deviation of detected vs true landmark positions on [0,1]) for S8 and S9 only, where ground-truth landmark positions are known. Errors below 0.05 indicate excellent detection. The failure rate table below reveals a key fragility: `landmark_auto` fails frequently on sigbump DGPs because the template has only one isolated feature (the bump), providing insufficient landmarks for registration.
+
+```{r}
+#| label: fig-landmarks
+#| fig-cap: "Landmark detection error for landmark_auto on landmark DGPs (S8, S9). Error is mean absolute deviation on [0,1] domain; < 0.05 is excellent."
+#| fig-height: 4
+#| fig-width: 7
+
+# Only S8/S9 have ground-truth landmarks; other DGPs have spurious detections
+lm_data <- results |>
+  filter(method == "landmark_auto", !is.na(landmark_error),
+         dgp %in% c("S8", "S9"))
+
+if (nrow(lm_data) > 0) {
+  lm_data$dgp_f <- factor(lm_data$dgp, levels = c("S8", "S9"))
+  ggplot(lm_data, aes(x = dgp_f, y = landmark_error, fill = dgp_f)) +
+    geom_boxplot(outlier.size = 0.5) +
+    geom_hline(yintercept = 0.05, linetype = "dashed", color = "grey50") +
+    annotate("text", x = -Inf, y = 0.053, label = "excellent threshold",
+             size = 3, color = "grey50", hjust = -0.1) +
+    labs(title = "Landmark Detection Error (S8, S9 only)",
+         subtitle = "Mean absolute deviation on [0,1] domain",
+         x = "DGP", y = "Mean Absolute Landmark Error") +
+    scale_fill_brewer(palette = "Set3", guide = "none") +
+    theme_bench()
+} else {
+  cat("No landmark error data available for S8/S9.\n")
+}
+```
+
+```{r}
+#| label: landmark-failure-breakdown
+# Failure rate of landmark_auto by DGP
+lm_all <- results |> filter(method == "landmark_auto")
+lm_fail <- lm_all |>
+  group_by(dgp) |>
+  summarise(
+    n = n(),
+    failures = sum(failure),
+    failure_rate = mean(failure) * 100,
+    .groups = "drop"
+  )
+
+lm_fail |>
+  gt() |>
+  tab_header(title = "Landmark Auto: Failure Rate by DGP") |>
+  fmt_number(columns = failure_rate, decimals = 1, pattern = "{x}%")
+```
+
+## Noise
+
+How does measurement noise degrade registration accuracy? The figure shows warp MISE (log scale) versus noise SD for each method, faceted by DGP. Error bars show Monte Carlo SE. All methods degrade with increasing noise, but the rate differs: SRVF and FDA degrade gracefully (gentle slopes), while landmark and affine methods are more noise-sensitive. The noise slope table below quantifies this via regression of log(MISE) on noise SD, controlling for severity. Larger slopes indicate greater noise sensitivity.
+
+```{r}
+#| label: fig-noise-robustness
+#| fig-cap: "Warp MISE vs noise level, faceted by DGP (interaction grid: S4, S5, S6b, S7)."
+#| fig-height: 8
+#| fig-width: 10
+
+interaction_dgps <- c("S4", "S5", "S6b", "S7")
+int_res <- results |>
+  filter(dgp %in% interaction_dgps, !failure, !not_applicable, !is.na(warp_mise))
+
+noise_data <- summarize_metric(int_res, c("dgp", "noise_sd", "method"), "warp_mise")
+noise_data$noise_sd <- as.numeric(noise_data$noise_sd)
+noise_data$dgp_f <- factor(noise_data$dgp, levels = names(dgp_labels),
+                           labels = sub(":.*", "", dgp_labels[names(dgp_labels)]))
+
+ggplot(noise_data, aes(x = noise_sd, y = mean, color = method)) +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 1.5) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.01,
+                linewidth = 0.4) +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 2) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  labs(title = "Noise Robustness",
+       x = "Noise SD", y = "Warp MISE ± MC SE (log scale)", color = "Method") +
+  theme_bench()
+```
+
+```{r}
+#| label: noise-slopes
+# Regression of log(MISE) on noise_sd per method and DGP, controlling for severity
+noise_slopes <- int_res |>
+  filter(warp_mise > 0) |>
+  group_by(dgp, method) |>
+  summarise(
+    fit = list(tryCatch(lm(log(warp_mise) ~ noise_sd + severity), error = function(e) NULL)),
+    .groups = "drop"
+  ) |>
+  mutate(
+    slope = vapply(fit, \(f) if (!is.null(f)) coef(f)[["noise_sd"]] else NA_real_, numeric(1)),
+    se = vapply(fit, \(f) if (!is.null(f)) sqrt(vcov(f)["noise_sd", "noise_sd"]) else NA_real_, numeric(1)),
+    r_sq = vapply(fit, \(f) if (!is.null(f)) summary(f)$r.squared else NA_real_, numeric(1))
+  ) |>
+  mutate(slope_label = sprintf("%.2f (%.2f)", slope, se)) |>
+  select(dgp, method, slope_label) |>
+  pivot_wider(names_from = method, values_from = slope_label)
+
+noise_slopes |>
+  gt(rowname_col = "dgp") |>
+  tab_header(title = "Noise Sensitivity Slopes",
+             subtitle = "d log(MISE) / d noise_sd (SE in parentheses), controlling for severity")
+```
+
+
+:::
+
+# Deep Dives
+
+::: {.panel-tabset}
+
+## Landmark Paradox
+
+On shift DGPs (S1), `landmark_auto` can produce unexpectedly low MISE — but this is because the sigbump template has only one extremum, so landmark detection either fails entirely (counted as failure) or locks onto the single bump peak and creates a reasonable shift-like warp.
+
+```{r}
+#| label: fig-paradox
+#| fig-cap: "Example: S1 with landmark_auto vs SRVF — raw curves, estimated warps, and aligned result."
+#| fig-height: 4
+#| fig-width: 14
+
+# Regenerate one S1 dataset and fit two methods
+data_s1 <- generate_data("S1", n = 15, n_grid = 101, severity = 0.5,
+                         noise_sd = 0, seed = 42)
+
+fit_srvf <- fit_method(data_s1, "srvf")
+fit_lm_auto <- fit_method(data_s1, "landmark_auto")
+
+# Helper to extract plot data
+make_plot_df <- function(tf_obj, label) {
+  mat <- as.matrix(tf_obj)
+  arg <- data_s1$arg
+  stopifnot("Grid mismatch: ncol(mat) != length(arg)" =
+              ncol(mat) == length(arg))
+  n_arg <- length(arg)
+  data.frame(
+    arg = rep(arg, times = nrow(mat)),
+    value = as.vector(t(mat)),
+    id = rep(seq_len(nrow(mat)), each = n_arg),
+    method = label
+  )
+}
+
+plots <- list()
+for (info in list(
+  list(fit = fit_srvf, name = "SRVF"),
+  list(fit = fit_lm_auto, name = "Landmark (auto)")
+)) {
+  if (is.null(info$fit$warp_est)) next
+  warps_df <- make_plot_df(info$fit$warp_est, info$name)
+  aligned_df <- make_plot_df(info$fit$aligned, info$name)
+
+  p_w <- ggplot(warps_df, aes(arg, value, group = id)) +
+    geom_line(alpha = 0.4, linewidth = 0.3, color = "coral") +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+    labs(title = paste(info$name, "— Warps"), x = "s", y = "h(s)") +
+    theme_bench(base_size = 9)
+
+  tmpl_vals <- tf_evaluations(data_s1$template)[[1]]
+  tmpl_df <- data.frame(arg = data_s1$arg, value = tmpl_vals)
+  p_a <- ggplot(aligned_df, aes(arg, value, group = id)) +
+    geom_line(alpha = 0.4, linewidth = 0.3, color = "steelblue") +
+    geom_line(data = tmpl_df, aes(arg, value), inherit.aes = FALSE,
+              linewidth = 1, linetype = "dashed") +
+    labs(title = paste(info$name, "— Aligned"), x = "t", y = "x(t)") +
+    theme_bench(base_size = 9)
+
+  plots <- c(plots, list(p_w, p_a))
+}
+
+if (length(plots) > 0) {
+  wrap_plots(plots, nrow = 1)
+} else {
+  cat("Both methods failed on this example.\n")
+}
+```
+
+## FDA Comparison
+
+We compare the two FDA variants head-to-head. The scatter plot (left) shows each rep's MISE for `fda_default` vs `fda_crit1`; points below the diagonal mean `crit=1` is better. The log-ratio histogram (right) uses a symmetric scale where negative values favor `crit=1`. The summary table breaks down the comparison by DGP: if one variant consistently beats the other, we can simplify the method set; if they are comparable, `fda_crit1` adds little value.
+
+```{r}
+#| label: fig-fda-comparison
+#| fig-cap: "Paired comparison of fda_default vs fda_crit1 warp MISE."
+#| fig-height: 5
+#| fig-width: 10
+
+fda_comp <- core_res |>
+  filter(method %in% c("fda_default", "fda_crit1"), !is.na(warp_mise)) |>
+  select(dgp, noise_sd, severity, rep, method, warp_mise) |>
+  pivot_wider(names_from = method, values_from = warp_mise) |>
+  filter(!is.na(fda_default), !is.na(fda_crit1))
+
+p_scatter <- ggplot(fda_comp, aes(x = fda_default, y = fda_crit1, color = dgp)) +
+  geom_point(alpha = 0.3, size = 1) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  scale_x_log10() + scale_y_log10() +
+  labs(title = "FDA default vs crit=1", x = "FDA default MISE", y = "FDA crit=1 MISE") +
+  theme_bench()
+
+# Log-ratio is symmetric around 0 and accounts for multiplicative differences
+# (a 2x improvement is the same magnitude as a 2x degradation)
+fda_comp$log_ratio <- log(fda_comp$fda_crit1 / fda_comp$fda_default)
+p_hist <- ggplot(fda_comp, aes(x = log_ratio)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "white") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(title = "Log-ratio (crit1 / default)",
+       subtitle = "Negative = crit1 better; symmetric scale (2x improvement = -0.69)",
+       x = "log(MISE_crit1 / MISE_default)") +
+  theme_bench()
+
+p_scatter + p_hist
+```
+
+```{r}
+#| label: fda-comparison-summary
+fda_summary <- fda_comp |>
+  group_by(dgp) |>
+  summarise(
+    pct_crit1_better = mean(fda_crit1 < fda_default) * 100,
+    median_ratio = median(fda_crit1 / fda_default),
+    .groups = "drop"
+  )
+
+fda_summary |>
+  gt() |>
+  tab_header(title = "FDA crit=1 vs default by DGP") |>
+  cols_label(dgp = "DGP", pct_crit1_better = "% crit1 Better",
+             median_ratio = "Median MISE Ratio") |>
+  fmt_number(columns = c(pct_crit1_better, median_ratio), decimals = 1)
+```
+
+## Severity
+
+How does the magnitude of phase variability affect registration accuracy? Higher severity means larger warp deviations from the identity. As severity increases, all methods see higher MISE, but the rate of degradation varies. Well-specified methods (e.g., affine on S1/S11) should scale linearly; nonparametric methods (SRVF, FDA) may show steeper degradation if severe warps push them outside their effective operating range. Error bars show MC SEs.
+
+```{r}
+#| label: fig-severity
+#| fig-cap: "Warp MISE vs severity for core DGPs."
+#| fig-height: 5
+#| fig-width: 10
+
+sev_data <- summarize_metric(core_res, c("dgp", "severity", "method"), "warp_mise")
+sev_data$severity <- as.numeric(sev_data$severity)
+sev_data$dgp_f <- factor(sev_data$dgp, levels = names(dgp_labels))
+
+ggplot(sev_data, aes(x = severity, y = mean, color = method)) +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 1.5) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.02) +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  labs(title = "Severity Response", x = "Severity", y = "Warp MISE ± SE") +
+  theme_bench()
+```
+
+## Amplitude
+
+Does amplitude variation confound warp estimation? The grouped bar chart compares warp MISE across four DGPs that share the same phase type (smooth elastic) but differ in amplitude: S4 (none), S5 (multiplicative), S6b (correlated with phase), S7 (additive). Bars are grouped by noise level. If a method's MISE increases substantially from S4 to S5/S6b/S7, it is sensitive to amplitude contamination. SRVF's invariance to scaling should make it robust to multiplicative variation (S5).
+
+```{r}
+#| label: fig-amplitude-interaction
+#| fig-cap: "Warp MISE across noise levels and methods for DGPs S4 (baseline, no amplitude), S5 (multiplicative), S6b (correlated), S7 (additive)."
+#| fig-height: 8
+#| fig-width: 12
+
+amp_dgps <- c("S4", "S5", "S6b", "S7")
+amp_res <- results |>
+  filter(dgp %in% amp_dgps, !failure, !not_applicable, !is.na(warp_mise))
+amp_summ <- summarize_metric(amp_res, c("dgp", "noise_sd", "method"), "warp_mise")
+amp_summ$noise_sd <- factor(amp_summ$noise_sd)
+amp_summ$dgp_f <- factor(amp_summ$dgp, levels = amp_dgps,
+                         labels = sub(":.*", "", dgp_labels[amp_dgps]))
+
+ggplot(amp_summ, aes(x = method, y = mean, fill = noise_sd)) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 2) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_fill_brewer(palette = "YlOrRd", name = "Noise SD") +
+  scale_x_discrete(labels = method_labels) +
+  labs(title = "Amplitude × Noise Interaction",
+       x = NULL, y = "Mean Warp MISE (log scale)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+```
+
+## Amplitude Recovery
+
+After alignment, we estimate amplitude coefficients by projecting each aligned curve onto the template. The bar chart shows amplitude RMSE for DGPs with non-trivial amplitude variation. Lower RMSE means the method's alignment was good enough to cleanly separate phase from amplitude. For rank-2 DGP S10, the metric combines both scale and shift errors into a single Euclidean norm. Methods that over- or under-align will distort the amplitude estimates, producing higher RMSE.
+
+```{r}
+#| label: fig-amplitude-rmse
+#| fig-cap: "Amplitude RMSE for DGPs with non-trivial amplitude variation."
+#| fig-height: 5
+#| fig-width: 10
+
+# For rank-2 (S10), amplitude RMSE = sqrt(RMSE_a^2 + RMSE_c^2), combining both
+# multiplicative and additive amplitude errors into a single Euclidean metric.
+amp_rmse_dgps <- c("S2", "S5", "S6a", "S6b", "S7", "S9", "S10")
+amp_rmse_data <- results |>
+  filter(dgp %in% amp_rmse_dgps, !failure, !not_applicable,
+         !is.na(amplitude_rmse))
+
+if (nrow(amp_rmse_data) > 0) {
+  amp_rmse_summ <- summarize_metric(amp_rmse_data, c("dgp", "method"),
+                                    "amplitude_rmse")
+  amp_rmse_summ$dgp_f <- factor(amp_rmse_summ$dgp, levels = amp_rmse_dgps,
+                                 labels = sub(":.*", "", dgp_labels[amp_rmse_dgps]))
+  amp_rmse_summ$method_f <- factor(amp_rmse_summ$method,
+                                    levels = names(method_labels),
+                                    labels = method_labels)
+
+  ggplot(amp_rmse_summ, aes(x = method_f, y = mean, fill = method)) +
+    geom_col() +
+    geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.3) +
+    facet_wrap(~ dgp_f, scales = "free_y", ncol = 4) +
+    scale_fill_manual(values = method_colors, guide = "none") +
+    labs(title = "Amplitude Recovery (RMSE)",
+         subtitle = "Post-alignment amplitude estimation error",
+         x = NULL, y = "Amplitude RMSE ± MC SE") +
+    theme_bench() +
+    theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+} else {
+  cat("No amplitude RMSE data available for these DGPs.\n")
+}
+```
+
+## Timing
+
+Computational cost matters for large datasets. The bar chart shows median time per curve (with IQR whiskers) across all core-grid runs. Affine methods are fastest (closed-form solutions), followed by landmark methods. SRVF and FDA require iterative optimization and are 10-100x slower. This cost-accuracy trade-off is relevant when choosing a method: if the data is known to have affine phase variability, the affine methods are both faster and more accurate.
+
+```{r}
+#| label: fig-timing
+#| fig-cap: "Median computation time per curve by method."
+#| fig-height: 5
+#| fig-width: 8
+
+time_data <- core_res |>
+  filter(!is.na(time)) |>
+  group_by(method) |>
+  summarise(
+    median_time = median(time / n_curves),
+    q25 = quantile(time / n_curves, 0.25),
+    q75 = quantile(time / n_curves, 0.75),
+    .groups = "drop"
+  )
+time_data$method_f <- factor(time_data$method, levels = names(method_labels),
+                             labels = method_labels)
+
+ggplot(time_data, aes(x = reorder(method_f, median_time), y = median_time,
+                      fill = method)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = q25, ymax = q75), width = 0.3) +
+  scale_fill_manual(values = method_colors, guide = "none") +
+  coord_flip() +
+  labs(title = "Computation Time per Curve",
+       x = NULL, y = "Median time (seconds / curve)") +
+  theme_bench()
+```
+
+
+:::
+
+# Diagnostics
+
+::: {.panel-tabset}
+
+## Failures
+
+The failure table shows which method-DGP combinations produced errors. Overall failure rate is very low (0.2%), but failures are highly concentrated: almost all come from `landmark_auto` on sigbump-template DGPs where only one extremum exists, causing landmark detection to fail. The error classification below categorizes failure modes. Understanding failure patterns is important for practical use: a method with 0% failure rate on well-specified data but 20% on misspecified data needs appropriate fallback handling.
+
+```{r}
+#| label: tbl-failures
+#| tbl-cap: "Failure breakdown by DGP and method."
+
+fail_df <- results |>
+  filter(failure) |>
+  group_by(dgp, method) |>
+  summarise(n_failures = n(), .groups = "drop")
+
+total_by_cell <- results |>
+  group_by(dgp, method) |>
+  summarise(n_total = n(), .groups = "drop")
+
+fail_rates <- left_join(total_by_cell, fail_df, by = c("dgp", "method")) |>
+  mutate(n_failures = replace_na(n_failures, 0),
+         rate = n_failures / n_total * 100) |>
+  filter(n_failures > 0)
+
+if (nrow(fail_rates) > 0) {
+  fail_rates |>
+    select(dgp, method, n_failures, n_total, rate) |>
+    arrange(desc(rate)) |>
+    gt() |>
+    tab_header(title = "Non-zero Failure Rates") |>
+    cols_label(dgp = "DGP", method = "Method", n_failures = "Failures",
+               n_total = "Total", rate = "Rate (%)") |>
+    fmt_number(columns = rate, decimals = 1)
+} else {
+  cat("No failures observed.\n")
+}
+```
+
+```{r}
+#| label: error-classification
+# Classify error messages
+errors <- results |>
+  filter(failure, error_msg != "") |>
+  mutate(error_type = case_when(
+    grepl("landmark", error_msg, ignore.case = TRUE) ~ "Landmark detection",
+    grepl("singular|solve|chol", error_msg, ignore.case = TRUE) ~ "Numerical",
+    grepl("converg", error_msg, ignore.case = TRUE) ~ "Convergence",
+    grepl("dimension|length|nrow", error_msg, ignore.case = TRUE) ~ "Dimension mismatch",
+    TRUE ~ "Other"
+  ))
+
+if (nrow(errors) > 0) {
+  error_summary <- errors |>
+    group_by(error_type) |>
+    summarise(count = n(), .groups = "drop") |>
+    arrange(desc(count))
+
+  error_summary |>
+    gt() |>
+    tab_header(title = "Error Classification") |>
+    cols_label(error_type = "Error Type", count = "Count")
+}
+```
+
+## Roughness
+
+Warp roughness (integrated squared second derivative) detects over-wiggling: a method that achieves low MISE but produces jagged warps is fitting noise rather than true phase variation. The boxplots show roughness for smooth-warp methods only (SRVF, FDA), since affine and landmark warps are smooth by construction. Higher roughness indicates more aggressive fitting. If roughness increases with noise while MISE stays flat, the method may be overfitting to measurement error.
+
+```{r}
+#| label: fig-roughness
+#| fig-cap: "Warp roughness (integrated squared second derivative) for smooth-warp methods on smooth DGPs."
+#| fig-height: 5
+
+roughness_data <- core_res |>
+  filter(!is.na(warp_roughness), warp_roughness > 0,
+         method %in% c("srvf", "fda_default", "fda_crit1"))
+
+if (nrow(roughness_data) > 0) {
+  roughness_data$method_f <- factor(roughness_data$method,
+                                    levels = names(method_labels),
+                                    labels = method_labels)
+  roughness_data$dgp_f <- factor(roughness_data$dgp, levels = names(dgp_labels))
+
+  ggplot(roughness_data, aes(x = method_f, y = warp_roughness, fill = method)) +
+    geom_boxplot(outlier.size = 0.5) +
+    facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+    scale_y_log10() +
+    scale_fill_manual(values = method_colors, guide = "none") +
+    labs(title = "Warp Roughness", x = NULL, y = "Roughness (log scale)") +
+    theme_bench() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+} else {
+  cat("No roughness data available for smooth-warp methods.\n")
+}
+```
+
+## Boundary NAs
+
+The boundary NA rate measures the fraction of grid points in the boundary region (`t < 0.1` or `t > 0.9`) that are `NA` in the estimated warps, averaged across curves and reps. SRVF/FDA force `h(0)=0, h(1)=1`, so their rate is 0. Affine methods allow out-of-domain warps, producing NAs where `h(t) ∉ [0,1]`.
+
+```{r}
+#| label: tbl-boundary-na
+#| tbl-cap: "Boundary NA rate for non-domain-preserving DGPs."
+
+boundary_dgps <- c("S1", "S2", "S11")
+bna <- results |>
+  filter(dgp %in% boundary_dgps, !failure, !not_applicable, !is.na(boundary_na_rate))
+
+if (nrow(bna) > 0) {
+  bna_summ <- bna |>
+    group_by(dgp, method) |>
+    summarise(mean_na_rate = mean(boundary_na_rate) * 100, .groups = "drop") |>
+    pivot_wider(names_from = method, values_from = mean_na_rate)
+
+  bna_summ |>
+    gt(rowname_col = "dgp") |>
+    tab_header(title = "Mean Boundary NA Rate (%)",
+               subtitle = "DGPs with non-domain-preserving warps (S1, S2, S11)") |>
+    fmt_number(decimals = 1)
+} else {
+  cat("No boundary NA data for these DGPs.\n")
+}
+```
+
+## MISE Scatter
+
+The scatter of aligned MISE vs warp MISE reveals whether good alignment always implies good warp recovery. Points below the diagonal have better alignment quality than warp accuracy, meaning the method aligned the curves well despite not recovering the true warp. This can happen when different warps produce similar aligned curves (non-identifiability). Points above the diagonal indicate the opposite: accurate warp estimation but poor alignment, which can occur when amplitude variation dominates the alignment error.
+
+```{r}
+#| label: fig-scatter
+#| fig-cap: "Aligned MISE vs Warp MISE (core grid). Good alignment (low aligned MISE) does not guarantee good warp recovery."
+#| fig-height: 6
+#| fig-width: 8
+
+scatter_df <- core_res |>
+  filter(!is.na(aligned_mise), !is.na(warp_mise),
+         aligned_mise > 0, warp_mise > 0)
+
+ggplot(scatter_df, aes(x = warp_mise, y = aligned_mise, color = method)) +
+  geom_point(alpha = 0.15, size = 0.8) +
+  scale_x_log10(labels = label_scientific()) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey60") +
+  annotate("text", x = Inf, y = -Inf, label = "Alignment better\nthan warp recovery",
+           hjust = 1.1, vjust = -0.5, size = 3, color = "grey40") +
+  labs(title = "Aligned MISE vs Warp MISE",
+       x = "Warp MISE (log scale)", y = "Aligned MISE (log scale)") +
+  theme_bench()
+```
+
+
+:::
+
+# Statistical Analysis
+
+We fit a linear model to log(warp MISE) with method, DGP, and noise as main effects plus their interactions, and severity as an additive term. The ANOVA table (Type II SS) tests which factors explain significant variance. The method-by-DGP interaction is of primary interest: a large interaction confirms that no single method dominates everywhere. The pairwise rankings table below translates this into a practical comparison: for each DGP, methods are ranked by mean log(MISE), with rank 1 being the best performer.
+
+```{r}
+#| label: anova
+#| cache: false
+
+core_stat <- core_res |>
+  filter(!is.na(warp_mise), warp_mise > 0) |>
+  mutate(
+    log_warp_mise = log(warp_mise),
+    method = factor(method),
+    dgp = factor(dgp),
+    noise_sd = factor(noise_sd),
+    severity = factor(severity)
+  ) |>
+  filter(is.finite(log_warp_mise))
+
+cat("Model: log(warp_MISE) ~ method * dgp * noise_sd + severity\n")
+cat("Note: rep is a MC replication index (independent seeds), not a grouping\n")
+cat("factor, so no random effect is appropriate.\n\n")
+
+fit <- tryCatch(
+  lm(log_warp_mise ~ method * dgp * noise_sd + severity, data = core_stat),
+  error = function(e) {
+    cat("Full interaction model failed, reducing to 2-way:", e$message, "\n")
+    lm(log_warp_mise ~ method * dgp + method * noise_sd + dgp * noise_sd +
+         severity, data = core_stat)
+  }
+)
+
+if (requireNamespace("car", quietly = TRUE)) {
+  cat("ANOVA table (Type II SS, via car::Anova):\n")
+  aov_tab <- car::Anova(fit, type = "II")
+} else {
+  cat("ANOVA table (Type I sequential SS — install 'car' for Type II):\n")
+  aov_tab <- anova(fit)
+}
+print(aov_tab)
+
+# Interpretation
+p_col <- intersect(c("Pr(>F)", "Pr(>Chisq)"), names(aov_tab))
+if (length(p_col) > 0) {
+  sig_terms <- rownames(aov_tab)[aov_tab[[p_col[1]]] < 0.001]
+  sig_terms <- sig_terms[!is.na(sig_terms)]
+} else {
+  sig_terms <- character(0)
+}
+cat("\n--- Interpretation ---\n")
+cat("Terms significant at p < 0.001:", paste(sig_terms, collapse = ", "), "\n")
+cat("The method × dgp interaction is expected to be large, confirming that\n")
+cat("method performance varies substantially across DGPs (no single method\n")
+cat("dominates everywhere). The method × noise_sd interaction shows methods\n")
+cat("differ in noise robustness.\n")
+cat("\nNote: methods are evaluated on the same data per (dgp, noise, severity, rep),\n")
+cat("so comparisons are inherently paired. The F-tests here test whether factors\n")
+cat("explain variance in log(MISE); they do not account for pairing.\n")
+```
+
+```{r}
+#| label: pairwise-rankings
+# Method rankings within each DGP (mean log warp MISE)
+rank_df <- core_stat |>
+  group_by(dgp, method) |>
+  summarise(mean_log_mise = mean(log_warp_mise), .groups = "drop") |>
+  group_by(dgp) |>
+  arrange(mean_log_mise) |>
+  mutate(rank = row_number()) |>
+  ungroup()
+
+rank_compact <- rank_df |>
+  mutate(label = sprintf("%d (%.1f)", rank, mean_log_mise)) |>
+  select(dgp, method, label) |>
+  pivot_wider(names_from = dgp, values_from = label)
+
+rank_compact |>
+  gt(rowname_col = "method") |>
+  tab_header(title = "Method Rankings by DGP",
+             subtitle = "Rank (mean log MISE). Rank 1 = best.") |>
+  tab_stubhead(label = "Method")
+```
+
+
+# Practical Recommendations
+
+Based on the benchmark results, the table below translates findings into actionable guidance. The key insight is that the best method depends on the data characteristics: if you know your phase variability is a simple shift, affine methods are both faster and more accurate than SRVF. When in doubt, SRVF is the safest default because it never catastrophically fails on any DGP and delivers the best overall performance on smooth elastic warps.
+
+```{r}
+#| label: tbl-decision-guide
+#| tbl-cap: "Decision guide: choosing a registration method based on data characteristics."
+
+guide <- data.frame(
+  `Data Characteristic` = c(
+    "Phase = pure shift",
+    "Phase = shift + scale",
+    "Phase = smooth elastic",
+    "Phase = smooth + amplitude variation",
+    "Clear landmarks available",
+    "Unknown / general",
+    "Speed is critical",
+    "Noisy data (SNR < 5)",
+    "Template must be estimated",
+    "Template known exactly"
+  ),
+  `Recommended Method` = c(
+    "affine_shift",
+    "affine_ss",
+    "SRVF",
+    "SRVF",
+    "landmark (with known landmarks)",
+    "SRVF",
+    "affine_shift or affine_ss",
+    "SRVF or FDA",
+    "SRVF",
+    "Any method (see above)"
+  ),
+  Rationale = c(
+    "Exact warp model match; near-zero MISE",
+    "Exact warp model match; handles scaling",
+    "Best warp recovery across all smooth scenarios",
+    "Robust to multiplicative, additive, and correlated amplitude",
+    "Near-exact recovery when landmarks are correct",
+    "Best average performance across smooth elastic DGPs (S3-S7); never catastrophically fails",
+    "10-100x faster than SRVF; acceptable MISE if warp is approximately affine",
+    "SRVF and FDA degrade gracefully; affine/landmark are more noise-sensitive",
+    "Affine methods are most stable under template estimation (Study 2); SRVF degradation is DGP-dependent",
+    "All template-based methods benefit; rankings match Study 1"
+  ),
+  check.names = FALSE
+)
+
+guide |>
+  gt() |>
+  tab_header(title = "Registration Method Decision Guide") |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(columns = `Recommended Method`)
+  )
+```
+
+
+# Sensitivity Analysis
+
+The four panels explore how results change when we vary one factor at a time on DGP S4 (sigbump/smooth/none). Grid density (top-left) tests whether coarser or finer grids affect method accuracy. Sample size (top-right) tests whether more curves improve estimation. Severity (bottom-left) and noise (bottom-right) probe robustness to larger phase deviations and measurement error. Methods whose MISE curves are flat across a factor are robust to that factor; steep slopes indicate sensitivity. The shared legend shows method colors.
+
+```{r}
+#| label: fig-sensitivity
+#| fig-cap: "Sensitivity analysis for S4: effect of grid density, n_curves, severity, and noise."
+#| fig-height: 10
+#| fig-width: 12
+
+sens_res <- results |>
+  filter(dgp == "S4", !failure, !not_applicable, !is.na(warp_mise))
+
+# Grid density
+grid_data <- summarize_metric(
+  sens_res |> filter(noise_sd == 0, severity == 0.5, n_curves == 50),
+  c("n_grid", "method"), "warp_mise"
+)
+grid_data$n_grid <- as.numeric(grid_data$n_grid)
+
+p_grid <- ggplot(grid_data, aes(x = n_grid, y = mean, color = method)) +
+  geom_line() + geom_point() +
+  scale_y_log10() +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  labs(title = "Grid Density", x = "n_grid", y = "MISE") +
+  theme_bench(base_size = 9) +
+  theme(legend.position = "none")
+
+# n_curves
+ncurves_data <- summarize_metric(
+  sens_res |> filter(noise_sd == 0, severity == 0.5, n_grid == 101),
+  c("n_curves", "method"), "warp_mise"
+)
+ncurves_data$n_curves <- as.numeric(ncurves_data$n_curves)
+
+p_ncurves <- ggplot(ncurves_data, aes(x = n_curves, y = mean, color = method)) +
+  geom_line() + geom_point() +
+  scale_y_log10() +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  labs(title = "Sample Size", x = "n_curves", y = "MISE") +
+  theme_bench(base_size = 9) +
+  theme(legend.position = "none")
+
+# Severity
+sev_s4 <- summarize_metric(
+  sens_res |> filter(noise_sd == 0, n_grid == 101, n_curves == 50),
+  c("severity", "method"), "warp_mise"
+)
+sev_s4$severity <- as.numeric(sev_s4$severity)
+
+p_sev <- ggplot(sev_s4, aes(x = severity, y = mean, color = method)) +
+  geom_line() + geom_point() +
+  scale_y_log10() +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  labs(title = "Severity", x = "severity", y = "MISE") +
+  theme_bench(base_size = 9) +
+  theme(legend.position = "none")
+
+# Noise
+noise_s4 <- summarize_metric(
+  sens_res |> filter(severity == 0.5, n_grid == 101, n_curves == 50),
+  c("noise_sd", "method"), "warp_mise"
+)
+noise_s4$noise_sd <- as.numeric(noise_s4$noise_sd)
+
+p_noise <- ggplot(noise_s4, aes(x = noise_sd, y = mean, color = method)) +
+  geom_line() + geom_point() +
+  scale_y_log10() +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  labs(title = "Noise Level", x = "noise_sd", y = "MISE") +
+  theme_bench(base_size = 9)
+
+(p_grid + p_ncurves) / (p_sev + p_noise) +
+  plot_annotation(title = "Sensitivity Analysis (DGP S4)")
+```
+
+
+# Study 2: Template Estimation {#sec-study2}
+
+Study 1 provided each template-based method with the true template, isolating warp estimation quality. In practice, the template must be estimated from the data — SRVF uses its Karcher mean, FDA uses its iterative mean, and affine methods use the sample mean. Study 2 repeats the benchmark with `use_true_template = FALSE` across 10 DGPs and 6 methods (13,200 runs). This section first presents standalone Study 2 results, then directly compares against Study 1 via paired rep-by-rep analysis on the 7 DGPs with matching design cells (S1, S4, S5, S6b, S7, S8, S11).
+
+::: {.panel-tabset}
+
+## Standalone Results
+
+```{r}
+#| label: fig-study2-heatmap
+#| fig-cap: "Study 2: Mean warp MISE by method and DGP (estimated template), stratified by noise level. Color encodes log10(MISE)."
+#| fig-height: 8
+#| fig-width: 10
+
+s2_heatmap <- summarize_metric(
+  results_notemplate[!results_notemplate$failure, ],
+  c("dgp", "method", "noise_sd"), "warp_mise"
+)
+s2_heatmap$dgp <- factor(s2_heatmap$dgp, levels = names(dgp_labels))
+s2_heatmap$method <- factor(s2_heatmap$method,
+                            levels = intersect(names(method_labels),
+                                               unique(s2_heatmap$method)))
+s2_heatmap$noise_label <- paste0("noise_sd = ", s2_heatmap$noise_sd)
+
+s2_heatmap$log_mise <- log10(pmax(s2_heatmap$mean, 1e-10))
+mise_range2 <- range(s2_heatmap$log_mise, na.rm = TRUE)
+s2_heatmap$text_color <- ifelse(
+  scales::rescale(s2_heatmap$log_mise, from = mise_range2) > 0.6,
+  "white", "black"
+)
+
+ggplot(s2_heatmap, aes(x = method, y = dgp, fill = log_mise)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.1f", log_mise), color = text_color),
+            size = 2.8, show.legend = FALSE) +
+  scale_color_identity() +
+  scale_fill_viridis_c(name = "log10(MISE)", option = "plasma", direction = -1) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_discrete(labels = function(x) sub(":.*", "", dgp_labels[x])) +
+  facet_wrap(~noise_label) +
+  labs(title = "Study 2: Warp MISE Heatmap (Estimated Template)", x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+```{r}
+#| label: fig-study2-boxplots
+#| fig-cap: "Study 2: Warp MISE distributions per method, faceted by DGP."
+#| fig-height: 10
+#| fig-width: 12
+
+s2_res <- results_notemplate[!results_notemplate$failure, ]
+s2_res$method_f <- factor(s2_res$method, levels = names(method_labels),
+                          labels = method_labels)
+s2_res$dgp_f <- factor(s2_res$dgp, levels = names(dgp_labels),
+                       labels = sub(":.*", "", dgp_labels[names(dgp_labels)]))
+
+ggplot(s2_res[!is.na(s2_res$warp_mise) & s2_res$warp_mise > 0, ],
+       aes(x = method_f, y = warp_mise, fill = method)) +
+  geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.3) +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_fill_manual(values = method_colors, guide = "none") +
+  labs(title = "Study 2: Warp MISE Distributions (Estimated Template)",
+       x = NULL, y = "Warp MISE (log scale)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+```
+
+```{r}
+#| label: tbl-study2-rankings
+#| tbl-cap: "Study 2: Method rankings by DGP. Rank 1 = best (lowest mean warp MISE)."
+
+s2_rankings <- summarize_metric(s2_res, c("dgp", "method"), "warp_mise")
+s2_rankings <- s2_rankings |>
+  group_by(dgp) |>
+  mutate(rank = rank(mean, ties.method = "min")) |>
+  ungroup()
+
+s2_rank_wide <- s2_rankings |>
+  select(dgp, method, rank) |>
+  pivot_wider(names_from = method, values_from = rank)
+
+s2_rank_wide |>
+  gt(rowname_col = "dgp") |>
+  tab_header(title = "Study 2: Method Rankings (Estimated Template)") |>
+  cols_label(!!!setNames(
+    as.list(method_labels[intersect(names(method_labels), names(s2_rank_wide))]),
+    intersect(names(method_labels), names(s2_rank_wide))
+  )) |>
+  data_color(
+    columns = where(is.numeric),
+    palette = c("#c7e9c0", "#e5f5e0", "white", "#fee0d2", "#fcbba1", "#fc9272")
+  )
+```
+
+The overall ranking pattern is broadly similar to Study 1: SRVF remains the best general-purpose method on smooth-warp DGPs, and affine methods still win when correctly specified. However, some methods show larger degradation when estimating the template — particularly on DGPs with amplitude variation, where the cross-sectional mean is a poor template estimate.
+
+## Oracle vs Estimated — Warp Recovery
+
+For each (method, DGP) cell, we compute the degradation ratio: mean warp MISE with estimated template divided by mean warp MISE with oracle template. Ratios above 1 (red) indicate worse performance with template estimation. The paired log-ratio boxplots below show rep-by-rep comparisons, where positive values mean the estimated-template run was worse.
+
+```{r}
+#| label: fig-degradation-heatmap-warp
+#| fig-cap: "Warp MISE degradation ratio (estimated/oracle template) by method and DGP, stratified by noise level. Values > 1 indicate worse performance with estimated template."
+#| fig-height: 7
+#| fig-width: 9
+
+paired_no_fail <- results_paired[
+  !results_paired$failure_oracle & !results_paired$failure_estimated, ]
+
+# Paired estimator: mean of per-rep log2 ratios (geometric mean ratio + SE)
+degrad_warp <- paired_no_fail |>
+  filter(method %in% template_methods,
+         warp_mise_oracle > 0, warp_mise_estimated > 0) |>
+  mutate(log2_ratio = log2(warp_mise_estimated / warp_mise_oracle)) |>
+  group_by(dgp, method, noise_sd) |>
+  summarise(
+    mean_log2 = mean(log2_ratio),
+    se_log2 = sd(log2_ratio) / sqrt(n()),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  mutate(
+    ratio = 2^mean_log2,
+    ci_excludes_1 = abs(mean_log2) > 1.96 * se_log2,
+    noise_label = paste0("noise_sd = ", noise_sd)
+  )
+
+degrad_warp$dgp <- factor(degrad_warp$dgp, levels = names(dgp_labels))
+degrad_warp$method <- factor(degrad_warp$method, levels = names(method_labels))
+
+ggplot(degrad_warp, aes(x = method, y = dgp, fill = mean_log2)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.2fx%s", ratio,
+                                ifelse(ci_excludes_1, "*", ""))),
+            size = 3) +
+  scale_fill_gradient2(name = "Ratio", low = "#2166ac", mid = "white",
+                       high = "#b2182b", midpoint = 0,
+                       breaks = log2(c(0.5, 1, 2, 4)),
+                       labels = c("0.5\u00d7", "1\u00d7", "2\u00d7", "4\u00d7")) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_discrete(labels = function(x) sub(":.*", "", dgp_labels[x])) +
+  facet_wrap(~noise_label) +
+  labs(title = "Warp MISE Degradation: Estimated vs Oracle Template",
+       subtitle = "Geometric mean ratio per cell. * = 95% CI excludes 1.",
+       x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+```{r}
+#| label: fig-paired-warp-boxplots
+#| fig-cap: "Paired log2-ratio of warp MISE (estimated/oracle) per rep. Positive = worse with estimated template."
+#| fig-height: 8
+#| fig-width: 12
+
+paired_clean <- paired_no_fail[
+  paired_no_fail$method %in% template_methods &
+  paired_no_fail$warp_mise_oracle > 0 &
+  paired_no_fail$warp_mise_estimated > 0, ]
+
+paired_clean$log2_ratio <- log2(
+  paired_clean$warp_mise_estimated / paired_clean$warp_mise_oracle)
+paired_clean$dgp_f <- factor(paired_clean$dgp, levels = names(dgp_labels),
+                             labels = sub(":.*", "", dgp_labels[names(dgp_labels)]))
+paired_clean$method_f <- factor(paired_clean$method, levels = names(method_labels),
+                                labels = method_labels)
+
+ggplot(paired_clean, aes(x = method_f, y = log2_ratio, fill = method)) +
+  geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+  scale_fill_manual(values = method_colors, guide = "none") +
+  labs(title = "Paired Warp MISE: Estimated vs Oracle Template",
+       subtitle = "log2(MISE_estimated / MISE_oracle). Positive = estimated template is worse.",
+       x = NULL, y = "log2(MISE ratio)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+```
+
+The degradation pattern is method- and DGP-specific. SRVF shows significant degradation on some smooth-warp DGPs (notably S4 and S8, where the Karcher mean struggles), but *improves* significantly on S6b (0.84x) and S11 (0.88x) — possibly because the estimated template better captures the effective center of the sample when phase-amplitude interaction is present. Affine methods are the most stable, with ratios close to 1 across most DGPs. FDA methods show moderate degradation (1.0–1.4x). On S7 (additive amplitude), all methods degrade uniformly (~1.2–1.4x), suggesting additive amplitude variation degrades template estimation regardless of method. Asterisks (\*) in the heatmap mark cells where the 95% CI for the geometric mean ratio excludes 1.
+
+## Oracle vs Estimated — Alignment
+
+The same degradation analysis for aligned MISE — how much does the practical alignment quality suffer when the template is estimated? The side-by-side boxplots directly compare oracle (light) and estimated (dark) template alignment quality per method and DGP.
+
+```{r}
+#| label: fig-degradation-heatmap-aligned
+#| fig-cap: "Aligned MISE degradation ratio (estimated/oracle) by method and DGP."
+#| fig-height: 5
+#| fig-width: 9
+
+degrad_align <- paired_no_fail |>
+  filter(method %in% template_methods,
+         aligned_mise_oracle > 0, aligned_mise_estimated > 0) |>
+  mutate(log2_ratio = log2(aligned_mise_estimated / aligned_mise_oracle)) |>
+  group_by(dgp, method) |>
+  summarise(
+    mean_log2 = mean(log2_ratio),
+    se_log2 = sd(log2_ratio) / sqrt(n()),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  mutate(
+    ratio = 2^mean_log2,
+    ci_excludes_1 = abs(mean_log2) > 1.96 * se_log2
+  )
+
+degrad_align$dgp <- factor(degrad_align$dgp, levels = names(dgp_labels))
+degrad_align$method <- factor(degrad_align$method, levels = names(method_labels))
+
+ggplot(degrad_align, aes(x = method, y = dgp, fill = mean_log2)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.2fx%s", ratio,
+                                ifelse(ci_excludes_1, "*", ""))),
+            size = 3) +
+  scale_fill_gradient2(name = "Ratio", low = "#2166ac", mid = "white",
+                       high = "#b2182b", midpoint = 0,
+                       breaks = log2(c(0.5, 1, 2, 4)),
+                       labels = c("0.5\u00d7", "1\u00d7", "2\u00d7", "4\u00d7")) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_discrete(labels = function(x) sub(":.*", "", dgp_labels[x])) +
+  labs(title = "Aligned MISE Degradation: Estimated vs Oracle Template",
+       subtitle = "Geometric mean ratio per cell. * = 95% CI excludes 1.",
+       x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+```{r}
+#| label: fig-paired-aligned-boxplots
+#| fig-cap: "Paired log2-ratio of aligned MISE (estimated/oracle) per rep. Positive = worse with estimated template."
+#| fig-height: 8
+#| fig-width: 12
+
+paired_aligned <- paired_no_fail[
+  paired_no_fail$method %in% template_methods &
+  paired_no_fail$aligned_mise_oracle > 0 &
+  paired_no_fail$aligned_mise_estimated > 0, ]
+
+paired_aligned$log2_ratio <- log2(
+  paired_aligned$aligned_mise_estimated / paired_aligned$aligned_mise_oracle)
+paired_aligned$dgp_f <- factor(paired_aligned$dgp, levels = names(dgp_labels),
+                               labels = sub(":.*", "", dgp_labels[names(dgp_labels)]))
+paired_aligned$method_f <- factor(paired_aligned$method, levels = names(method_labels),
+                                  labels = method_labels)
+
+ggplot(paired_aligned, aes(x = method_f, y = log2_ratio, fill = method)) +
+  geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+  scale_fill_manual(values = method_colors, guide = "none") +
+  labs(title = "Paired Aligned MISE: Estimated vs Oracle Template",
+       subtitle = "log2(aligned MISE_estimated / aligned MISE_oracle). Positive = estimated template is worse.",
+       x = NULL, y = "log2(aligned MISE ratio)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+```
+
+```{r}
+#| label: fig-sidebyside-aligned
+#| fig-cap: "Aligned MISE comparison: oracle (light) vs estimated (dark) template, per method and DGP."
+#| fig-height: 8
+#| fig-width: 12
+
+aligned_long <- rbind(
+  data.frame(
+    dgp = paired_no_fail$dgp,
+    method = paired_no_fail$method,
+    aligned_mise = paired_no_fail$aligned_mise_oracle,
+    study = "Oracle template"
+  ),
+  data.frame(
+    dgp = paired_no_fail$dgp,
+    method = paired_no_fail$method,
+    aligned_mise = paired_no_fail$aligned_mise_estimated,
+    study = "Estimated template"
+  )
+)
+aligned_long <- aligned_long[
+  aligned_long$method %in% template_methods &
+  !is.na(aligned_long$aligned_mise) & aligned_long$aligned_mise > 0, ]
+
+aligned_long$dgp_f <- factor(aligned_long$dgp, levels = names(dgp_labels),
+                             labels = sub(":.*", "", dgp_labels[names(dgp_labels)]))
+aligned_long$method_f <- factor(aligned_long$method, levels = names(method_labels),
+                                labels = method_labels)
+aligned_long$study <- factor(aligned_long$study,
+                             levels = c("Oracle template", "Estimated template"))
+
+ggplot(aligned_long, aes(x = method_f, y = aligned_mise, fill = study)) +
+  geom_boxplot(outlier.size = 0.5, outlier.alpha = 0.3) +
+  facet_wrap(~ dgp_f, scales = "free_y", ncol = 3) +
+  scale_y_log10(labels = label_scientific()) +
+  scale_fill_manual(values = c("Oracle template" = "#a6bddb",
+                               "Estimated template" = "#2b8cbe"),
+                    name = NULL) +
+  labs(title = "Aligned MISE: Oracle vs Estimated Template",
+       x = NULL, y = "Aligned MISE (log scale)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 50, hjust = 1, size = 7))
+```
+
+## Noise Sensitivity of Template Estimation
+
+Does noise amplify the penalty of estimating the template? If so, methods with good internal noise handling (e.g. smoothing in the Karcher mean) may degrade less in noisy settings. We compare the degradation ratio (estimated/oracle MISE) at noise=0 vs noise=0.1 across all pairable DGPs.
+
+```{r}
+#| label: fig-study2-noise-degradation
+#| fig-cap: "Degradation ratio (estimated/oracle warp MISE) by noise level. Values > 1 = worse with estimated template. Bars show median across DGPs; error bars = IQR."
+#| fig-height: 5
+#| fig-width: 10
+
+# Compute per-rep degradation ratio at each noise level
+paired_by_noise <- results_paired |>
+  filter(!failure_oracle & !failure_estimated &
+           warp_mise_oracle > 0 & warp_mise_estimated > 0) |>
+  mutate(log2_ratio = log2(warp_mise_estimated / warp_mise_oracle))
+
+noise_degrad <- paired_by_noise |>
+  group_by(method, noise_sd) |>
+  summarise(
+    median_ratio = median(2^log2_ratio, na.rm = TRUE),
+    q25 = quantile(2^log2_ratio, 0.25, na.rm = TRUE),
+    q75 = quantile(2^log2_ratio, 0.75, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |>
+  mutate(
+    method_f = factor(method, levels = names(method_labels), labels = method_labels),
+    noise_f = factor(noise_sd, labels = paste0("noise = ", c(0, 0.1)))
+  )
+
+ggplot(noise_degrad, aes(x = method_f, y = median_ratio, fill = noise_f)) +
+  geom_col(position = position_dodge(0.8), width = 0.7) +
+  geom_errorbar(aes(ymin = q25, ymax = q75),
+                position = position_dodge(0.8), width = 0.25) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "grey50") +
+  scale_fill_manual(values = c("#a6bddb", "#2b8cbe"), name = NULL) +
+  labs(title = "Template Estimation Penalty by Noise Level",
+       subtitle = "Median degradation ratio across DGPs (IQR error bars)",
+       x = NULL, y = "Degradation ratio (estimated / oracle)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+```{r}
+#| label: fig-study2-noise-interaction
+#| fig-cap: "Per-DGP interaction: degradation ratio at noise=0 vs noise=0.1. Points above the diagonal = noise amplifies template estimation penalty."
+#| fig-height: 7
+#| fig-width: 10
+
+# Compute per (dgp, method) degradation ratio at each noise level
+degrad_by_noise_dgp <- paired_by_noise |>
+  group_by(dgp, method, noise_sd) |>
+  summarise(
+    geom_mean_ratio = exp(mean(log(warp_mise_estimated / warp_mise_oracle), na.rm = TRUE)),
+    .groups = "drop"
+  )
+
+degrad_wide <- degrad_by_noise_dgp |>
+  pivot_wider(names_from = noise_sd, values_from = geom_mean_ratio,
+              names_prefix = "noise_")
+
+if ("noise_0" %in% names(degrad_wide) && "noise_0.1" %in% names(degrad_wide)) {
+  degrad_wide <- degrad_wide |>
+    mutate(
+      method_f = factor(method, levels = names(method_labels), labels = method_labels),
+      dgp_short = sub(":.*", "", dgp_labels[dgp])
+    )
+
+  lim_range <- range(c(degrad_wide$noise_0, degrad_wide$`noise_0.1`), na.rm = TRUE)
+  lim_range <- c(min(0.5, lim_range[1]), max(4, lim_range[2]))
+
+  ggplot(degrad_wide, aes(x = noise_0, y = `noise_0.1`, color = method)) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    geom_point(size = 3, alpha = 0.8) +
+    geom_text(aes(label = dgp_short), size = 2.2, vjust = -0.8, show.legend = FALSE) +
+    scale_color_manual(values = method_colors, labels = method_labels) +
+    scale_x_log10(limits = lim_range) +
+    scale_y_log10(limits = lim_range) +
+    labs(title = "Noise x Template Estimation Interaction",
+         subtitle = "Points above diagonal: noise amplifies template estimation penalty",
+         x = "Degradation ratio at noise = 0 (log scale)",
+         y = "Degradation ratio at noise = 0.1 (log scale)",
+         color = "Method") +
+    theme_bench()
+} else {
+  cat("Insufficient noise levels for interaction plot.\n")
+}
+```
+
+```{r}
+#| label: tbl-study2-noise-sensitivity
+#| tbl-cap: "Degradation ratio by method and noise level. Ratio > 1 = worse with estimated template. Noise amplification = how much worse the penalty gets from clean to noisy data."
+
+noise_summary <- paired_by_noise |>
+  group_by(method, noise_sd) |>
+  summarise(
+    geom_mean = exp(mean(log(warp_mise_estimated / warp_mise_oracle), na.rm = TRUE)),
+    .groups = "drop"
+  ) |>
+  pivot_wider(names_from = noise_sd, values_from = geom_mean, names_prefix = "noise_")
+
+if ("noise_0" %in% names(noise_summary) && "noise_0.1" %in% names(noise_summary)) {
+  noise_summary <- noise_summary |>
+    mutate(
+      amplification = `noise_0.1` / noise_0,
+      method_f = method_labels[method]
+    ) |>
+    arrange(amplification)
+
+  noise_summary |>
+    select(method_f, noise_0, `noise_0.1`, amplification) |>
+    gt() |>
+    tab_header(
+      title = "Template Estimation Penalty: Noise Dependence",
+      subtitle = "Geometric mean degradation ratio (estimated/oracle) per noise level"
+    ) |>
+    cols_label(method_f = "Method", noise_0 = "Clean (noise=0)",
+               `noise_0.1` = "Noisy (noise=0.1)",
+               amplification = "Noise amplification") |>
+    fmt_number(columns = c(noise_0, `noise_0.1`, amplification), decimals = 2) |>
+    tab_style(
+      style = cell_fill(color = "#f8d7da"),
+      locations = cells_body(columns = amplification,
+                             rows = amplification > 1.5)
+    ) |>
+    tab_style(
+      style = cell_fill(color = "#d4edda"),
+      locations = cells_body(columns = amplification,
+                             rows = amplification < 1.1)
+    )
+} else {
+  cat("Insufficient noise levels for summary table.\n")
+}
+```
+
+Methods with "noise amplification" close to 1 are equally penalized regardless of noise — the template estimation penalty is intrinsic to the algorithm, not noise-driven. Methods with amplification > 1.5 are more fragile: their template estimation quality degrades further when noise obscures the underlying signal.
+
+## Timing
+
+Template estimation adds computational overhead — particularly for SRVF, which computes the Karcher mean via iterative alignment. The bar chart compares median time per curve between studies, and the table below quantifies the ratio.
+
+```{r}
+#| label: fig-timing-comparison
+#| fig-cap: "Median time per curve: oracle vs estimated template."
+#| fig-height: 5
+#| fig-width: 9
+
+time_long <- rbind(
+  data.frame(
+    method = paired_no_fail$method,
+    time_per_curve = paired_no_fail$time_oracle / paired_no_fail$n_curves,
+    study = "Oracle template"
+  ),
+  data.frame(
+    method = paired_no_fail$method,
+    time_per_curve = paired_no_fail$time_estimated / paired_no_fail$n_curves,
+    study = "Estimated template"
+  )
+)
+time_long <- time_long[
+  time_long$method %in% template_methods & !is.na(time_long$time_per_curve), ]
+
+time_summ <- time_long |>
+  group_by(method, study) |>
+  summarise(median_time = median(time_per_curve), .groups = "drop")
+time_summ$method_f <- factor(time_summ$method, levels = names(method_labels),
+                             labels = method_labels)
+time_summ$study <- factor(time_summ$study,
+                          levels = c("Oracle template", "Estimated template"))
+
+ggplot(time_summ, aes(x = method_f, y = median_time, fill = study)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = c("Oracle template" = "#a6bddb",
+                               "Estimated template" = "#2b8cbe"),
+                    name = NULL) +
+  coord_flip() +
+  labs(title = "Computation Time: Oracle vs Estimated Template",
+       x = NULL, y = "Median time (seconds / curve)") +
+  theme_bench()
+```
+
+```{r}
+#| label: tbl-timing-ratio
+#| tbl-cap: "Time ratio (estimated/oracle) per method."
+
+time_ratio <- time_summ |>
+  pivot_wider(names_from = study, values_from = median_time) |>
+  mutate(ratio = `Estimated template` / `Oracle template`) |>
+  select(method_f, `Oracle template`, `Estimated template`, ratio) |>
+  arrange(desc(ratio))
+
+time_ratio |>
+  gt() |>
+  tab_header(title = "Time Overhead of Template Estimation") |>
+  cols_label(method_f = "Method", `Oracle template` = "Oracle (s/curve)",
+             `Estimated template` = "Estimated (s/curve)", ratio = "Ratio") |>
+  fmt_number(columns = c(`Oracle template`, `Estimated template`), decimals = 4) |>
+  fmt_number(columns = ratio, decimals = 1)
+```
+
+## Diagnostics
+
+```{r}
+#| label: tbl-study2-failures
+#| tbl-cap: "Failure rate comparison: Study 1 (oracle) vs Study 2 (estimated template)."
+
+pairable_dgps <- sort(unique(results_paired$dgp))
+
+s1_fail <- results |>
+  filter(dgp %in% pairable_dgps, method %in% template_methods) |>
+  group_by(dgp, method) |>
+  summarise(s1_rate = mean(failure) * 100, .groups = "drop")
+
+s2_fail <- results_notemplate |>
+  filter(dgp %in% pairable_dgps, method %in% template_methods) |>
+  group_by(dgp, method) |>
+  summarise(s2_rate = mean(failure) * 100, .groups = "drop")
+
+fail_comp <- merge(s1_fail, s2_fail, by = c("dgp", "method"))
+fail_comp <- fail_comp[fail_comp$s1_rate > 0 | fail_comp$s2_rate > 0, ]
+
+if (nrow(fail_comp) > 0) {
+  fail_comp |>
+    arrange(dgp, method) |>
+    gt() |>
+    tab_header(title = "Failure Rate Comparison (%)") |>
+    cols_label(dgp = "DGP", method = "Method",
+               s1_rate = "Study 1 (oracle)", s2_rate = "Study 2 (estimated)") |>
+    fmt_number(columns = c(s1_rate, s2_rate), decimals = 1)
+} else {
+  cat("No failures in either study for the 5 template-using methods on pairable DGPs.\n")
+}
+```
+
+```{r}
+#| label: tbl-rank-changes
+#| tbl-cap: "Rank changes between Study 1 and Study 2."
+
+s1_rank <- summarize_metric(
+  results[results$dgp %in% pairable_dgps & results$method %in% template_methods &
+          !results$failure, ],
+  c("dgp", "method"), "warp_mise"
+) |>
+  group_by(dgp) |>
+  mutate(rank_s1 = rank(mean, ties.method = "min")) |>
+  ungroup() |>
+  select(dgp, method, rank_s1)
+
+s2_rank <- summarize_metric(
+  results_notemplate[results_notemplate$dgp %in% pairable_dgps &
+                     results_notemplate$method %in% template_methods &
+                     !results_notemplate$failure, ],
+  c("dgp", "method"), "warp_mise"
+) |>
+  group_by(dgp) |>
+  mutate(rank_s2 = rank(mean, ties.method = "min")) |>
+  ungroup() |>
+  select(dgp, method, rank_s2)
+
+rank_change <- merge(s1_rank, s2_rank) |>
+  mutate(change = rank_s2 - rank_s1) |>
+  filter(abs(change) >= 2)
+
+if (nrow(rank_change) > 0) {
+  rank_change |>
+    mutate(method_label = method_labels[method]) |>
+    select(dgp, method_label, rank_s1, rank_s2, change) |>
+    arrange(desc(abs(change))) |>
+    gt() |>
+    tab_header(title = "Rank Changes >= 2 Positions",
+               subtitle = "Methods whose relative performance shifted with template estimation") |>
+    cols_label(dgp = "DGP", method_label = "Method",
+               rank_s1 = "Rank (Oracle)", rank_s2 = "Rank (Estimated)",
+               change = "Change")
+} else {
+  cat("No method changed rank by 2 or more positions between studies.\n")
+}
+```
+
+```{r}
+#| label: tbl-landmark-sanity
+#| tbl-cap: "Landmark auto: sanity check (identical results across studies)."
+
+# landmark_auto doesn't use template, so results should be identical
+lm_paired <- merge(
+  results[results$method == "landmark_auto",
+          c(join_keys, "warp_mise")],
+  results_notemplate[results_notemplate$method == "landmark_auto",
+                     c(join_keys, "warp_mise")],
+  by = join_keys, suffixes = c("_oracle", "_estimated")
+)
+
+if (nrow(lm_paired) > 0) {
+  lm_paired$diff <- abs(lm_paired$warp_mise_oracle - lm_paired$warp_mise_estimated)
+  max_diff <- max(lm_paired$diff, na.rm = TRUE)
+  cat(sprintf("Landmark auto: %d paired reps, max |MISE difference| = %.2e\n",
+              nrow(lm_paired), max_diff))
+  if (max_diff < 1e-10) {
+    cat("PASS: landmark_auto results are identical across studies (as expected).\n")
+  } else {
+    cat(sprintf("Note: small differences detected (max %.2e), likely due to numerical precision.\n",
+                max_diff))
+  }
+} else {
+  cat("No paired landmark_auto reps found.\n")
+}
+```
+
+:::
+
+
+# Study 3: Outlier Contamination {#sec-study3}
+
+Studies 1–2 use clean data. Real data has outliers — curves with grossly wrong magnitude (amplitude outliers), severely misaligned features (phase outliers), or entirely wrong shape (shape outliers). Study 3 injects controlled contamination into four representative DGPs to answer: **which methods degrade gracefully under outlier contamination?**
+
+```{r}
+#| label: load-outlier
+#| cache: false
+outlier_file <- file.path(results_dir, "results_combined_outlier.rds")
+if (file.exists(outlier_file)) {
+  results_outlier <- readRDS(outlier_file)
+  results_outlier$not_applicable <- (results_outlier$method == "landmark_oracle" &
+                                       !results_outlier$dgp %in% c("S8", "S9"))
+  cat(sprintf(
+    "Study 3: %d rows | DGPs: %s | Outlier types: %s | Failure rate: %.1f%%\n",
+    nrow(results_outlier),
+    paste(sort(unique(results_outlier$dgp)), collapse = ", "),
+    paste(sort(unique(results_outlier$outlier_type)), collapse = ", "),
+    100 * mean(results_outlier$failure)
+  ))
+  has_outlier_results <- TRUE
+} else {
+  cat("Study 3 results not yet available.\n")
+  has_outlier_results <- FALSE
+}
+```
+
+```{r}
+#| label: outlier-labels
+#| cache: false
+outlier_labels <- c(
+  amplitude = "Amplitude (scale 3-5x)",
+  phase = "Phase (severity 3.0)",
+  shape = "Shape (wrong template)"
+)
+```
+
+## Outlier Heatmap
+
+```{r}
+#| label: fig-outlier-heatmap
+#| fig-cap: "Mean warp MISE under 10% contamination, by method, DGP, and outlier type. Color encodes log10(MISE). Compare with Study 1 clean-data baselines."
+#| fig-height: 8
+#| fig-width: 12
+#| eval: !expr has_outlier_results
+
+main_outlier <- results_outlier[
+  results_outlier$contam_frac == 0.10 &
+    !results_outlier$failure &
+    !results_outlier$not_applicable, ]
+
+heat_outlier <- summarize_metric(
+  main_outlier,
+  c("dgp", "method", "outlier_type"),
+  "warp_mise"
+)
+heat_outlier <- heat_outlier[heat_outlier$method != "landmark_oracle", ]
+
+heat_outlier$dgp <- factor(heat_outlier$dgp, levels = names(dgp_labels))
+heat_outlier$method <- factor(heat_outlier$method,
+                              levels = setdiff(names(method_labels), "landmark_oracle"))
+heat_outlier$outlier_type <- factor(heat_outlier$outlier_type,
+                                    levels = names(outlier_labels),
+                                    labels = outlier_labels)
+
+heat_outlier$log_mise <- log10(pmax(heat_outlier$mean, 1e-10))
+mise_range <- range(heat_outlier$log_mise, na.rm = TRUE)
+heat_outlier$text_color <- ifelse(
+  scales::rescale(heat_outlier$log_mise, from = mise_range) > 0.6,
+  "white", "black"
+)
+
+ggplot(heat_outlier, aes(x = method, y = dgp, fill = log_mise)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.2f", log_mise), color = text_color),
+            size = 2.5, show.legend = FALSE) +
+  scale_color_identity() +
+  scale_fill_viridis_c(name = "log10(MISE)", option = "plasma", direction = -1) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_discrete(labels = function(x) sub(":.*", "", dgp_labels[x])) +
+  facet_wrap(~outlier_type, ncol = 1) +
+  labs(title = "Warp MISE under 10% Contamination", x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+## Degradation from Contamination
+
+```{r}
+#| label: fig-outlier-degradation
+#| fig-cap: "Warp MISE ratio (contaminated / clean baseline from Study 1). Values > 1 indicate degradation. Faceted by outlier type."
+#| fig-height: 7
+#| fig-width: 12
+#| eval: !expr has_outlier_results
+
+# Get clean baselines from Study 1 (matched DGP, method, noise_sd=0.1, severity=0.5)
+baseline <- results[
+  !results$failure & !results$not_applicable &
+    results$noise_sd == 0.1 & results$severity == 0.5, ]
+baseline_summ <- summarize_metric(baseline, c("dgp", "method"), "warp_mise")
+names(baseline_summ)[names(baseline_summ) == "mean"] <- "baseline_mise"
+
+# Summarize outlier results (main arm only)
+outlier_summ <- summarize_metric(
+  main_outlier,
+  c("dgp", "method", "outlier_type"),
+  "warp_mise"
+)
+
+# Merge
+degradation <- merge(
+  outlier_summ,
+  baseline_summ[, c("dgp", "method", "baseline_mise")],
+  by = c("dgp", "method")
+)
+degradation$ratio <- degradation$mean / degradation$baseline_mise
+degradation$log2_ratio <- log2(degradation$ratio)
+
+degradation$method <- factor(degradation$method, levels = names(method_labels))
+degradation$dgp <- factor(degradation$dgp, levels = names(dgp_labels))
+degradation$outlier_type <- factor(degradation$outlier_type,
+                                   levels = names(outlier_labels),
+                                   labels = outlier_labels)
+
+ggplot(degradation, aes(x = method, y = log2_ratio, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
+  facet_grid(dgp ~ outlier_type,
+             labeller = labeller(dgp = function(x) sub(":.*", "", dgp_labels[x]))) +
+  scale_fill_manual(values = method_colors) +
+  scale_x_discrete(labels = method_labels) +
+  labs(title = "Contamination Degradation Ratio",
+       subtitle = "log2(contaminated MISE / clean MISE). 0 = no change, 1 = 2x worse",
+       x = NULL, y = "log2(ratio)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+```
+
+## Dose-Response (S4, Amplitude Outliers)
+
+```{r}
+#| label: fig-outlier-dose
+#| fig-cap: "Warp MISE vs contamination fraction for S4 with amplitude outliers. Shows how methods degrade as outlier proportion increases."
+#| fig-height: 5
+#| fig-width: 9
+#| eval: !expr has_outlier_results
+
+dose_data <- results_outlier[
+  results_outlier$dgp == "S4" &
+    results_outlier$outlier_type == "amplitude" &
+    !results_outlier$failure, ]
+
+dose_summ <- summarize_metric(
+  dose_data,
+  c("method", "contam_frac"),
+  "warp_mise"
+)
+
+# Add clean baseline (contam_frac = 0)
+s4_baseline <- summarize_metric(
+  results[results$dgp == "S4" & results$noise_sd == 0.1 &
+            results$severity == 0.5 & !results$failure, ],
+  "method",
+  "warp_mise"
+)
+s4_baseline$contam_frac <- 0
+
+dose_combined <- rbind(
+  dose_summ[, c("method", "contam_frac", "mean", "se")],
+  s4_baseline[, c("method", "contam_frac", "mean", "se")]
+)
+dose_combined$method <- factor(dose_combined$method, levels = names(method_labels))
+
+ggplot(dose_combined, aes(x = contam_frac, y = mean, color = method)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = mean - 2 * se, ymax = mean + 2 * se), width = 0.01) +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  scale_x_continuous(breaks = c(0, 0.05, 0.10, 0.20),
+                     labels = c("0%", "5%", "10%", "20%")) +
+  labs(title = "Dose-Response: S4 with Amplitude Outliers",
+       x = "Contamination fraction", y = "Mean warp MISE",
+       color = "Method") +
+  theme_bench()
+```
+
+## Robustness Ranking
+
+```{r}
+#| label: tbl-outlier-robustness
+#| tbl-cap: "Method robustness ranking: mean degradation ratio across DGPs and outlier types. Lower ratio = more robust."
+#| eval: !expr has_outlier_results
+
+robustness <- degradation[
+  degradation$method %in% setdiff(names(method_labels), "landmark_oracle"), ]
+robustness_ranking <- aggregate(
+  cbind(ratio, baseline_mise) ~ method, data = robustness,
+  FUN = median
+)
+robustness_ranking <- robustness_ranking[order(robustness_ranking$ratio), ]
+robustness_ranking$rank <- seq_len(nrow(robustness_ranking))
+
+robustness_ranking |>
+  mutate(method_label = method_labels[as.character(method)]) |>
+  select(rank, method_label, baseline_mise, ratio) |>
+  gt() |>
+  tab_header(title = "Outlier Robustness Ranking",
+             subtitle = "Median degradation ratio (contaminated/clean) across all DGPs and outlier types") |>
+  cols_label(rank = "Rank", method_label = "Method",
+             baseline_mise = "Baseline MISE", ratio = "Median ratio") |>
+  fmt_number(columns = c(baseline_mise, ratio), decimals = 4) |>
+  tab_style(
+    style = cell_fill(color = "#d4edda"),
+    locations = cells_body(rows = rank <= 2)
+  )
+```
+
+## Case Study: Outlier Effects on Warp Recovery
+
+```{r}
+#| label: fig-casestudy-outlier
+#| fig-cap: "Case study on S4 with 10% shape outliers (worst outlier type): SRVF warps are visibly distorted while landmark_auto is essentially unaffected. Red curves = outliers. Top: observed curves and true warps. Per-method rows: estimated warps and aligned curves."
+#| fig-height: 12
+#| fig-width: 10
+#| eval: !expr has_outlier_results
+
+# Generate clean S4 dataset, then contaminate with shape outliers
+data_s4 <- generate_data("S4", n = 30, n_grid = 101, severity = 0.5,
+                         noise_sd = 0, seed = 42)
+data_s4c <- contaminate_data(data_s4, contam_frac = 0.10,
+                             outlier_type = "shape", seed = 42)
+
+fit_s4_srvf <- fit_method(data_s4c, "srvf")
+fit_s4_lm <- fit_method(data_s4c, "landmark_auto")
+fit_s4_fda <- fit_method(data_s4c, "fda_default")
+
+plot_case_study(
+  data_s4c,
+  fits = list(SRVF = fit_s4_srvf,
+              `Landmark (auto)` = fit_s4_lm,
+              `FDA (default)` = fit_s4_fda),
+  title = "S4 + 10% Shape Outliers: Warp Recovery Comparison",
+  highlight_idx = which(data_s4c$outlier_mask)
+)
+```
+
+The shape outliers (red curves) have entirely wrong template shapes, creating strong interference for methods that rely on global curve similarity. SRVF's Karcher mean is pulled toward the outliers, distorting all estimated warps. `landmark_auto` is largely unaffected because it relies on local extrema rather than global shape similarity, making it robust to shape contamination (consistent with its 1.06x aggregate degradation ratio). `fda_default` shows moderate degradation — its iterative alignment partially accommodates outliers.
+
+
+# Study 4: Real-Data Templates {#sec-study4}
+
+Studies 1–2 use two synthetic templates (sigbump, harmonic). Real functional data has different feature structures. Study 4 uses a **semi-synthetic approach**: extract templates from tf's bundled datasets (`pinch`, `growth`, `gait`), overlay synthetic warps, amplitude variation, and noise. Truth is still known, allowing rigorous evaluation. All real-data DGPs include realistic amplitude variation (`amp_sd = 0.5` vs 0.3 default) because real data always has inter-subject variability.
+
+```{r}
+#| label: load-realdata
+#| cache: false
+realdata_file <- file.path(results_dir, "results_combined_realdata.rds")
+if (file.exists(realdata_file)) {
+  results_realdata <- readRDS(realdata_file)
+  results_realdata$not_applicable <- (results_realdata$method == "landmark_oracle" &
+                                        !results_realdata$dgp %in% c("R3b"))
+  cat(sprintf(
+    "Study 4: %d rows | DGPs: %s | Failure rate: %.1f%%\n",
+    nrow(results_realdata),
+    paste(sort(unique(results_realdata$dgp)), collapse = ", "),
+    100 * mean(results_realdata$failure)
+  ))
+  has_realdata_results <- TRUE
+} else {
+  cat("Study 4 results not yet available.\n")
+  has_realdata_results <- FALSE
+}
+```
+
+```{r}
+#| label: realdata-labels
+#| cache: false
+rdgp_labels <- c(
+  R1a = "R1a: pinch/smooth/rank2",
+  R1b = "R1b: pinch/shift/mult",
+  R2a = "R2a: growth-vel/smooth/rank2",
+  R2b = "R2b: growth-vel/smooth/corr(orth)",
+  R3a = "R3a: gait-hip/smooth/rank2",
+  R3b = "R3b: gait-hip/landmark/mult"
+)
+```
+
+## Template Showcase
+
+```{r}
+#| label: fig-realdata-templates
+#| fig-cap: "Real-data templates extracted from tf's bundled datasets (pinch, growth velocity, gait hip angle), rescaled to [0,1] and z-scored."
+#| fig-height: 4
+#| fig-width: 12
+
+source(file.path(base_dir, "sim-dgp.R"))
+arg <- seq(0, 1, length.out = 101)
+
+templates_rd <- data.frame()
+for (src in c("pinch", "growth_velocity", "gait_hip")) {
+  tmpl <- make_template_from_data(src, arg)
+  vals <- tf_evaluations(tmpl)[[1]]
+  templates_rd <- rbind(templates_rd, data.frame(
+    source = src, arg = arg, value = vals
+  ))
+}
+templates_rd$source <- factor(templates_rd$source,
+  levels = c("pinch", "growth_velocity", "gait_hip"),
+  labels = c("Pinch (bell curve)", "Growth velocity (pubertal peak)", "Gait hip angle (oscillating)")
+)
+
+ggplot(templates_rd, aes(x = arg, y = value)) +
+  geom_line(linewidth = 1, color = "#1b9e77") +
+  facet_wrap(~source, scales = "free_y") +
+  labs(title = "Real-Data Templates", x = "t (rescaled to [0,1])", y = "z-scored value") +
+  theme_bench()
+```
+
+## DGP Showcase
+
+```{r}
+#| label: fig-realdata-dgps
+#| fig-cap: "Example draws from each real-data DGP (n=20, severity=0.5, noise=0). Blue: observed curves. Dashed: template."
+#| fig-height: 10
+#| fig-width: 12
+
+# Generate one example per real-data DGP
+dgps_rd <- c("R1a", "R1b", "R2a", "R2b", "R3a", "R3b")
+plots_rd <- list()
+for (dgp in dgps_rd) {
+  d <- generate_data(dgp, n = 20, n_grid = 101, severity = 0.5, noise_sd = 0, seed = 123)
+  x_mat <- as.matrix(d$x)
+  t_vals <- tf_evaluations(d$template)[[1]]
+  df_curves <- data.frame(
+    arg = rep(arg, nrow(x_mat)),
+    value = as.vector(t(x_mat)),
+    id = rep(seq_len(nrow(x_mat)), each = length(arg))
+  )
+  df_template <- data.frame(arg = arg, value = t_vals)
+
+  plots_rd[[dgp]] <- ggplot(df_curves, aes(x = arg, y = value, group = id)) +
+    geom_line(alpha = 0.3, color = "steelblue") +
+    geom_line(data = df_template, aes(group = NULL), linetype = "dashed",
+              linewidth = 1, color = "black") +
+    labs(title = rdgp_labels[dgp], x = "t", y = "x(t)") +
+    theme_bench(base_size = 9)
+}
+
+patchwork::wrap_plots(plots_rd, ncol = 3)
+```
+
+## Heatmap
+
+```{r}
+#| label: fig-realdata-heatmap
+#| fig-cap: "Mean warp MISE by method and real-data DGP (severity=0.5), stratified by noise level. Color encodes log10(MISE)."
+#| fig-height: 8
+#| fig-width: 10
+#| eval: !expr has_realdata_results
+
+rd_main <- results_realdata[
+  results_realdata$severity == 0.5 &
+    !results_realdata$failure &
+    !results_realdata$not_applicable, ]
+
+# Pooled summary (used for downstream rankings + synthetic comparison)
+heat_rd <- summarize_metric(rd_main, c("dgp", "method"), "warp_mise")
+heat_rd <- heat_rd[heat_rd$method != "landmark_oracle", ]
+heat_rd$dgp <- factor(heat_rd$dgp, levels = names(rdgp_labels))
+heat_rd$method <- factor(heat_rd$method,
+                         levels = setdiff(names(method_labels), "landmark_oracle"))
+
+# Noise-stratified summary for heatmap
+heat_rd_noise <- summarize_metric(
+  rd_main, c("dgp", "method", "noise_sd"), "warp_mise"
+)
+heat_rd_noise <- heat_rd_noise[heat_rd_noise$method != "landmark_oracle", ]
+heat_rd_noise$dgp <- factor(heat_rd_noise$dgp, levels = names(rdgp_labels))
+heat_rd_noise$method <- factor(heat_rd_noise$method,
+                               levels = setdiff(names(method_labels), "landmark_oracle"))
+heat_rd_noise$noise_label <- paste0("noise_sd = ", heat_rd_noise$noise_sd)
+
+heat_rd_noise$log_mise <- log10(pmax(heat_rd_noise$mean, 1e-10))
+mise_range <- range(heat_rd_noise$log_mise, na.rm = TRUE)
+heat_rd_noise$text_color <- ifelse(
+  scales::rescale(heat_rd_noise$log_mise, from = mise_range) > 0.6,
+  "white", "black"
+)
+
+ggplot(heat_rd_noise, aes(x = method, y = dgp, fill = log_mise)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.2f", log_mise), color = text_color),
+            size = 3, show.legend = FALSE) +
+  scale_color_identity() +
+  scale_fill_viridis_c(name = "log10(MISE)", option = "plasma", direction = -1) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_discrete(labels = rdgp_labels) +
+  facet_wrap(~noise_label) +
+  labs(title = "Warp MISE: Real-Data DGPs", x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 1))
+```
+
+## Boxplots
+
+```{r}
+#| label: fig-realdata-boxplots
+#| fig-cap: "Warp MISE distributions per method, faceted by real-data DGP. Log scale."
+#| fig-height: 10
+#| fig-width: 12
+#| eval: !expr has_realdata_results
+
+rd_box <- results_realdata[
+  results_realdata$severity == 0.5 &
+    !results_realdata$failure &
+    !results_realdata$not_applicable &
+    results_realdata$warp_mise > 0, ]
+rd_box$dgp <- factor(rd_box$dgp, levels = names(rdgp_labels))
+rd_box$method <- factor(rd_box$method, levels = names(method_labels))
+
+ggplot(rd_box, aes(x = method, y = warp_mise, fill = method)) +
+  geom_boxplot(outlier.size = 0.5, show.legend = FALSE) +
+  facet_wrap(~dgp, scales = "free_y", ncol = 2,
+             labeller = labeller(dgp = rdgp_labels)) +
+  scale_fill_manual(values = method_colors) +
+  scale_x_discrete(labels = method_labels) +
+  scale_y_log10() +
+  labs(title = "Warp MISE Distributions: Real-Data DGPs", x = NULL, y = "Warp MISE (log scale)") +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7))
+```
+
+## Rankings
+
+```{r}
+#| label: tbl-realdata-rankings
+#| tbl-cap: "Method rankings by real-data DGP. Rank 1 = best (lowest mean warp MISE)."
+#| eval: !expr has_realdata_results
+
+rd_rankings <- heat_rd |>
+  group_by(dgp) |>
+  mutate(rank = rank(mean, ties.method = "min")) |>
+  ungroup() |>
+  select(dgp, method, mean, rank) |>
+  mutate(method_label = method_labels[as.character(method)])
+
+rd_rank_wide <- rd_rankings |>
+  select(dgp, method_label, rank) |>
+  pivot_wider(names_from = dgp, values_from = rank)
+
+rd_rank_wide |>
+  gt() |>
+  tab_header(title = "Method Rankings: Real-Data DGPs") |>
+  cols_label(method_label = "Method") |>
+  data_color(
+    columns = -method_label,
+    palette = c("#d4edda", "#fff3cd", "#f8d7da"),
+    domain = c(1, 6)
+  )
+```
+
+```{r}
+#| label: tbl-realdata-rankings-by-noise
+#| tbl-cap: "Method rankings by noise level on real-data DGPs. Delta = rank change when adding noise (positive = rank worsens)."
+#| eval: !expr has_realdata_results
+
+rd_rank_noise <- heat_rd_noise |>
+  group_by(noise_sd, dgp) |>
+  mutate(rank = rank(mean, ties.method = "min")) |>
+  ungroup() |>
+  mutate(method_label = method_labels[as.character(method)])
+
+# Average rank per method at each noise level
+rd_avg_rank <- rd_rank_noise |>
+  group_by(method_label, noise_sd) |>
+  summarise(avg_rank = mean(rank), .groups = "drop") |>
+  pivot_wider(names_from = noise_sd, values_from = avg_rank,
+              names_prefix = "noise_")
+
+rd_avg_rank$delta <- rd_avg_rank$noise_0.1 - rd_avg_rank$noise_0
+rd_avg_rank <- rd_avg_rank[order(rd_avg_rank$noise_0), ]
+
+rd_avg_rank |>
+  gt() |>
+  tab_header(title = "Average Rank by Noise Level (Real-Data DGPs)") |>
+  cols_label(
+    method_label = "Method",
+    noise_0 = "Clean (noise=0)",
+    noise_0.1 = "Noisy (noise=0.1)",
+    delta = "\u0394 Rank"
+  ) |>
+  fmt_number(columns = c(noise_0, noise_0.1, delta), decimals = 1) |>
+  data_color(
+    columns = delta,
+    palette = c("#d4edda", "white", "#f8d7da"),
+    domain = c(-2, 2)
+  )
+```
+
+## Case Study: Growth Velocity Registration
+
+```{r}
+#| label: fig-casestudy-realdata
+#| fig-cap: "Case study on R2a (growth velocity template, smooth warps): SRVF captures smooth warp structure that affine cannot. Top: observed curves and true warps. Per-method rows: estimated warps and aligned curves."
+#| fig-height: 10
+#| fig-width: 10
+#| eval: !expr has_realdata_results
+
+# Generate one R2a dataset and fit three methods
+data_r2a <- generate_data("R2a", n = 20, n_grid = 101, severity = 0.5,
+                          noise_sd = 0, seed = 123)
+
+fit_r2a_srvf <- fit_method(data_r2a, "srvf")
+fit_r2a_fda <- fit_method(data_r2a, "fda_default")
+fit_r2a_aff <- fit_method(data_r2a, "affine_ss")
+
+plot_case_study(
+  data_r2a,
+  fits = list(SRVF = fit_r2a_srvf,
+              `FDA (default)` = fit_r2a_fda,
+              `Affine (shift+scale)` = fit_r2a_aff),
+  title = "R2a: Growth Velocity — Smooth Warp Recovery"
+)
+```
+
+SRVF (rank 1 on R2a) recovers the smooth, non-linear warp structure accurately. The affine model, constrained to shift+scale, cannot represent the curvature in the true warps, leading to systematic alignment errors especially in the mid-domain. FDA (default) captures moderate warp structure but with more variability than SRVF.
+
+## Synthetic vs Real-Data Comparison
+
+Note: Both synthetic and real-data rankings below pool across noise levels (noise_sd = 0 and 0.1) within each DGP. This averages over noise conditions, which may mask noise-dependent rank changes. The mapping from real-data to synthetic DGPs is based on warp type (smooth, shift, landmark) — see code comments for the specific mapping.
+
+```{r}
+#| label: fig-realdata-vs-synthetic
+#| fig-cap: "Method rankings on synthetic DGPs (Study 1) vs real-data DGPs (Study 4). Connected dots show rank changes. Note: rankings pool across noise levels."
+#| fig-height: 6
+#| fig-width: 10
+#| eval: !expr has_realdata_results
+
+# Get Study 1 rankings for matched DGP types
+# Map: R1a/R1b → S4/S1 (smooth/shift), R2a/R2b → S5/S6b (smooth+mult/corr),
+#       R3a → S4 (smooth), R3b → S8 (landmark)
+synthetic_map <- c(R1a = "S4", R1b = "S1", R2a = "S5", R2b = "S6b", R3a = "S4", R3b = "S8")
+
+synth_rankings <- summarize_metric(
+  results[!results$failure & !results$not_applicable &
+            results$noise_sd %in% c(0, 0.1) & results$severity == 0.5 &
+            results$dgp %in% unique(synthetic_map), ],
+  c("dgp", "method"),
+  "warp_mise"
+)
+synth_rankings <- synth_rankings[synth_rankings$method != "landmark_oracle", ]
+synth_rankings <- synth_rankings |>
+  group_by(dgp) |>
+  mutate(rank = rank(mean, ties.method = "min")) |>
+  ungroup()
+
+# Build comparison
+comp_rows <- list()
+for (rdgp in names(synthetic_map)) {
+  sdgp <- synthetic_map[rdgp]
+  # Real-data rank
+  rd_r <- rd_rankings[rd_rankings$dgp == rdgp, c("method", "rank")]
+  names(rd_r)[2] <- "rank_real"
+  # Synthetic rank
+  sy_r <- synth_rankings[synth_rankings$dgp == sdgp, c("method", "rank")]
+  names(sy_r)[2] <- "rank_synth"
+  m <- merge(rd_r, sy_r, by = "method")
+  m$rdgp <- rdgp
+  m$sdgp <- sdgp
+  comp_rows[[rdgp]] <- m
+}
+comp_df <- do.call(rbind, comp_rows)
+comp_df$method_label <- method_labels[as.character(comp_df$method)]
+comp_df$rdgp <- factor(comp_df$rdgp, levels = names(rdgp_labels))
+
+ggplot(comp_df, aes(y = method_label)) +
+  geom_segment(aes(x = rank_synth, xend = rank_real, yend = method_label),
+               color = "grey60", linewidth = 0.8) +
+  geom_point(aes(x = rank_synth), color = "steelblue", size = 3) +
+  geom_point(aes(x = rank_real), color = "coral", size = 3) +
+  facet_wrap(~rdgp, ncol = 3, labeller = labeller(rdgp = rdgp_labels)) +
+  scale_x_continuous(breaks = 1:6) +
+  labs(title = "Synthetic vs Real-Data Rankings",
+       subtitle = "Blue = synthetic DGP rank, Red = real-data DGP rank",
+       x = "Rank (1 = best)", y = NULL) +
+  theme_bench()
+```
+
+
+# Post-hoc Analysis {#sec-posthoc}
+
+Deeper analysis of existing Studies 1–2 results (~36K runs). No new simulations needed.
+
+## Pareto Fronts
+
+For each DGP, methods trade off accuracy (warp MISE) against speed (computation time). Pareto-optimal methods are those where no other method is both faster and more accurate. These represent the "best available" choices at each accuracy-speed tradeoff point.
+
+```{r}
+#| label: fig-pareto
+#| fig-cap: "Accuracy-speed Pareto fronts by DGP group. Each point is a method; x = median warp MISE, y = median time/curve, size = 1 - failure rate. Pareto-optimal methods are connected."
+#| fig-height: 8
+#| fig-width: 12
+
+core_for_pareto <- results[
+  results$grid_name == "core" &
+    !results$not_applicable &
+    results$severity == 0.5 &
+    results$noise_sd %in% c(0, 0.05, 0.1), ]
+
+pareto_data <- core_for_pareto |>
+  group_by(dgp, method) |>
+  summarise(
+    med_mise = median(warp_mise, na.rm = TRUE),
+    med_time = median(time / n_curves, na.rm = TRUE),
+    failure_rate = mean(failure),
+    .groups = "drop"
+  ) |>
+  mutate(
+    reliability = 1 - failure_rate,
+    method_label = method_labels[method]
+  )
+
+# Find Pareto front per DGP
+find_pareto <- function(df) {
+  df <- df[order(df$med_mise), ]
+  pareto <- logical(nrow(df))
+  min_time <- Inf
+  for (i in seq_len(nrow(df))) {
+    if (df$med_time[i] < min_time) {
+      pareto[i] <- TRUE
+      min_time <- df$med_time[i]
+    }
+  }
+  df$pareto <- pareto
+  df
+}
+
+pareto_data <- pareto_data |>
+  group_by(dgp) |>
+  group_modify(~find_pareto(.x)) |>
+  ungroup()
+
+# Assign DGP groups
+pareto_data$dgp_group <- case_when(
+  pareto_data$dgp %in% c("S1", "S2", "S11") ~ "Affine/Shift",
+  pareto_data$dgp %in% c("S3", "S4", "S5", "S6a", "S6b", "S7", "S10") ~ "Smooth",
+  pareto_data$dgp %in% c("S8", "S9") ~ "Landmark",
+  TRUE ~ "Other"
+)
+
+ggplot(pareto_data, aes(x = med_mise, y = med_time)) +
+  geom_point(aes(color = method, size = reliability), alpha = 0.8) +
+  geom_line(data = pareto_data[pareto_data$pareto, ],
+            aes(group = dgp), color = "grey40", linetype = "dashed", linewidth = 0.5) +
+  geom_text(aes(label = sub(":.*", "", dgp_labels[dgp])),
+            size = 2, vjust = -1, color = "grey40") +
+  facet_wrap(~dgp_group, scales = "free") +
+  scale_color_manual(values = method_colors, labels = method_labels) +
+  scale_size_continuous(range = c(1, 5), name = "Reliability") +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(title = "Accuracy-Speed Pareto Fronts",
+       x = "Median warp MISE (log scale)", y = "Median time/curve (log scale, seconds)",
+       color = "Method") +
+  theme_bench()
+```
+
+## Pairwise Win Probabilities
+
+For each method pair (A, B) and DGP, we compute the fraction of reps where A beats B on warp MISE. This gives a **tournament-style** view of method dominance, independent of the specific MISE values.
+
+```{r}
+#| label: fig-pairwise-wins
+#| fig-cap: "Pairwise win probability heatmap (aggregated across core DGPs). Cell (A,B) = fraction of reps where method A has lower warp MISE than method B."
+#| fig-height: 6
+#| fig-width: 8
+
+core_wide <- results[
+  results$grid_name == "core" &
+    !results$failure &
+    !results$not_applicable &
+    results$method != "landmark_oracle", ]
+
+# For each (dgp, noise_sd, severity, rep), get per-method MISE
+key_cols <- c("dgp", "noise_sd", "severity", "rep")
+mise_wide <- core_wide |>
+  select(all_of(c(key_cols, "method", "warp_mise"))) |>
+  pivot_wider(names_from = method, values_from = warp_mise)
+
+methods_pw <- setdiff(names(method_labels), "landmark_oracle")
+n_methods <- length(methods_pw)
+win_matrix <- matrix(0, nrow = n_methods, ncol = n_methods,
+                     dimnames = list(methods_pw, methods_pw))
+
+for (i in seq_along(methods_pw)) {
+  for (j in seq_along(methods_pw)) {
+    if (i == j) {
+      win_matrix[i, j] <- 0.5
+      next
+    }
+    a <- mise_wide[[methods_pw[i]]]
+    b <- mise_wide[[methods_pw[j]]]
+    valid <- !is.na(a) & !is.na(b)
+    if (sum(valid) == 0) next
+    win_matrix[i, j] <- mean(a[valid] < b[valid])
+  }
+}
+
+win_df <- as.data.frame(as.table(win_matrix))
+names(win_df) <- c("method_a", "method_b", "win_prob")
+win_df$method_a <- factor(win_df$method_a, levels = methods_pw)
+win_df$method_b <- factor(win_df$method_b, levels = methods_pw)
+win_df$text_color <- ifelse(win_df$win_prob > 0.6, "white", "black")
+
+ggplot(win_df, aes(x = method_b, y = method_a, fill = win_prob)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.0f%%", 100 * win_prob), color = text_color),
+            size = 3, show.legend = FALSE) +
+  scale_color_identity() +
+  scale_fill_gradient2(low = "#d95f02", mid = "white", high = "#1b9e77",
+                       midpoint = 0.5, name = "Win probability",
+                       labels = scales::percent) +
+  scale_x_discrete(labels = method_labels, position = "top") +
+  scale_y_discrete(labels = method_labels) +
+  labs(title = "Pairwise Win Probabilities",
+       subtitle = "P(row method beats column method on warp MISE), averaged across core DGPs",
+       x = NULL, y = NULL) +
+  theme_bench() +
+  theme(axis.text.x = element_text(angle = 40, hjust = 0))
+```
+
+## Ranking Stability
+
+Bootstrap 95% CIs on method ranks per DGP. If rankings are stable, the CIs are narrow; if methods are closely matched, the CIs overlap. This answers: **how confident are we in the rankings?**
+
+```{r}
+#| label: fig-ranking-stability
+#| fig-cap: "Bootstrap 95% CIs on method ranks per core DGP. Narrow intervals = confident ranking. Overlapping intervals = methods hard to distinguish."
+#| fig-height: 10
+#| fig-width: 10
+
+set.seed(42)
+n_boot <- 1000
+
+core_rank_data <- results[
+  results$grid_name == "core" &
+    !results$failure &
+    !results$not_applicable &
+    results$method != "landmark_oracle" &
+    results$severity == 0.5, ]
+
+boot_ranks <- list()
+for (d in unique(core_rank_data$dgp)) {
+  dgp_data <- core_rank_data[core_rank_data$dgp == d, ]
+  reps_avail <- unique(dgp_data$rep)
+  n_reps <- length(reps_avail)
+
+  rank_mat <- matrix(NA, nrow = n_boot, ncol = length(methods_pw),
+                     dimnames = list(NULL, methods_pw))
+
+  for (b in seq_len(n_boot)) {
+    boot_reps <- sample(reps_avail, n_reps, replace = TRUE)
+    boot_data <- dgp_data[dgp_data$rep %in% boot_reps, ]
+    method_means <- tapply(boot_data$warp_mise, boot_data$method, mean, na.rm = TRUE)
+    present <- intersect(names(method_means), methods_pw)
+    ranks <- rank(method_means[present], ties.method = "average")
+    rank_mat[b, present] <- ranks
+  }
+
+  for (m in methods_pw) {
+    if (all(is.na(rank_mat[, m]))) next
+    ci <- quantile(rank_mat[, m], c(0.025, 0.975), na.rm = TRUE)
+    boot_ranks[[length(boot_ranks) + 1]] <- data.frame(
+      dgp = d, method = m,
+      rank_median = median(rank_mat[, m], na.rm = TRUE),
+      rank_lower = ci[1],
+      rank_upper = ci[2]
+    )
+  }
+}
+
+boot_df <- do.call(rbind, boot_ranks)
+boot_df$dgp <- factor(boot_df$dgp, levels = names(dgp_labels))
+boot_df$method <- factor(boot_df$method, levels = methods_pw)
+
+ggplot(boot_df, aes(x = rank_median, y = method, color = method)) +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = rank_lower, xmax = rank_upper), height = 0.3) +
+  facet_wrap(~dgp, ncol = 2,
+             labeller = labeller(dgp = function(x) sub(":.*", "", dgp_labels[x]))) +
+  scale_color_manual(values = method_colors, labels = method_labels, guide = "none") +
+  scale_y_discrete(labels = method_labels) +
+  scale_x_continuous(breaks = 1:6) +
+  labs(title = "Ranking Stability (Bootstrap 95% CIs)",
+       x = "Rank (1 = best)", y = NULL) +
+  theme_bench()
+```
+
+## Failure Mode Diagnostics
+
+```{r}
+#| label: fig-failure-diagnostics
+#| fig-cap: "Failure classification by method and DGP. Includes both hard failures (method errors) and soft failures (MISE > 10x median for that DGP)."
+#| fig-height: 6
+#| fig-width: 10
+
+all_study1 <- results[!results$not_applicable, ]
+
+# Hard failures
+hard <- all_study1[all_study1$failure, ]
+hard$failure_type <- "Hard (error)"
+
+# Soft failures: non-failure but MISE > 10x median
+success <- all_study1[!all_study1$failure, ]
+dgp_medians <- tapply(success$warp_mise, success$dgp, median, na.rm = TRUE)
+success$dgp_median <- dgp_medians[success$dgp]
+soft <- success[!is.na(success$warp_mise) & success$warp_mise > 10 * success$dgp_median, ]
+soft$failure_type <- "Soft (MISE > 10x median)"
+
+failures_combined <- rbind(
+  hard[, c("dgp", "method", "failure_type")],
+  soft[, c("dgp", "method", "failure_type")]
+)
+
+if (nrow(failures_combined) > 0) {
+  fail_counts <- failures_combined |>
+    count(method, failure_type) |>
+    mutate(method = factor(method, levels = names(method_labels)))
+
+  ggplot(fail_counts, aes(x = method, y = n, fill = failure_type)) +
+    geom_col(position = "stack") +
+    scale_x_discrete(labels = method_labels) +
+    scale_fill_manual(values = c("Hard (error)" = "#e41a1c",
+                                 "Soft (MISE > 10x median)" = "#ff7f00")) +
+    labs(title = "Failure Mode Classification",
+         x = NULL, y = "Count", fill = "Type") +
+    theme_bench() +
+    theme(axis.text.x = element_text(angle = 40, hjust = 1))
+} else {
+  cat("No failures or soft failures detected.\n")
+}
+```
+
+```{r}
+#| label: tbl-soft-failure-breakdown
+#| tbl-cap: "Soft failure rates (MISE > 10x median) by method and DGP."
+
+if (nrow(soft) > 0) {
+  soft_rates <- soft |>
+    count(dgp, method, name = "n_soft") |>
+    left_join(
+      all_study1 |>
+        filter(!failure) |>
+        count(dgp, method, name = "n_total"),
+      by = c("dgp", "method")
+    ) |>
+    mutate(rate = n_soft / n_total)
+
+  soft_rates |>
+    mutate(method_label = method_labels[method]) |>
+    select(dgp, method_label, n_soft, n_total, rate) |>
+    arrange(desc(rate)) |>
+    head(15) |>
+    gt() |>
+    tab_header(title = "Top 15 Soft Failure Rates") |>
+    cols_label(dgp = "DGP", method_label = "Method", n_soft = "Soft failures",
+               n_total = "Total runs", rate = "Rate") |>
+    fmt_percent(columns = rate, decimals = 1)
+} else {
+  cat("No soft failures detected.\n")
+}
+```
+
+
+# Reproducibility
+
+```{r}
+#| label: reproducibility
+#| cache: false
+cat("Seed strategy: digest::digest2int(paste(dgp, rep))\n")
+cat("Parallel processing: parallel::mclapply (6 cores)\n")
+cat("RNG: deterministic per-task seeds, independent across reps\n")
+cat("Results directory:", results_dir, "\n")
+cat("Study 1 results: results_combined_all.rds\n")
+cat("Study 2 results: results_combined_notemplate.rds\n")
+cat(sprintf("Study 1: %d runs | Failure rate: %.1f%%\n",
+            nrow(results), 100 * mean(results$failure)))
+cat(sprintf("Study 2: %d runs | Failure rate: %.1f%%\n",
+            nrow(results_notemplate), 100 * mean(results_notemplate$failure)))
+if (exists("results_outlier")) {
+  cat(sprintf("Study 3: %d runs | Failure rate: %.1f%%\n",
+              nrow(results_outlier), 100 * mean(results_outlier$failure)))
+}
+if (exists("results_realdata")) {
+  cat(sprintf("Study 4: %d runs | Failure rate: %.1f%%\n",
+              nrow(results_realdata), 100 * mean(results_realdata$failure)))
+}
+cat(sprintf("Total: %d runs\n",
+            nrow(results) + nrow(results_notemplate) +
+            (if (exists("results_outlier")) nrow(results_outlier) else 0) +
+            (if (exists("results_realdata")) nrow(results_realdata) else 0)))
+cat("\n")
+sessionInfo()
+```

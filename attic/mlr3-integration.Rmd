@@ -1,0 +1,92 @@
+---
+title: "mlr3-integration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{mlr3-integration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette demonstrates how to integrate {tf} registration with [mlr3](https://mlr3.mlr-org.com/) framework for [fda](https://mlr3fda.mlr-org.com/).
+
+We'll start by loading the necessary libraries:
+
+```{r setup, message = FALSE}
+library(data.table)
+library(mlr3)
+library(mlr3fda)
+library(mlr3misc)
+library(mlr3pipelines)
+library(paradox)
+```
+
+```{r}
+PipeOpFDARegister = R6::R6Class(
+  "PipeOpFDARegister",
+  inherit = PipeOpTaskPreprocSimple,
+  public = list(
+    #' @description Initializes a new instance of this Class.
+    #' @param id (`character(1)`)\cr
+    #'   Identifier of resulting object, default is `"fda.register"`.
+    #' @param param_vals (named `list()`)\cr
+    #'   List of hyperparameter settings, overwriting the hyperparameter settings that would
+    #'   otherwise be set during construction. Default `list()`.
+    initialize = function(id = "fda.register", param_vals = list()) {
+      param_set = ps(
+        method = p_fct(
+          c("srvf", "fda"),
+          default = "srvf",
+          tags = c("train", "predict")
+        )
+      )
+
+      super$initialize(
+        id = id,
+        param_set = param_set,
+        param_vals = param_vals,
+        packages = c("mlr3fda", "mlr3pipelines", "tf"),
+        feature_types = c("tfd_reg", "tfd_irreg"),
+        tags = "fda"
+      )
+    }
+  ),
+
+  private = list(
+    .transform_dt = function(dt, levels) {
+      pars = self$param_set$get_values()
+      nms = names(dt)
+      for (j in nms) {
+        x = dt[[j]]
+        warp = invoke(tf::tf_register, .x = x, .args = pars)
+        set(dt, j = j, value = invoke(tf::tf_unwarp, x = x, warp = warp))
+      }
+      setnames(dt, sprintf("%s_%s", nms, "registered"))
+    }
+  )
+)
+
+mlr_pipeops$add("fda.register", PipeOpFDARegister)
+```
+
+We create a fda task using the `growth` dataset and register the height growth.
+
+```{r}
+library(tf)
+
+growth = as.data.table(growth)
+growth = growth[gender == "female"]
+# create dummy variable for target
+growth[, `:=`(growth = tf_derive(height), height = NULL, target = seq_len(.N))]
+task = as_task_regr(growth, target = "target")
+
+po_register = po("fda.register")
+task_register = po_register$train(list(task))[[1L]]
+task_register$head()
+```
