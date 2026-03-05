@@ -451,7 +451,7 @@ tf_estimate_warps.tfd_reg <- function(
     }
   }
 
-  # Procrustes iteration (single pass when max_iter=1 or template given)
+  # Iterative registration (single pass when max_iter=1 or template given)
   arg <- tf_arg(x)
   domain_length <- diff(tf_domain(x))
   best_warps <- NULL
@@ -491,6 +491,9 @@ tf_estimate_warps.tfd_reg <- function(
         is.finite(best_obj) &&
           obj > best_obj * (1 + sqrt(.Machine$double.eps))
       ) {
+        cli::cli_inform(
+          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj, 4)} > {round(best_obj, 4)})."
+        )
         warps <- best_warps
         break
       }
@@ -501,7 +504,14 @@ tf_estimate_warps.tfd_reg <- function(
       best_warps <- warps
     }
 
-    if (iter == max_iter) break
+    if (iter == max_iter) {
+      if (max_iter > 1L) {
+        cli::cli_inform(
+          "Iterative registration reached {.arg max_iter} = {max_iter} without convergence (tol = {tol})."
+        )
+      }
+      break
+    }
 
     new_template <- suppressWarnings(mean(aligned_on_arg, na.rm = TRUE))
     new_tmpl_vec <- tf_evaluate(new_template, arg = arg)[[1]]
@@ -793,7 +803,13 @@ tf_register_affine <- function(
   type <- match.arg(type)
 
   # Validate range parameters
-  assert_numeric(shift_range, len = 2, sorted = TRUE, any.missing = FALSE, null.ok = TRUE)
+  assert_numeric(
+    shift_range,
+    len = 2,
+    sorted = TRUE,
+    any.missing = FALSE,
+    null.ok = TRUE
+  )
   assert_numeric(
     scale_range,
     len = 2,
