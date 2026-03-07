@@ -170,6 +170,7 @@ test_that("tf_derive preserves grid and domain", {
   expect_equal(tf_arg(tf_derive(cubic)), tf_arg(cubic))
   expect_equal(tf_domain(tf_derive(cubic)), tf_domain(cubic))
   expect_equal(tf_domain(tf_derive(cubic, order = 2)), tf_domain(cubic))
+  expect_equal(tf_domain(tf_derive(cubic_irreg)), tf_domain(cubic_irreg))
 })
 
 test_that("tf_derive works on 2-point and 3-point grids", {
