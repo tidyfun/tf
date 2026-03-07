@@ -134,10 +134,9 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
 #' For `tfb_spline`-objects, `order = -1` yields integrals (used internally).
 #' @param arg grid to use for the finite differences.
-#'   Not (exactly) the `arg` of the returned object for `tfd`-inputs, see details.
 #' @param ... not used
-#' @returns a `tf` (with slightly different `arg` or `basis` for the
-#'   derivatives, see details).
+#' @returns a `tf` (with the same `arg` for `tfd`-inputs, possibly different
+#'   `basis` for `tfb`-inputs, see details).
 #' @examples
 #' arg <- seq(0, 1, length.out = 31)
 #' x <- tfd(rbind(arg^2, sin(2 * pi * arg)), arg = arg)

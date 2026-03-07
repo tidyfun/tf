@@ -24,8 +24,7 @@ tf_derive(f, arg, order = 1, ...)
 \arguments{
 \item{f}{a \code{tf}-object}
 
-\item{arg}{grid to use for the finite differences.
-Not (exactly) the \code{arg} of the returned object for \code{tfd}-inputs, see details.}
+\item{arg}{grid to use for the finite differences.}
 
 \item{order}{order of differentiation. Maximal value for \code{tfb_spline} is 2.
 For \code{tfb_spline}-objects, \code{order = -1} yields integrals (used internally).}
@@ -33,8 +32,8 @@ For \code{tfb_spline}-objects, \code{order = -1} yields integrals (used internal
 \item{...}{not used}
 }
 \value{
-a \code{tf} (with slightly different \code{arg} or \code{basis} for the
-derivatives, see details).
+a \code{tf} (with the same \code{arg} for \code{tfd}-inputs, possibly different
+\code{basis} for \code{tfb}-inputs, see details).
 }
 \description{
 Derivatives of \code{tf}-objects use finite differences of the evaluations for
