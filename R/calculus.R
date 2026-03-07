@@ -12,9 +12,21 @@ derive_matrix <- function(data, arg, order) {
       # only forward difference possible
       deriv[, 1] <- deriv[, 2] <- (data[, 2] - data[, 1]) / (arg[2] - arg[1])
     } else {
-      # boundaries: one-sided differences
-      deriv[, 1] <- (data[, 2] - data[, 1]) / (arg[2] - arg[1])
-      deriv[, n] <- (data[, n] - data[, n - 1]) / (arg[n] - arg[n - 1])
+      # boundaries: 2nd-order accurate one-sided differences (non-uniform grid)
+      # left boundary
+      dx1 <- arg[2] - arg[1]
+      dx2 <- arg[3] - arg[2]
+      a <- -(2 * dx1 + dx2) / (dx1 * (dx1 + dx2))
+      b <- (dx1 + dx2) / (dx1 * dx2)
+      cc <- -dx1 / (dx2 * (dx1 + dx2))
+      deriv[, 1] <- a * data[, 1] + b * data[, 2] + cc * data[, 3]
+      # right boundary
+      dx1 <- arg[n - 1] - arg[n - 2]
+      dx2 <- arg[n] - arg[n - 1]
+      a <- dx2 / (dx1 * (dx1 + dx2))
+      b <- -(dx2 + dx1) / (dx1 * dx2)
+      cc <- (2 * dx2 + dx1) / (dx2 * (dx1 + dx2))
+      deriv[, n] <- a * data[, n - 2] + b * data[, n - 1] + cc * data[, n]
       # interior: 2nd-order accurate central differences (non-uniform grid)
       dx1 <- arg[2:(n - 1)] - arg[1:(n - 2)]
       dx2 <- arg[3:n] - arg[2:(n - 1)]
@@ -105,9 +117,9 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' `tfd` and finite differences of the basis functions for `tfb`.
 #'
 #' The derivatives of `tfd` objects use second-order accurate central differences
-#' for interior points and first-order one-sided differences at boundaries,
-#' using the second-order accurate formula for non-uniform grids from
-#' `numpy.gradient` (Fornberg, 1988).
+#' for interior points and second-order accurate one-sided differences at
+#' boundaries, following the non-uniform grid formulas from `numpy.gradient`
+#' with `edge_order=2` (Fornberg, 1988).
 #' Domain and grid of the returned object are identical to the input. Unless the
 #' `tfd` has a rather fine and regular grid, representing the data in a suitable
 #' basis representation with [tfb()] and then computing the derivatives (or
