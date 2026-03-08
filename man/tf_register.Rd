@@ -28,7 +28,8 @@ Not used for \code{method = "landmark"}.}
 \item{method}{the registration method to use:
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
-\item \code{"fda"}: continuous-criterion registration via \code{\link[fda:register.fd]{fda::register.fd()}}.
+\item \code{"fda"}: continuous-criterion registration via a tf-native dense-grid
+optimizer with monotone spline warps.
 \item \code{"affine"}: affine (linear) registration.
 \item \code{"landmark"}: piecewise-linear warps aligning user-specified landmarks.
 }}
@@ -75,10 +76,13 @@ Euclidean distance to the identity.} }
 warp basis (default \code{6L}, minimum 2).}
 \item{\code{lambda}}{non-negative number: roughness penalty for the warp basis
 (default \code{0} for unpenalized warping).}
-\item{\code{crit}}{registration criterion passed via \code{...} to
-\code{\link[fda:register.fd]{fda::register.fd()}}. Defaults to \code{2} for
-first-eigenfunction variance criterion,
-alternative is \code{1} for integrated squared error.}
+\item{\code{crit}}{registration criterion. Defaults to \code{2} for the
+first-eigenfunction variance criterion; alternative is \code{1} for
+integrated squared error.}
+\item{\code{conv}}{non-negative convergence tolerance for the inner optimizer.
+Default is \code{1e-4}.}
+\item{\code{iterlim}}{maximum number of inner optimization iterations per curve.
+Default is \code{20L}.}
 }
 
 \strong{For \code{method = "affine"}:}

@@ -1264,7 +1264,6 @@ test_that("tf_estimate_warps Procrustes iteration handles irregular affine updat
 })
 
 test_that("tf_estimate_warps Procrustes iteration runs for FDA", {
-  skip_if_not_installed("fda")
   skip_on_cran()
   withr::local_seed(42)
   t <- seq(0, 1, length.out = 61)
@@ -1278,6 +1277,36 @@ test_that("tf_estimate_warps Procrustes iteration runs for FDA", {
   )
   expect_s3_class(w, "tfd_reg")
   expect_length(w, 3)
+})
+
+test_that("tf_estimate_warps FDA outer loop improves the FDA criterion", {
+  skip_on_cran()
+  withr::local_seed(42)
+  t <- seq(0, 1, length.out = 61)
+  x <- tfd(
+    t(sapply(c(-0.05, 0, 0.05), \(s) sin(2 * pi * (t + s)))),
+    arg = t
+  )
+
+  w_2 <- quiet_expected_registration_warnings(
+    tf_estimate_warps(x, method = "fda", max_iter = 2L, iterlim = 5)
+  )
+  w_5 <- quiet_expected_registration_warnings(
+    tf_estimate_warps(x, method = "fda", max_iter = 5L, iterlim = 5)
+  )
+
+  aligned_2 <- suppressWarnings(tf_align(x, w_2))
+  aligned_5 <- suppressWarnings(tf_align(x, w_5))
+  obj_2 <- tf:::registration_objective_fda(
+    aligned = aligned_2,
+    template = attr(w_2, "template")
+  )
+  obj_5 <- tf:::registration_objective_fda(
+    aligned = aligned_5,
+    template = attr(w_5, "template")
+  )
+
+  expect_lte(obj_5, obj_2 + 1e-8)
 })
 
 test_that("SRVF with template=NULL gives same result regardless of max_iter", {

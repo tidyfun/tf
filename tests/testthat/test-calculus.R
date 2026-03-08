@@ -23,7 +23,7 @@ square_b <- tfb(square, k = 45, bs = "tp", verbose = FALSE)
 test_that("basic derivatives work", {
   dgrid <- seq(from + 0.5, to - 0.5, length.out = 50)
 
-  expect_equal(tf_derive(cubic)[, dgrid], square[, dgrid], tolerance = 0.1)
+  expect_equal(tf_derive(cubic)[, dgrid], square[, dgrid], tolerance = 0.01)
   expect_equal(
     tf_derive(cubic_irreg)[, dgrid],
     square[, dgrid],
@@ -164,4 +164,28 @@ test_that("calculus methods are quiet and preserve existing NA entries", {
   expect_true(is.na(d_na[2]))
   expect_true(is.na(i_indef[2]))
   expect_true(is.na(i_def[2]))
+})
+
+test_that("tf_derive preserves grid and domain", {
+  expect_equal(tf_arg(tf_derive(cubic)), tf_arg(cubic))
+  expect_equal(tf_domain(tf_derive(cubic)), tf_domain(cubic))
+  expect_equal(tf_domain(tf_derive(cubic, order = 2)), tf_domain(cubic))
+  expect_equal(tf_domain(tf_derive(cubic_irreg)), tf_domain(cubic_irreg))
+})
+
+test_that("tf_derive works on 2-point and 3-point grids", {
+  f2 <- tfd(c(1, 4), arg = c(0, 1))
+  d2 <- tf_derive(f2)
+  expect_equal(as.numeric(d2[, c(0, 1)]), c(3, 3))
+
+  f3 <- tfd(c(0, 1, 4), arg = c(0, 1, 2))
+  d3 <- tf_derive(f3)
+  expect_equal(as.numeric(d3[, 1]), 2)
+})
+
+test_that("derivative at extremum is near zero", {
+  qgrid <- seq(0, 4, length.out = 201)
+  f_quad <- tfd(-(qgrid - 2)^2 + 5, arg = qgrid)
+  f_deriv <- tf_derive(f_quad)
+  expect_equal(as.numeric(f_deriv[, 2]), 0, tolerance = 1e-4)
 })
