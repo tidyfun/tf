@@ -49,7 +49,7 @@
 #' plot(template); plot(warp, col = 1:5); plot(x, col = 1:5)
 #' # register the functions:
 #' if (requireNamespace("fdasrvf", quietly = TRUE)) {
-#'   warp_estimate <- tf_register(x)
+#'   reg <- tf_register(x)
 #' } else {
 #'   reg <- tf_register(x, method = "affine", type = "shift_scale")
 #' }
@@ -204,7 +204,8 @@ tf_align.tfb <- function(x, warp, ...) {
 #'   Not used for `method = "landmark"`.
 #' @param method the registration method to use:
 #'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
-#'   * `"fda"`: continuous-criterion registration via [fda::register.fd()].
+#'   * `"fda"`: continuous-criterion registration via a tf-native dense-grid
+#'     optimizer with monotone spline warps.
 #'   * `"affine"`: affine (linear) registration.
 #'   * `"landmark"`: piecewise-linear warps aligning user-specified landmarks.
 #' @param max_iter integer: maximum Procrustes-style template refinement
@@ -292,12 +293,64 @@ tf_register <- function(
 
 #-------------------------------------------------------------------------------
 
+registration_objective_fda <- function(aligned, template, crit = 2L) {
+  aligned_mat <- as.matrix(aligned)
+  template_mat <- as.matrix(template)
+  if (nrow(template_mat) == 1L && nrow(aligned_mat) > 1L) {
+    template_mat <- template_mat[rep(1L, nrow(aligned_mat)), , drop = FALSE]
+  }
+
+  total <- 0
+  for (i in seq_len(nrow(aligned_mat))) {
+    y0 <- template_mat[i, ]
+    y1 <- aligned_mat[i, ]
+    aa <- mean(y0^2)
+    bb <- mean(y0 * y1)
+    cc <- mean(y1^2)
+    total <- total +
+      if (crit == 1L) {
+        aa - 2 * bb + cc
+      } else {
+        aa + cc - sqrt((aa - cc)^2 + 4 * bb^2)
+      }
+  }
+  total
+}
+
+outer_registration_objective <- function(method, aligned, template, arg, dots) {
+  if (method == "fda") {
+    return(registration_objective_fda(
+      aligned = aligned,
+      template = template,
+      crit = dots$crit %||% 2L
+    ))
+  }
+
+  domain_length <- diff(tf_domain(aligned))
+  suppressWarnings(mean(
+    tf_integrate((aligned - template)^2, arg = arg) / domain_length,
+    na.rm = TRUE
+  ))
+}
+
+#-------------------------------------------------------------------------------
+
 #' Estimate warping functions for registration
 #'
 #' `tf_estimate_warps()` is the low-level workhorse for functional data
 #' registration. It estimates warping functions that align a set of functions to
 #' a template, but does *not* apply them. For a one-shot interface that also
 #' aligns the data, see [tf_register()].
+#'
+#' For `method = "fda"`, `tf` uses a tf-native dense-grid optimizer with
+#' monotone spline warps. Each warp is represented as the normalized cumulative
+#' integral of `exp(eta(t))`, where `eta(t)` is a spline with `nbasis`
+#' coefficients. Registration is then carried out curve-by-curve by minimizing
+#' either an integrated squared-error criterion (`crit = 1`) or the
+#' first-eigenfunction variance criterion (`crit = 2`) plus an optional spline
+#' roughness penalty (`lambda`). The outer `max_iter` loop, when `template =
+#' NULL`, still performs the same Procrustes-style template refinement as the
+#' other methods.
 #'
 #' @param x a `tf` vector of functions to register.
 #' @param ... additional method-specific arguments passed to backend routines
@@ -308,8 +361,9 @@ tf_register <- function(
 #' @param method the registration method to use:
 #'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
 #'     For details, see [fdasrvf::time_warping()]. Default template is the Karcher mean.
-#'   * `"fda"`: continuous-criterion registration via [fda::register.fd()].
-#'     Default template is the arithmetic mean.
+#'   * `"fda"`: continuous-criterion registration via a tf-native dense-grid
+#'     optimizer with monotone spline warps. Default template is the arithmetic
+#'     mean.
 #'   * `"affine"`: affine (linear) registration with warps of the form
 #'     \eqn{h(t) = a \cdot t + b}. Simpler than elastic registration, appropriate
 #'     when phase variability consists only of shifts and/or uniform speed-up/slow-down.
@@ -327,9 +381,11 @@ tf_register <- function(
 #'   is skipped regardless of `max_iter` because [fdasrvf::time_warping()]
 #'   already computes the Karcher mean internally.
 #'   Default is `3L`.
-#' @param tol numeric: convergence tolerance for template refinement. Iteration
-#'   stops when the relative change in the template (L2 norm) falls below `tol`.
-#'   Default is `1e-2`.
+#' @param tol numeric: convergence tolerance for template refinement. For
+#'   `method = "fda"`, iteration stops when the relative improvement in the
+#'   registration criterion becomes negligible; for the other iterative methods,
+#'   iteration stops when the relative change in the template (L2 norm) falls
+#'   below `tol`. Default is `1e-2`.
 #'
 #' @section Important method-specific arguments (passed via `...`):
 #'
@@ -348,10 +404,13 @@ tf_register <- function(
 #'     warp basis (default `6L`, minimum 2).}
 #'   \item{`lambda`}{non-negative number: roughness penalty for the warp basis
 #'     (default `0` for unpenalized warping).}
-#'   \item{`crit`}{registration criterion passed via `...` to
-#'     [fda::register.fd()]. Defaults to `2` for
-#'     first-eigenfunction variance criterion,
-#'     alternative is `1` for integrated squared error.}
+#'   \item{`crit`}{registration criterion. Defaults to `2` for the
+#'     first-eigenfunction variance criterion; alternative is `1` for
+#'     integrated squared error.}
+#'   \item{`conv`}{non-negative convergence tolerance for the inner optimizer.
+#'     Default is `1e-4`.}
+#'   \item{`iterlim`}{maximum number of inner optimization iterations per curve.
+#'     Default is `20L`.}
 #' }
 #'
 #' **For `method = "affine"`:**
@@ -453,10 +512,11 @@ tf_estimate_warps.tfd_reg <- function(
 
   # Iterative registration (single pass when max_iter=1 or template given)
   arg <- tf_arg(x)
-  domain_length <- diff(tf_domain(x))
   best_warps <- NULL
   best_template <- current_template
   best_obj <- Inf
+  prev_obj <- NA_real_
+  fda_min_iter <- 3L
   for (iter in seq_len(max_iter)) {
     warps <- switch(
       method,
@@ -479,13 +539,13 @@ tf_estimate_warps.tfd_reg <- function(
     template_on_arg <- suppressWarnings(tfd(current_template, arg = arg))
     template_vec <- tf_evaluate(template_on_arg, arg = arg)[[1]]
 
-    # Monotonicity guard: if an iteration worsens alignment objective, stop and
-    # return the best previous solution.
-    obj <- suppressWarnings(mean(
-      tf_integrate((aligned_on_arg - template_on_arg)^2, arg = arg) /
-        domain_length,
-      na.rm = TRUE
-    ))
+    obj <- outer_registration_objective(
+      method = method,
+      aligned = aligned_on_arg,
+      template = template_on_arg,
+      arg = arg,
+      dots = dots
+    )
     if (is.finite(obj)) {
       if (
         is.finite(best_obj) &&
@@ -503,6 +563,20 @@ tf_estimate_warps.tfd_reg <- function(
     } else if (is.null(best_warps)) {
       best_warps <- warps
     }
+
+    if (
+      method == "fda" &&
+        iter >= fda_min_iter &&
+        is.finite(prev_obj) &&
+        is.finite(obj)
+    ) {
+      rel_improvement <- (prev_obj - obj) /
+        max(abs(prev_obj), .Machine$double.eps)
+      if (rel_improvement >= 0 && rel_improvement < tol^2) {
+        break
+      }
+    }
+    prev_obj <- obj
 
     if (iter == max_iter) {
       if (max_iter > 1L) {
@@ -522,19 +596,20 @@ tf_estimate_warps.tfd_reg <- function(
       new_tmpl_vec[missing_tmpl] <- old_vec[missing_tmpl]
     }
     new_template <- tfd(matrix(new_tmpl_vec, nrow = 1), arg = arg)
-    # Convergence check based on integrated squared change.
-    # tol^2 because we compare squared norms
-    delta <- suppressWarnings(
-      tf_integrate((new_template - template_on_arg)^2, arg = arg)
-    )
-    norm_sq <- suppressWarnings(tf_integrate(template_on_arg^2, arg = arg))
-    delta <- as.numeric(delta / domain_length)
-    norm_sq <- as.numeric(norm_sq / domain_length)
-    if (
-      is.finite(delta) &&
-        delta / max(norm_sq, .Machine$double.eps) < tol^2
-    ) {
-      break
+    if (method != "fda") {
+      domain_length <- diff(tf_domain(x))
+      delta <- suppressWarnings(
+        tf_integrate((new_template - template_on_arg)^2, arg = arg)
+      )
+      norm_sq <- suppressWarnings(tf_integrate(template_on_arg^2, arg = arg))
+      delta <- as.numeric(delta / domain_length)
+      norm_sq <- as.numeric(norm_sq / domain_length)
+      if (
+        is.finite(delta) &&
+          delta / max(norm_sq, .Machine$double.eps) < tol^2
+      ) {
+        break
+      }
     }
     current_template <- new_template
   }
@@ -662,83 +737,6 @@ tf_register_srvf <- function(x, template, ...) {
   attr(result, "template") <- tmpl
   result
 }
-
-tf_register_fda <- function(
-  x,
-  template,
-  ...
-) {
-  rlang::check_installed("fda")
-
-  dots <- list(...)
-
-  nbasis <- dots$nbasis %||% 6L
-  dots$nbasis <- NULL
-
-  lambda <- dots$lambda %||% 0
-  dots$lambda <- NULL
-  dots$crit <- dots$crit %||% 2
-
-  assert_int(nbasis, lower = 2)
-  assert_number(lambda, lower = 0)
-  assert_choice(dots$crit, choices = c(1, 2))
-
-  yfd <- tf_2_fd(x)
-  if (is.null(template)) {
-    y0fd <- do.call(fda::mean.fd, list(yfd))
-  } else {
-    y0fd <- tf_2_fd(template)
-  }
-
-  if (!is.null(dots$WfdParobj)) {
-    if (nbasis != 6L || lambda != 0) {
-      cli::cli_warn(
-        "{.arg WfdParobj} supplied via {.arg ...}; ignoring {.arg nbasis}/{.arg lambda}."
-      )
-    }
-    WfdParobj <- dots$WfdParobj
-    dots$WfdParobj <- NULL
-  } else {
-    warp_basis <- fda::create.bspline.basis(
-      rangeval = tf_domain(x),
-      nbasis = nbasis
-    )
-    warp_fd0 <- fda::fd(
-      coef = matrix(0, nrow = nbasis, ncol = length(x)),
-      basisobj = warp_basis
-    )
-    WfdParobj <- fda::fdPar(warp_fd0, lambda = lambda)
-  }
-
-  register_args <- c(
-    list(y0fd = y0fd, yfd = yfd, WfdParobj = WfdParobj, dbglev = 0),
-    dots
-  )
-  utils::capture.output(
-    ret <- do.call(fda::register.fd, register_args)
-  )
-  arg <- tf_arg(x)
-  n <- length(arg)
-  domain <- tf_domain(x)
-  lwr <- domain[1]
-  upr <- domain[2]
-
-  warp <- fda::eval.monfd(arg, ret$Wfd)
-  warp <- lwr + (upr - lwr) * warp / (matrix(1, nrow = n) %*% warp[n, ])
-  # avoid numerical over/underflow issues:
-  warp[1, ] <- lwr
-  warp[n, ] <- upr
-  result <- tfd(t(warp), arg = arg)
-  # Attach the template used (the y0fd converted back, or original template)
-  attr(result, "template") <- template %||%
-    tfd(
-      matrix(fda::eval.fd(arg, y0fd), nrow = 1),
-      arg = arg
-    )
-  result
-}
-
-#-------------------------------------------------------------------------------
 
 # Internal: Landmark registration implementation
 # Called by tf_estimate_warps() with method = "landmark"

@@ -83,6 +83,7 @@ Collate:
     'methods.R'
     'print-format.R'
     'rebase.R'
+    'register-fda.R'
     'register-utils.R'
     'register.R'
     'registration-class.R'

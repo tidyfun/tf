@@ -141,5 +141,16 @@ bibentries <- c(
     pages = "1419--1440",
     year = "1989",
     publisher = "Institute of Mathematical Statistics"
+  ),
+  fornberg1988generation = bibentry(
+    "article",
+    title = "Generation of Finite Difference Formulas on Arbitrarily Spaced Grids",
+    author = "Fornberg, Bengt",
+    journal = "Mathematics of Computation",
+    volume = "51",
+    number = "184",
+    pages = "699--706",
+    year = "1988",
+    publisher = "American Mathematical Society"
   )
 )

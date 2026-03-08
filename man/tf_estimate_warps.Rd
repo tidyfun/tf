@@ -27,8 +27,9 @@ Not used for \code{method = "landmark"}.}
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
 For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}. Default template is the Karcher mean.
-\item \code{"fda"}: continuous-criterion registration via \code{\link[fda:register.fd]{fda::register.fd()}}.
-Default template is the arithmetic mean.
+\item \code{"fda"}: continuous-criterion registration via a tf-native dense-grid
+optimizer with monotone spline warps. Default template is the arithmetic
+mean.
 \item \code{"affine"}: affine (linear) registration with warps of the form
 \eqn{h(t) = a \cdot t + b}. Simpler than elastic registration, appropriate
 when phase variability consists only of shifts and/or uniform speed-up/slow-down.
@@ -49,9 +50,11 @@ is skipped regardless of \code{max_iter} because \code{\link[fdasrvf:time_warpin
 already computes the Karcher mean internally.
 Default is \code{3L}.}
 
-\item{tol}{numeric: convergence tolerance for template refinement. Iteration
-stops when the relative change in the template (L2 norm) falls below \code{tol}.
-Default is \code{1e-2}.}
+\item{tol}{numeric: convergence tolerance for template refinement. For
+\code{method = "fda"}, iteration stops when the relative improvement in the
+registration criterion becomes negligible; for the other iterative methods,
+iteration stops when the relative change in the template (L2 norm) falls
+below \code{tol}. Default is \code{1e-2}.}
 }
 \value{
 \code{tfd} vector of (forward) warping functions \eqn{h_i(s) = t}
@@ -66,6 +69,16 @@ The returned warps carry an \code{attr(, "template")} with the template used
 registration. It estimates warping functions that align a set of functions to
 a template, but does \emph{not} apply them. For a one-shot interface that also
 aligns the data, see \code{\link[=tf_register]{tf_register()}}.
+}
+\details{
+For \code{method = "fda"}, \code{tf} uses a tf-native dense-grid optimizer with
+monotone spline warps. Each warp is represented as the normalized cumulative
+integral of \code{exp(eta(t))}, where \code{eta(t)} is a spline with \code{nbasis}
+coefficients. Registration is then carried out curve-by-curve by minimizing
+either an integrated squared-error criterion (\code{crit = 1}) or the
+first-eigenfunction variance criterion (\code{crit = 2}) plus an optional spline
+roughness penalty (\code{lambda}). The outer \code{max_iter} loop, when \code{template = NULL}, still performs the same Procrustes-style template refinement as the
+other methods.
 }
 \section{Important method-specific arguments (passed via \code{...})}{
 
@@ -85,10 +98,13 @@ Euclidean distance to the identity.} }
 warp basis (default \code{6L}, minimum 2).}
 \item{\code{lambda}}{non-negative number: roughness penalty for the warp basis
 (default \code{0} for unpenalized warping).}
-\item{\code{crit}}{registration criterion passed via \code{...} to
-\code{\link[fda:register.fd]{fda::register.fd()}}. Defaults to \code{2} for
-first-eigenfunction variance criterion,
-alternative is \code{1} for integrated squared error.}
+\item{\code{crit}}{registration criterion. Defaults to \code{2} for the
+first-eigenfunction variance criterion; alternative is \code{1} for
+integrated squared error.}
+\item{\code{conv}}{non-negative convergence tolerance for the inner optimizer.
+Default is \code{1e-4}.}
+\item{\code{iterlim}}{maximum number of inner optimization iterations per curve.
+Default is \code{20L}.}
 }
 
 \strong{For \code{method = "affine"}:}

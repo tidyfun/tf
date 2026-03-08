@@ -24,8 +24,7 @@ tf_derive(f, arg, order = 1, ...)
 \arguments{
 \item{f}{a \code{tf}-object}
 
-\item{arg}{grid to use for the finite differences.
-Not (exactly) the \code{arg} of the returned object for \code{tfd}-inputs, see details.}
+\item{arg}{grid to use for the finite differences.}
 
 \item{order}{order of differentiation. Maximal value for \code{tfb_spline} is 2.
 For \code{tfb_spline}-objects, \code{order = -1} yields integrals (used internally).}
@@ -33,22 +32,22 @@ For \code{tfb_spline}-objects, \code{order = -1} yields integrals (used internal
 \item{...}{not used}
 }
 \value{
-a \code{tf} (with slightly different \code{arg} or \code{basis} for the
-derivatives, see details).
+a \code{tf} (with the same \code{arg} for \code{tfd}-inputs, possibly different
+\code{basis} for \code{tfb}-inputs, see details).
 }
 \description{
 Derivatives of \code{tf}-objects use finite differences of the evaluations for
 \code{tfd} and finite differences of the basis functions for \code{tfb}.
 }
 \details{
-The derivatives of \code{tfd} objects use centered finite differences, e.g. for
-first derivatives \eqn{f'((t_i + t_{i+1})/2) \approx \frac{f(t_i) +
-f(t_{i+1})}{t_{i+1} - t_i}}, so the \strong{domains of differentiated \code{tfd} will
-shrink (slightly) at both ends} and \strong{the returned object contains function
-evaluations at the midpoints of the original \code{arg}-grid.} Unless the \code{tfd}
-has a rather fine and regular grid, representing the data in a suitable basis
-representation with \code{\link[=tfb]{tfb()}} and then computing the derivatives (or integrals)
-of those is usually preferable.
+The derivatives of \code{tfd} objects use second-order accurate central differences
+for interior points and second-order accurate one-sided differences at
+boundaries, following the non-uniform grid formulas from \code{numpy.gradient}
+with \code{edge_order = 2} (Fornberg, 1988). Domain and grid of the returned
+object are identical to the input. Unless the \code{tfd} has a rather fine and
+regular grid, representing the data in a suitable basis representation with
+\code{\link[=tfb]{tfb()}} and then computing the derivatives (or integrals) of those is usually
+preferable.
 
 Note that, for spline bases like \code{"cr"} or \code{"tp"} which are constrained to
 begin/end linearly, computing \emph{second} derivatives will produce artefacts at
@@ -78,6 +77,11 @@ dx <- tf_derive(x)
 x
 dx
 tf_arg(dx)
+}
+\references{
+Fornberg, Bengt (1988).
+\dQuote{Generation of Finite Difference Formulas on Arbitrarily Spaced Grids.}
+\emph{Mathematics of Computation}, \bold{51}(184), 699--706.
 }
 \seealso{
 Other tidyfun calculus functions: 
