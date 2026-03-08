@@ -137,6 +137,7 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' @param ... not used
 #' @returns a `tf` (with the same `arg` for `tfd`-inputs, possibly different
 #'   `basis` for `tfb`-inputs, see details).
+#' @references `r format_bib("fornberg1988generation")`
 #' @examples
 #' arg <- seq(0, 1, length.out = 31)
 #' x <- tfd(rbind(arg^2, sin(2 * pi * arg)), arg = arg)

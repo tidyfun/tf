@@ -78,6 +78,11 @@ x
 dx
 tf_arg(dx)
 }
+\references{
+Fornberg, Bengt (1988).
+\dQuote{Generation of Finite Difference Formulas on Arbitrarily Spaced Grids.}
+\emph{Mathematics of Computation}, \bold{51}(184), 699--706.
+}
 \seealso{
 Other tidyfun calculus functions: 
 \code{\link{tf_integrate}()}
