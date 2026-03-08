@@ -2,11 +2,11 @@
 # uses the second-order accurate formula for non-uniform grids from
 # numpy.gradient (see Fornberg, 1988).
 derive_matrix <- function(data, arg, order) {
+  n <- length(arg)
+  if (n < 2) {
+    cli::cli_abort("Must have at least 2 grid points for differentiation.")
+  }
   for (i in seq_len(order)) {
-    n <- length(arg)
-    if (n < 2) {
-      cli::cli_abort("Must have at least 2 grid points for differentiation.")
-    }
     deriv <- matrix(NA_real_, nrow = nrow(data), ncol = n)
     if (n == 2) {
       # only forward difference possible
