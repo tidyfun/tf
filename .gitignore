@@ -42,5 +42,8 @@ CRAN-SUBMISSION
 # MacOS
 .DS_Store
 tf.Rproj
+# simulation code (moved to separate repo)
+attic/sim-registration/
+attic/sim-registration-v1/
 # claude code
 /.claude
