@@ -184,6 +184,7 @@ test_that("tf_derive works on 2-point and 3-point grids", {
 })
 
 test_that("derivative at extremum is near zero", {
+  # quadratic f(x) = -(x-2)^2 + 5 has extremum at x=2, f'(2) = 0
   qgrid <- seq(0, 4, length.out = 201)
   f_quad <- tfd(-(qgrid - 2)^2 + 5, arg = qgrid)
   f_deriv <- tf_derive(f_quad)

@@ -43,11 +43,11 @@ Derivatives of \code{tf}-objects use finite differences of the evaluations for
 The derivatives of \code{tfd} objects use second-order accurate central differences
 for interior points and second-order accurate one-sided differences at
 boundaries, following the non-uniform grid formulas from \code{numpy.gradient}
-with \code{edge_order = 2} (Fornberg, 1988). Domain and grid of the returned
-object are identical to the input. Unless the \code{tfd} has a rather fine and
-regular grid, representing the data in a suitable basis representation with
-\code{\link[=tfb]{tfb()}} and then computing the derivatives (or integrals) of those is usually
-preferable.
+with \code{edge_order=2} (Fornberg, 1988).
+Domain and grid of the returned object are identical to the input. Unless the
+\code{tfd} has a rather fine and regular grid, representing the data in a suitable
+basis representation with \code{\link[=tfb]{tfb()}} and then computing the derivatives (or
+integrals) of those is usually preferable.
 
 Note that, for spline bases like \code{"cr"} or \code{"tp"} which are constrained to
 begin/end linearly, computing \emph{second} derivatives will produce artefacts at
