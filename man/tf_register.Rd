@@ -8,7 +8,7 @@ tf_register(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 0.01,
   store_x = TRUE
@@ -18,7 +18,7 @@ tf_register(
 \item{x}{a \code{tf} vector of functions to register.}
 
 \item{...}{additional method-specific arguments passed to backend routines
-(for example \code{crit} for \code{method = "fda"}). See \code{\link[=tf_estimate_warps]{tf_estimate_warps()}} for
+(for example \code{crit} for \code{method = "cc"}). See \code{\link[=tf_estimate_warps]{tf_estimate_warps()}} for
 method-specific argument documentation.}
 
 \item{template}{an optional \code{tf} vector of length 1 to use as the template.
@@ -28,7 +28,7 @@ Not used for \code{method = "landmark"}.}
 \item{method}{the registration method to use:
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
-\item \code{"fda"}: continuous-criterion registration via a tf-native dense-grid
+\item \code{"cc"}: continuous-criterion registration via a tf-native dense-grid
 optimizer with monotone spline warps.
 \item \code{"affine"}: affine (linear) registration.
 \item \code{"landmark"}: piecewise-linear warps aligning user-specified landmarks.
@@ -70,7 +70,7 @@ Defaults to \code{"roughness"} (norm of their second derivative),
 \code{"geodesic"} uses the geodesic distance to the identity and \code{"norm"} uses
 Euclidean distance to the identity.} }
 
-\strong{For \code{method = "fda"}:}
+\strong{For \code{method = "cc"}:}
 \describe{
 \item{\code{nbasis}}{integer: number of B-spline basis functions for the monotone
 warp basis (default \code{6L}, minimum 2).}
@@ -107,7 +107,7 @@ Default is column-wise mean of \code{landmarks}.}
 }
 
 \examples{
-\dontshow{if (rlang::is_installed(c("fdasrvf", "fda"))) withAutoprint(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("fdasrvf")) withAutoprint(\{ # examplesIf}
 # Elastic registration (SRVF method)
 height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)

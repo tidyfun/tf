@@ -280,9 +280,8 @@ test_that("tf_registration subsetting works", {
 
 # --- tf_estimate_warps --------------------------------------------------------
 
-test_that("tf_estimate_warps works for SRVF and FDA methods", {
+test_that("tf_estimate_warps works for SRVF and CC methods", {
   skip_if_not_installed("fdasrvf")
-  skip_if_not_installed("fda")
   withr::local_seed(1234)
 
   n_curves <- 3
@@ -308,25 +307,25 @@ test_that("tf_estimate_warps works for SRVF and FDA methods", {
   check_warp(tf_estimate_warps(x), x, "SRVF default")
   check_warp(tf_estimate_warps(x, template = mean(x)), x, "SRVF template")
 
-  # FDA: default and non-default crit (tests ... passthrough)
+  # CC: default and non-default crit (tests ... passthrough)
   check_warp(
     quiet_expected_registration_warnings(tf_estimate_warps(
       x,
-      method = "fda",
+      method = "cc",
       max_iter = 1,
       iterlim = 1
     )),
     x,
-    "FDA smoke"
+    "CC smoke"
   )
 
-  # tfd_irreg: SRVF/FDA are currently unsupported
+  # tfd_irreg: SRVF/CC are currently unsupported
   expect_error(
     tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "srvf"),
     "only `affine` and `landmark` registration are currently supported"
   )
   expect_error(
-    tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "fda"),
+    tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "cc"),
     "only `affine` and `landmark` registration are currently supported"
   )
 })
@@ -417,8 +416,7 @@ test_that("tf_estimate_warps supports landmark registration for irregular tfd", 
   expect_equal(warp_at_target, peaks, tolerance = 0.02)
 })
 
-test_that("tf_estimate_warps accepts FDA warp basis controls", {
-  skip_if_not_installed("fda")
+test_that("tf_estimate_warps accepts CC warp basis controls", {
   withr::local_seed(123)
 
   t <- seq(0, 1, length.out = 61)
@@ -430,7 +428,7 @@ test_that("tf_estimate_warps accepts FDA warp basis controls", {
   w_default <- quiet_expected_registration_warnings(
     tf_estimate_warps(
       x,
-      method = "fda",
+      method = "cc",
       max_iter = 1,
       iterlim = 1,
       nbasis = 6L,
@@ -445,7 +443,7 @@ test_that("tf_estimate_warps accepts FDA warp basis controls", {
   expect_no_error(
     w_tuned <- quiet_expected_registration_warnings(tf_estimate_warps(
       x,
-      method = "fda",
+      method = "cc",
       max_iter = 1,
       iterlim = 1,
       crit = 1,
@@ -458,11 +456,11 @@ test_that("tf_estimate_warps accepts FDA warp basis controls", {
   expect_identical(tf_domain(w_tuned), tf_domain(x))
 
   expect_error(
-    tf_estimate_warps(x, method = "fda", nbasis = 1L),
+    tf_estimate_warps(x, method = "cc", nbasis = 1L),
     ">= 2"
   )
   expect_error(
-    tf_estimate_warps(x, method = "fda", lambda = -1),
+    tf_estimate_warps(x, method = "cc", lambda = -1),
     ">= 0"
   )
 })
@@ -474,7 +472,7 @@ test_that("tf_estimate_warps dispatches correctly for tfb subclasses", {
     sin(t + runif(1, -0.5, 0.5))
   })
 
-  # Use cheap affine method (not SRVF/FDA) to test class dispatch
+  # Use cheap affine method (not SRVF/CC) to test class dispatch
   x_tfb <- suppressMessages(tfb(t(data), k = 20))
   warp_tfb <- quiet_expected_registration_warnings(
     tf_estimate_warps(x_tfb, method = "affine", type = "shift")
@@ -492,9 +490,8 @@ test_that("tf_estimate_warps dispatches correctly for tfb subclasses", {
   expect_identical(tf_domain(warp_fpc), tf_domain(x_fpc))
 })
 
-test_that("tf_estimate_warps SRVF/FDA works for tfb subclasses", {
+test_that("tf_estimate_warps SRVF/CC works for tfb subclasses", {
   skip_if_not_installed("fdasrvf")
-  skip_if_not_installed("fda")
   withr::local_seed(1234)
 
   t <- seq(0, 2 * pi, length.out = 41)
@@ -508,15 +505,15 @@ test_that("tf_estimate_warps SRVF/FDA works for tfb subclasses", {
   expect_length(warp_srvf, length(x_tfb))
   expect_identical(tf_domain(warp_srvf), tf_domain(x_tfb))
 
-  warp_fda <- quiet_expected_registration_warnings(
-    tf_estimate_warps(x_fpc, method = "fda", max_iter = 1, iterlim = 1)
+  warp_cc <- quiet_expected_registration_warnings(
+    tf_estimate_warps(x_fpc, method = "cc", max_iter = 1, iterlim = 1)
   )
-  expect_s3_class(warp_fda, "tfd")
-  expect_length(warp_fda, length(x_fpc))
-  expect_identical(tf_domain(warp_fda), tf_domain(x_fpc))
+  expect_s3_class(warp_cc, "tfd")
+  expect_length(warp_cc, length(x_fpc))
+  expect_identical(tf_domain(warp_cc), tf_domain(x_fpc))
 })
 
-test_that("tf_estimate_warps validates SRVF/FDA templates", {
+test_that("tf_estimate_warps validates SRVF/CC templates", {
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(2 * pi * t), cos(2 * pi * t))), arg = t)
 
@@ -529,7 +526,7 @@ test_that("tf_estimate_warps validates SRVF/FDA templates", {
     "length 1 or the same length"
   )
   expect_error(
-    tf_estimate_warps(x, method = "fda", template = template_bad_len),
+    tf_estimate_warps(x, method = "cc", template = template_bad_len),
     "length 1 or the same length"
   )
 
@@ -542,7 +539,7 @@ test_that("tf_estimate_warps validates SRVF/FDA templates", {
     "same domain"
   )
   expect_error(
-    tf_estimate_warps(x, method = "fda", template = template_bad_domain),
+    tf_estimate_warps(x, method = "cc", template = template_bad_domain),
     "same domain"
   )
 
@@ -553,14 +550,13 @@ test_that("tf_estimate_warps validates SRVF/FDA templates", {
     "same grid"
   )
   expect_error(
-    tf_estimate_warps(x, method = "fda", template = template_bad_grid),
+    tf_estimate_warps(x, method = "cc", template = template_bad_grid),
     "same grid"
   )
 })
 
-test_that("tf_estimate_warps SRVF/FDA reject unknown method-specific arguments", {
+test_that("tf_estimate_warps SRVF/CC reject unknown method-specific arguments", {
   skip_if_not_installed("fdasrvf")
-  skip_if_not_installed("fda")
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(2 * pi * t), sin(2 * pi * (t + 0.05)))), arg = t)
 
@@ -569,13 +565,12 @@ test_that("tf_estimate_warps SRVF/FDA reject unknown method-specific arguments",
     "unused argument|unused arguments|formal argument"
   )
   expect_error(
-    tf_estimate_warps(x, method = "fda", unknown_arg = 1),
+    tf_estimate_warps(x, method = "cc", unknown_arg = 1),
     "unused argument|unused arguments|formal argument"
   )
 })
 
-test_that("tf_estimate_warps FDA explicit template path is exercised", {
-  skip_if_not_installed("fda")
+test_that("tf_estimate_warps CC explicit template path is exercised", {
   withr::local_seed(4321)
   t <- seq(0, 1, length.out = 61)
   x <- tfd(
@@ -585,11 +580,11 @@ test_that("tf_estimate_warps FDA explicit template path is exercised", {
   template <- mean(x)
 
   w_default <- quiet_expected_registration_warnings(
-    tf_estimate_warps(x, method = "fda", max_iter = 1, iterlim = 1)
+    tf_estimate_warps(x, method = "cc", max_iter = 1, iterlim = 1)
   )
   w_template <- quiet_expected_registration_warnings(tf_estimate_warps(
     x,
-    method = "fda",
+    method = "cc",
     template = template,
     max_iter = 1,
     iterlim = 1
@@ -1263,7 +1258,7 @@ test_that("tf_estimate_warps Procrustes iteration handles irregular affine updat
   expect_length(w, length(x))
 })
 
-test_that("tf_estimate_warps Procrustes iteration runs for FDA", {
+test_that("tf_estimate_warps Procrustes iteration runs for CC", {
   skip_on_cran()
   withr::local_seed(42)
   t <- seq(0, 1, length.out = 61)
@@ -1273,13 +1268,13 @@ test_that("tf_estimate_warps Procrustes iteration runs for FDA", {
   )
 
   w <- quiet_expected_registration_warnings(
-    tf_estimate_warps(x, method = "fda", max_iter = 2L, iterlim = 5)
+    tf_estimate_warps(x, method = "cc", max_iter = 2L, iterlim = 5)
   )
   expect_s3_class(w, "tfd_reg")
   expect_length(w, 3)
 })
 
-test_that("tf_estimate_warps FDA outer loop improves the FDA criterion", {
+test_that("tf_estimate_warps CC outer loop improves the CC criterion", {
   skip_on_cran()
   withr::local_seed(42)
   t <- seq(0, 1, length.out = 61)
@@ -1289,19 +1284,19 @@ test_that("tf_estimate_warps FDA outer loop improves the FDA criterion", {
   )
 
   w_2 <- quiet_expected_registration_warnings(
-    tf_estimate_warps(x, method = "fda", max_iter = 2L, iterlim = 5)
+    tf_estimate_warps(x, method = "cc", max_iter = 2L, iterlim = 5)
   )
   w_5 <- quiet_expected_registration_warnings(
-    tf_estimate_warps(x, method = "fda", max_iter = 5L, iterlim = 5)
+    tf_estimate_warps(x, method = "cc", max_iter = 5L, iterlim = 5)
   )
 
   aligned_2 <- suppressWarnings(tf_align(x, w_2))
   aligned_5 <- suppressWarnings(tf_align(x, w_5))
-  obj_2 <- tf:::registration_objective_fda(
+  obj_2 <- tf:::registration_objective_cc(
     aligned = aligned_2,
     template = attr(w_2, "template")
   )
-  obj_5 <- tf:::registration_objective_fda(
+  obj_5 <- tf:::registration_objective_cc(
     aligned = aligned_5,
     template = attr(w_5, "template")
   )

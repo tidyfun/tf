@@ -47,3 +47,4 @@ attic/sim-registration/
 attic/sim-registration-v1/
 # claude code
 /.claude
+AGENTS.md

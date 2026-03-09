@@ -91,7 +91,7 @@ the original domain range that is lost per curve after alignment, computed
 as \code{1 - range(aligned_arg) / range(original_arg)}. This is only relevant
 for affine (non-domain-preserving) warps where alignment can shift parts of
 curves outside the original domain. Domain-preserving methods (\code{srvf},
-\code{fda}, \code{landmark}) always have zero domain loss.
+\code{cc}, \code{landmark}) always have zero domain loss.
 }
 
 \section{Accessors}{

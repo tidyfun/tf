@@ -1,4 +1,4 @@
-# FDA-style continuous registration backend -----------------------------------
+# Continuous-criterion registration backend -----------------------------------
 
 new_regular_grid_info <- function(arg) {
   assert_numeric(arg, min.len = 2, any.missing = FALSE, finite = TRUE)
@@ -36,7 +36,7 @@ cumulative_trapezoid_matrix <- function(arg, values) {
   }
 }
 
-new_register_fda_problem <- function(
+new_register_cc_problem <- function(
   x,
   template,
   nbasis,
@@ -113,7 +113,7 @@ build_monotone_warp <- function(coefs, problem) {
   list(ok = TRUE, warp = warp, derivative = warp_derivative)
 }
 
-register_fda_curve_objective <- function(
+register_cc_curve_objective <- function(
   par,
   coefs_start,
   curve_index,
@@ -179,7 +179,7 @@ register_fda_curve_objective <- function(
 optimize_registration_curve <- function(curve_index, coefs_start, problem) {
   active <- seq.int(2L, length(coefs_start))
   if (length(active) == 0L || problem$iterlim <= 0L) {
-    return(register_fda_curve_objective(
+    return(register_cc_curve_objective(
       par = numeric(0),
       coefs_start = coefs_start,
       curve_index = curve_index,
@@ -199,7 +199,7 @@ optimize_registration_curve <- function(curve_index, coefs_start, problem) {
       return(cache$result)
     }
 
-    result <- register_fda_curve_objective(
+    result <- register_cc_curve_objective(
       par = par,
       coefs_start = coefs_start,
       curve_index = curve_index,
@@ -223,7 +223,7 @@ optimize_registration_curve <- function(curve_index, coefs_start, problem) {
   evaluate_objective(fit$par)
 }
 
-solve_register_fda_problem <- function(problem) {
+solve_register_cc_problem <- function(problem) {
   coefs <- problem$initial_coefs
   warp_fine <- matrix(
     NA_real_,
@@ -244,7 +244,7 @@ solve_register_fda_problem <- function(problem) {
   list(coefs = coefs, warp_fine = warp_fine)
 }
 
-tf_register_fda <- function(
+tf_register_cc <- function(
   x,
   template,
   nbasis = 6L,
@@ -253,7 +253,7 @@ tf_register_fda <- function(
   conv = 1e-4,
   iterlim = 20L
 ) {
-  problem <- new_register_fda_problem(
+  problem <- new_register_cc_problem(
     x = x,
     template = template,
     nbasis = nbasis,
@@ -262,7 +262,7 @@ tf_register_fda <- function(
     conv = conv,
     iterlim = iterlim
   )
-  solved <- solve_register_fda_problem(problem)
+  solved <- solve_register_cc_problem(problem)
   warp_out <- t(apply(
     solved$warp_fine,
     1,

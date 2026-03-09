@@ -197,14 +197,14 @@ tf_align.tfb <- function(x, warp, ...) {
 #'
 #' @param x a `tf` vector of functions to register.
 #' @param ... additional method-specific arguments passed to backend routines
-#'   (for example `crit` for `method = "fda"`). See [tf_estimate_warps()] for
+#'   (for example `crit` for `method = "cc"`). See [tf_estimate_warps()] for
 #'   method-specific argument documentation.
 #' @param template an optional `tf` vector of length 1 to use as the template.
 #'   If `NULL`, a default template is computed (method-dependent).
 #'   Not used for `method = "landmark"`.
 #' @param method the registration method to use:
 #'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
-#'   * `"fda"`: continuous-criterion registration via a tf-native dense-grid
+#'   * `"cc"`: continuous-criterion registration via a tf-native dense-grid
 #'     optimizer with monotone spline warps.
 #'   * `"affine"`: affine (linear) registration.
 #'   * `"landmark"`: piecewise-linear warps aligning user-specified landmarks.
@@ -235,7 +235,7 @@ tf_align.tfb <- function(x, warp, ...) {
 #' @author Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
 #' @family registration functions
 #'
-#' @examplesIf rlang::is_installed(c("fdasrvf", "fda"))
+#' @examplesIf rlang::is_installed("fdasrvf")
 #' # Elastic registration (SRVF method)
 #' height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 #' growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)
@@ -261,7 +261,7 @@ tf_register <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2,
   store_x = TRUE
@@ -293,7 +293,7 @@ tf_register <- function(
 
 #-------------------------------------------------------------------------------
 
-registration_objective_fda <- function(aligned, template, crit = 2L) {
+registration_objective_cc <- function(aligned, template, crit = 2L) {
   aligned_mat <- as.matrix(aligned)
   template_mat <- as.matrix(template)
   if (nrow(template_mat) == 1L && nrow(aligned_mat) > 1L) {
@@ -318,8 +318,8 @@ registration_objective_fda <- function(aligned, template, crit = 2L) {
 }
 
 outer_registration_objective <- function(method, aligned, template, arg, dots) {
-  if (method == "fda") {
-    return(registration_objective_fda(
+  if (method == "cc") {
+    return(registration_objective_cc(
       aligned = aligned,
       template = template,
       crit = dots$crit %||% 2L
@@ -342,7 +342,7 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
 #' a template, but does *not* apply them. For a one-shot interface that also
 #' aligns the data, see [tf_register()].
 #'
-#' For `method = "fda"`, `tf` uses a tf-native dense-grid optimizer with
+#' For `method = "cc"`, `tf` uses a tf-native dense-grid optimizer with
 #' monotone spline warps. Each warp is represented as the normalized cumulative
 #' integral of `exp(eta(t))`, where `eta(t)` is a spline with `nbasis`
 #' coefficients. Registration is then carried out curve-by-curve by minimizing
@@ -354,14 +354,14 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
 #'
 #' @param x a `tf` vector of functions to register.
 #' @param ... additional method-specific arguments passed to backend routines
-#'   (for example `crit` for `method = "fda"`).
+#'   (for example `crit` for `method = "cc"`).
 #' @param template an optional `tf` vector of length 1 to use as the template.
 #'   If `NULL`, a default template is computed (method-dependent).
 #'   Not used for `method = "landmark"`.
 #' @param method the registration method to use:
 #'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
 #'     For details, see [fdasrvf::time_warping()]. Default template is the Karcher mean.
-#'   * `"fda"`: continuous-criterion registration via a tf-native dense-grid
+#'   * `"cc"`: continuous-criterion registration via a tf-native dense-grid
 #'     optimizer with monotone spline warps. Default template is the arithmetic
 #'     mean.
 #'   * `"affine"`: affine (linear) registration with warps of the form
@@ -382,7 +382,7 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
 #'   already computes the Karcher mean internally.
 #'   Default is `3L`.
 #' @param tol numeric: convergence tolerance for template refinement. For
-#'   `method = "fda"`, iteration stops when the relative improvement in the
+#'   `method = "cc"`, iteration stops when the relative improvement in the
 #'   registration criterion becomes negligible; for the other iterative methods,
 #'   iteration stops when the relative change in the template (L2 norm) falls
 #'   below `tol`. Default is `1e-2`.
@@ -398,7 +398,7 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
 #' `"geodesic"` uses the geodesic distance to the identity and `"norm"` uses
 #' Euclidean distance to the identity.} }
 #'
-#' **For `method = "fda"`:**
+#' **For `method = "cc"`:**
 #' \describe{
 #'   \item{`nbasis`}{integer: number of B-spline basis functions for the monotone
 #'     warp basis (default `6L`, minimum 2).}
@@ -447,7 +447,7 @@ tf_estimate_warps <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -459,7 +459,7 @@ tf_estimate_warps.tfd_reg <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -490,8 +490,8 @@ tf_estimate_warps.tfd_reg <- function(
     max_iter <- 1L # no refinement when template is given
   }
 
-  # Validate user-supplied template for SRVF/FDA
-  if (!is.null(template) && method %in% c("srvf", "fda")) {
+  # Validate user-supplied template for SRVF/CC
+  if (!is.null(template) && method %in% c("srvf", "cc")) {
     assert_tf(template)
     if (length(template) != 1 && length(template) != length(x)) {
       cli::cli_abort(
@@ -516,7 +516,7 @@ tf_estimate_warps.tfd_reg <- function(
   best_template <- current_template
   best_obj <- Inf
   prev_obj <- NA_real_
-  fda_min_iter <- 3L
+  cc_min_iter <- 3L
   for (iter in seq_len(max_iter)) {
     warps <- switch(
       method,
@@ -524,8 +524,8 @@ tf_estimate_warps.tfd_reg <- function(
         tf_register_srvf,
         c(list(x = x, template = current_template), dots)
       ),
-      fda = do.call(
-        tf_register_fda,
+      cc = do.call(
+        tf_register_cc,
         c(list(x = x, template = current_template), dots)
       ),
       affine = do.call(
@@ -565,8 +565,8 @@ tf_estimate_warps.tfd_reg <- function(
     }
 
     if (
-      method == "fda" &&
-        iter >= fda_min_iter &&
+      method == "cc" &&
+        iter >= cc_min_iter &&
         is.finite(prev_obj) &&
         is.finite(obj)
     ) {
@@ -596,7 +596,7 @@ tf_estimate_warps.tfd_reg <- function(
       new_tmpl_vec[missing_tmpl] <- old_vec[missing_tmpl]
     }
     new_template <- tfd(matrix(new_tmpl_vec, nrow = 1), arg = arg)
-    if (method != "fda") {
+    if (method != "cc") {
       domain_length <- diff(tf_domain(x))
       delta <- suppressWarnings(
         tf_integrate((new_template - template_on_arg)^2, arg = arg)
@@ -624,7 +624,7 @@ tf_estimate_warps.tfb <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -644,7 +644,7 @@ tf_estimate_warps.tfd_irreg <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -653,7 +653,7 @@ tf_estimate_warps.tfd_irreg <- function(
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
 
-  if (method %in% c("srvf", "fda")) {
+  if (method %in% c("srvf", "cc")) {
     cli::cli_abort(
       c(
         "For {.cls tfd_irreg}, only `affine` and `landmark` registration are currently supported.",
@@ -693,8 +693,6 @@ tf_estimate_warps.tfd_irreg <- function(
   attr(result, "template") <- tmpl
   result
 }
-
-#-------------------------------------------------------------------------------
 
 tf_register_srvf <- function(x, template, ...) {
   rlang::check_installed("fdasrvf")

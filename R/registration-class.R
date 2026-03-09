@@ -42,7 +42,7 @@
 #' as `1 - range(aligned_arg) / range(original_arg)`. This is only relevant
 #' for affine (non-domain-preserving) warps where alignment can shift parts of
 #' curves outside the original domain. Domain-preserving methods (`srvf`,
-#' `fda`, `landmark`) always have zero domain loss.
+#' `cc`, `landmark`) always have zero domain loss.
 #'
 #' @section Accessors:
 #' - `tf_aligned(x)`: extract the registered/aligned curves (`tfd` vector).

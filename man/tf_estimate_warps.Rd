@@ -8,7 +8,7 @@ tf_estimate_warps(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "fda", "affine", "landmark"),
+  method = c("srvf", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 0.01
 )
@@ -17,7 +17,7 @@ tf_estimate_warps(
 \item{x}{a \code{tf} vector of functions to register.}
 
 \item{...}{additional method-specific arguments passed to backend routines
-(for example \code{crit} for \code{method = "fda"}).}
+(for example \code{crit} for \code{method = "cc"}).}
 
 \item{template}{an optional \code{tf} vector of length 1 to use as the template.
 If \code{NULL}, a default template is computed (method-dependent).
@@ -27,7 +27,7 @@ Not used for \code{method = "landmark"}.}
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
 For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}. Default template is the Karcher mean.
-\item \code{"fda"}: continuous-criterion registration via a tf-native dense-grid
+\item \code{"cc"}: continuous-criterion registration via a tf-native dense-grid
 optimizer with monotone spline warps. Default template is the arithmetic
 mean.
 \item \code{"affine"}: affine (linear) registration with warps of the form
@@ -51,7 +51,7 @@ already computes the Karcher mean internally.
 Default is \code{3L}.}
 
 \item{tol}{numeric: convergence tolerance for template refinement. For
-\code{method = "fda"}, iteration stops when the relative improvement in the
+\code{method = "cc"}, iteration stops when the relative improvement in the
 registration criterion becomes negligible; for the other iterative methods,
 iteration stops when the relative change in the template (L2 norm) falls
 below \code{tol}. Default is \code{1e-2}.}
@@ -71,7 +71,7 @@ a template, but does \emph{not} apply them. For a one-shot interface that also
 aligns the data, see \code{\link[=tf_register]{tf_register()}}.
 }
 \details{
-For \code{method = "fda"}, \code{tf} uses a tf-native dense-grid optimizer with
+For \code{method = "cc"}, \code{tf} uses a tf-native dense-grid optimizer with
 monotone spline warps. Each warp is represented as the normalized cumulative
 integral of \code{exp(eta(t))}, where \code{eta(t)} is a spline with \code{nbasis}
 coefficients. Registration is then carried out curve-by-curve by minimizing
@@ -92,7 +92,7 @@ Defaults to \code{"roughness"} (norm of their second derivative),
 \code{"geodesic"} uses the geodesic distance to the identity and \code{"norm"} uses
 Euclidean distance to the identity.} }
 
-\strong{For \code{method = "fda"}:}
+\strong{For \code{method = "cc"}:}
 \describe{
 \item{\code{nbasis}}{integer: number of B-spline basis functions for the monotone
 warp basis (default \code{6L}, minimum 2).}
