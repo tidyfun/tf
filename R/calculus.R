@@ -1,10 +1,45 @@
-# compute derivatives of data in rows by finite differences.
-# returns derivatives at interval midpoints
+# compute derivatives of data in rows by centered finite differences.
+# uses the second-order accurate formula for non-uniform grids from
+# numpy.gradient (see Fornberg, 1988).
 derive_matrix <- function(data, arg, order) {
+  n <- length(arg)
+  if (n < 2) {
+    cli::cli_abort("Must have at least 2 grid points for differentiation.")
+  }
   for (i in seq_len(order)) {
-    delta <- diff(arg)
-    data <- t(diff(t(data)) / delta)
-    arg <- (arg[-1] + head(arg, -1)) / 2
+    deriv <- matrix(NA_real_, nrow = nrow(data), ncol = n)
+    if (n == 2) {
+      # only forward difference possible
+      deriv[, 1] <- deriv[, 2] <- (data[, 2] - data[, 1]) / (arg[2] - arg[1])
+    } else {
+      # boundaries: 2nd-order accurate one-sided differences (non-uniform grid)
+      # left boundary
+      dx1 <- arg[2] - arg[1]
+      dx2 <- arg[3] - arg[2]
+      a <- -(2 * dx1 + dx2) / (dx1 * (dx1 + dx2))
+      b <- (dx1 + dx2) / (dx1 * dx2)
+      cc <- -dx1 / (dx2 * (dx1 + dx2))
+      deriv[, 1] <- a * data[, 1] + b * data[, 2] + cc * data[, 3]
+      # right boundary
+      dx1 <- arg[n - 1] - arg[n - 2]
+      dx2 <- arg[n] - arg[n - 1]
+      a <- dx2 / (dx1 * (dx1 + dx2))
+      b <- -(dx2 + dx1) / (dx1 * dx2)
+      cc <- (2 * dx2 + dx1) / (dx2 * (dx1 + dx2))
+      deriv[, n] <- a * data[, n - 2] + b * data[, n - 1] + cc * data[, n]
+      # interior: 2nd-order accurate central differences (non-uniform grid)
+      dx1 <- arg[2:(n - 1)] - arg[1:(n - 2)]
+      dx2 <- arg[3:n] - arg[2:(n - 1)]
+      a <- -dx2 / (dx1 * (dx1 + dx2))
+      b <- (dx2 - dx1) / (dx1 * dx2)
+      cc <- dx1 / (dx2 * (dx1 + dx2))
+      nr <- nrow(data)
+      deriv[, 2:(n - 1)] <-
+        data[, 1:(n - 2)] * rep(a, each = nr) +
+        data[, 2:(n - 1)] * rep(b, each = nr) +
+        data[, 3:n] * rep(cc, each = nr)
+    }
+    data <- deriv
   }
   list(data = data, arg = arg)
 }
@@ -81,14 +116,14 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' Derivatives of `tf`-objects use finite differences of the evaluations for
 #' `tfd` and finite differences of the basis functions for `tfb`.
 #'
-#' The derivatives of `tfd` objects use centered finite differences, e.g. for
-#' first derivatives \eqn{f'((t_i + t_{i+1})/2) \approx \frac{f(t_i) +
-#' f(t_{i+1})}{t_{i+1} - t_i}}, so the **domains of differentiated `tfd` will
-#' shrink (slightly) at both ends** and **the returned object contains function
-#' evaluations at the midpoints of the original `arg`-grid.** Unless the `tfd`
-#' has a rather fine and regular grid, representing the data in a suitable basis
-#' representation with [tfb()] and then computing the derivatives (or integrals)
-#' of those is usually preferable.
+#' The derivatives of `tfd` objects use second-order accurate central differences
+#' for interior points and second-order accurate one-sided differences at
+#' boundaries, following the non-uniform grid formulas from `numpy.gradient`
+#' with `edge_order=2` (Fornberg, 1988).
+#' Domain and grid of the returned object are identical to the input. Unless the
+#' `tfd` has a rather fine and regular grid, representing the data in a suitable
+#' basis representation with [tfb()] and then computing the derivatives (or
+#' integrals) of those is usually preferable.
 #'
 #' Note that, for spline bases like `"cr"` or `"tp"` which are constrained to
 #' begin/end linearly, computing *second* derivatives will produce artefacts at
@@ -99,10 +134,10 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
 #' @param order order of differentiation. Maximal value for `tfb_spline` is 2.
 #' For `tfb_spline`-objects, `order = -1` yields integrals (used internally).
 #' @param arg grid to use for the finite differences.
-#'   Not (exactly) the `arg` of the returned object for `tfd`-inputs, see details.
 #' @param ... not used
-#' @returns a `tf` (with slightly different `arg` or `basis` for the
-#'   derivatives, see details).
+#' @returns a `tf` (with the same `arg` for `tfd`-inputs, possibly different
+#'   `basis` for `tfb`-inputs, see details).
+#' @references `r format_bib("fornberg1988generation")`
 #' @examples
 #' arg <- seq(0, 1, length.out = 31)
 #' x <- tfd(rbind(arg^2, sin(2 * pi * arg)), arg = arg)
@@ -136,12 +171,6 @@ tf_derive.matrix <- function(f, arg, order = 1, ...) {
 #' @export
 #' @describeIn tf_derive derivatives by finite differencing of function evaluations.
 tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
-  # tfd derivation shortens the domain (slightly).
-  # because finite differences give the derivative at the middle of the interval
-  # between the original arg-values, so we lose the first and last arg-value and
-  # get new ones in between.
-  # re-setting the output domain to this shorter interval is necessary so
-  # we don't get NAs when trying to evaluate derivs over the default domain etc.
   assert_count(order)
   na_entries <- is.na(f)
   data <- as.matrix(f, arg, interpolate = TRUE)
@@ -150,7 +179,7 @@ tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
   ret <- tfd(
     derived$data,
     derived$arg,
-    domain = range(derived$arg) # !! shorter
+    domain = tf_domain(f)
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   restore_na_entries(ret, na_entries, names(f))
@@ -172,18 +201,15 @@ tf_derive.tfd_irreg <- function(f, arg, order = 1, ...) {
   args <- tf_arg(f)
   evals <- tf_evaluate(f)
   derived_data <- vector("list", length(f))
-  derived_args <- vector("list", length(f))
   for (i in which(!na_entries)) {
     d <- derive_matrix(rbind(evals[[i]]), args[[i]], order)
     derived_data[[i]] <- d$data[1, ]
-    derived_args[[i]] <- d$arg
   }
   derived_data[na_entries] <- list(NULL)
-  derived_args[na_entries] <- list(NULL)
   ret <- tfd(
     derived_data[!na_entries],
-    derived_args[!na_entries],
-    domain = range(unlist(derived_args))
+    args[!na_entries],
+    domain = tf_domain(f)
   )
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   restore_na_entries(ret, na_entries, names(f))
