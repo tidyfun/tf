@@ -71,6 +71,34 @@ stabilize_warp_values <- function(
   values
 }
 
+strictify_domain_preserving_warp <- function(values, domain) {
+  n_values <- length(values)
+  if (n_values <= 1L) {
+    return(values)
+  }
+
+  values <- pmin(pmax(values, domain[1]), domain[2])
+  values[1] <- domain[1]
+  values[n_values] <- domain[2]
+
+  eps <- diff(domain) * 1e-6 / max(1, n_values - 1L)
+  for (i in 2:n_values) {
+    if (!is.finite(values[i]) || values[i] <= values[i - 1L]) {
+      values[i] <- values[i - 1L] + eps
+    }
+  }
+
+  if (values[n_values] <= values[1]) {
+    return(seq(domain[1], domain[2], length.out = n_values))
+  }
+
+  values <- domain[1] +
+    (values - values[1]) * diff(domain) / (values[n_values] - values[1])
+  values[1] <- domain[1]
+  values[n_values] <- domain[2]
+  values
+}
+
 apply_tfb_warp <- function(fun, x, warp, dots = list()) {
   # keep_new_arg forced to FALSE here, otherwise basis matrix blows up:
   # would keep every unique gridpoint & cause plots to fail (resolution too small)

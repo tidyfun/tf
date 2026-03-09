@@ -268,8 +268,12 @@ tf_register_fda <- function(
     1,
     \(warp) interpolate_regular_grid(problem$grid_info, warp, problem$arg)
   ))
-  warp_out[, 1] <- problem$domain[1]
-  warp_out[, length(problem$arg)] <- problem$domain[2]
+  warp_out <- t(apply(
+    warp_out,
+    1,
+    strictify_domain_preserving_warp,
+    domain = problem$domain
+  ))
 
   result <- tfd(warp_out, arg = problem$arg, domain = problem$domain)
   attr(result, "template") <- problem$template
