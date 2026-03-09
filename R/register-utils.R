@@ -81,21 +81,38 @@ strictify_domain_preserving_warp <- function(values, domain) {
   values[1] <- domain[1]
   values[n_values] <- domain[2]
 
-  eps <- diff(domain) * 1e-6 / max(1, n_values - 1L)
+  eps <- diff(domain) * 1e-4 / max(1, n_values - 1L)
+  if (!is.finite(eps) || eps <= 0) {
+    return(seq(domain[1], domain[2], length.out = n_values))
+  }
+
   for (i in 2:n_values) {
-    if (!is.finite(values[i]) || values[i] <= values[i - 1L]) {
+    if (!is.finite(values[i]) || values[i] < values[i - 1L] + eps) {
       values[i] <- values[i - 1L] + eps
     }
   }
 
-  if (values[n_values] <= values[1]) {
-    return(seq(domain[1], domain[2], length.out = n_values))
+  for (i in (n_values - 1L):1L) {
+    if (values[i] > values[i + 1L] - eps) {
+      values[i] <- values[i + 1L] - eps
+    }
   }
 
-  values <- domain[1] +
-    (values - values[1]) * diff(domain) / (values[n_values] - values[1])
   values[1] <- domain[1]
   values[n_values] <- domain[2]
+  for (i in 2:n_values) {
+    if (values[i] < values[i - 1L] + eps) {
+      values[i] <- values[i - 1L] + eps
+    }
+  }
+
+  if (
+    values[1] < domain[1] ||
+      values[n_values] > domain[2] ||
+      any(diff(values) <= 0)
+  ) {
+    return(seq(domain[1], domain[2], length.out = n_values))
+  }
   values
 }
 
@@ -159,6 +176,11 @@ unwarp_non_domain_preserving <- function(
 }
 
 unwarp_domain_preserving <- function(x_evals, warp_evals, arg_list, domain) {
+  warp_evals <- map(
+    warp_evals,
+    strictify_domain_preserving_warp,
+    domain = domain
+  )
   inv_warp <- tfd(warp_evals, arg = arg_list, domain = domain) |>
     tf_invert(domain = domain) |>
     tfd(arg = arg_list, domain = domain)

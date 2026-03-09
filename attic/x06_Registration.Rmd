@@ -22,7 +22,7 @@ alpha_palette <- c(
   "#CD0BBC80", "#F5C71080", "#9E9E9E80", "#00000080", "#DF536B80"
 )
 have_srvf <- rlang::is_installed("fdasrvf")
-have_fda <- rlang::is_installed("fda")
+have_cc <- TRUE
 ```
 
 ## Registration: Template, Warp, Domain
@@ -58,7 +58,7 @@ Key interpretation:
 
 **Core workflow in `tf`:**
 
-```{r, eval=FALSE, echo = TRUE, class.source = "show"}
+```{r, eval=FALSE, echo = TRUE, class.source = "fold-show"}
 # One-shot registration (returns tf_registration object):
 reg <- tf_register(x, method = "...")
 tf_aligned(reg)   # registered/aligned curves
@@ -81,14 +81,14 @@ Default template behavior in `tf_register()` / `tf_estimate_warps()`:
 | Method | Default template behavior | How to override |
 |:--|:--|:--|
 | `srvf` | Karcher-type mean shape^[The Karcher mean (also called Fréchet mean) generalizes arithmetic means to general spaces. In this case, it is a centroid in the amplitude quotient space (functions modulo reparameterization), computed iteratively using the elastic (Fisher-Rao) distance rather than pointwise averaging.] estimated iteratively by `fdasrvf` | pass `template = ...` |
-| `fda` | arithmetic mean curve (estimated iteratively) | pass `template = ...` |
+| `cc` | arithmetic mean curve (estimated iteratively) | pass `template = ...` |
 | `affine` | arithmetic mean curve | pass `template = ...` |
 | `landmark` | column-wise mean of landmark locations | pass `template_landmarks = ...` |
 
 Practical rules:
 
 1. If you need interpretable warpings relative to a known reference, supply an explicit template.
-2. Template and data need to be on the same domain and grid for `srvf` and `fda`.
+2. Template and data need to be on the same domain and grid for `srvf` and `cc`.
 3. Always *visualize* raw curves and the template together before trusting warps.
 
 4. Under strong phase variation, the pointwise mean can be a poor template — see [Unsuitable template](#unsuitable-template) in the Pitfalls section for an example and remedy.
@@ -105,7 +105,7 @@ Practical rules:
 
 This distinction is fundamental for interpretation and edge behavior:
 
-- **Domain-preserving**: warps map domain endpoints to themselves. Registration using the `srvf`, `fda`, and `landmark` methods in `tf` is domain preserving.
+- **Domain-preserving**: warps map domain endpoints to themselves. Registration using the `srvf`, `cc`, and `landmark` methods in `tf` is domain preserving.
 - **Non-domain-preserving**: warps can shift or scale outside (or into a subset of) the observed domain. Only available with the `affine` method in `tf`.
 
 Implications:
@@ -160,17 +160,17 @@ plot.new()
 # Column 2: one warp per row
 for (i in 1:3) {
   plot(s, s, type = "l", lty = 3, lwd = 1,
-       main = paste0("h(s): ", warp_names[i]),
+       main = paste0("h(s): ", warp_names[[i]]),
        xlab = "s", ylab = "h(s)", ylim = c(-0.05, 1.15))
-  lines(warps[[i]], col = warp_cols[i], lwd = 2.5)
+  do.call(graphics::lines, list(warps[[i]], col = warp_cols[[i]], lwd = 2.5))
 }
 
 # Column 3: template (dashed) + warped curve per row
 for (i in 1:3) {
   plot(template_synth, lwd = 2, lty = 3,
-       main = paste0("x(t) = m(h(s)): ", warp_names[i]),
+       main = paste0("x(t) = m(h(s)): ", warp_names[[i]]),
        xlab = "t", ylab = "x(t)")
-  lines(warped[[i]], col = warp_cols[i], lwd = 2.5)
+  do.call(graphics::lines, list(warped[[i]], col = warp_cols[[i]], lwd = 2.5))
 }
 ```
 
@@ -194,12 +194,15 @@ reg_shift <- tf_register(
   type = "shift"
 )
 reg_shift
+summary(reg_shift)
 pinch_inv_warp_shift <- tf_inv_warps(reg_shift)
 pinch_small_reg <- tf_aligned(reg_shift)
+pinch_template_shift <- tf_template(reg_shift)
 ```
 
 ```{r quickstart-plot, echo = FALSE, class.source = "fold-show", fig.width = 8, fig.height = 3}
-# plot(reg_shift) would do basically the same here:
+# plot(reg_shift) gives a compact diagnostic; below reuses the extracted
+# components for a customized version of the same view:
 layout(t(1:3))
 plot(
   pinch_small,
@@ -209,7 +212,7 @@ plot(
   lwd = 1.5,
   col = alpha_palette
 )
-lines(template_affine, lwd = 2, lty = 3, col = rgb(0,0,.5))
+lines(pinch_template_shift, lwd = 2, lty = 3, col = rgb(0,0,.5))
 plot(
   pinch_inv_warp_shift,
   points = FALSE,
@@ -229,6 +232,7 @@ plot(
   col = alpha_palette, 
   points = FALSE
 )
+lines(pinch_template_shift, lwd = 2, lty = 3, col = rgb(0,0,.5))
 ```
 
 Quick success checks:
@@ -244,11 +248,11 @@ Quick success checks:
 | Method | Use when | Avoid when | Template handling | Key arguments | Input grid | Typical failure signs | First fallback |
 |:--|:--|:--|:--|:--|:--|:--|:--|
 | `srvf` (default) | Smooth, non-linear timing differences with shared shape family | Very noisy data, sparse grids, highly heterogeneous shapes | Implicit Karcher-type mean unless `template` supplied | `method = "srvf"`, `lambda` | regular only | Unstable warps, over-warping, inconsistent reruns | Use/increase penalization; Smooth more and/or evaluate on finer grids; try `affine` or `landmark` |
-| `fda` | You want continuous-criterion alignment and can tune criterion | Complex phase-amplitude interactions or severe irregularity | Arithmetic mean unless `template` supplied | `method = "fda"`, `crit = 1/2`, `nbasis`, `lambda` | regular only | Sensitive to criterion choice, weak alignment gains | Change criterion, basis dimension and/or amount of penalization; Try `srvf` or `affine` |
+| `cc` | You want continuous-criterion alignment and can tune criterion | Complex phase-amplitude interactions or severe irregularity | Arithmetic mean unless `template` supplied | `method = "cc"`, `crit = 1/2`, `nbasis`, `lambda`, `conv`, `iterlim` | regular only | Sensitive to criterion choice, weak alignment gains | Change criterion, basis dimension and/or amount of penalization; Try `srvf` or `affine` |
 | `affine` | Mostly shift/scale timing variability; need interpretable warps | Strong non-linear timing deformation | Arithmetic mean unless `template` supplied | `method = "affine"`, `type`, bounds | regular + **irregular** | Residual misalignment of local features, boundary `NA`s under stronger shifts/scales | Set stricter/looser bounds; Upgrade to `srvf` |
 | `landmark` | Reliable, repeated landmarks are available across curves | Ambiguous/noisy landmarks or mismatched counts | Uses `template_landmarks` (default: column means) | `method = "landmark"`, `landmarks`, `template_landmarks` | regular + **irregular** | Forced/broken alignments from bad landmarks | Check appropriateness of landmarks; Use `srvf` or `affine` |
 
-The `srvf` and `fda` methods require regular grids (`tfd_reg` or `tfb`). The `affine` and `landmark` methods also accept irregular grids (`tfd_irreg`).
+The `srvf` and `cc` methods require regular grids (`tfd_reg` or `tfb`). The `affine` and `landmark` methods also accept irregular grids (`tfd_irreg`).
 
 Practical default:
 
@@ -274,7 +278,7 @@ Registration assumes a single shared template. If curves come from different sha
 
 **Remedies:** Smooth inputs (more) first; reduce basis flexibility; compare before/after sensitivity.
 
-In our benchmarks, SRVF and FDA tended to degrade more gracefully under noise than affine and landmark methods. Pre-smoothing inputs with `tf_smooth()` before registration can help all methods.
+In our benchmarks, SRVF and CC tended to degrade more gracefully under noise than affine and landmark methods. Pre-smoothing inputs with `tf_smooth()` before registration can help all methods.
 
 #### Sparse or irregular grids
 
@@ -282,7 +286,7 @@ In our benchmarks, SRVF and FDA tended to degrade more gracefully under noise th
 
 **Remedies:** Re-evaluate on a fine, common grid; run sensitivity checks on grid density.
 
-The `srvf` and `fda` methods require regular grids (`tfd_reg`); interpolate sparse or irregular data to a common regular grid first. The `affine` and `landmark` methods also accept irregular grids (`tfd_irreg`). Grid density can affect results — try at least two grid resolutions to check stability.
+The `srvf` and `cc` methods require regular grids (`tfd_reg`); interpolate sparse or irregular data to a common regular grid first. The `affine` and `landmark` methods also accept irregular grids (`tfd_irreg`). Grid density can affect results — try at least two grid resolutions to check stability.
 
 #### Boundary and overlap artifacts
 
@@ -290,7 +294,7 @@ The `srvf` and `fda` methods require regular grids (`tfd_reg`); interpolate spar
 
 **Remedies:** Inspect boundary behavior explicitly; narrow affine bounds via `shift_range`/`scale_range`.
 
-This issue is specific to the `affine` method, which is the only non-domain-preserving method in `tf`. The `srvf`, `fda`, and `landmark` methods preserve domain endpoints by construction and do not produce boundary `NA`s.
+This issue is specific to the `affine` method, which is the only non-domain-preserving method in `tf`. The `srvf`, `cc`, and `landmark` methods preserve domain endpoints by construction and do not produce boundary `NA`s.
 
 #### Over-warping
 
@@ -298,7 +302,7 @@ This issue is specific to the `affine` method, which is the only non-domain-pres
 
 **Remedies:** Prefer simpler methods (`affine`), reduce flexibility, or avoid registration for that subset.
 
-This is primarily a risk with flexible methods (`srvf`, `fda`). Affine warps are constrained by design and rarely over-warp. Comparing results across methods can help detect over-warping: if a flexible method's warps are much more variable than an affine baseline without a clear improvement in alignment, over-warping may be occurring.
+This is primarily a risk with flexible methods (`srvf`, `cc`). Affine warps are constrained by design and rarely over-warp. Comparing results across methods can help detect over-warping: if a flexible method's warps are much more variable than an affine baseline without a clear improvement in alignment, over-warping may be occurring.
 
 #### Unsuitable template
 
@@ -306,7 +310,7 @@ This is primarily a risk with flexible methods (`srvf`, `fda`). Affine warps are
 
 **Remedies:** Inspect the template; supply a robust alternative such as the MBD median.
 
-The default template for `affine` and `fda` registration is the pointwise arithmetic mean (re-estimated iteratively). When phase variation is large — curve features are spread far apart in time — the pointwise mean gets smeared out and no longer resembles any individual curve. A robust alternative is to use the most *central* observed curve, e.g. the curve with the highest modified band depth (MBD, see `tf_depth()`).
+The default template for `affine` and `cc` registration is the pointwise arithmetic mean (re-estimated iteratively). When phase variation is large — curve features are spread far apart in time — the pointwise mean gets smeared out and no longer resembles any individual curve. A robust alternative is to use the most *central* observed curve, e.g. the curve with the highest modified band depth (MBD, see `tf_depth()`).
 
 ```{r template-choice, fig.width = 8, fig.height = 5.5}
 # Gaussian bumps with large shifts:
@@ -478,14 +482,14 @@ Represents each curve via its *square root velocity function* (SRVF), $q(t) = \d
 - **Strengths:** In our benchmarks, SRVF tended to be the best general-purpose method under both simple and complex phase and amplitude variability. Makes no assumptions about warping function shape (except domain preservation and monotonicity).
 - **Weaknesses:** Can be sensitive to noise and details of curve representation as well as penalization. Shows the most variable performance under template estimation compared to other methods.
 
-### FDA (Continuous Registration Criterion)
+### CC (Continuous Registration Criterion)
 
-Estimates smooth monotone warping functions by maximizing the integrated cross-correlation between the derivative of each registered curve and the first eigenfunction of the derivatives' covariance, which represents the dominant common shape of the sample (criterion `crit=2`, the default) or by minimizing the squared differences between (aligned) function and template (criterion `crit=1`, not recommended). Warping functions are monotone B-spline functions using `fda::register.fd()`. See [Ramsay & Li (1998)](https://doi.org/10.1111/1467-9868.00129) and Ramsay & Silverman (2005, *Functional Data Analysis*, Ch. 8).
+Estimates smooth monotone warping functions by maximizing the integrated cross-correlation between the derivative of each registered curve and the first eigenfunction of the derivatives' covariance, which represents the dominant common shape of the sample (criterion `crit=2`, the default) or by minimizing the squared differences between aligned function and template (criterion `crit=1`, not recommended). In current `tf`, this is implemented as a tf-native dense-grid optimizer with monotone spline warps rather than the older `fda::register.fd()` backend. See [Ramsay & Li (1998)](https://doi.org/10.1111/1467-9868.00129) and Ramsay & Silverman (2005, *Functional Data Analysis*, Ch. 8).
 
-- **Optimization:** Continuous registration criteria  with monotone spline warps.
+- **Optimization:** tf-native dense-grid optimization of a continuous registration criterion with monotone spline warps.
 - **Template:** Arithmetic mean, re-estimated over `max_iter` iterations (default 3), or user-supplied.
 - **Domain-preserving:** Yes.
-- **Key arguments:** `method = "fda"`. Use `crit = 2` (default) to maximize the proportion of variance explained by the first eigenfunction of the registered sample, or `crit = 1` to minimize integrated squared differences. Control warp flexibility via B-spline basis dimension of the warping functions `nbasis` (default is `6`) and their wiggliness via penalty parameter `lambda` (default is `0` for no penalization). In our experience, `crit = 1` without penalization tends to be considerably less reliable than `crit = 2` or penalized variants — the unpenalized L2 criterion can produce strongly distorted warps.
+- **Key arguments:** `method = "cc"`. Use `crit = 2` (default) to maximize the proportion of variance explained by the first eigenfunction of the registered sample, or `crit = 1` to minimize integrated squared differences. Control warp flexibility via B-spline basis dimension of the warping functions `nbasis` (default is `6`), their wiggliness via penalty parameter `lambda` (default is `0` for no penalization), and optimizer tolerances via `conv` and `iterlim`. In our experience, `crit = 1` without penalization tends to be considerably less reliable than `crit = 2` or penalized variants — the unpenalized L2 criterion can produce strongly distorted warps.
 - **Strengths:** Tends to be the most stable method under template estimation. 
 - **Weaknesses:** Results are sensitive to the criterion choice and the spline basis configuration.
 
@@ -578,26 +582,26 @@ plot(tf_aligned(reg_lm2), main = "Landmark Registered\n (Start + Peak + End)", t
 
 Note that affine registration with `shift+scale` warps produces some boundary `NA`s because the warps are not domain-preserving, but it does a good job aligning the peaks. Landmark registration with only the peak locations does a decent job aligning the peaks without producing `NA`s, but it does not align the start and end of the curves well. Landmark registration with start + peak + end landmarks does a good job aligning all three features without producing `NA`s. 
 
-```{r pinch-compare-srvf-fda, eval = have_srvf && have_fda, class.source = "fold-show"}
+```{r pinch-compare-srvf-cc, eval = have_srvf && have_cc, class.source = "fold-show"}
 reg_srvf <- tf_register(pinch_small, method = "srvf")
 inv_warp_srvf <- tf_inv_warps(reg_srvf)
-reg_fda_unpen <- tf_register(pinch_small, method = "fda")
-inv_warp_fda_unpen <- tf_inv_warps(reg_fda_unpen)
-reg_fda_pen <- tf_register(pinch_small, method = "fda", lambda = 1e-4)
-inv_warp_fda_pen <- tf_inv_warps(reg_fda_pen)
+reg_cc_unpen <- tf_register(pinch_small, method = "cc", max_iter = 10, nbasis = 10)
+inv_warp_cc_unpen <- tf_inv_warps(reg_cc_unpen)
+reg_cc_pen <- tf_register(pinch_small, method = "cc", lambda = 1e-4, max_iter = 20)
+inv_warp_cc_pen <- tf_inv_warps(reg_cc_pen)
 ```
 
-SRVF and FDA both use non-linear warps and tend to be able to align more complex phase variation than the `affine` method, but their warps are more complex and potentially harder to interpret, and registration can go off the rails more easily (as we can see here with the unpenalized `fda`-registration plotted below, check the huge maximal warp slope and its poor amplitude variance reduction...) --
+SRVF and CC both use non-linear warps and tend to be able to align more complex phase variation than the `affine` method, but their warps are more complex and potentially harder to interpret, and registration can go off the rails more easily (as we can see here with the unpenalized `cc` registration plotted below, check the huge maximal warp slope and its poor amplitude variance reduction...) --
 using `summary(<tf_registration>)` for quick quantitative diagnostics:
-```{r pinch-compare-srvf-fda-summary, eval = have_srvf && have_fda, class.source = "fold-show"}
-summary(reg_fda_unpen)
+```{r pinch-compare-srvf-cc-summary, eval = have_srvf && have_cc, class.source = "fold-show"}
+summary(reg_cc_unpen)
 # ... ouch! max slope almost 100 and only 40% amplitude variance reduction ....
 
 summary(reg_srvf)
-summary(reg_fda_pen)
+summary(reg_cc_pen)
 ```
 
-```{r pinch-compare-srvf-fda-plot, eval = have_srvf && have_fda, fig.width = 8, fig.height = 8}
+```{r pinch-compare-srvf-cc-plot, eval = have_srvf && have_cc, fig.width = 8, fig.height = 8}
 layout(t(matrix(1:12, 4, 3)))
 
 plot.new()
@@ -611,21 +615,21 @@ plot(tf_aligned(reg_srvf), main = "SRVF Registered",
 
 plot(pinch_small, main = "Original",
      col = alpha_palette, lwd = 1.5)
-plot(inv_warp_fda_unpen, main = "FDA Inverse Warps (unpen.)", ylab = "",
+plot(inv_warp_cc_unpen, main = "CC Inverse Warps (unpen.)", ylab = "",
      points = FALSE, col = alpha_palette, lwd = 1.5)
 abline(0, 1, lty = 3)
-plot(tf_aligned(reg_fda_unpen), main = "FDA Registered (unpen.)",
+plot(tf_aligned(reg_cc_unpen), main = "CC Registered (unpen.)",
      col = alpha_palette, lwd = 1.5, points = FALSE)
-plot(tf_aligned(reg_fda_unpen), main = "FDA Registered (unpen.)",
+plot(tf_aligned(reg_cc_unpen), main = "CC Registered (unpen.)",
      type = "lasagna", col = hcl.colors(12, rev = TRUE))
 
 plot.new()
-plot(inv_warp_fda_pen, main = expression("FDA Inverse Warps (" * lambda * " = 1e-4)"),
+plot(inv_warp_cc_pen, main = expression("CC Inverse Warps (" * lambda * " = 1e-4)"),
      ylab = "", points = FALSE, col = alpha_palette, lwd = 1.5)
 abline(0, 1, lty = 3)
-plot(tf_aligned(reg_fda_pen), main = expression("FDA Registered (" * lambda * " = 1e-4)"),
+plot(tf_aligned(reg_cc_pen), main = expression("CC Registered (" * lambda * " = 1e-4)"),
      col = alpha_palette, lwd = 1.5, points = FALSE)
-plot(tf_aligned(reg_fda_pen), main = expression("FDA Registered (" * lambda * " = 1e-4)"),
+plot(tf_aligned(reg_cc_pen), main = expression("CC Registered (" * lambda * " = 1e-4)"),
      type = "lasagna", col = hcl.colors(12, rev = TRUE))
 ```
 

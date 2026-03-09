@@ -1304,6 +1304,28 @@ test_that("tf_estimate_warps CC outer loop improves the CC criterion", {
   expect_lte(obj_5, obj_2 + 1e-8)
 })
 
+test_that("CC registration handles pinch warps with boundary ties", {
+  skip_on_cran()
+
+  pinch_small <- pinch[1:10]
+  reg <- quiet_expected_registration_warnings(
+    tf_register(
+      pinch_small,
+      method = "cc",
+      max_iter = 10L,
+      nbasis = 10L
+    )
+  )
+
+  expect_s3_class(reg, "tf_registration")
+  expect_no_error(tf_invert(tf_inv_warps(reg)))
+  expect_true(all(vapply(
+    tf_evaluations(tf_inv_warps(reg)),
+    \(x) all(diff(x) > 0),
+    logical(1)
+  )))
+})
+
 test_that("SRVF with template=NULL gives same result regardless of max_iter", {
   skip_if_not_installed("fdasrvf")
   withr::local_seed(42)
