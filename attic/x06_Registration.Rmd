@@ -585,7 +585,8 @@ Note that affine registration with `shift+scale` warps produces some boundary `N
 ```{r pinch-compare-srvf-cc, eval = have_srvf && have_cc, class.source = "fold-show"}
 reg_srvf <- tf_register(pinch_small, method = "srvf")
 inv_warp_srvf <- tf_inv_warps(reg_srvf)
-reg_cc_unpen <- tf_register(pinch_small, method = "cc", max_iter = 10, nbasis = 10)
+## CONTNUE HERE
+reg_cc_unpen <- tf_register(pinch_small, method = "cc", max_iter = 10, nbasis = 10, crit = 1)
 inv_warp_cc_unpen <- tf_inv_warps(reg_cc_unpen)
 reg_cc_pen <- tf_register(pinch_small, method = "cc", lambda = 1e-4, max_iter = 20)
 inv_warp_cc_pen <- tf_inv_warps(reg_cc_pen)
