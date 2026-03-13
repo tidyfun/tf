@@ -89,7 +89,7 @@ data is NULL
 
 }}
 \examples{
-\dontshow{if (rlang::is_installed("refund")) withAutoprint(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("refund")) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 set.seed(13121)
 x <- tf_rgp(25, nugget = .02)
 x_pc <- tfb_fpc(x, pve = .9)
