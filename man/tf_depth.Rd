@@ -92,4 +92,9 @@ Bočinec, Filip, Nagy, Stanislav, Yeon, Hyemin (2026).
 \dQuote{Projection depth for functional data: Practical issues, computation and applications.}
 \emph{arXiv preprint arXiv:2602.22877}.
 }
+\seealso{
+Other tidyfun ordering and ranking functions: 
+\code{\link{tf_minmax}},
+\code{\link{tf_order}}
+}
 \concept{tidyfun ordering and ranking functions}
