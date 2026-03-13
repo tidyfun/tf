@@ -58,8 +58,8 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
 #' @returns a `tf` object with the computed result.\cr
 #'   **`summary.tf`** returns a `tf`-vector with the mean function, the functional
 #'   median, the *pointwise* min and max of `x`, and the *pointwise* min and max
-#'   of the central half of the functions in `x`, as defined by MBD (see
-#'   [tf_depth()]).
+#'   of the central half of the functions in `x`, as defined by the chosen
+#'   `depth` (default `"MBD"`, see [tf_depth()]).
 #' @examples
 #' set.seed(123)
 #' x <- tf_rgp(1) * 1:5
@@ -80,21 +80,22 @@ mean.tf <- function(x, ...) {
 }
 
 #' @param depth method used to determine the most central element in `x`, i.e.,
-#'   the median. One of the functional data depths available via [tf_depth()] or
-#'   `"pointwise"` for a pointwise median function.
+#'   the median. One of the functional data depths available via [tf_depth()],
+#'   `"pointwise"` for a pointwise median function, or a custom depth function
+#'   that takes a `tf` vector and returns a numeric vector of depth values.
 #' @importFrom stats median
 #' @export
 #' @rdname tfsummaries
-median.tf <- function(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...) {
+median.tf <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   if (!na.rm && anyNA(x)) {
     return(1 * NA * x[1])
   }
   x <- x[!is.na(x)]
-  depth <- match.arg(depth)
-  if (depth == "pointwise") {
+  if (is.character(depth) && length(depth) == 1 && depth == "pointwise") {
     return(summarize_tf(x, na.rm = na.rm, op = "median", eval = is_tfd(x), ...))
   }
-  tf_depths <- tf_depth(x, depth = depth)
+  validate_depth(depth)
+  tf_depths <- compute_depth(x, depth, na.rm = TRUE, ...)
   med <- x[tf_depths == max(tf_depths)]
   if (length(med) > 1) {
     cli::cli_inform(c(
@@ -140,25 +141,77 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 }
 
 #' @param object a `tfd` object
+#' @param depth depth method used for computing the median, central region, and
+#'   (if not `NULL`) min/max. See [tf_depth()] for available methods, or pass a
+#'   custom depth function. Defaults to `"MBD"`.
 #' @export
 #' @rdname tfsummaries
-summary.tf <- function(object, ...) {
+summary.tf <- function(object, ..., depth = "MBD") {
   if (length(object) == 0) {
     ret <- c(object, rep(NA, 6))
     names(ret) <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
     return(ret)
   }
-  tf_depths <- tf_depth(object, ...)
-  central <- which(tf_depths >= median(tf_depths))
+  validate_depth(depth)
+  tf_depths <- compute_depth(object[!is.na(object)], depth, na.rm = TRUE, ...)
+  central <- which(tf_depths >= stats::median(tf_depths))
+  object_nona <- object[!is.na(object)]
 
   c(
     min = min(object, na.rm = TRUE),
-    lower_mid = min(object[central], na.rm = TRUE),
-    median = median(object, na.rm = TRUE),
+    lower_mid = min(object_nona[central], na.rm = TRUE),
+    median = median(object, na.rm = TRUE, depth = depth, ...),
     mean = mean(object, na.rm = TRUE),
-    upper_mid = max(object[central], na.rm = TRUE),
+    upper_mid = max(object_nona[central], na.rm = TRUE),
     max = max(object, na.rm = TRUE)
   )
+}
+
+#' Tukey's Five Number Summary for `tf` vectors
+#'
+#' Computes a depth-based five number summary for functional data: the
+#' observations with minimum, lower-hinge, median, upper-hinge, and maximum
+#' depth values.
+#'
+#' @param x a `tf` vector (or numeric for the default method).
+#' @param na.rm logical; if `TRUE`, `NA` observations are removed first.
+#' @param depth depth method for ordering. See [tf_depth()]. Defaults to
+#'   `"MHI"` for an up-down ordering.
+#' @param ... passed to [tf_depth()].
+#' @returns **`fivenum.tf`**: a named `tf` vector of length 5.\cr
+#'   **`fivenum.default`**: see [stats::fivenum()].
+#' @export
+#' @family tidyfun summary functions
+#' @name fivenum
+fivenum <- function(x, na.rm = FALSE, ...) UseMethod("fivenum")
+
+#' @importFrom stats fivenum
+#' @export
+#' @rdname fivenum
+fivenum.default <- stats::fivenum
+
+#' @export
+#' @rdname fivenum
+fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
+  if (!na.rm && anyNA(x)) {
+    return(1 * NA * x[1])
+  }
+  x <- x[!is.na(x)]
+  if (length(x) == 0) {
+    ret <- c(x, rep(NA, 5))
+    names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+    return(ret)
+  }
+  validate_depth(depth)
+  d <- compute_depth(x, depth, na.rm = TRUE, ...)
+  o <- order(d)
+  # pick indices corresponding to fivenum positions
+  n <- length(x)
+  idx <- c(o[1], o[floor((n + 1) / 4)], o[floor((n + 1) / 2)],
+           o[floor(3 * (n + 1) / 4)], o[n])
+  ret <- x[idx]
+  names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  ret
 }
 
 #-------------------------------------------------------------------------------
@@ -167,7 +220,11 @@ summary.tf <- function(object, ...) {
 Summary.tf <- function(...) {
   not_defined <- switch(.Generic, all = , any = TRUE, FALSE)
   if (not_defined) {
-    cli::cli_abort("{ .Generic} not defined for {.cls tf} objects.")
+    cli::cli_abort("{.Generic} not defined for {.cls tf} objects.")
+  }
+  # min, max, range have dedicated methods that accept a depth argument
+  if (.Generic %in% c("min", "max", "range")) {
+    return(do.call(.Generic, list(...)))
   }
   summarize_tf(..., op = .Generic, eval = is_tfd(list(...)[[1]]))
 }

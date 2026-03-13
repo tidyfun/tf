@@ -251,6 +251,189 @@ rpd <- function(
 
 #------------------------------------------------------------------------------
 
+# helper: compute depth values from a depth specification (string or function)
+compute_depth <- function(x, depth, na.rm = TRUE, ...) {
+  if (is.function(depth)) {
+    depth(x, ...)
+  } else {
+    tf_depth(x, depth = depth, na.rm = na.rm, ...)
+  }
+}
+
+# helper: validate depth argument -- either a known string or a function
+validate_depth <- function(depth) {
+  known <- c("MBD", "MHI", "FM", "FSD", "RPD")
+  if (is.function(depth)) return(invisible(depth))
+  if (is.character(depth) && length(depth) == 1 && depth %in% known) {
+    return(invisible(depth))
+  }
+  cli::cli_abort(
+    "{.arg depth} must be one of {.or {.val {known}}} or a function, not {.val {depth}}."
+  )
+}
+
+#' Rank, order and sort `tf` vectors
+#'
+#' These methods use [tf_depth()] to rank, order, and sort functional data. By
+#' default they use the modified hypograph index (`"MHI"`) which provides an
+#' up-down ordering (lowest to highest). You can also use any of the other depth
+#' methods available via [tf_depth()], or supply a custom depth function.
+#'
+#' @details
+#' `rank` assigns ranks based on depth values: lower depth values get lower
+#' ranks. For `"MHI"` this gives an ordering from lowest to highest function.
+#' For centrality-based depths (`"MBD"`, `"FM"`, `"FSD"`, `"RPD"`), the most
+#' extreme function gets rank 1 and the most central gets the highest rank.
+#'
+#' `order` returns the permutation which rearranges `x` into ascending
+#' order according to depth.
+#'
+#' `sort.tf` returns the sorted `tf` vector.
+#'
+#' `xtfrm.tf` returns a numeric vector of MHI depth values, enabling
+#' `base::order` and `base::rank` to work on `tf` vectors.
+#'
+#' @param x a `tf` vector.
+#' @param depth the depth function to use for ranking. One of the depths
+#'   available via [tf_depth()] (default: `"MHI"`) or a function that takes a
+#'   `tf` vector and returns a numeric vector of depth values.
+#' @param na.last for handling of `NA`s; see [base::rank()].
+#' @param ties.method a character string for handling ties; see [base::rank()].
+#' @param decreasing logical. Should the sort be decreasing?
+#' @param ... passed to [tf_depth()] (e.g. `arg`).
+#' @returns `rank`: a numeric vector of ranks.\cr
+#'   `order`: an integer vector of indices.\cr
+#'   `sort.tf`: a sorted `tf` vector.\cr
+#'   `xtfrm.tf`: a numeric vector of depth values.
+#' @examples
+#' x <- tf_rgp(5) + 1:5
+#' rank(x)
+#' order(x)
+#' sort(x)
+#' # use a centrality-based depth instead:
+#' rank(x, depth = "MBD")
+#' @seealso [tf_depth()], [min.tf()], [max.tf()]
+#' @family tidyfun ordering and ranking functions
+#' @name tf_order
+NULL
+
+# Make rank generic so we can dispatch on tf objects
+#' @rdname tf_order
+#' @export
+rank <- function(x, na.last = TRUE,
+                 ties.method = c("average", "first", "last", "random",
+                                 "max", "min"),
+                 ...) {
+  UseMethod("rank")
+}
+
+#' @export
+#' @rdname tf_order
+rank.default <- function(x, na.last = TRUE,
+                         ties.method = c("average", "first", "last", "random",
+                                         "max", "min"),
+                         ...) {
+  base::rank(x, na.last = na.last, ties.method = match.arg(ties.method))
+}
+
+#' @rdname tf_order
+#' @export
+rank.tf <- function(
+  x,
+  na.last = TRUE,
+  ties.method = c("average", "first", "last", "random", "max", "min"),
+  depth = "MHI",
+  ...
+) {
+  validate_depth(depth)
+  ties.method <- match.arg(ties.method)
+  d <- compute_depth(x, depth, na.rm = FALSE, ...)
+  d[is.na(x)] <- NA
+  base::rank(d, na.last = na.last, ties.method = ties.method)
+}
+
+#' @rdname tf_order
+#' @export
+xtfrm.tf <- function(x) {
+  d <- compute_depth(x, "MHI", na.rm = FALSE)
+  d[is.na(x)] <- NA
+  d
+}
+
+#' @rdname tf_order
+#' @export
+sort.tf <- function(x, decreasing = FALSE, depth = "MHI", ...) {
+  validate_depth(depth)
+  d <- compute_depth(x, depth, na.rm = FALSE, ...)
+  d[is.na(x)] <- NA
+  o <- base::order(d, na.last = NA, decreasing = decreasing)
+  x[o]
+}
+
+#' Depth-based minimum, maximum and range for `tf` vectors
+#'
+#' By default, `min`, `max`, and `range` compute **pointwise** extremes (the
+#' existing behaviour). When a `depth` argument is supplied, they instead return
+#' the most extreme / most central observation according to the chosen depth.
+#' For the default `"MHI"` depth this gives the lowest / highest function in an
+#' up-down sense.
+#'
+#' @param ... `tf` objects (and `na.rm` for the pointwise default).
+#' @param na.rm logical; passed on to the pointwise summary or used to filter
+#'   `NA`s before computing depth.
+#' @param depth depth method to use. `NULL` (default) gives the pointwise
+#'   min/max/range. Supply a depth name (e.g. `"MHI"`) or a custom depth
+#'   function for depth-based selection.
+#' @returns a `tf` object.
+#' @examples
+#' x <- tf_rgp(5) + 1:5
+#' # pointwise (default):
+#' min(x)
+#' max(x)
+#' # depth-based:
+#' min(x, depth = "MHI")
+#' max(x, depth = "MHI")
+#' @seealso [tf_depth()], [rank.tf()]
+#' @family tidyfun ordering and ranking functions
+#' @export
+#' @name tf_minmax
+min.tf <- function(..., na.rm = FALSE, depth = NULL) {
+  if (is.null(depth)) {
+    return(summarize_tf(..., na.rm = na.rm, op = "min", eval = is_tfd(list(...)[[1]])))
+  }
+  x <- vctrs::vec_c(...)
+  validate_depth(depth)
+  if (na.rm) x <- x[!is.na(x)]
+  if (length(x) == 0) return(x)
+  d <- compute_depth(x, depth, na.rm = TRUE)
+  unname(x[which.min(d)])
+}
+
+#' @rdname tf_minmax
+#' @export
+max.tf <- function(..., na.rm = FALSE, depth = NULL) {
+  if (is.null(depth)) {
+    return(summarize_tf(..., na.rm = na.rm, op = "max", eval = is_tfd(list(...)[[1]])))
+  }
+  x <- vctrs::vec_c(...)
+  validate_depth(depth)
+  if (na.rm) x <- x[!is.na(x)]
+  if (length(x) == 0) return(x)
+  d <- compute_depth(x, depth, na.rm = TRUE)
+  unname(x[which.max(d)])
+}
+
+#' @rdname tf_minmax
+#' @export
+range.tf <- function(..., na.rm = FALSE, depth = NULL) {
+  c(
+    min(..., na.rm = na.rm, depth = depth),
+    max(..., na.rm = na.rm, depth = depth)
+  )
+}
+
+#------------------------------------------------------------------------------
+
 #' @importFrom stats quantile
 #' @inheritParams stats::quantile
 #' @family tidyfun ordering and ranking functions

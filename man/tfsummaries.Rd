@@ -15,7 +15,7 @@
 \usage{
 \method{mean}{tf}(x, ...)
 
-\method{median}{tf}(x, na.rm = FALSE, depth = c("MBD", "pointwise"), ...)
+\method{median}{tf}(x, na.rm = FALSE, depth = "MBD", ...)
 
 sd(x, na.rm = FALSE)
 
@@ -29,7 +29,7 @@ var(x, y = NULL, na.rm = FALSE, use)
 
 \method{var}{tf}(x, y = NULL, na.rm = FALSE, use)
 
-\method{summary}{tf}(object, ...)
+\method{summary}{tf}(object, ..., depth = "MBD")
 }
 \arguments{
 \item{x}{a \code{tf} object.}
@@ -38,9 +38,9 @@ var(x, y = NULL, na.rm = FALSE, use)
 
 \item{na.rm}{logical.  Should missing values be removed?}
 
-\item{depth}{method used to determine the most central element in \code{x}, i.e.,
-the median. One of the functional data depths available via \code{\link[=tf_depth]{tf_depth()}} or
-\code{"pointwise"} for a pointwise median function.}
+\item{depth}{depth method used for computing the median, central region, and
+(if not \code{NULL}) min/max. See \code{\link[=tf_depth]{tf_depth()}} for available methods, or pass a
+custom depth function. Defaults to \code{"MBD"}.}
 
 \item{y}{\code{NULL} (default) or a vector, matrix or data frame with
     compatible dimensions to \code{x}.   The default is equivalent to
@@ -58,8 +58,8 @@ the median. One of the functional data depths available via \code{\link[=tf_dept
 a \code{tf} object with the computed result.\cr
 \strong{\code{summary.tf}} returns a \code{tf}-vector with the mean function, the functional
 median, the \emph{pointwise} min and max of \code{x}, and the \emph{pointwise} min and max
-of the central half of the functions in \code{x}, as defined by MBD (see
-\code{\link[=tf_depth]{tf_depth()}}).
+of the central half of the functions in \code{x}, as defined by the chosen
+\code{depth} (default \code{"MBD"}, see \code{\link[=tf_depth]{tf_depth()}}).
 }
 \description{
 These will return a \code{tf} object containing the respective \emph{functional}
@@ -80,6 +80,7 @@ summary(x)
 \code{\link[=tf_fwise]{tf_fwise()}}
 
 Other tidyfun summary functions: 
+\code{\link{fivenum}()},
 \code{\link{functionwise}}
 }
 \concept{tidyfun summary functions}
