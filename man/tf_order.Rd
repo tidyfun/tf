@@ -33,12 +33,12 @@ rank(
 
 \method{xtfrm}{tf}(x)
 
-\method{sort}{tf}(x, decreasing = FALSE, depth = "MHI", ...)
+\method{sort}{tf}(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...)
 }
 \arguments{
 \item{x}{a \code{tf} vector.}
 
-\item{na.last}{for handling of \code{NA}s; see \code{\link[base:rank]{base::rank()}}.}
+\item{na.last}{for handling of \code{NA}s; see \code{\link[base:rank]{base::rank()}} and \code{\link[base:sort]{base::sort()}}.}
 
 \item{ties.method}{a character string for handling ties; see \code{\link[base:rank]{base::rank()}}.}
 

@@ -83,6 +83,10 @@ tf_depth.matrix <- function(
 tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
   if (!missing(arg)) assert_arg_vector(arg, x)
   # TODO: warn if irreg?
+  # TODO: Implement depths for partially observed functions instead of
+  # interpolating them onto a common grid; see Elías et al. (2022),
+  # "Integrated Depths for Partially Observed Functional Data",
+  # doi:10.1080/10618600.2022.2070171.
   if (na.rm) x <- x[!is.na(x)]
   tf_depth(
     as.matrix(x, arg = arg, interpolate = TRUE),
@@ -253,11 +257,34 @@ rpd <- function(
 
 # helper: compute depth values from a depth specification (string or function)
 compute_depth <- function(x, depth, na.rm = TRUE, ...) {
-  if (is.function(depth)) {
+  validate_depth(depth)
+  depth_values <- if (is.function(depth)) {
     depth(x, ...)
   } else {
     tf_depth(x, depth = depth, na.rm = na.rm, ...)
   }
+
+  if (!is.numeric(depth_values)) {
+    cli::cli_abort(
+      "{.arg depth} must return a numeric vector, not an object of class {.cls {class(depth_values)}}."
+    )
+  }
+
+  n_x <- length(x)
+  if (length(depth_values) == n_x) {
+    return(depth_values)
+  }
+
+  complete <- !is.na(x)
+  if (length(depth_values) == sum(complete)) {
+    ret <- rep(NA_real_, n_x)
+    ret[complete] <- depth_values
+    return(ret)
+  }
+
+  cli::cli_abort(
+    "{.arg depth} must return a numeric vector of length {n_x} or {sum(complete)}."
+  )
 }
 
 # helper: validate depth argument -- either a known string or a function
@@ -270,6 +297,32 @@ validate_depth <- function(depth) {
   cli::cli_abort(
     "{.arg depth} must be one of {.or {.val {known}}} or a function, not {.val {depth}}."
   )
+}
+
+depth_data <- function(x, depth, na.rm = FALSE, ...) {
+  validate_depth(depth)
+  if (!na.rm && anyNA(x))
+    return(list(x = 1 * NA * x[which(is.na(x))[1]], d = NULL))
+
+  x <- x[!is.na(x)]
+  if (length(x) == 0) return(list(x = x, d = NULL))
+
+  list(x = x, d = compute_depth(x, depth, na.rm = TRUE, ...))
+}
+
+depth_extreme <- function(
+  x,
+  depth,
+  which = c("min", "max"),
+  na.rm = FALSE,
+  ...
+) {
+  which <- match.arg(which)
+  prepared <- depth_data(x, depth, na.rm = na.rm, ...)
+  if (is.null(prepared$d)) return(prepared$x)
+
+  idx <- switch(which, min = which.min(prepared$d), max = which.max(prepared$d))
+  unname(prepared$x[idx])
 }
 
 #' Rank, order and sort `tf` vectors
@@ -297,7 +350,7 @@ validate_depth <- function(depth) {
 #' @param depth the depth function to use for ranking. One of the depths
 #'   available via [tf_depth()] (default: `"MHI"`) or a function that takes a
 #'   `tf` vector and returns a numeric vector of depth values.
-#' @param na.last for handling of `NA`s; see [base::rank()].
+#' @param na.last for handling of `NA`s; see [base::rank()] and [base::sort()].
 #' @param ties.method a character string for handling ties; see [base::rank()].
 #' @param decreasing logical. Should the sort be decreasing?
 #' @param ... passed to [tf_depth()] (e.g. `arg`).
@@ -320,20 +373,24 @@ NULL
 # Make rank generic so we can dispatch on tf objects
 #' @rdname tf_order
 #' @export
-rank <- function(x, na.last = TRUE,
-                 ties.method = c("average", "first", "last", "random",
-                                 "max", "min"),
-                 ...) {
+rank <- function(
+  x,
+  na.last = TRUE,
+  ties.method = c("average", "first", "last", "random", "max", "min"),
+  ...
+) {
   UseMethod("rank")
 }
 
 #' @export
 #' @rdname tf_order
-rank.default <- function(x, na.last = TRUE,
-                         ties.method = c("average", "first", "last", "random",
-                                         "max", "min"),
-                         ...) {
-  base::rank(x, na.last = na.last, ties.method = match.arg(ties.method))
+rank.default <- function(
+  x,
+  na.last = TRUE,
+  ties.method = c("average", "first", "last", "random", "max", "min"),
+  ...
+) {
+  base::rank(x, na.last = na.last, ties.method = match.arg(ties.method), ...)
 }
 
 #' @rdname tf_order
@@ -345,28 +402,22 @@ rank.tf <- function(
   depth = "MHI",
   ...
 ) {
-  validate_depth(depth)
   ties.method <- match.arg(ties.method)
   d <- compute_depth(x, depth, na.rm = FALSE, ...)
-  d[is.na(x)] <- NA
   base::rank(d, na.last = na.last, ties.method = ties.method)
 }
 
 #' @rdname tf_order
 #' @export
 xtfrm.tf <- function(x) {
-  d <- compute_depth(x, "MHI", na.rm = FALSE)
-  d[is.na(x)] <- NA
-  d
+  compute_depth(x, "MHI", na.rm = FALSE)
 }
 
 #' @rdname tf_order
 #' @export
-sort.tf <- function(x, decreasing = FALSE, depth = "MHI", ...) {
-  validate_depth(depth)
+sort.tf <- function(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...) {
   d <- compute_depth(x, depth, na.rm = FALSE, ...)
-  d[is.na(x)] <- NA
-  o <- base::order(d, na.last = NA, decreasing = decreasing)
+  o <- base::order(d, na.last = na.last, decreasing = decreasing)
   x[o]
 }
 
@@ -399,28 +450,30 @@ sort.tf <- function(x, decreasing = FALSE, depth = "MHI", ...) {
 #' @name tf_minmax
 min.tf <- function(..., na.rm = FALSE, depth = NULL) {
   if (is.null(depth)) {
-    return(summarize_tf(..., na.rm = na.rm, op = "min", eval = is_tfd(list(...)[[1]])))
+    return(summarize_tf(
+      ...,
+      na.rm = na.rm,
+      op = "min",
+      eval = is_tfd(list(...)[[1]])
+    ))
   }
   x <- vctrs::vec_c(...)
-  validate_depth(depth)
-  if (na.rm) x <- x[!is.na(x)]
-  if (length(x) == 0) return(x)
-  d <- compute_depth(x, depth, na.rm = TRUE)
-  unname(x[which.min(d)])
+  depth_extreme(x, depth, which = "min", na.rm = na.rm)
 }
 
 #' @rdname tf_minmax
 #' @export
 max.tf <- function(..., na.rm = FALSE, depth = NULL) {
   if (is.null(depth)) {
-    return(summarize_tf(..., na.rm = na.rm, op = "max", eval = is_tfd(list(...)[[1]])))
+    return(summarize_tf(
+      ...,
+      na.rm = na.rm,
+      op = "max",
+      eval = is_tfd(list(...)[[1]])
+    ))
   }
   x <- vctrs::vec_c(...)
-  validate_depth(depth)
-  if (na.rm) x <- x[!is.na(x)]
-  if (length(x) == 0) return(x)
-  d <- compute_depth(x, depth, na.rm = TRUE)
-  unname(x[which.max(d)])
+  depth_extreme(x, depth, which = "max", na.rm = na.rm)
 }
 
 #' @rdname tf_minmax

@@ -38,9 +38,9 @@ var(x, y = NULL, na.rm = FALSE, use)
 
 \item{na.rm}{logical.  Should missing values be removed?}
 
-\item{depth}{depth method used for computing the median, central region, and
-(if not \code{NULL}) min/max. See \code{\link[=tf_depth]{tf_depth()}} for available methods, or pass a
-custom depth function. Defaults to \code{"MBD"}.}
+\item{depth}{depth method used for computing the median and central region.
+See \code{\link[=tf_depth]{tf_depth()}} for available methods, or pass a custom depth function.
+Defaults to \code{"MBD"}.}
 
 \item{y}{\code{NULL} (default) or a vector, matrix or data frame with
     compatible dimensions to \code{x}.   The default is equivalent to

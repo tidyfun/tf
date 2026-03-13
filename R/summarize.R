@@ -94,9 +94,8 @@ median.tf <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   if (is.character(depth) && length(depth) == 1 && depth == "pointwise") {
     return(summarize_tf(x, na.rm = na.rm, op = "median", eval = is_tfd(x), ...))
   }
-  validate_depth(depth)
-  tf_depths <- compute_depth(x, depth, na.rm = TRUE, ...)
-  med <- x[tf_depths == max(tf_depths)]
+  prepared <- depth_data(x, depth, na.rm = TRUE, ...)
+  med <- prepared$x[prepared$d == max(prepared$d)]
   if (length(med) > 1) {
     cli::cli_inform(c(
       x = "{length(med)} observations with maximal depth, returning their mean."
@@ -141,9 +140,9 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 }
 
 #' @param object a `tfd` object
-#' @param depth depth method used for computing the median, central region, and
-#'   (if not `NULL`) min/max. See [tf_depth()] for available methods, or pass a
-#'   custom depth function. Defaults to `"MBD"`.
+#' @param depth depth method used for computing the median and central region.
+#'   See [tf_depth()] for available methods, or pass a custom depth function.
+#'   Defaults to `"MBD"`.
 #' @export
 #' @rdname tfsummaries
 summary.tf <- function(object, ..., depth = "MBD") {
@@ -152,17 +151,20 @@ summary.tf <- function(object, ..., depth = "MBD") {
     names(ret) <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
     return(ret)
   }
-  validate_depth(depth)
-  tf_depths <- compute_depth(object[!is.na(object)], depth, na.rm = TRUE, ...)
-  central <- which(tf_depths >= stats::median(tf_depths))
-  object_nona <- object[!is.na(object)]
+  if (all(is.na(object))) {
+    ret <- object[rep(1, 6)]
+    names(ret) <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+    return(ret)
+  }
+  prepared <- depth_data(object, depth, na.rm = TRUE, ...)
+  central <- which(prepared$d >= stats::median(prepared$d))
 
   c(
     min = min(object, na.rm = TRUE),
-    lower_mid = min(object_nona[central], na.rm = TRUE),
+    lower_mid = min(prepared$x[central], na.rm = TRUE),
     median = median(object, na.rm = TRUE, depth = depth, ...),
     mean = mean(object, na.rm = TRUE),
-    upper_mid = max(object_nona[central], na.rm = TRUE),
+    upper_mid = max(prepared$x[central], na.rm = TRUE),
     max = max(object, na.rm = TRUE)
   )
 }
@@ -188,7 +190,9 @@ fivenum <- function(x, na.rm = FALSE, ...) UseMethod("fivenum")
 #' @importFrom stats fivenum
 #' @export
 #' @rdname fivenum
-fivenum.default <- stats::fivenum
+fivenum.default <- function(x, na.rm = FALSE, ...) {
+  stats::fivenum(x, na.rm = na.rm, ...)
+}
 
 #' @export
 #' @rdname fivenum
@@ -196,20 +200,27 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
   if (!na.rm && anyNA(x)) {
     return(1 * NA * x[1])
   }
-  x <- x[!is.na(x)]
-  if (length(x) == 0) {
-    ret <- c(x, rep(NA, 5))
+  prepared <- depth_data(x, depth, na.rm = na.rm, ...)
+  if (is.null(prepared$d)) {
+    ret <- c(prepared$x, rep(NA, 5))
     names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
-    return(ret)
+    return(ret[seq_len(min(length(ret), 5))])
   }
-  validate_depth(depth)
-  d <- compute_depth(x, depth, na.rm = TRUE, ...)
-  o <- order(d)
-  # pick indices corresponding to fivenum positions
-  n <- length(x)
-  idx <- c(o[1], o[floor((n + 1) / 4)], o[floor((n + 1) / 2)],
-           o[floor(3 * (n + 1) / 4)], o[n])
-  ret <- x[idx]
+  o <- order(prepared$d)
+  # For small samples, reuse the nearest available order statistic.
+  n <- length(prepared$x)
+  idx <- pmax(
+    1L,
+    c(
+      1L,
+      floor((n + 1) / 4),
+      floor((n + 1) / 2),
+      floor(3 * (n + 1) / 4),
+      n
+    )
+  )
+  idx <- o[idx]
+  ret <- prepared$x[idx]
   names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
   ret
 }

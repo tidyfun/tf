@@ -33,6 +33,9 @@ reference:
   - tfsummaries
   - functionwise
   - tf_depth
+  - tf_order
+  - tf_minmax
+  - fivenum
 - title: Differentiation, integration and simple smoothing
   contents:
   - tf_derive

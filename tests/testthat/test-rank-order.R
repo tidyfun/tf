@@ -43,6 +43,16 @@ test_that("rank.tf handles NAs", {
   expect_length(r_na, 7)
 })
 
+test_that("rank.tf pads custom depth output for missing values", {
+  my_depth <- function(x, ...) tf_depth(x, depth = "MHI", ...)
+  x_mid_na <- c(parallel[1:3], na, parallel[4:7])
+
+  r <- rank(x_mid_na, depth = my_depth, na.last = TRUE)
+
+  expect_equal(unname(r[-4]), 1:7)
+  expect_equal(unname(r[4]), 8)
+})
+
 test_that("rank.tf respects ties.method", {
   # Two identical functions
   x <- c(parallel[4], parallel[4], parallel[1])
@@ -59,6 +69,7 @@ test_that("rank.tf works on tfb", {
 
 test_that("rank.default still works for numeric", {
   expect_equal(rank(c(3, 1, 2)), c(3, 1, 2))
+  expect_error(rank(1:3, foo = 1), "unused")
 })
 
 # ---- order (via xtfrm) ------------------------------------------------------
@@ -106,6 +117,17 @@ test_that("sort.tf works with custom depth", {
   expect_length(sorted, 7)
 })
 
+test_that("sort.tf respects na.last", {
+  x_na <- c(parallel[2], na, parallel[1])
+
+  sorted_keep <- sort(x_na, na.last = TRUE)
+  expect_length(sorted_keep, 3)
+  expect_true(is.na(sorted_keep[3]))
+
+  sorted_drop <- sort(x_na, na.last = NA)
+  expect_length(sorted_drop, 2)
+})
+
 # ---- min/max with depth ------------------------------------------------------
 
 test_that("min/max still work pointwise by default", {
@@ -141,6 +163,24 @@ test_that("min/max with depth select observations", {
   expect_equal(
     tf_evaluations(d_max)[[1]],
     tf_evaluations(parallel)[[7]],
+    ignore_attr = TRUE
+  )
+})
+
+test_that("depth-based min/max handle missing values consistently", {
+  x_mid_na <- c(parallel[1:3], na, parallel[4:7])
+
+  expect_true(is.na(min(x_mid_na, depth = "MHI")))
+  expect_true(is.na(max(x_mid_na, depth = "MHI")))
+
+  expect_equal(
+    tf_evaluations(min(x_mid_na, depth = "MHI", na.rm = TRUE))[[1]],
+    tf_evaluations(parallel[1])[[1]],
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    tf_evaluations(max(x_mid_na, depth = "MHI", na.rm = TRUE))[[1]],
+    tf_evaluations(parallel[7])[[1]],
     ignore_attr = TRUE
   )
 })
@@ -229,6 +269,22 @@ test_that("fivenum.tf handles NAs", {
   expect_length(fn_rm, 5)
 })
 
+test_that("fivenum.tf reuses order statistics for small samples", {
+  fn_one <- fivenum(parallel[1])
+  expect_length(fn_one, 5)
+  expect_named(fn_one, c("min", "lower_hinge", "median", "upper_hinge", "max"))
+  expect_true(all(vapply(
+    tf_evaluations(fn_one),
+    identical,
+    logical(1),
+    tf_evaluations(parallel[1])[[1]]
+  )))
+
+  fn_two <- fivenum(parallel[1:2])
+  expect_length(fn_two, 5)
+  expect_named(fn_two, c("min", "lower_hinge", "median", "upper_hinge", "max"))
+})
+
 test_that("fivenum.default still works for numeric", {
   expect_equal(fivenum(1:5), c(1, 2, 3, 4, 5))
 })
@@ -244,6 +300,16 @@ test_that("summary.tf accepts depth argument", {
     s_mbd,
     c("min", "lower_mid", "median", "mean", "upper_mid", "max")
   )
+})
+
+test_that("summary.tf handles all-NA input", {
+  s_na <- summary(c(na, na))
+  expect_length(s_na, 6)
+  expect_named(
+    s_na,
+    c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+  )
+  expect_true(all(is.na(s_na)))
 })
 
 # ---- validate_depth ----------------------------------------------------------

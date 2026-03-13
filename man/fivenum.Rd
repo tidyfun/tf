@@ -8,7 +8,7 @@
 \usage{
 fivenum(x, na.rm = FALSE, ...)
 
-\method{fivenum}{default}(x, na.rm = TRUE)
+\method{fivenum}{default}(x, na.rm = FALSE, ...)
 
 \method{fivenum}{tf}(x, na.rm = FALSE, depth = "MHI", ...)
 }
