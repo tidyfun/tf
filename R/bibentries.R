@@ -152,5 +152,34 @@ bibentries <- c(
     pages = "699--706",
     year = "1988",
     publisher = "American Mathematical Society"
+  ),
+  fraiman2001trimmed = bibentry(
+    "article",
+    title = "Trimmed means for functional data",
+    author = "Fraiman, Ricardo and Muniz, Graciela",
+    journal = "Test",
+    volume = "10",
+    number = "2",
+    pages = "419--440",
+    year = "2001",
+    publisher = "Springer"
+  ),
+  chakraborty2014spatial = bibentry(
+    "article",
+    title = "The spatial distribution in infinite dimensional spaces and related quantiles and depths",
+    author = "Chakraborty, Anirvan and Chaudhuri, Probal",
+    journal = "The Annals of Statistics",
+    volume = "42",
+    number = "3",
+    pages = "1203--1231",
+    year = "2014",
+    publisher = "Institute of Mathematical Statistics"
+  ),
+  bocinec2026rpd = bibentry(
+    "article",
+    title = "Projection depth for functional data: Practical issues, computation and applications",
+    author = "Bo\\v{c}inec, Filip and Nagy, Stanislav and Yeon, Hyemin",
+    journal = "arXiv preprint arXiv:2602.22877",
+    year = "2026"
   )
 )
