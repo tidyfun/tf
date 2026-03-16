@@ -5,6 +5,13 @@
 * `tf_register()` & co implement registration methods (SRVF, affine, landmark,
   continuous-criterion / `cc`) for aligning functions and analyzing phase
   variability.
+* `tf_depth()` now implements five functional depth methods: MBD (default), MHI,
+  FM (Fraiman-Muniz), FSD (Functional Spatial Depth), and RPD (Regularized
+  Projection Depth). MHI ranks functions from lowest (0) to highest (1); all
+  other depths are scaled from 0 (most extreme) to 1 (most central).
+  MBD is now scaled to [0, 1] instead of [0, 0.5].
+* `tf_register()` & co implement registration methods (SRVF, affine, landmark,
+  `fda`-style) for aligning functions and analyzing phase variability.
 * `tf_split()` / `tf_combine()` for splitting functions into sub-domain
   fragments and re-combining them
 * `tf_rgp()` gains a `"brownian_bridge"` covariance option and can generate
