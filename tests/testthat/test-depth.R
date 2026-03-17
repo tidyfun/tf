@@ -1,5 +1,7 @@
 grid <- round(seq(0, 10, length.out = 11), 3)
-lin <- -3:3 * tfd(0.1 * grid, grid)
+# use (0.1 * grid + 1) so curves don't all coincide at t=0,
+# avoiding platform-dependent tie-breaking in depth computations
+lin <- -3:3 * tfd(0.1 * grid + 1, grid)
 parallel <- -3:3 + tfd(0 * grid, grid)
 names(lin) <- names(parallel) <- 1:7
 
@@ -65,10 +67,12 @@ test_that("FM handles ties consistently", {
 })
 
 test_that("FSD works", {
-  symmetric_ranks <- c(1.5, 3.5, 5.5, 7, 5.5, 3.5, 1.5)
-  names(symmetric_ranks) <- names(lin)
-  # FSD gives symmetric ranking for parallel lines
-  expect_equal(rank(tf_depth(parallel, depth = "FSD")), symmetric_ranks)
+  # FSD gives symmetric depths for parallel lines (within floating-point tolerance)
+  fsd_par <- unname(tf_depth(parallel, depth = "FSD"))
+  expect_equal(fsd_par[1], fsd_par[7], tolerance = 1e-10)
+  expect_equal(fsd_par[2], fsd_par[6], tolerance = 1e-10)
+  expect_equal(fsd_par[3], fsd_par[5], tolerance = 1e-10)
+  expect_gt(fsd_par[4], fsd_par[3])
   # central curve has highest depth (1 = most central)
   expect_equal(which.max(tf_depth(lin, depth = "FSD")), c("4" = 4))
   expect_equal(which.max(tf_depth(parallel, depth = "FSD")), c("4" = 4))
