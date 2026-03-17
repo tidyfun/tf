@@ -1,6 +1,6 @@
 # Contributing
 
-When contributing to this repository, please make a PR against the `dev` branch after verifying that
+When contributing to this repository, please make a PR against the `main` branch after verifying that
 the package still passes `R CMD CHECK`.
 
 `tf` aims to provide most of `tidyfun`'s core functionality with as few dependencies as possible,
