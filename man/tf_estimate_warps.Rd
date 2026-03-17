@@ -128,6 +128,17 @@ Default is column-wise mean of \code{landmarks}.}
 }
 }
 
+\examples{
+\dontshow{if (rlang::is_installed("fdasrvf")) withAutoprint(\{ # examplesIf}
+\donttest{
+# see tf_register() for full registration examples
+set.seed(1)
+f <- tf_rgp(5)
+warps <- tf_estimate_warps(f, method = "srvf")
+plot(warps)
+}
+\dontshow{\}) # examplesIf}
+}
 \seealso{
 Other registration functions: 
 \code{\link{tf_align}()},

@@ -440,6 +440,14 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
 #'   The returned warps carry an `attr(, "template")` with the template used
 #'   (`NULL` for landmark registration, which has no template).
 #'
+#' @examplesIf rlang::is_installed("fdasrvf")
+#' \donttest{
+#' # see tf_register() for full registration examples
+#' set.seed(1)
+#' f <- tf_rgp(5)
+#' warps <- tf_estimate_warps(f, method = "srvf")
+#' plot(warps)
+#' }
 #' @export
 #' @author Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6
 #' @family registration functions

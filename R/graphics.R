@@ -4,6 +4,9 @@
 #' @param f a `tf`-object.
 #' @param n_grid length of evaluation grid.
 #' @returns a semi-regular grid rounded down to appropriate resolution.
+#' @examples
+#' f <- tfd(sin(seq(0, 2 * pi, length.out = 21)), arg = seq(0, 1, length.out = 21))
+#' prep_plotting_arg(f, n_grid = 50)
 #' @export
 #' @family tidyfun developer tools
 prep_plotting_arg <- function(f, n_grid) {
@@ -46,6 +49,10 @@ prep_plotting_arg <- function(f, n_grid) {
 #' @returns the plotted `tf`-object, invisibly.
 #' @importFrom graphics matplot image axis
 #' @importFrom grDevices heat.colors rgb
+#' @examples
+#' f <- tfd(sin(seq(0, 2 * pi, length.out = 51)), arg = seq(0, 1, length.out = 51))
+#' plot(f)
+#' plot(c(f, 2 * f), type = "lasagna")
 #' @rdname tfviz
 #' @family tidyfun visualization
 #' @export

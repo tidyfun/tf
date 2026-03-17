@@ -14,6 +14,13 @@
 #'   `TRUE`, a 3-column data frame with columns `id` (containing (unique) names of
 #'   `x` or a numeric identifier if `x` is unnamed), `arg`, and `value`, with each row containing
 #'   one function evaluation at the original `arg`-values.
+#' @examples
+#' f <- tfd(sin(seq(0, 2 * pi, length.out = 11)), arg = seq(0, 1, length.out = 11))
+#' as.data.frame(f)
+#' as.data.frame(f, unnest = TRUE)
+#' as.matrix(f)
+#' fun <- as.function(f)
+#' fun(c(0, 0.5, 1))
 #' @export
 #' @family tidyfun converters
 as.data.frame.tf <- function(

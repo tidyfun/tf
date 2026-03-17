@@ -17,6 +17,10 @@ a semi-regular grid rounded down to appropriate resolution.
 \description{
 (internal function exported for re-use in upstream packages)
 }
+\examples{
+f <- tfd(sin(seq(0, 2 * pi, length.out = 21)), arg = seq(0, 1, length.out = 21))
+prep_plotting_arg(f, n_grid = 50)
+}
 \seealso{
 Other tidyfun developer tools: 
 \code{\link{ensure_list}()},

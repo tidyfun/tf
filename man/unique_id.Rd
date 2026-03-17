@@ -15,6 +15,9 @@ unique_id(x)
 \description{
 See above.
 }
+\examples{
+unique_id(c("a", "b", "a"))
+}
 \seealso{
 Other tidyfun developer tools: 
 \code{\link{ensure_list}()},

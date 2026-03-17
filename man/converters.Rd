@@ -50,4 +50,12 @@ evaluates \code{x} on \code{arg} and returns the list of function values
 Various converters to turn \code{tfb}- or \code{tfd}-vectors into data.frames or
 matrices, or even an actual R function.
 }
+\examples{
+f <- tfd(sin(seq(0, 2 * pi, length.out = 11)), arg = seq(0, 1, length.out = 11))
+as.data.frame(f)
+as.data.frame(f, unnest = TRUE)
+as.matrix(f)
+fun <- as.function(f)
+fun(c(0, 0.5, 1))
+}
 \concept{tidyfun converters}

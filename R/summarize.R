@@ -182,6 +182,10 @@ summary.tf <- function(object, ..., depth = "MBD") {
 #' @param ... passed to [tf_depth()].
 #' @returns **`fivenum.tf`**: a named `tf` vector of length 5.\cr
 #'   **`fivenum.default`**: see [stats::fivenum()].
+#' @examples
+#' set.seed(1)
+#' f <- tf_rgp(7)
+#' fivenum(f)
 #' @export
 #' @family tidyfun summary functions
 #' @name fivenum

@@ -31,6 +31,11 @@ Computes a depth-based five number summary for functional data: the
 observations with minimum, lower-hinge, median, upper-hinge, and maximum
 depth values.
 }
+\examples{
+set.seed(1)
+f <- tf_rgp(7)
+fivenum(f)
+}
 \seealso{
 Other tidyfun summary functions: 
 \code{\link{functionwise}},

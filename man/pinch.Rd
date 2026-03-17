@@ -16,7 +16,7 @@ recorded every 2 milliseconds over 300 milliseconds. The data captures the
 dynamics of finger pinch force applied during controlled motor tasks.
 }
 \details{
-Data is also include in the \CRANpkg{fda} package in another format.
+Data is also include in the \pkg{fda} package in another format.
 }
 \examples{
 pinch

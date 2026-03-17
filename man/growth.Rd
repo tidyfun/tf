@@ -20,7 +20,7 @@ of the Berkeley Growth Study. The data tracks physical development over
 time with measurements at 31 different ages that are not equally spaced.
 }
 \details{
-Data is also include in the \CRANpkg{fda} package in another format.
+Data is also include in the \pkg{fda} package in another format.
 }
 \examples{
 head(growth)

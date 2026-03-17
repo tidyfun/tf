@@ -170,6 +170,9 @@ same_basis <- function(x, y) {
 #' @param r numeric vector used to specify a range, only the minimum and maximum
 #'   of `r` are used.
 #' @returns a `logical` vector of the same length as `f`.
+#' @examples
+#' in_range(1:10, c(3, 7))
+#' 1:10 %inr% c(3, 7)
 #' @family tidyfun utility functions
 #' @export
 in_range <- function(f, r) {
@@ -192,6 +195,9 @@ get_args <- function(args, f) {
 #' See above.
 #' @param x any input.
 #' @returns `x` turned into a list.
+#' @examples
+#' ensure_list(1:3)
+#' ensure_list(list(1, 2))
 #' @export
 #' @family tidyfun developer tools
 ensure_list <- function(x) {
@@ -203,9 +209,10 @@ ensure_list <- function(x) {
 #' See above.
 #' @param x any input.
 #' @returns `x` turned into a list.
+#' @examples
+#' unique_id(c("a", "b", "a"))
 #' @export
 #' @family tidyfun developer tools
-# export for tidyfun...
 unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)

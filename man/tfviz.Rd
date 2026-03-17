@@ -67,6 +67,11 @@ over its domain with \code{n_grid} points. If you want to only see the original
 data for \code{tfd}-objects without inter-/extrapolation, use \code{n_grid < 1} or
 \code{n_grid = NA}.
 }
+\examples{
+f <- tfd(sin(seq(0, 2 * pi, length.out = 51)), arg = seq(0, 1, length.out = 51))
+plot(f)
+plot(c(f, 2 * f), type = "lasagna")
+}
 \references{
 Swihart, J B, Caffo, Brian, James, D B, Strand, Matthew, Schwartz, S B, Punjabi, M N (2010).
 \dQuote{Lasagna plots: a saucy alternative to spaghetti plots.}

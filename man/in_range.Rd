@@ -22,6 +22,10 @@ a \code{logical} vector of the same length as \code{f}.
 \code{in_range} and its infix-equivalent \verb{\%inr\%} return \code{TRUE} for all values in
 the numeric vector \code{f} that are within the range of values in \code{r}.
 }
+\examples{
+in_range(1:10, c(3, 7))
+1:10 \%inr\% c(3, 7)
+}
 \seealso{
 Other tidyfun utility functions: 
 \code{\link{tf_arg}()},

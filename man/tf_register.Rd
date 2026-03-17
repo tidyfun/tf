@@ -107,7 +107,7 @@ Default is column-wise mean of \code{landmarks}.}
 }
 
 \examples{
-\dontshow{if (rlang::is_installed(c("fdasrvf"))) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("fdasrvf")) withAutoprint(\{ # examplesIf}
 # Elastic registration (SRVF method)
 height_female <- subset(growth, gender == "female", select = height, drop = TRUE)
 growth_female <- tf_derive(height_female) |> tfd(arg = seq(1.125, 17.8), l = 101)

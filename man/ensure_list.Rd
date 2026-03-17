@@ -15,6 +15,10 @@ ensure_list(x)
 \description{
 See above.
 }
+\examples{
+ensure_list(1:3)
+ensure_list(list(1, 2))
+}
 \seealso{
 Other tidyfun developer tools: 
 \code{\link{prep_plotting_arg}()},

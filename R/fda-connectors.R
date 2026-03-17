@@ -1,5 +1,21 @@
-## Fourier basis functions
+#' Fourier basis for mgcv
+#'
+#' A `mgcv`-style smooth constructor for Fourier bases, used internally
+#' by [tfb_spline()] when `bs = "fourier"`.
+#'
+#' @param object a smooth specification object from `mgcv`.
+#' @param data a list containing the data vector.
+#' @param knots not used.
+#' @returns a smooth specification object with the Fourier basis matrix `X`
+#'   and optional second-derivative penalty `S`.
 #' @export
+#' @name fourier.smooth
+#' @examples
+#' \donttest{
+#' # used internally via tfb_spline:
+#' f <- c(sin(2 * pi * (0:100) / 100), cos(2 * pi * (0:100) / 100))
+#' tf_smooth <- tfb_spline(f, bs = "fourier", k = 11)
+#' }
 smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
   x <- data[[object$term]]
   n <- length(x)
@@ -81,6 +97,10 @@ smooth.construct.fourier.smooth.spec <- function(object, data, knots) {
   object
 }
 
+#' @param object a fitted `fourier.smooth` object.
+#' @param data a list containing the data vector for prediction.
+#' @returns a design matrix evaluated at the new data points.
+#' @rdname fourier.smooth
 #' @export
 Predict.matrix.fourier.smooth <- function(object, data) {
   x <- data[[object$term]]
