@@ -34,3 +34,4 @@ f <- c(sin(2 * pi * (0:100) / 100), cos(2 * pi * (0:100) / 100))
 tf_smooth <- tfb_spline(f, bs = "fourier", k = 11)
 }
 }
+\keyword{internal}

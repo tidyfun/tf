@@ -10,6 +10,7 @@
 #'   and optional second-derivative penalty `S`.
 #' @export
 #' @name fourier.smooth
+#' @keywords internal
 #' @examples
 #' \donttest{
 #' # used internally via tfb_spline:
