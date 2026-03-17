@@ -4,7 +4,7 @@
 #' recorded every 2 milliseconds over 300 milliseconds. The data captures the
 #' dynamics of finger pinch force applied during controlled motor tasks.
 #'
-#' Data is also include in the \pkg{fda} package in another format.
+#' Data is also include in the \CRANpkg{fda} package in another format.
 #'
 #' @references
 #' `r format_bib("ramsay2009functional", "ramsay2005functional", "ramsay2002applied")`
@@ -19,7 +19,7 @@
 #' of the Berkeley Growth Study. The data tracks physical development over
 #' time with measurements at 31 different ages that are not equally spaced.
 #'
-#' Data is also include in the \pkg{fda} package in another format.
+#' Data is also include in the \CRANpkg{fda} package in another format.
 #'
 #' @references
 #' `r format_bib("ramsay2009functional", "ramsay2005functional", "ramsay2002applied", "tuddenham1954physical")`
