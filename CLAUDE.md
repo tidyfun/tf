@@ -22,6 +22,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Error handling: Use cli::cli_abort() or cli::cli_warning() for errors and warnings, or use checkmate-assertions and the custom assertions from assertions.R
 - Object creation: Follow vctrs framework for S3 classes
 - Testing: Write unit tests with testthat v3 (expect_equal, expect_error)
-- PRs: Make pull requests against the 'dev' branch
+- PRs: Make pull requests against the 'main' branch
 
 Always reload the package with `devtools::load_all()` before testing changes.
