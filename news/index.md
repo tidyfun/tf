@@ -2,6 +2,8 @@
 
 ## tf 0.4.0
 
+CRAN release: 2026-03-17
+
 ### New features
 
 - [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md)

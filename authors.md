@@ -28,7 +28,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/tidyfun/tf/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/tidyfun/tf/blob/v0.4.0/DESCRIPTION)
 
 Scheipl F, Goldsmith J, Mücke M (2026). *tf: S3 Classes and Methods for
 Tidy Functional Data*. R package version 0.4.0,
