@@ -124,7 +124,7 @@ plot(x_clamp, col = 1:3)
 # standardize each function to have mean / integral 0 and sd 1:
 x_std <- (x - tf_fmean(x)) / tf_fsd(x)
 tf_fvar(x_std) == c(1, 1, 1)
-#> [1]  TRUE FALSE FALSE
+#> [1]  TRUE FALSE  TRUE
 plot(x_std, col = 1:3)
 
 # Custom functions:

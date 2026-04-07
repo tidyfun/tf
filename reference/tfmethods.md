@@ -166,8 +166,8 @@ tf_evaluator(x)
 #>     ret <- do.call(f, dots)
 #>     coredata(ret)[requested]
 #> }
-#> <bytecode: 0x558faf4d0028>
-#> <environment: 0x558faf4cd308>
+#> <bytecode: 0x5611dc4c1f48>
+#> <environment: 0x5611dc4c32c0>
 tf_evaluate(x, 0.25)
 #> $`1`
 #> [1] 1.630736
@@ -198,8 +198,8 @@ tf_basis(xb)
 #> {
 #>     Predict.matrix(object = spec, data = data_frame0(arg = arg))
 #> }
-#> <bytecode: 0x558fb14d81e8>
-#> <environment: 0x558faf9b1068>
+#> <bytecode: 0x5611de4bf270>
+#> <environment: 0x5611dc8aa528>
 tf_basis(xb)(c(0, .1, .2))
 #>        [,1]   [,2]    [,3]   [,4]
 #> [1,] 1.0000 0.0000  0.0000 0.0000

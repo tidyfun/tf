@@ -137,9 +137,9 @@ Fabian Scheipl, Claude Opus 4.6
 reg <- tf_register(pinch[1:5], method = "affine", type = "shift_scale")
 #> Warning: ℹ 29 evaluations were `NA`
 #> ✖ Returning irregular <tfd>.
-#> Warning: ℹ 24 evaluations were `NA`
+#> Warning: ℹ 23 evaluations were `NA`
 #> ✖ Returning irregular <tfd>.
-#> Warning: ℹ 24 evaluations were `NA`
+#> Warning: ℹ 23 evaluations were `NA`
 #> ✖ Returning irregular <tfd>.
 reg
 #> <tf_registration>
@@ -155,16 +155,16 @@ summary(reg)
 #> 
 #> Inverse warp deviations from identity (relative to domain length):
 #>     0%    10%    25%    50%    75%    90%   100% 
-#> 0.1080 0.1175 0.1318 0.1503 0.1545 0.2170 0.2586 
+#> 0.1080 0.1175 0.1318 0.1506 0.1553 0.2176 0.2592 
 #> 
 #> Inverse warp slopes (1 = identity):
-#>   overall range: [1.106, 1.291]
+#>   overall range: [1.103, 1.289]
 #>   per-curve slopes:
 #>    0%   10%   25%   50%   75%   90%  100% 
-#> 1.106 1.118 1.137 1.143 1.265 1.280 1.291 
+#> 1.103 1.117 1.137 1.154 1.264 1.279 1.289 
 #> 
 #> Domain coverage loss after alignment (fraction of original range):
 #>     0%    10%    25%    50%    75%    90%   100% 
-#> 0.0000 0.0000 0.0000 0.0200 0.0333 0.0773 0.1067 
+#> 0.0000 0.0000 0.0000 0.0200 0.0267 0.0747 0.1067 
 plot(reg)
 ```
