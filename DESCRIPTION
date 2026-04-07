@@ -1,6 +1,6 @@
 Package: tf
 Title: S3 Classes and Methods for Tidy Functional Data
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: c(
     person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8172-3603")),
