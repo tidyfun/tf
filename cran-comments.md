@@ -12,6 +12,8 @@ now warns when packages import both `rlang` and `checkmate` wholesale:
 with `checkmate`. This update switches `tf` from `import(checkmate)` to
 selective `importFrom(checkmate, ...)` directives to remove that warning and
 keep the package clean on current R-devel / CRAN pretest infrastructure.
+It also corrects the `glimpse()` Rd cross-reference to `pillar::glimpse()`,
+avoiding an undeclared-package Rd xref note.
 
 ## Reverse dependencies
 
