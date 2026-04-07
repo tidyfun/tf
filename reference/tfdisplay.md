@@ -95,7 +95,7 @@ will be misleading for very unequal grid distances.
 
 Sparklines use `options()$width/3` bins for printing/formatting by
 default, use `bins` argument to set the number of bins explicitly. For
-[`tibble::glimpse()`](https://tibble.tidyverse.org/reference/reexports.html),
+[`pillar::glimpse()`](https://pillar.r-lib.org/reference/glimpse.html),
 we use 8 bins by default for compact display.
 
 ## Examples

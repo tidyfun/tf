@@ -1,5 +1,13 @@
 # Changelog
 
+## tf 0.4.1
+
+### Bug fixes
+
+- replace blanket `checkmate` namespace imports with selective imports
+  to avoid new R-devel warnings from upstream `rlang` exports
+  (`check_string()` and `check_data_frame()`)
+
 ## tf 0.4.0
 
 CRAN release: 2026-03-17

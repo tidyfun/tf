@@ -31,13 +31,13 @@ Source:
 [`DESCRIPTION`](https://github.com/tidyfun/tf/blob/main/DESCRIPTION)
 
 Scheipl F, Goldsmith J, Mücke M (2026). *tf: S3 Classes and Methods for
-Tidy Functional Data*. R package version 0.4.0,
+Tidy Functional Data*. R package version 0.4.1,
 <https://tidyfun.github.io/tf/>.
 
     @Manual{,
       title = {tf: S3 Classes and Methods for Tidy Functional Data},
       author = {Fabian Scheipl and Jeff Goldsmith and Maximilian Mücke},
       year = {2026},
-      note = {R package version 0.4.0},
+      note = {R package version 0.4.1},
       url = {https://tidyfun.github.io/tf/},
     }
