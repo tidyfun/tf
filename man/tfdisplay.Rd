@@ -79,7 +79,7 @@ misleading for very unequal grid distances.
 Sparklines use
 \code{options()$width/3} bins for printing/formatting by default, use \code{bins}
 argument to set the number of bins explicitly.
-For \code{\link[tibble:reexports]{tibble::glimpse()}}, we use 8 bins by default for compact display.
+For \code{\link[pillar:glimpse]{pillar::glimpse()}}, we use 8 bins by default for compact display.
 }
 \examples{
 t <- seq(0, 1, l = 201)

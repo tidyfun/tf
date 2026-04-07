@@ -20,7 +20,12 @@
 #' website](https://tidyfun.github.io/tidyfun/).
 #'
 #' @keywords internal
-#' @import checkmate
+#' @importFrom checkmate assert_choice assert_class assert_count
+#' @importFrom checkmate assert_data_frame assert_flag assert_function
+#' @importFrom checkmate assert_int assert_list assert_logical assert_matrix
+#' @importFrom checkmate assert_number assert_numeric assert_string
+#' @importFrom checkmate assert_set_equal assert_subset assert_true
+#' @importFrom checkmate allMissing check_numeric makeAssertionFunction vname
 #' @import rlang
 #' @import vctrs
 #' @rawNamespace import(purrr, except = c(flatten, flatten_lgl, flatten_int, flatten_dbl, flatten_chr, flatten_raw, splice, invoke, `%@%`))
