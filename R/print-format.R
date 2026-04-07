@@ -130,7 +130,7 @@ spark_rep_tf <- function(
 #' Sparklines use
 #' `options()$width/3` bins for printing/formatting by default, use `bins`
 #' argument to set the number of bins explicitly.
-#' For [tibble::glimpse()], we use 8 bins by default for compact display.
+#' For `tibble::glimpse()`, we use 8 bins by default for compact display.
 #' @rdname tfdisplay
 #' @param n how many elements of `x` to print out at most, defaults to `6`.
 #' @param ... handed over to [format.tf()].
