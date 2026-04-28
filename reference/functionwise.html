@@ -49,7 +49,7 @@ that does inter- and extrapolation for them beforehand."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Summarize each <code>tf</code> in a vector (function-wise)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/v0.4.1/R/fwise.R" class="external-link"><code>R/fwise.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/main/R/fwise.R" class="external-link"><code>R/fwise.R</code></a></small>
       <div class="d-none name"><code>functionwise.Rd</code></div>
     </div>
 
@@ -168,7 +168,7 @@ and <code>values</code> internally, so the function/formula in <code>.f</code> g
 <span class="r-in"><span><span class="co"># standardize each function to have mean / integral 0 and sd 1:</span></span></span>
 <span class="r-in"><span><span class="va">x_std</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">x</span> <span class="op">-</span> <span class="fu">tf_fmean</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu">tf_fsd</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">tf_fvar</span><span class="op">(</span><span class="va">x_std</span><span class="op">)</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1]  TRUE FALSE  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1]  TRUE FALSE FALSE</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x_std</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="functionwise-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Custom functions:</span></span></span>

@@ -49,7 +49,7 @@ components."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Registration Result Object</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/v0.4.1/R/registration-class.R" class="external-link"><code>R/registration-class.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tidyfun/tf/blob/main/R/registration-class.R" class="external-link"><code>R/registration-class.R</code></a></small>
       <div class="d-none name"><code>tf_registration.Rd</code></div>
     </div>
 
@@ -182,9 +182,9 @@ Use <code><a href="tf_invert.html">tf_invert()</a></code> on the result to obtai
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_register.html">tf_register</a></span><span class="op">(</span><span class="va">pinch</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, method <span class="op">=</span> <span class="st">"affine"</span>, type <span class="op">=</span> <span class="st">"shift_scale"</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span><span style="color: #00BBBB;">ℹ</span> 29 evaluations were `NA`</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Returning irregular <span style="color: #0000BB;">&lt;tfd&gt;</span>.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span><span style="color: #00BBBB;">ℹ</span> 23 evaluations were `NA`</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span><span style="color: #00BBBB;">ℹ</span> 24 evaluations were `NA`</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Returning irregular <span style="color: #0000BB;">&lt;tfd&gt;</span>.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span><span style="color: #00BBBB;">ℹ</span> 23 evaluations were `NA`</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span><span style="color: #00BBBB;">ℹ</span> 24 evaluations were `NA`</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Returning irregular <span style="color: #0000BB;">&lt;tfd&gt;</span>.</span>
 <span class="r-in"><span><span class="va">reg</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;tf_registration&gt;</span></span>
@@ -200,17 +200,17 @@ Use <code><a href="tf_invert.html">tf_invert()</a></code> on the result to obtai
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Inverse warp deviations from identity (relative to domain length):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0%    10%    25%    50%    75%    90%   100% </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.1080 0.1175 0.1318 0.1506 0.1553 0.2176 0.2592 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.1080 0.1175 0.1318 0.1503 0.1545 0.2170 0.2586 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Inverse warp slopes (1 = identity):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   overall range: [1.103, 1.289]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   overall range: [1.106, 1.291]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   per-curve slopes:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    0%   10%   25%   50%   75%   90%  100% </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1.103 1.117 1.137 1.154 1.264 1.279 1.289 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1.106 1.118 1.137 1.143 1.265 1.280 1.291 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Domain coverage loss after alignment (fraction of original range):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0%    10%    25%    50%    75%    90%   100% </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.0000 0.0000 0.0000 0.0200 0.0267 0.0747 0.1067 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.0000 0.0000 0.0000 0.0200 0.0333 0.0773 0.1067 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">reg</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="tf_registration-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>

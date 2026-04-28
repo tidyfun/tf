@@ -2,6 +2,8 @@
 
 ## tf 0.4.1
 
+CRAN release: 2026-04-07
+
 ### Bug fixes
 
 - replace blanket `checkmate` namespace imports with selective imports
