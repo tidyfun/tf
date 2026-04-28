@@ -146,28 +146,35 @@ fm <- function(x, arg = seq_len(ncol(x))) {
 
 # Functional spatial depth:
 # Chakraborty, A. and Chaudhuri, P. (2014)
-fsd <- function(x, arg = seq_len(ncol(x))) {
+fsd <- function(x, arg = seq_len(ncol(x)), block_size = NULL) {
   n <- nrow(x)
   if (n == 1) return(1)
   weights <- trap_weights(arg)
-  w_norm <- function(v) sqrt(sum(v^2 * weights))
-
+  block_size <- block_size %||% fsd_block_size(n)
+  block_size <- max(1L, min(as.integer(block_size), n))
+  xw <- t(t(x) * sqrt(weights))
+  s <- rowSums(xw^2)
   depths <- numeric(n)
-  p <- ncol(x)
-  for (i in seq_len(n)) {
-    # accumulate average spatial sign directly (avoid n x p matrix allocation)
-    avg_sign <- numeric(p)
-    for (j in seq_len(n)) {
-      if (j == i) next
-      diff_ij <- x[i, ] - x[j, ]
-      norm_ij <- w_norm(diff_ij)
-      if (norm_ij > 0) avg_sign <- avg_sign + diff_ij / norm_ij
-    }
-    avg_sign <- avg_sign / n
-    depths[i] <- 1 - w_norm(avg_sign)
+
+  for (from in seq.int(1L, n, by = block_size)) {
+    to <- min(from + block_size - 1L, n)
+    ii <- from:to
+    G <- tcrossprod(xw[ii, , drop = FALSE], xw)
+    d <- sqrt(pmax(outer(s[ii], s, "+") - 2 * G, 0))
+    d[cbind(seq_along(ii), ii)] <- 0
+    d[d == 0] <- Inf
+    inv_d <- 1 / d
+    s1 <- rowSums(inv_d)
+    avg_sign <- (x[ii, , drop = FALSE] * s1 - inv_d %*% x) / n
+    depths[ii] <- 1 - sqrt(as.numeric(avg_sign^2 %*% weights))
   }
+
   names(depths) <- rownames(x)
   depths
+}
+
+fsd_block_size <- function(n, max_block_entries = 1e7) {
+  max(1L, min(2000L, n, as.integer(max_block_entries %/% n)))
 }
 
 # Regularized projection depth:
