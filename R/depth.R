@@ -146,11 +146,12 @@ fm <- function(x, arg = seq_len(ncol(x))) {
 
 # Functional spatial depth:
 # Chakraborty, A. and Chaudhuri, P. (2014)
-fsd <- function(x, arg = seq_len(ncol(x))) {
+fsd <- function(x, arg = seq_len(ncol(x)), block_size = NULL) {
   n <- nrow(x)
   if (n == 1) return(1)
   weights <- trap_weights(arg)
-  block_size <- min(2000L, n)
+  block_size <- block_size %||% fsd_block_size(n)
+  block_size <- max(1L, min(as.integer(block_size), n))
   xw <- t(t(x) * sqrt(weights))
   s <- rowSums(xw^2)
   depths <- numeric(n)
@@ -161,14 +162,19 @@ fsd <- function(x, arg = seq_len(ncol(x))) {
     G <- tcrossprod(xw[ii, , drop = FALSE], xw)
     d <- sqrt(pmax(outer(s[ii], s, "+") - 2 * G, 0))
     d[cbind(seq_along(ii), ii)] <- 0
-    inv_d <- ifelse(d > 0, 1 / d, 0)
+    d[d == 0] <- Inf
+    inv_d <- 1 / d
     s1 <- rowSums(inv_d)
     avg_sign <- (x[ii, , drop = FALSE] * s1 - inv_d %*% x) / n
-    depths[ii] <- 1 - sqrt(rowSums(t(t(avg_sign^2) * weights)))
+    depths[ii] <- 1 - sqrt(as.numeric(avg_sign^2 %*% weights))
   }
 
   names(depths) <- rownames(x)
   depths
+}
+
+fsd_block_size <- function(n, max_block_entries = 1e7) {
+  max(1L, min(2000L, n, as.integer(max_block_entries %/% n)))
 }
 
 # Regularized projection depth:

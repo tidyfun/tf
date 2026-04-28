@@ -89,6 +89,63 @@ test_that("FSD works", {
   )
 })
 
+test_that("FSD blockwise computation matches full-matrix reference", {
+  fsd_full <- function(x, arg = seq_len(ncol(x))) {
+    n <- nrow(x)
+    if (n == 1) return(1)
+    weights <- trap_weights(arg)
+    xw <- t(t(x) * sqrt(weights))
+    G <- tcrossprod(xw)
+    s <- diag(G)
+    d <- sqrt(pmax(outer(s, s, "+") - 2 * G, 0))
+    diag(d) <- 0
+    d[d == 0] <- Inf
+    inv_d <- 1 / d
+    s1 <- rowSums(inv_d)
+    avg_sign <- (x * s1 - inv_d %*% x) / n
+    depths <- 1 - sqrt(as.numeric(avg_sign^2 %*% weights))
+    names(depths) <- rownames(x)
+    depths
+  }
+
+  x <- matrix(
+    c(
+      0,
+      1,
+      1.5,
+      2,
+      0,
+      1,
+      1.5,
+      2,
+      2,
+      1,
+      0.5,
+      0,
+      1,
+      1.2,
+      1.4,
+      1.6,
+      -1,
+      0,
+      1,
+      3,
+      3,
+      1,
+      0,
+      -1
+    ),
+    nrow = 6,
+    byrow = TRUE,
+    dimnames = list(letters[1:6], NULL)
+  )
+  arg <- c(0, 0.2, 0.7, 1)
+
+  expect_equal(fsd(x, arg, block_size = 2L), fsd_full(x, arg))
+  expect_equal(fsd(x, arg, block_size = 1L), fsd_full(x, arg))
+  expect_named(fsd(x, arg, block_size = 2L), letters[1:6])
+})
+
 test_that("RPD works", {
   withr::local_seed(4217)
   # central curve has highest depth (1 = most central)
