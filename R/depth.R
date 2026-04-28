@@ -150,17 +150,23 @@ fsd <- function(x, arg = seq_len(ncol(x))) {
   n <- nrow(x)
   if (n == 1) return(1)
   weights <- trap_weights(arg)
-  # pairwise weighted L2 distances via Gram matrix in weighted space
+  block_size <- min(2000L, n)
   xw <- t(t(x) * sqrt(weights))
-  G <- tcrossprod(xw)
-  s <- diag(G)
-  d <- sqrt(pmax(outer(s, s, "+") - 2 * G, 0))
-  diag(d) <- 0
-  inv_d <- ifelse(d > 0, 1 / d, 0)
-  # avg_sign[i,] = (x[i,] * sum_j 1/d_ij - sum_j x[j,] / d_ij) / n
-  s1 <- rowSums(inv_d)
-  avg_sign <- (x * s1 - inv_d %*% x) / n
-  depths <- 1 - sqrt(rowSums(t(t(avg_sign^2) * weights)))
+  s <- rowSums(xw^2)
+  depths <- numeric(n)
+
+  for (from in seq.int(1L, n, by = block_size)) {
+    to <- min(from + block_size - 1L, n)
+    ii <- from:to
+    G <- tcrossprod(xw[ii, , drop = FALSE], xw)
+    d <- sqrt(pmax(outer(s[ii], s, "+") - 2 * G, 0))
+    d[cbind(seq_along(ii), ii)] <- 0
+    inv_d <- ifelse(d > 0, 1 / d, 0)
+    s1 <- rowSums(inv_d)
+    avg_sign <- (x[ii, , drop = FALSE] * s1 - inv_d %*% x) / n
+    depths[ii] <- 1 - sqrt(rowSums(t(t(avg_sign^2) * weights)))
+  }
+
   names(depths) <- rownames(x)
   depths
 }
