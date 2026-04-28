@@ -150,22 +150,17 @@ fsd <- function(x, arg = seq_len(ncol(x))) {
   n <- nrow(x)
   if (n == 1) return(1)
   weights <- trap_weights(arg)
-  w_norm <- function(v) sqrt(sum(v^2 * weights))
-
-  depths <- numeric(n)
-  p <- ncol(x)
-  for (i in seq_len(n)) {
-    # accumulate average spatial sign directly (avoid n x p matrix allocation)
-    avg_sign <- numeric(p)
-    for (j in seq_len(n)) {
-      if (j == i) next
-      diff_ij <- x[i, ] - x[j, ]
-      norm_ij <- w_norm(diff_ij)
-      if (norm_ij > 0) avg_sign <- avg_sign + diff_ij / norm_ij
-    }
-    avg_sign <- avg_sign / n
-    depths[i] <- 1 - w_norm(avg_sign)
-  }
+  # pairwise weighted L2 distances via Gram matrix in weighted space
+  xw <- t(t(x) * sqrt(weights))
+  G <- tcrossprod(xw)
+  s <- diag(G)
+  d <- sqrt(pmax(outer(s, s, "+") - 2 * G, 0))
+  diag(d) <- 0
+  inv_d <- ifelse(d > 0, 1 / d, 0)
+  # avg_sign[i,] = (x[i,] * sum_j 1/d_ij - sum_j x[j,] / d_ij) / n
+  s1 <- rowSums(inv_d)
+  avg_sign <- (x * s1 - inv_d %*% x) / n
+  depths <- 1 - sqrt(rowSums(t(t(avg_sign^2) * weights)))
   names(depths) <- rownames(x)
   depths
 }
