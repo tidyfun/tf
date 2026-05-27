@@ -436,3 +436,150 @@ as.data.frame.tf_mv <- function(x, row.names = NULL, optional = FALSE, unnest = 
   }
   base
 }
+
+# Re-representation, calculus, smoothing (component-wise) ----------------------
+
+#' @rdname tf_mv-methods
+#' @details
+#' Most univariate `tf` verbs also work on `tf_mv` objects by acting on each
+#' component: `tf_rebase()` (and hence `tfd_mv`/`tfb_mv` conversion),
+#' `tf_derive()`, `tf_integrate()` (definite integrals return an `n x d`
+#' matrix), `tf_smooth()` and `tf_zoom()`. Registration
+#' ([tf_register()]/[tf_estimate_warps()]/[tf_warp()]/[tf_align()]) estimates a
+#' *single, shared* time-warp per curve (by default from the pointwise
+#' Euclidean norm across components, or from a chosen `ref_component`) and
+#' applies it jointly to all components, so the dimensions stay synchronized.
+#' The registration signal is, by default, the first component; use
+#' `ref_component` to pick another component (by name/index), `"norm"` for the
+#' pointwise Euclidean norm across components, or a function mapping the
+#' `tf_mv` to a univariate `tf` vector.
+#' @export
+tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
+  cn <- attr(object, "comp_names")
+  comps <- tf_components(object)
+  if (is_tf_mv(basis_from)) {
+    check_compatible_mv(object, basis_from)
+    bases <- tf_components(basis_from)
+    new_comps <- map2(comps, bases, function(o, b) {
+      if (is.null(arg)) tf_rebase(o, b, ...) else tf_rebase(o, b, arg = arg, ...)
+    })
+  } else {
+    new_comps <- map(comps, function(o) {
+      if (is.null(arg)) {
+        tf_rebase(o, basis_from, ...)
+      } else {
+        tf_rebase(o, basis_from, arg = arg, ...)
+      }
+    })
+  }
+  names(new_comps) <- cn
+  new_tf_mv(new_comps)
+}
+
+#' @export
+tf_derive.tf_mv <- function(f, arg, order = 1, ...) {
+  has_arg <- !missing(arg)
+  comps <- map(tf_components(f), function(comp) {
+    if (has_arg) {
+      tf_derive(comp, arg = arg, order = order, ...)
+    } else {
+      tf_derive(comp, order = order, ...)
+    }
+  })
+  names(comps) <- attr(f, "comp_names")
+  new_tf_mv(comps)
+}
+
+#' @export
+tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
+  cn <- attr(f, "comp_names")
+  has_arg <- !missing(arg)
+  has_lower <- !missing(lower)
+  has_upper <- !missing(upper)
+  results <- map(tf_components(f), function(comp) {
+    call_args <- list(comp, definite = definite, ...)
+    if (has_arg) call_args$arg <- arg
+    if (has_lower) call_args$lower <- lower
+    if (has_upper) call_args$upper <- upper
+    do.call(tf_integrate, call_args)
+  })
+  if (is.numeric(results[[1]])) {
+    mat <- do.call(cbind, results)
+    colnames(mat) <- cn
+    return(mat)
+  }
+  names(results) <- cn
+  new_tf_mv(results)
+}
+
+#' @export
+tf_smooth.tf_mv <- function(x, ...) {
+  comps <- map(tf_components(x), \(comp) tf_smooth(comp, ...))
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps)
+}
+
+#' @export
+tf_zoom.tf_mv <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...) {
+  comps <- map(tf_components(f), \(comp) tf_zoom(comp, begin = begin, end = end, ...))
+  names(comps) <- attr(f, "comp_names")
+  new_tf_mv(comps)
+}
+
+# Registration: one shared time-warp per curve, applied to all components ------
+
+# univariate signal used to estimate the (joint) warp for a multivariate curve
+mv_registration_signal <- function(x, ref_component = 1L) {
+  if (is.function(ref_component)) {
+    return(ref_component(x))
+  }
+  if (identical(ref_component, "norm")) {
+    return(sqrt(Reduce(`+`, map(tf_components(x), \(comp) comp^2))))
+  }
+  tf_component(x, ref_component)
+}
+
+#' @export
+tf_warp.tf_mv <- function(x, warp, ...) {
+  comps <- map(tf_components(x), \(comp) tf_warp(comp, warp, ...))
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps)
+}
+
+#' @export
+tf_align.tf_mv <- function(x, warp, ...) {
+  comps <- map(tf_components(x), \(comp) tf_align(comp, warp, ...))
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps)
+}
+
+#' @export
+tf_estimate_warps.tf_mv <- function(
+  x,
+  ...,
+  template = NULL,
+  method = c("srvf", "cc", "affine", "landmark"),
+  max_iter = 3L,
+  tol = 1e-2,
+  ref_component = 1L
+) {
+  method <- match.arg(method)
+  signal <- mv_registration_signal(x, ref_component)
+  tmpl <- if (is_tf_mv(template)) {
+    mv_registration_signal(template, ref_component)
+  } else {
+    template
+  }
+  warps <- tf_estimate_warps(
+    signal,
+    ...,
+    template = tmpl,
+    method = method,
+    max_iter = max_iter,
+    tol = tol
+  )
+  # drop the (univariate) template attribute so tf_register() derives a
+  # multivariate template via mean() of the aligned components instead.
+  attr(warps, "template") <- NULL
+  warps
+}

@@ -5,6 +5,7 @@
 \alias{tf_components}
 \alias{tf_component}
 \alias{tf_component<-}
+\alias{tf_rebase.tf_mv}
 \title{Accessors and methods for vector-valued functional data}
 \usage{
 tf_ncomp(f)
@@ -14,6 +15,8 @@ tf_components(f)
 tf_component(f, which)
 
 tf_component(f, which) <- value
+
+\method{tf_rebase}{tf_mv}(object, basis_from, arg = NULL, ...)
 }
 \arguments{
 \item{f, x}{a \code{tf_mv} object.}
@@ -32,6 +35,20 @@ Utilities for \code{tf_mv} objects (see \code{\link[=tfd_mv]{tfd_mv()}} / \code{
 returns the number of output dimensions \eqn{d}, \code{tf_components()} the list
 of the \code{d} underlying univariate \code{tf} vectors, and \code{tf_component()} extracts
 or replaces a single one (also available via the \code{$} operator, e.g. \code{f$x}).
+}
+\details{
+Most univariate \code{tf} verbs also work on \code{tf_mv} objects by acting on each
+component: \code{tf_rebase()} (and hence \code{tfd_mv}/\code{tfb_mv} conversion),
+\code{tf_derive()}, \code{tf_integrate()} (definite integrals return an \verb{n x d}
+matrix), \code{tf_smooth()} and \code{tf_zoom()}. Registration
+(\code{\link[=tf_register]{tf_register()}}/\code{\link[=tf_estimate_warps]{tf_estimate_warps()}}/\code{\link[=tf_warp]{tf_warp()}}/\code{\link[=tf_align]{tf_align()}}) estimates a
+\emph{single, shared} time-warp per curve (by default from the pointwise
+Euclidean norm across components, or from a chosen \code{ref_component}) and
+applies it jointly to all components, so the dimensions stay synchronized.
+The registration signal is, by default, the first component; use
+\code{ref_component} to pick another component (by name/index), \code{"norm"} for the
+pointwise Euclidean norm across components, or a function mapping the
+\code{tf_mv} to a univariate \code{tf} vector.
 }
 \examples{
 f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))

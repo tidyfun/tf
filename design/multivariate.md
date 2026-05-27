@@ -184,6 +184,35 @@ plot(traj, type = "trajectory")
 tibble::tibble(id = 1:5, path = traj)
 ```
 
+## Delegated verbs (calculus, smoothing, re-basing, registration)
+
+Because a `tf_mv` is just a bundle of univariate `tf` vectors, the standard
+verbs work by mapping over the components:
+
+* `tf_rebase()` — re-expresses each component in the target basis/grid, hence
+  also drives `tfd_mv <-> tfb_mv` conversion.
+* `tf_derive()`, `tf_smooth()`, `tf_zoom()` — component-wise, returning a
+  `tf_mv`.
+* `tf_integrate()` — definite integrals return an `n × d` matrix (one
+  integral per curve per component); indefinite integrals return a `tf_mv`.
+
+**Registration** is the one verb that is *not* a naive component-wise map: a
+vector-valued curve has a single time axis, so all components must share one
+warp or they desynchronize. `tf_estimate_warps.tf_mv()` therefore estimates a
+**single warp per curve** from a univariate *registration signal* and
+`tf_warp.tf_mv()` / `tf_align.tf_mv()` apply that one warp to every component.
+`tf_register()` (a plain function) then composes correctly with no changes,
+producing a `tf_registration` whose `registered`/`template` are `tf_mv` and
+whose warps are univariate.
+
+The registration signal defaults to the **first component** — predictable and
+never degenerate. `ref_component` can select another component (by name/index),
+`"norm"` for the pointwise Euclidean norm \(\lVert f(t)\rVert\)
+(rotation-invariant, but degenerate for constant-modulus signals such as
+`(sin, cos)`), or a custom `function(tf_mv) -> tf`. Fully-joint multivariate
+elastic registration (e.g. a multivariate SRVF criterion summed across
+components inside the optimizer) is left as future work.
+
 ## Surfaces (future work)
 
 Multivariate *input* (`f: R^p -> R`, e.g. images/surfaces) is a different axis:
