@@ -288,3 +288,15 @@ is_tfb_spline <- function(x) inherits(x, "tfb_spline")
 #' @rdname tfmethods
 #' @export
 is_tfb_fpc <- function(x) inherits(x, "tfb_fpc")
+
+#' @rdname tfmethods
+#' @export
+is_tf_mv <- function(x) inherits(x, "tf_mv")
+
+#' @rdname tfmethods
+#' @export
+is_tfd_mv <- function(x) inherits(x, "tfd_mv")
+
+#' @rdname tfmethods
+#' @export
+is_tfb_mv <- function(x) inherits(x, "tfb_mv")

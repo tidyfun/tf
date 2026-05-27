@@ -74,3 +74,10 @@ setClass(
   )
 )
 setOldClass("tfb", S4Class = "tfb")
+
+setClass("tf_mv", contains = "tf")
+setOldClass(c("tf_mv", "tf"), S4Class = "tf_mv")
+setClass("tfd_mv", contains = "tf_mv")
+setOldClass(c("tfd_mv", "tf_mv", "tf"), S4Class = "tfd_mv")
+setClass("tfb_mv", contains = "tf_mv")
+setOldClass(c("tfb_mv", "tf_mv", "tf"), S4Class = "tfb_mv")

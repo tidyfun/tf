@@ -3,6 +3,7 @@
 # nocov start
 .onLoad <- function(libname, pkgname) {
   vctrs::s3_register("pillar::format_glimpse", "tf")
+  vctrs::s3_register("pillar::format_glimpse", "tf_mv")
 
   invisible()
 }

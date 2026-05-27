@@ -18,6 +18,13 @@ reference:
   - tfb_fpc
   - fpc_wsvd
   - tf_rebase
+- title: 'Vector-valued functional data (f: R -> R^d)'
+  desc: Multivariate-output curves, e.g. movement trajectories (see issues #18, #27)
+  contents:
+  - tfd_mv
+  - tfb_mv
+  - tf_mv-methods
+  - plot.tf_mv
 - title: Evaluating, indexing & re-arranging
   desc: Accessing, appending, evaluating, splitting & combining functional data objects
   contents:

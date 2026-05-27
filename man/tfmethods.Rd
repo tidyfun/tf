@@ -26,6 +26,9 @@
 \alias{is_tfb}
 \alias{is_tfb_spline}
 \alias{is_tfb_fpc}
+\alias{is_tf_mv}
+\alias{is_tfd_mv}
+\alias{is_tfb_mv}
 \title{Utility functions for \code{tf}-objects}
 \usage{
 tf_arg(f)
@@ -77,6 +80,12 @@ is_tfb(x)
 is_tfb_spline(x)
 
 is_tfb_fpc(x)
+
+is_tf_mv(x)
+
+is_tfd_mv(x)
+
+is_tfb_mv(x)
 }
 \arguments{
 \item{f}{an \code{tf} object.}
