@@ -277,6 +277,37 @@ components inside the optimizer) is left as future work.
   a new `tfb_mv` subclass storing the multivariate eigenfunctions plus an
   `n × K` score matrix, an MFPCA fitter (or a wrapper around
   `MFPCA::MFPCA()`), and a `vec_cast` path back to `tfd_mv`.
+* **Disperse `R/mv-methods.R` into the existing per-topic files.** While
+  the feature is in flux it is convenient to keep almost everything mv-
+  specific in one file so the diff is easy to read and review. Once the
+  design stabilizes, the individual `*.tf_mv` methods should move next to
+  their univariate siblings so the topical organization that the rest of
+  `R/` already follows is preserved:
+  * `[.tf_mv`, `[<-.tf_mv` → `R/brackets.R`
+  * `tf_warp.tf_mv`, `tf_align.tf_mv`, `tf_estimate_warps.tf_mv`,
+    `mv_registration_signal` → `R/register.R`
+  * `tf_rebase.tf_mv` → `R/rebase.R`
+  * `tf_derive.tf_mv`, `tf_integrate.tf_mv` → `R/calculus.R`
+  * `tf_smooth.tf_mv` → `R/smooth.R`
+  * `tf_zoom.tf_mv` → `R/zoom.R`
+  * `vec_arith.tf_mv*`, `==.tf_mv`, `!=.tf_mv` → `R/ops.R`
+  * `Math.tf_mv` → `R/math.R`
+  * `Summary.tf_mv`, `mean.tf_mv`, `median.tf_mv`, `sd.tf_mv`,
+    `var.tf_mv` → `R/summarize.R`
+  * `format.tf_mv`, `print.tf_mv`, `format_glimpse.tf_mv` →
+    `R/print-format.R`
+  * `plot.tf_mv`, `lines.tf_mv` → `R/graphics.R`
+  * `as.matrix.tf_mv`, `as.data.frame.tf_mv` → `R/convert.R`
+  * accessors (`tf_ncomp`, `tf_components`, `tf_component(<-)`,
+    `$.tf_mv`, `tf_arg.tf_mv`, `tf_evaluations.tf_mv`, `tf_count.tf_mv`,
+    `is.na.tf_mv`) → `R/methods.R`
+
+  What can reasonably stay together: the core constructors and shared mv
+  helpers (`new_tf_mv`, `check_compatible_mv`, `assemble_mv_evals`,
+  `mv_registration_signal`) in `R/tfd-mv.R` / `R/tfb-mv.R`, and the
+  custom `vec_proxy`/`vec_restore`/`vec_ptype2`/`vec_cast`/`vec_ptype_*`
+  methods in `R/mv-vctrs.R` (or folded into `R/vctrs-cast.R` /
+  `R/vctrs-ptype2.R`).
 * **A proper vignette with real-data case studies.** This design doc is
   not a substitute for narrative documentation. A `vignettes/multivariate.Rmd`
   walking through (1) construction from the shipped `gait` data (a real
