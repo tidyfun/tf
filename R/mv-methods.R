@@ -415,6 +415,8 @@ plot.tf_mv <- function(x, y, ..., type = c("facet", "trajectory")) {
 }
 
 #' @rdname plot.tf_mv
+#' @importFrom graphics par lines
+#' @importFrom grDevices n2mfrow
 #' @export
 lines.tf_mv <- function(x, ..., type = c("facet", "trajectory")) {
   type <- match.arg(type)
