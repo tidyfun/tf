@@ -60,6 +60,7 @@ f$y
 \seealso{
 Other tf_mv-class: 
 \code{\link{plot.tf_mv}()},
+\code{\link{tf_arclength}()},
 \code{\link{tfb_mv}},
 \code{\link{tfd_mv}}
 }

@@ -41,6 +41,17 @@ single vctrs vector of vector-valued functions \eqn{f: \mathbb{R} \to
 univariate \code{\link[=tfb]{tfb()}} machinery (spline or FPC basis), so all of its arguments
 (\code{k}, \code{bs}, \code{penalized}, \code{basis}, ...) apply per component.
 }
+\details{
+By default a single \code{...} is shared across all components (every component
+gets the same \code{k}, \code{bs}, \code{sp}, etc.). To pass \emph{different} basis arguments
+to different components, give the argument as a list named by component
+names -- e.g. \code{tfb_mv(f, k = list(x = 5, y = 12))} fits component \code{x} with
+\code{k = 5} and component \code{y} with \code{k = 12}. Any list-valued \code{...} whose names
+do \strong{not} match the component names is treated as a shared argument value.
+(Already-\code{tfb} components passed via \code{tfb_mv.list()} are kept as-is, which
+is the most permissive way to mix entirely different basis kinds across
+components.)
+}
 \examples{
 traj <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
 tb <- tfb_mv(traj, k = 7, verbose = FALSE)
@@ -50,6 +61,7 @@ tf_ncomp(tb)
 \seealso{
 Other tf_mv-class: 
 \code{\link{plot.tf_mv}()},
+\code{\link{tf_arclength}()},
 \code{\link{tf_ncomp}()},
 \code{\link{tfd_mv}}
 }

@@ -29,6 +29,7 @@ output dimension (delegating to the univariate \link[=plot.tf]{plot.tfd});
 }
 \seealso{
 Other tf_mv-class: 
+\code{\link{tf_arclength}()},
 \code{\link{tf_ncomp}()},
 \code{\link{tfb_mv}},
 \code{\link{tfd_mv}}
