@@ -27,10 +27,37 @@ NULL
 tfb_mv <- function(data, ...) UseMethod("tfb_mv")
 
 #' @rdname tfb_mv
+#' @details
+#' By default a single `...` is shared across all components (every component
+#' gets the same `k`, `bs`, `sp`, etc.). To pass *different* basis arguments
+#' to different components, give the argument as a list named by component
+#' names -- e.g. `tfb_mv(f, k = list(x = 5, y = 12))` fits component `x` with
+#' `k = 5` and component `y` with `k = 12`. Any list-valued `...` whose names
+#' do **not** match the component names is treated as a shared argument value.
+#' (Already-`tfb` components passed via `tfb_mv.list()` are kept as-is, which
+#' is the most permissive way to mix entirely different basis kinds across
+#' components.)
 #' @export
 tfb_mv.tf_mv <- function(data, basis = c("spline", "fpc"), ...) {
   basis <- match.arg(basis)
-  components <- map(tf_components(data), \(comp) tfb(comp, basis = basis, ...))
+  dots <- list(...)
+  comp_names <- attr(data, "comp_names")
+  components <- map2(tf_components(data), comp_names, function(comp, nm) {
+    # distribute any ... arg that is a list named by component names
+    per_comp_dots <- map(dots, function(arg) {
+      if (
+        is.list(arg) &&
+          !is.null(names(arg)) &&
+          length(arg) == length(comp_names) &&
+          all(names(arg) %in% comp_names)
+      ) {
+        arg[[nm]]
+      } else {
+        arg
+      }
+    })
+    do.call(tfb, c(list(comp), list(basis = basis), per_comp_dots))
+  })
   new_tf_mv(components, domain = tf_domain(data))
 }
 

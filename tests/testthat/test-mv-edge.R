@@ -219,6 +219,41 @@ test_that("ref_component = 'norm' runs the norm-based registration path", {
 
 # ---- tf_component<- adds new components, length mismatch errors --------------
 
+test_that("tfb_mv distributes a component-named list ... per component", {
+  set.seed(202)
+  f <- tfd_mv(list(x = tf_rgp(3, arg = 101L),
+                   y = tf_rgp(3, arg = 101L)))
+  # per-component k via a list keyed by component names
+  tb <- tfb_mv(f, k = list(x = 5, y = 15), verbose = FALSE)
+  expect_s3_class(tb, "tfb_mv")
+  lab_x <- attr(tf_components(tb)$x, "basis_label")
+  lab_y <- attr(tf_components(tb)$y, "basis_label")
+  expect_match(lab_x, "k = 5")
+  expect_match(lab_y, "k = 15")
+  # mixing shared (bs) and per-component (k)
+  tb2 <- tfb_mv(f, k = list(x = 5, y = 15), bs = "tp", verbose = FALSE)
+  expect_match(attr(tf_components(tb2)$x, "basis_label"), 'bs = "tp"')
+  expect_match(attr(tf_components(tb2)$y, "basis_label"), 'k = 15')
+  # back-compat: scalar k is shared across components
+  tb3 <- tfb_mv(f, k = 8, verbose = FALSE)
+  expect_match(attr(tf_components(tb3)$x, "basis_label"), "k = 8")
+  expect_match(attr(tf_components(tb3)$y, "basis_label"), "k = 8")
+})
+
+test_that("tfb_mv: a non-component-named list is treated as a shared arg, not distributed", {
+  f <- tfd_mv(list(x = tf_rgp(2, arg = 51L),
+                   y = tf_rgp(2, arg = 51L)))
+  # list whose names don't match component names is NOT distributed (treated as
+  # a single arg-value; even though mgcv rejects this particular shape, my
+  # dispatcher must still treat both components identically -- both end up with
+  # the same shared k.)
+  tb <- suppressWarnings(suppressMessages(
+    tfb_mv(f, k = 6, sp = list(foo = 0, bar = 0), verbose = FALSE)
+  ))
+  expect_match(attr(tf_components(tb)$x, "basis_label"), "k = 6")
+  expect_match(attr(tf_components(tb)$y, "basis_label"), "k = 6")
+})
+
 test_that("mixed regular/irregular components work across the API", {
   set.seed(101)
   reg <- tf_rgp(3)
