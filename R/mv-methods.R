@@ -73,9 +73,16 @@ tf_component <- function(f, which) {
 
 #' @export
 tf_arg.tf_mv <- function(f) {
-  args <- map(tf_components(f), tf_arg)
+  comps <- tf_components(f)
+  args <- map(comps, tf_arg)
+  if (!length(comps)) return(numeric(0))
+  # irregular components carry per-curve args by construction -- no shared
+  # grid is possible, so just return the per-component args.
+  if (any(map_lgl(comps, is_irreg))) return(args)
+  # otherwise all components have a single shared numeric grid each; collapse
+  # to one grid if they all agree, otherwise return per-component.
   if (
-    length(args) > 1 &&
+    length(args) == 1 ||
       all(map_lgl(args[-1], \(a) isTRUE(all.equal(a, args[[1]]))))
   ) {
     return(args[[1]])
