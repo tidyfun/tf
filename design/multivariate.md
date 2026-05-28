@@ -107,10 +107,17 @@ Built with `vctrs::new_vctr()`:
 * `.data = seq_len(n)` — an integer placeholder of length `n` (number of curves).
 * attribute `components` — a named list of the `d` univariate `tf` vectors.
 * attribute `comp_names` — the component names (`c("x","y",...)`).
-* attribute `domain` — the shared domain (validated equal across components).
+* attribute `domain` — the shared `tf_mv` domain.
 
 All per-curve metadata (`arg`, `evaluator`, `basis`, `basis_matrix`, ...) lives
-*inside* the component objects, so none of it is duplicated.
+*inside* the component objects, so none of it is duplicated. **Domain
+handling**: a `tf_mv` lives on a single time axis. If components arrive with
+differing domain attributes (typical when each was built from independent
+irregular sampling and the auto-derived range differs in the last digit),
+`new_tf_mv()` takes the union as the mv domain and widens each component to
+match. Users can supply an explicit `domain` to `tfd_mv()` as long as it
+contains every component's observed range; a `domain` that does not is an
+error.
 
 ### vctrs integration (`R/mv-vctrs.R`)
 
@@ -142,9 +149,10 @@ ptype methods are registered on the *leaf* classes `tfd_mv`/`tfb_mv`, not on the
   matrices (one per component), a 3-d array `[curve, arg, component]`, or a long
   data frame with several `value` columns.
 * Accessors: `tf_ncomp()`, `tf_components()`, `tf_component()` / `<-`, and `$`
-  sugar (`f$x`). `tf_arg()` returns the shared grid when components agree, else a
-  per-component list; `tf_evaluations()` returns a list of `n` `(n_arg × d)`
-  matrices; `tf_count()` an `n × d` matrix.
+  sugar (`f$x`). `tf_arg()` adapts to the irregularity structure (see
+  "Irregularity cases" below); `tf_evaluations()` returns a list of `n`
+  `(n_arg × d)` matrices when components share the per-curve grid, otherwise a
+  per-curve named list; `tf_count()` an `n × d` matrix.
 * `[`: `f[i]` subsets curves; `f[i, j]` evaluates, returning a 3-d array
   `[curve, arg, component]` (this is issue #18's "array-valued `j`"), or a list
   of per-curve data frames when `matrix = FALSE`; `component=` drops to the
@@ -158,6 +166,31 @@ ptype methods are registered on the *leaf* classes `tfd_mv`/`tfb_mv`, not on the
   `y(t)` vs `x(t)` — the movement view).
 * Interop: `as.matrix()` → `[curve, arg, component]` array; `as.data.frame(.,
   unnest = TRUE)` → long format with one column per component.
+
+### Irregularity cases
+
+Because each output dimension is an independent univariate `tf` vector, the
+composition design naturally accommodates four qualitatively different
+"shapes" of irregularity. `tf_arg()` and `tf_evaluations()` adapt their return
+type so callers can tell which shape they have:
+
+| Case | Components | `tf_arg(f)` | `tf_evaluations(f)[[i]]` |
+|------|------------|-------------|--------------------------|
+| 0. fully regular (shared grid across components *and* curves) | all `tfd_reg` / `tfb`, identical `arg` | numeric vector | `(n_arg × d)` matrix |
+| 1. **per-curve grid shared across components**, varies across curves (e.g. movement data sampled at irregular but synchronized timestamps) | all `tfd_irreg`, identical per-curve arg lists | **list of `n` numeric vectors** (collapsed — not nested) | `(n_arg_i × d)` matrix |
+| 2. per-component regular grid, same for all curves (e.g. position on a finer grid than velocity) | all `tfd_reg`, different `arg` vectors | list of `d` numeric vectors | per-curve named list (lengths differ across components) |
+| 3. per-(curve, component) grids | all `tfd_irreg`, independent per-curve arg lists | list of `d` lists (one per component) | per-curve named list |
+
+The independence-of-components design comes with one cost: in case 1 the
+shared per-curve arg vector is stored once *per component*, so `d`-fold
+redundant. That is the price of the composition principle — components must
+be self-contained univariate `tf` vectors so the existing numeric machinery
+reuses verbatim. The redundancy is purely in storage; the public accessors
+(`tf_arg`, `tf_evaluations`) collapse to the non-redundant shape.
+
+Mixed cases (some components regular, some irregular; some on shared grids,
+some not) also work — they fall through to the "list of `d` per-component"
+shape.
 
 ## Worked example
 
@@ -229,4 +262,4 @@ alongside `tf_mv`. No surface code is shipped yet, to avoid dead scaffolding.
 * `R/mv-methods.R` — accessors, `$`, `[`, evaluate, ops/math/summary,
   print/format, plot, converters.
 * Tests: `tests/testthat/test-tfd-mv.R`, `test-tfb-mv.R`, `test-mv-vctrs.R`,
-  `test-mv-methods.R`.
+  `test-mv-methods.R`, `test-mv-verbs.R`.
