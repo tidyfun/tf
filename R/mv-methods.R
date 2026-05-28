@@ -549,6 +549,51 @@ tf_zoom.tf_mv <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...
   new_tf_mv(comps)
 }
 
+#' Arc length of vector-valued functional data
+#'
+#' For a vector-valued curve `f: [a, b] -> R^d`, the arc length is
+#' \eqn{\int_a^b \lVert f'(t) \rVert\, dt}, i.e. the length traced out by
+#' `f` in `R^d`. This implementation simply composes the existing univariate
+#' verbs: per-component differentiation ([tf_derive()]), pointwise Euclidean
+#' norm of the derivative (`sqrt(sum_k f'_k^2)`), then numerical integration
+#' ([tf_integrate()]).
+#'
+#' @param f a `tf_mv` object.
+#' @param arg,lower,upper see [tf_integrate()].
+#' @param definite `TRUE` (default) returns one total arc length per curve (a
+#'   numeric vector); `FALSE` returns the cumulative arc length \eqn{s(t) =
+#'   \int_a^t \lVert f'(u) \rVert\, du} as a univariate `tfd`.
+#' @param ... forwarded to [tf_integrate()].
+#' @returns a numeric vector (definite) or a univariate `tfd` (indefinite).
+#' @family tf_mv-class
+#' @examples
+#' # unit circle parameterised on [0, 1] -- arc length should be ~ 2*pi
+#' t <- seq(0, 1, length.out = 201)
+#' x <- tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t)
+#' y <- tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+#' tf_arclength(tfd_mv(list(x = x, y = y)))
+#' @export
+tf_arclength <- function(f, ...) UseMethod("tf_arclength")
+
+#' @rdname tf_arclength
+#' @export
+tf_arclength.default <- function(f, ...) .NotYetImplemented()
+
+#' @rdname tf_arclength
+#' @export
+tf_arclength.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
+  has_arg <- !missing(arg)
+  has_lower <- !missing(lower)
+  has_upper <- !missing(upper)
+  # pointwise speed: sqrt(sum_k (f'_k(t))^2)
+  speed <- sqrt(Reduce(`+`, map(tf_components(tf_derive(f)), \(c) c^2)))
+  call_args <- list(speed, definite = definite, ...)
+  if (has_arg) call_args$arg <- arg
+  if (has_lower) call_args$lower <- lower
+  if (has_upper) call_args$upper <- upper
+  do.call(tf_integrate, call_args)
+}
+
 # Registration: one shared time-warp per curve, applied to all components ------
 
 # univariate signal used to estimate the (joint) warp for a multivariate curve

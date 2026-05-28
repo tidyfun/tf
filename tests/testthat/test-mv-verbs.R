@@ -103,3 +103,64 @@ test_that("tf_estimate_warps respects ref_component", {
   # both registration signals recover the shared shift here
   expect_length(w_y, 3)
 })
+
+# ---- tf_arclength ------------------------------------------------------------
+
+test_that("tf_arclength on the unit circle returns ~ 2*pi", {
+  t <- seq(0, 1, length.out = 401)
+  circ <- tfd_mv(list(
+    x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+    y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+  ))
+  expect_equal(tf_arclength(circ), 2 * pi, tolerance = 1e-2)
+})
+
+test_that("tf_arclength is vectorised over curves (k-loop has length 2*pi*k)", {
+  t <- seq(0, 1, length.out = 401)
+  ks <- 1:3
+  xs <- tfd(do.call(rbind, lapply(ks, \(k) cos(2 * pi * k * t))), arg = t)
+  ys <- tfd(do.call(rbind, lapply(ks, \(k) sin(2 * pi * k * t))), arg = t)
+  mv <- tfd_mv(list(x = xs, y = ys))
+  ls <- tf_arclength(mv)
+  expect_length(ls, 3L)
+  expect_equal(ls, 2 * pi * ks, tolerance = 5e-2)
+})
+
+test_that("tf_arclength definite = FALSE returns cumulative s(t) as a tfd", {
+  t <- seq(0, 1, length.out = 401)
+  circ <- tfd_mv(list(
+    x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+    y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+  ))
+  s <- tf_arclength(circ, definite = FALSE)
+  expect_s3_class(s, "tfd")
+  expect_length(s, 1L)
+  # s(0) = 0, s(0.5) = pi, s(1) = 2*pi (uniform-speed parameterisation)
+  vals <- unlist(tf_evaluate(s, arg = c(0, 0.5, 1)))
+  expect_equal(vals, c(0, pi, 2 * pi), tolerance = 1e-2)
+})
+
+test_that("tf_arclength respects lower / upper limits", {
+  t <- seq(0, 1, length.out = 401)
+  circ <- tfd_mv(list(
+    x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+    y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+  ))
+  expect_equal(tf_arclength(circ, lower = 0, upper = 0.25),
+               pi / 2, tolerance = 1e-2)
+  expect_equal(tf_arclength(circ, lower = 0.25, upper = 0.75),
+               pi, tolerance = 1e-2)
+})
+
+test_that("tf_arclength works for a 3-d helix", {
+  # one full turn of a unit-radius helix climbing 2pi*c in z over t in [0, 1]:
+  # f(t) = (cos(2*pi*t), sin(2*pi*t), 2*pi*c*t)
+  # arc length = sqrt((2*pi)^2 + (2*pi*c)^2) = 2*pi*sqrt(1 + c^2)
+  t <- seq(0, 1, length.out = 401)
+  c0 <- 0.5
+  hx <- tfd(matrix(cos(2 * pi * t),    nrow = 1), arg = t)
+  hy <- tfd(matrix(sin(2 * pi * t),    nrow = 1), arg = t)
+  hz <- tfd(matrix(2 * pi * c0 * t,    nrow = 1), arg = t)
+  helix <- tfd_mv(list(x = hx, y = hy, z = hz))
+  expect_equal(tf_arclength(helix), 2 * pi * sqrt(1 + c0^2), tolerance = 1e-2)
+})
