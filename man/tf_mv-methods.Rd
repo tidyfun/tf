@@ -5,7 +5,6 @@
 \alias{tf_components}
 \alias{tf_component}
 \alias{tf_component<-}
-\alias{tf_rebase.tf_mv}
 \title{Accessors and methods for vector-valued functional data}
 \usage{
 tf_ncomp(f)
@@ -15,11 +14,9 @@ tf_components(f)
 tf_component(f, which)
 
 tf_component(f, which) <- value
-
-\method{tf_rebase}{tf_mv}(object, basis_from, arg = NULL, ...)
 }
 \arguments{
-\item{f, x}{a \code{tf_mv} object.}
+\item{f}{a \code{tf_mv} object.}
 
 \item{which}{a component name or index.}
 
@@ -38,16 +35,14 @@ or replaces a single one (also available via the \code{$} operator, e.g. \code{f
 }
 \details{
 Most univariate \code{tf} verbs also work on \code{tf_mv} objects by acting on each
-component: \code{tf_rebase()} (and hence \code{tfd_mv}/\code{tfb_mv} conversion),
-\code{tf_derive()}, \code{tf_integrate()} (definite integrals return an \verb{n x d}
-matrix), \code{tf_smooth()} and \code{tf_zoom()}. Registration
-(\code{\link[=tf_register]{tf_register()}}/\code{\link[=tf_estimate_warps]{tf_estimate_warps()}}/\code{\link[=tf_warp]{tf_warp()}}/\code{\link[=tf_align]{tf_align()}}) estimates a
-\emph{single, shared} time-warp per curve (by default from the pointwise
-Euclidean norm across components, or from a chosen \code{ref_component}) and
-applies it jointly to all components, so the dimensions stay synchronized.
-The registration signal is, by default, the first component; use
-\code{ref_component} to pick another component (by name/index), \code{"norm"} for the
-pointwise Euclidean norm across components, or a function mapping the
+component: \code{\link[=tf_rebase]{tf_rebase()}} (and hence \code{tfd_mv}/\code{tfb_mv} conversion),
+\code{\link[=tf_derive]{tf_derive()}}, \code{\link[=tf_integrate]{tf_integrate()}} (definite integrals return an \verb{n x d}
+matrix), \code{\link[=tf_smooth]{tf_smooth()}} and \code{\link[=tf_zoom]{tf_zoom()}}. Registration
+(\code{\link[=tf_register]{tf_register()}} / \code{\link[=tf_estimate_warps]{tf_estimate_warps()}} / \code{\link[=tf_warp]{tf_warp()}} / \code{\link[=tf_align]{tf_align()}})
+estimates a \emph{single, shared} time-warp per curve and applies it jointly to
+every component. The registration signal is, by default, the first
+component; use \code{ref_component} to pick another component (by name/index),
+\code{"norm"} for the pointwise Euclidean norm, or a function mapping the
 \code{tf_mv} to a univariate \code{tf} vector.
 }
 \examples{

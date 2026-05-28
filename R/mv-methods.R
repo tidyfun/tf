@@ -10,7 +10,19 @@ NULL
 #' of the `d` underlying univariate `tf` vectors, and `tf_component()` extracts
 #' or replaces a single one (also available via the `$` operator, e.g. `f$x`).
 #'
-#' @param f,x a `tf_mv` object.
+#' @details
+#' Most univariate `tf` verbs also work on `tf_mv` objects by acting on each
+#' component: [tf_rebase()] (and hence `tfd_mv`/`tfb_mv` conversion),
+#' [tf_derive()], [tf_integrate()] (definite integrals return an `n x d`
+#' matrix), [tf_smooth()] and [tf_zoom()]. Registration
+#' ([tf_register()] / [tf_estimate_warps()] / [tf_warp()] / [tf_align()])
+#' estimates a *single, shared* time-warp per curve and applies it jointly to
+#' every component. The registration signal is, by default, the first
+#' component; use `ref_component` to pick another component (by name/index),
+#' `"norm"` for the pointwise Euclidean norm, or a function mapping the
+#' `tf_mv` to a univariate `tf` vector.
+#'
+#' @param f a `tf_mv` object.
 #' @param which a component name or index.
 #' @param value a univariate `tf` vector (replacement) of matching length and
 #'   domain.
@@ -462,20 +474,6 @@ as.data.frame.tf_mv <- function(x, row.names = NULL, optional = FALSE, unnest = 
 
 # Re-representation, calculus, smoothing (component-wise) ----------------------
 
-#' @rdname tf_mv-methods
-#' @details
-#' Most univariate `tf` verbs also work on `tf_mv` objects by acting on each
-#' component: `tf_rebase()` (and hence `tfd_mv`/`tfb_mv` conversion),
-#' `tf_derive()`, `tf_integrate()` (definite integrals return an `n x d`
-#' matrix), `tf_smooth()` and `tf_zoom()`. Registration
-#' ([tf_register()]/[tf_estimate_warps()]/[tf_warp()]/[tf_align()]) estimates a
-#' *single, shared* time-warp per curve (by default from the pointwise
-#' Euclidean norm across components, or from a chosen `ref_component`) and
-#' applies it jointly to all components, so the dimensions stay synchronized.
-#' The registration signal is, by default, the first component; use
-#' `ref_component` to pick another component (by name/index), `"norm"` for the
-#' pointwise Euclidean norm across components, or a function mapping the
-#' `tf_mv` to a univariate `tf` vector.
 #' @export
 tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
   cn <- attr(object, "comp_names")
