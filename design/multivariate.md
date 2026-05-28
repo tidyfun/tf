@@ -246,6 +246,46 @@ never degenerate. `ref_component` can select another component (by name/index),
 elastic registration (e.g. a multivariate SRVF criterion summed across
 components inside the optimizer) is left as future work.
 
+## TODO / future work
+
+* **Convenience functions to regularize irregular `tf_mv` args.** Two
+  orthogonal "regularization" axes are useful and currently leave the user
+  threading raw `tfd()` / `tf_interpolate()` calls per component:
+  * *across components within each entry* — when components arrive on
+    independent per-curve grids (case 3 above), force every component of
+    curve `i` onto a single shared per-curve grid (collapsing case 3 →
+    case 1). Natural default: the union, intersection, or a user-supplied
+    grid per curve.
+  * *across entries within each component* — collapse irregular components
+    to a regular shared grid (case 1 → case 0 for that component). Standard
+    `tf_interpolate()`-style operation, but a single `tf_mv`-aware verb
+    avoids per-component bookkeeping.
+* **`tfb_mv` with a *shared* basis across components.** The current
+  `tfb_mv()` fits each component independently, so the `d` basis function
+  systems can differ (and the per-component `basis_matrix` attributes are
+  stored separately). A shared-basis variant would fit one basis on the
+  stacked components and store a single `basis_matrix` + `d` coefficient
+  vectors per curve — smaller storage, stronger statistical coupling, and
+  cleaner mathematics (e.g. derivatives, integrals, inner products done
+  uniformly).
+* **`tfb_mv` from MFPCA (multivariate functional principal components).**
+  Multivariate FPCA produces vector-valued eigenfunctions
+  \(\Psi_k: \mathcal{T} \to \mathbb{R}^d\) with shared *scalar* loadings
+  per curve: \(f_i(t) \approx \mu(t) + \sum_k s_{ik}\,\Psi_k(t)\). This is
+  qualitatively different from "FPC per component": it captures joint
+  variation across dimensions in a single coordinate system. Would require
+  a new `tfb_mv` subclass storing the multivariate eigenfunctions plus an
+  `n × K` score matrix, an MFPCA fitter (or a wrapper around
+  `MFPCA::MFPCA()`), and a `vec_cast` path back to `tfd_mv`.
+* **A proper vignette with real-data case studies.** This design doc is
+  not a substitute for narrative documentation. A `vignettes/multivariate.Rmd`
+  walking through (1) construction from the shipped `gait` data (a real
+  2-d example: knee + hip angle), (2) bracket/`$`/array semantics, (3)
+  `tfb_mv` round-trip, (4) registration on synchronized vs desynchronized
+  components, and (5) a movement-data case study would exercise the
+  feature end-to-end and surface remaining rough edges. Adds `knitr` /
+  `rmarkdown` to `Suggests`.
+
 ## Surfaces (future work)
 
 Multivariate *input* (`f: R^p -> R`, e.g. images/surfaces) is a different axis:
