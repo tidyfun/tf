@@ -23,7 +23,7 @@
 }
 \description{
 Two simple display modes for \code{tf_mv} objects: \code{"facet"} draws one panel per
-output dimension (delegating to the univariate \link[=plot.tf]{plot.tfd});
+output dimension (delegating to the univariate \code{\link[=plot.tf]{plot.tf()}});
 \code{"trajectory"} (only for \code{d == 2}) draws the curves in the plane, i.e.
 \eqn{y(t)} against \eqn{x(t)} -- the natural view for movement data.
 }

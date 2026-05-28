@@ -378,7 +378,7 @@ format_glimpse.tf_mv <- function(x, ...) {
 #' Plot vector-valued functional data
 #'
 #' Two simple display modes for `tf_mv` objects: `"facet"` draws one panel per
-#' output dimension (delegating to the univariate [plot.tfd][tf::plot.tf]);
+#' output dimension (delegating to the univariate [plot.tf()]);
 #' `"trajectory"` (only for `d == 2`) draws the curves in the plane, i.e.
 #' \eqn{y(t)} against \eqn{x(t)} -- the natural view for movement data.
 #'
