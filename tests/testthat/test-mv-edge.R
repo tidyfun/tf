@@ -219,6 +219,44 @@ test_that("ref_component = 'norm' runs the norm-based registration path", {
 
 # ---- tf_component<- adds new components, length mismatch errors --------------
 
+test_that("mixed regular/irregular components work across the API", {
+  set.seed(101)
+  reg <- tf_rgp(3)
+  irr <- tf_sparsify(tf_rgp(3))
+  f <- tfd_mv(list(x = reg, y = irr))
+  expect_s3_class(f, "tfd_mv")
+  expect_true(is_reg(tf_components(f)$x))
+  expect_true(is_irreg(tf_components(f)$y))
+  # tf_arg returns a per-component list (vec for reg, list-of-vecs for irreg)
+  a <- tf_arg(f)
+  expect_named(a, c("x", "y"))
+  expect_true(is.numeric(a$x))
+  expect_true(is.list(a$y))
+  # tf_evaluations[[i]] is a named per-curve list (lengths differ across comps)
+  ev <- tf_evaluations(f)[[1]]
+  expect_named(ev, c("x", "y"))
+  expect_false(length(ev$x) == length(ev$y))
+  # tf_count is n x d
+  expect_identical(dim(tf_count(f)), c(3L, 2L))
+  # subset preserves component classes
+  g <- f[2:3]
+  expect_true(is_reg(g$x) && is_irreg(g$y))
+  # arithmetic preserves component classes
+  s <- f + f
+  expect_true(is_reg(s$x) && is_irreg(s$y))
+  # c() preserves component classes
+  cc <- c(f, f)
+  expect_length(cc, 6L)
+  expect_true(is_reg(cc$x) && is_irreg(cc$y))
+  # as.data.frame(unnest = TRUE) full-outer-joins on (id, arg) so that
+  # rows where only the regular component has a value get NAs in the
+  # irregular column (this used to error with a row-count mismatch).
+  df <- as.data.frame(f, unnest = TRUE)
+  expect_named(df, c("id", "arg", "x", "y"))
+  expect_true(anyNA(df$y))            # irregular y is NA at most reg-grid points
+  expect_false(anyNA(df$x))           # regular x is observed everywhere
+})
+
 test_that("tf_component<- can add a new component and rejects mismatched length", {
   set.seed(25)
   f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
