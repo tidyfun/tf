@@ -328,10 +328,19 @@ print.tf_mv <- function(x, n = 6, ...) {
   comp_names <- attr(x, "comp_names")
   d <- tf_ncomp(x)
   domain <- tf_domain(x) |> map_chr(format)
+  if (d == 0L) {
+    range_str <- "R^0"
+  } else {
+    range_str <- map_chr(tf_components(x), function(comp) {
+      r <- suppressWarnings(safe_range_evals(comp)) |> map_chr(format)
+      paste0("[", r[1], ", ", r[2], "]")
+    }) |>
+      paste(collapse = " x ")
+  }
   cat(paste0(
     class(x)[1], "<d=", d, ">[", length(x), "] (",
     paste(comp_names, collapse = ", "), "): [",
-    domain[1], ", ", domain[2], "] -> R^", d, "\n"
+    domain[1], ", ", domain[2], "] -> ", range_str, "\n"
   ))
   len <- length(x)
   if (len > 0) {
