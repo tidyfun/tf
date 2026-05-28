@@ -29,14 +29,32 @@ new_tf_mv <- function(components = list(), domain = NULL, class = NULL) {
       )
     }
     domains <- map(components, tf_domain)
-    same_domain <- all(map_lgl(
-      domains[-1],
-      \(d) isTRUE(all.equal(d, domains[[1]]))
-    ))
-    if (!same_domain) {
-      cli::cli_abort("All components must share the same {.arg domain}.")
+    if (is.null(domain)) {
+      # union of component domains: a tf_mv lives on a single time axis, but
+      # individual components may have been observed only on a subset of it.
+      lows <- map_dbl(domains, 1)
+      highs <- map_dbl(domains, 2)
+      domain <- c(min(lows), max(highs))
+    } else {
+      assert_numeric(domain, len = 2, finite = TRUE, sorted = TRUE)
+      # supplied domain must contain every component's domain
+      for (cd in domains) {
+        if (cd[1] < domain[1] || cd[2] > domain[2]) {
+          cli::cli_abort(
+            "Component domain {.val {cd}} not contained in supplied {.arg domain} {.val {domain}}."
+          )
+        }
+      }
     }
-    domain <- domain %||% domains[[1]]
+    # widen each component's domain to the shared mv domain so all components
+    # agree on the time axis. (`tf_domain<-` warns about changing the domain;
+    # in this context the widening is intended, so we silence it.)
+    components <- map(components, function(comp) {
+      if (!isTRUE(all.equal(tf_domain(comp), domain))) {
+        suppressWarnings(tf_domain(comp) <- domain)
+      }
+      comp
+    })
     subclass <- if (all_tfb) "tfb_mv" else "tfd_mv"
     if (!is.null(class) && !identical(class, subclass)) {
       cli::cli_abort(

@@ -98,10 +98,47 @@ test_that("tfd_mv length-0 prototype works", {
   expect_identical(tf_ncomp(f0), 0L)
 })
 
-test_that("tfd_mv errors on incompatible components", {
+test_that("tfd_mv errors on incompatible component lengths", {
   expect_error(tfd_mv(list(x = tf_rgp(3), y = tf_rgp(4))), "same length")
+})
+
+test_that("tfd_mv unions differing component domains by default", {
+  f <- tfd_mv(list(
+    x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+    y = tf_rgp(2, arg = seq(0, 2, length.out = 5))
+  ))
+  expect_equal(tf_domain(f), c(0, 2))
+  # both components got widened to the union
+  expect_true(all(sapply(tf_components(f), \(c) all(tf_domain(c) == c(0, 2)))))
+})
+
+test_that("tfd_mv accepts a user-supplied common domain", {
+  f <- tfd_mv(list(
+    x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+    y = tf_rgp(2, arg = seq(0, 1, length.out = 5))
+  ), domain = c(-1, 2))
+  expect_equal(tf_domain(f), c(-1, 2))
+})
+
+test_that("tfd_mv rejects a domain that doesn't contain the components", {
   expect_error(
-    tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2, arg = seq(0, 2, length.out = 5)))),
-    "domain"
+    tfd_mv(list(
+      x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+      y = tf_rgp(2, arg = seq(0, 2, length.out = 5))
+    ), domain = c(0, 1)),
+    "not contained"
   )
+})
+
+test_that("tf_arg collapses when all-irregular components share per-curve args", {
+  set.seed(99)
+  args <- lapply(1:3, \(i) sort(runif(sample(5:8, 1))))
+  f <- tfd_mv(list(
+    x = tfd(lapply(args, \(a) rnorm(length(a))), arg = args),
+    y = tfd(lapply(args, \(a) rnorm(length(a))), arg = args)
+  ))
+  a <- tf_arg(f)
+  # collapsed to one per-curve list (not list-of-list)
+  expect_true(is.list(a) && length(a) == 3L && all(map_lgl(a, is.numeric)))
+  expect_equal(a, args, ignore_attr = TRUE)
 })
