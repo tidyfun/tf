@@ -549,29 +549,114 @@ tf_zoom.tf_mv <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...
   new_tf_mv(comps)
 }
 
+# Geometric primitives for vector-valued curves --------------------------------
+
+#' Pointwise norm and inner product for vector-valued functional data
+#'
+#' Small geometric helpers for `tf_mv` objects, defined by component-wise
+#' composition of the existing univariate `Ops` / `Math` machinery:
+#' - `tf_norm(f)`     -- pointwise Euclidean norm \eqn{\lVert f(t) \rVert};
+#' - `tf_speed(f)`    -- pointwise speed \eqn{\lVert f'(t) \rVert};
+#' - `tf_inner(f, g)` -- pointwise inner product \eqn{\langle f(t), g(t) \rangle};
+#' - `tf_distance(f, g)` -- pointwise Euclidean distance \eqn{\lVert f(t) - g(t) \rVert};
+#' - `tf_tangent(f)`  -- unit tangent \eqn{f'(t) / \lVert f'(t) \rVert}, returned
+#'   as a `tf_mv` (undefined where the speed is zero -- callers get `NaN`s there);
+#' - `tf_reparam_arclength(f)` -- re-parametrize the curve at constant speed
+#'   (i.e. by its normalized cumulative arc length).
+#'
+#' @param f,g `tf_mv` objects (with identical `d` and component names where
+#'   two arguments are required).
+#' @returns a univariate `tfd` for `tf_norm`/`tf_speed`/`tf_inner`/`tf_distance`,
+#'   a `tf_mv` for `tf_tangent`/`tf_reparam_arclength`.
+#' @family tf_mv-class
+#' @examples
+#' set.seed(1)
+#' f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+#' tf_norm(f)
+#' tf_speed(f)
+#' tf_distance(f, tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2))))
+#' @rdname tf_geom
+#' @export
+tf_norm <- function(f) {
+  sqrt(Reduce(`+`, map(tf_components(f), \(c) c^2)))
+}
+
+#' @rdname tf_geom
+#' @export
+tf_speed <- function(f) tf_norm(tf_derive(f))
+
+#' @rdname tf_geom
+#' @export
+tf_inner <- function(f, g) {
+  check_compatible_mv(f, g)
+  Reduce(`+`, map2(tf_components(f), tf_components(g), \(a, b) a * b))
+}
+
+#' @rdname tf_geom
+#' @export
+tf_distance <- function(f, g) tf_norm(f - g)
+
+#' @rdname tf_geom
+#' @export
+tf_tangent <- function(f) {
+  df <- tf_derive(f)
+  inv_speed <- 1 / tf_norm(df)
+  comps <- map(tf_components(df), \(c) c * inv_speed)
+  names(comps) <- attr(f, "comp_names")
+  new_tf_mv(comps)
+}
+
+#' @rdname tf_geom
+#' @export
+tf_reparam_arclength <- function(f) {
+  s <- tf_arclength(f, definite = FALSE) # cumulative s(t), one per curve
+  L <- tf_arclength(f)                   # total length per curve
+  u <- s / L                             # u(t) = s(t)/L : domain -> [0, 1]
+  # `tf_warp(f, w)` computes `f o w^{-1}`, so passing `u` (not its inverse)
+  # gives the desired arc-length-parameterised curve `f o u^{-1}`.
+  tf_warp(f, u)
+}
+
+# Arc length -------------------------------------------------------------------
+
 #' Arc length of vector-valued functional data
 #'
 #' For a vector-valued curve `f: [a, b] -> R^d`, the arc length is
-#' \eqn{\int_a^b \lVert f'(t) \rVert\, dt}, i.e. the length traced out by
-#' `f` in `R^d`. This implementation simply composes the existing univariate
-#' verbs: per-component differentiation ([tf_derive()]), pointwise Euclidean
-#' norm of the derivative (`sqrt(sum_k f'_k^2)`), then numerical integration
-#' ([tf_integrate()]).
+#' \eqn{\int_a^b \lVert f'(t) \rVert\, dt} -- the length traced out by `f` in
+#' `R^d`.
+#'
+#' Two methods are supported:
+#'
+#' * **`"polyline"`** (default): sum of the Euclidean lengths of the line
+#'   segments between consecutive sample points (in `R^d`). Each curve is
+#'   evaluated on the union of its components' argument grids (or a supplied
+#'   `arg`) and the segment-sum is computed in closed form. For raw `tfd_mv`
+#'   data this is more accurate than `"derive"` because it avoids the
+#'   compounding error of numerical differentiation followed by quadrature.
+#' * **`"derive"`**: composes the existing verbs -- per-component
+#'   differentiation ([tf_derive()]), pointwise speed [tf_speed()], then
+#'   [tf_integrate()]. Best for `tfb_mv` (analytical derivatives) or when a
+#'   custom `tf_integrate(...)` argument is needed.
 #'
 #' @param f a `tf_mv` object.
-#' @param arg,lower,upper see [tf_integrate()].
-#' @param definite `TRUE` (default) returns one total arc length per curve (a
-#'   numeric vector); `FALSE` returns the cumulative arc length \eqn{s(t) =
-#'   \int_a^t \lVert f'(u) \rVert\, du} as a univariate `tfd`.
-#' @param ... forwarded to [tf_integrate()].
+#' @param arg,lower,upper optional evaluation/integration grid and limits.
+#' @param definite `TRUE` (default) returns a numeric vector of total arc
+#'   lengths per curve; `FALSE` returns the cumulative arc length
+#'   \eqn{s(t) = \int_a^t \lVert f'(u) \rVert\, du} as a univariate `tfd`.
+#' @param method `"polyline"` (default) or `"derive"`.
+#' @param ... forwarded to [tf_integrate()] when `method = "derive"`.
 #' @returns a numeric vector (definite) or a univariate `tfd` (indefinite).
 #' @family tf_mv-class
 #' @examples
-#' # unit circle parameterised on [0, 1] -- arc length should be ~ 2*pi
-#' t <- seq(0, 1, length.out = 201)
-#' x <- tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t)
-#' y <- tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
-#' tf_arclength(tfd_mv(list(x = x, y = y)))
+#' # unit circle parameterised on [0, 1] -- arc length is 2*pi
+#' t <- seq(0, 1, length.out = 401)
+#' circ <- tfd_mv(list(
+#'   x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+#'   y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+#' ))
+#' tf_arclength(circ)
+#' tf_arclength(circ, lower = 0, upper = 0.25) # quarter -> pi/2
+#' tf_arclength(circ, definite = FALSE)        # cumulative s(t)
 #' @export
 tf_arclength <- function(f, ...) UseMethod("tf_arclength")
 
@@ -581,17 +666,77 @@ tf_arclength.default <- function(f, ...) .NotYetImplemented()
 
 #' @rdname tf_arclength
 #' @export
-tf_arclength.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
-  has_arg <- !missing(arg)
-  has_lower <- !missing(lower)
-  has_upper <- !missing(upper)
-  # pointwise speed: sqrt(sum_k (f'_k(t))^2)
-  speed <- sqrt(Reduce(`+`, map(tf_components(tf_derive(f)), \(c) c^2)))
-  call_args <- list(speed, definite = definite, ...)
-  if (has_arg) call_args$arg <- arg
-  if (has_lower) call_args$lower <- lower
-  if (has_upper) call_args$upper <- upper
-  do.call(tf_integrate, call_args)
+tf_arclength.tf_mv <- function(
+  f, arg = NULL,
+  lower = tf_domain(f)[1], upper = tf_domain(f)[2],
+  definite = TRUE,
+  method = c("polyline", "derive"),
+  ...
+) {
+  method <- match.arg(method)
+  if (method == "derive") {
+    speed <- tf_speed(f)
+    call_args <- list(speed, lower = lower, upper = upper,
+                      definite = definite, ...)
+    if (!is.null(arg)) call_args$arg <- arg
+    return(do.call(tf_integrate, call_args))
+  }
+  arclength_polyline(f, arg, lower, upper, definite)
+}
+
+# Polyline arc length: evaluate the multivariate curve on each curve's
+# argument grid (or a supplied common `arg`), then sum Euclidean distances
+# between consecutive d-dimensional sample points.
+arclength_polyline <- function(f, arg, lower, upper, definite) {
+  n <- vec_size(f)
+  comps <- tf_components(f)
+  if (!n) {
+    return(if (definite) numeric(0) else tfd(numeric(0)))
+  }
+  # per-curve evaluation grids
+  grids <- if (!is.null(arg)) {
+    rep(list(sort(unique(arg))), n)
+  } else {
+    a <- tf_arg(f)
+    if (is.numeric(a)) {
+      rep(list(a), n)
+    } else if (all(map_lgl(a, is.numeric))) {
+      a # case 1: per-curve, shared across components
+    } else {
+      # case 2/3: per-component args -> union per curve
+      lapply(seq_len(n), function(i) {
+        sort(unique(unlist(lapply(comps, function(comp) {
+          ai <- tf_arg(comp); if (is.list(ai)) ai[[i]] else ai
+        }))))
+      })
+    }
+  }
+  # clamp to [lower, upper] and guarantee endpoints (for accurate sub-interval
+  # lengths even when the limits don't fall on sample points)
+  grids <- lapply(grids, function(g) {
+    g <- g[g >= lower & g <= upper]
+    sort(unique(c(lower, g, upper)))
+  })
+  # evaluate each component on each curve's grid (tf_evaluate.tfd accepts a
+  # per-curve arg list)
+  comp_evals <- map(comps, function(comp) tf_evaluate(comp, arg = grids))
+  per_curve_segs <- map(seq_len(n), function(i) {
+    mat <- do.call(cbind, lapply(comp_evals, \(ev) ev[[i]]))
+    if (nrow(mat) < 2L) return(numeric(0))
+    sqrt(rowSums(diff(mat)^2))
+  })
+  if (definite) {
+    setNames(map_dbl(per_curve_segs, sum), names(f))
+  } else {
+    cum_evals <- map(per_curve_segs, function(s) c(0, cumsum(s)))
+    same_grid <- length(unique(lengths(grids))) == 1L &&
+      all(map_lgl(grids[-1], \(g) isTRUE(all.equal(g, grids[[1]]))))
+    if (same_grid) {
+      tfd(do.call(rbind, cum_evals), arg = grids[[1]])
+    } else {
+      tfd(cum_evals, arg = grids)
+    }
+  }
 }
 
 # Registration: one shared time-warp per curve, applied to all components ------
@@ -602,7 +747,7 @@ mv_registration_signal <- function(x, ref_component = 1L) {
     return(ref_component(x))
   }
   if (identical(ref_component, "norm")) {
-    return(sqrt(Reduce(`+`, map(tf_components(x), \(comp) comp^2))))
+    return(tf_norm(x))
   }
   tf_component(x, ref_component)
 }

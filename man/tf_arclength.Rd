@@ -10,41 +10,68 @@ tf_arclength(f, ...)
 
 \method{tf_arclength}{default}(f, ...)
 
-\method{tf_arclength}{tf_mv}(f, arg, lower, upper, definite = TRUE, ...)
+\method{tf_arclength}{tf_mv}(
+  f,
+  arg = NULL,
+  lower = tf_domain(f)[1],
+  upper = tf_domain(f)[2],
+  definite = TRUE,
+  method = c("polyline", "derive"),
+  ...
+)
 }
 \arguments{
 \item{f}{a \code{tf_mv} object.}
 
-\item{...}{forwarded to \code{\link[=tf_integrate]{tf_integrate()}}.}
+\item{...}{forwarded to \code{\link[=tf_integrate]{tf_integrate()}} when \code{method = "derive"}.}
 
-\item{arg, lower, upper}{see \code{\link[=tf_integrate]{tf_integrate()}}.}
+\item{arg, lower, upper}{optional evaluation/integration grid and limits.}
 
-\item{definite}{\code{TRUE} (default) returns one total arc length per curve (a
-numeric vector); \code{FALSE} returns the cumulative arc length \eqn{s(t) =
-  \int_a^t \lVert f'(u) \rVert\, du} as a univariate \code{tfd}.}
+\item{definite}{\code{TRUE} (default) returns a numeric vector of total arc
+lengths per curve; \code{FALSE} returns the cumulative arc length
+\eqn{s(t) = \int_a^t \lVert f'(u) \rVert\, du} as a univariate \code{tfd}.}
+
+\item{method}{\code{"polyline"} (default) or \code{"derive"}.}
 }
 \value{
 a numeric vector (definite) or a univariate \code{tfd} (indefinite).
 }
 \description{
 For a vector-valued curve \verb{f: [a, b] -> R^d}, the arc length is
-\eqn{\int_a^b \lVert f'(t) \rVert\, dt}, i.e. the length traced out by
-\code{f} in \code{R^d}. This implementation simply composes the existing univariate
-verbs: per-component differentiation (\code{\link[=tf_derive]{tf_derive()}}), pointwise Euclidean
-norm of the derivative (\verb{sqrt(sum_k f'_k^2)}), then numerical integration
-(\code{\link[=tf_integrate]{tf_integrate()}}).
+\eqn{\int_a^b \lVert f'(t) \rVert\, dt} -- the length traced out by \code{f} in
+\code{R^d}.
+}
+\details{
+Two methods are supported:
+\itemize{
+\item \strong{\code{"polyline"}} (default): sum of the Euclidean lengths of the line
+segments between consecutive sample points (in \code{R^d}). Each curve is
+evaluated on the union of its components' argument grids (or a supplied
+\code{arg}) and the segment-sum is computed in closed form. For raw \code{tfd_mv}
+data this is more accurate than \code{"derive"} because it avoids the
+compounding error of numerical differentiation followed by quadrature.
+\item \strong{\code{"derive"}}: composes the existing verbs -- per-component
+differentiation (\code{\link[=tf_derive]{tf_derive()}}), pointwise speed \code{\link[=tf_speed]{tf_speed()}}, then
+\code{\link[=tf_integrate]{tf_integrate()}}. Best for \code{tfb_mv} (analytical derivatives) or when a
+custom \code{tf_integrate(...)} argument is needed.
+}
 }
 \examples{
-# unit circle parameterised on [0, 1] -- arc length should be ~ 2*pi
-t <- seq(0, 1, length.out = 201)
-x <- tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t)
-y <- tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
-tf_arclength(tfd_mv(list(x = x, y = y)))
+# unit circle parameterised on [0, 1] -- arc length is 2*pi
+t <- seq(0, 1, length.out = 401)
+circ <- tfd_mv(list(
+  x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+  y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+))
+tf_arclength(circ)
+tf_arclength(circ, lower = 0, upper = 0.25) # quarter -> pi/2
+tf_arclength(circ, definite = FALSE)        # cumulative s(t)
 }
 \seealso{
 Other tf_mv-class: 
 \code{\link{plot.tf_mv}()},
 \code{\link{tf_ncomp}()},
+\code{\link{tf_norm}()},
 \code{\link{tfb_mv}},
 \code{\link{tfd_mv}}
 }

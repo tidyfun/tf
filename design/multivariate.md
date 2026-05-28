@@ -308,6 +308,31 @@ components inside the optimizer) is left as future work.
   custom `vec_proxy`/`vec_restore`/`vec_ptype2`/`vec_cast`/`vec_ptype_*`
   methods in `R/mv-vctrs.R` (or folded into `R/vctrs-cast.R` /
   `R/vctrs-ptype2.R`).
+* **More geometric / mv-specific verbs (tier 2 and tier 3).** A
+  rough roadmap of useful additions beyond the tier-1 primitives
+  (`tf_norm` / `tf_speed` / `tf_inner` / `tf_distance` / `tf_tangent` /
+  `tf_reparam_arclength` / `tf_arclength`) already in:
+  * *Tier 2 -- compositional, modest math*: `tf_curvature(f)` (2-d
+    signed \eqn{\kappa = (x'y'' - y'x'')/(x'^2 + y'^2)^{3/2}}; 3-d
+    magnitude \eqn{\lVert f' \times f'' \rVert / \lVert f' \rVert^3}),
+    `tf_frenet(f)` (3-d orthonormal tangent/normal/binormal frame),
+    `tf_rotate(f, R)` / `tf_translate(f, v)` / `tf_affine(f, A, b)`
+    (constant `R^d -> R^d` maps applied to every curve),
+    `tf_project(f, axes)` (drop to a sub-`tf_mv` by selecting
+    components), `tf_is_closed(f, tol)` (does `f(a) ~= f(b)` per
+    curve? -- a simple `tf_distance(f[, a], f[, b]) < tol` check
+    returned as a logical vector).
+  * *Tier 3 -- substantive*: `tf_self_intersection(f)` (for 2-d:
+    where -- and at which parameter pairs `(t_1, t_2)` -- does a
+    trajectory cross itself; standard polyline segment-intersection
+    problem, O(n^2) sweep with a kd-tree refinement later),
+    `tf_align_rigid(f, template)` (Procrustes-style alignment via
+    rotation + translation per curve), `tf_landmarks_extrema.tf_mv`
+    (multivariate extension of the existing univariate landmark
+    detector -- which "extremum" do we want on a vector-valued curve?
+    Component-wise, or geometric speed extrema, or user-supplied
+    objective). Multivariate FPCA and shared-basis `tfb_mv` are
+    already in the TODO list above.
 * **A proper vignette with real-data case studies.** This design doc is
   not a substitute for narrative documentation. A `vignettes/multivariate.Rmd`
   walking through (1) construction from the shipped `gait` data (a real

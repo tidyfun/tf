@@ -152,6 +152,19 @@ test_that("tf_arclength respects lower / upper limits", {
                pi, tolerance = 1e-2)
 })
 
+test_that("tf_arclength polyline is more accurate than derive on raw tfd", {
+  t <- seq(0, 1, length.out = 401)
+  circ <- tfd_mv(list(
+    x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+    y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+  ))
+  err_poly <- abs(tf_arclength(circ, method = "polyline") - 2 * pi)
+  err_der  <- abs(tf_arclength(circ, method = "derive")   - 2 * pi)
+  expect_lt(err_poly, err_der)
+  # both still in the right ballpark
+  expect_equal(tf_arclength(circ, method = "derive"), 2 * pi, tolerance = 1e-2)
+})
+
 test_that("tf_arclength works for a 3-d helix", {
   # one full turn of a unit-radius helix climbing 2pi*c in z over t in [0, 1]:
   # f(t) = (cos(2*pi*t), sin(2*pi*t), 2*pi*c*t)
