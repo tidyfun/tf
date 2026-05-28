@@ -35,15 +35,16 @@ NULL
 #' tf_component(f, "y")
 #' f$y
 #' @family tf_mv-class
-#' @rdname tf_mv-methods
+#' @name tf_mv_methods
+#' @rdname tf_mv_methods
 #' @export
 tf_ncomp <- function(f) length(attr(f, "components"))
 
-#' @rdname tf_mv-methods
+#' @rdname tf_mv_methods
 #' @export
 tf_components <- function(f) attr(f, "components")
 
-#' @rdname tf_mv-methods
+#' @rdname tf_mv_methods
 #' @export
 tf_component <- function(f, which) {
   comps <- tf_components(f)
@@ -53,7 +54,7 @@ tf_component <- function(f, which) {
   comps[[which]]
 }
 
-#' @rdname tf_mv-methods
+#' @rdname tf_mv_methods
 #' @export
 `tf_component<-` <- function(f, which, value) {
   assert_tf(value)
@@ -573,6 +574,7 @@ tf_zoom.tf_mv <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...
 #' tf_norm(f)
 #' tf_speed(f)
 #' tf_distance(f, tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2))))
+#' @name tf_geom
 #' @rdname tf_geom
 #' @export
 tf_norm <- function(f) {

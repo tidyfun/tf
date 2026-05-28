@@ -62,8 +62,8 @@ tf_ncomp(tb)
 Other tf_mv-class: 
 \code{\link{plot.tf_mv}()},
 \code{\link{tf_arclength}()},
-\code{\link{tf_ncomp}()},
-\code{\link{tf_norm}()},
+\code{\link{tf_geom}},
+\code{\link{tf_mv_methods}},
 \code{\link{tfd_mv}}
 }
 \concept{tf_mv-class}

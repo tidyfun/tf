@@ -23,7 +23,9 @@ reference:
   contents:
   - tfd_mv
   - tfb_mv
-  - tf_mv-methods
+  - tf_mv_methods
+  - tf_geom
+  - tf_arclength
   - plot.tf_mv
 - title: Evaluating, indexing & re-arranging
   desc: Accessing, appending, evaluating, splitting & combining functional data objects
