@@ -38,13 +38,16 @@ tfb_mv.tf_mv <- function(data, basis = c("spline", "fpc"), ...) {
 #' @export
 tfb_mv.list <- function(data, basis = c("spline", "fpc"), ...) {
   basis <- match.arg(basis)
+  if (!length(data)) {
+    return(new_tf_mv(list(), class = "tfb_mv"))
+  }
   if (all(map_lgl(data, is_tf))) {
     components <- map(data, \(comp) {
       if (is_tfb(comp)) comp else tfb(comp, basis = basis, ...)
     })
     return(new_tf_mv(components))
   }
-  tfb_mv(tfd_mv(data), basis = basis, ...)
+  tfb_mv(tfd_mv(data, ...), basis = basis)
 }
 
 #' @rdname tfb_mv
