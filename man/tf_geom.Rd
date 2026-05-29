@@ -3,46 +3,81 @@
 \name{tf_geom}
 \alias{tf_geom}
 \alias{tf_norm}
+\alias{tf_norm.default}
+\alias{tf_norm.tf}
+\alias{tf_norm.tf_mv}
 \alias{tf_speed}
 \alias{tf_inner}
+\alias{tf_inner.default}
+\alias{tf_inner.tf}
+\alias{tf_inner.tf_mv}
 \alias{tf_distance}
 \alias{tf_tangent}
+\alias{tf_tangent.default}
+\alias{tf_tangent.tf}
+\alias{tf_tangent.tf_mv}
 \alias{tf_reparam_arclength}
-\title{Pointwise norm and inner product for vector-valued functional data}
+\title{Pointwise norm and inner product for functional data}
 \usage{
 tf_norm(f)
+
+\method{tf_norm}{default}(f)
+
+\method{tf_norm}{tf}(f)
+
+\method{tf_norm}{tf_mv}(f)
 
 tf_speed(f)
 
 tf_inner(f, g)
 
+\method{tf_inner}{default}(f, g)
+
+\method{tf_inner}{tf}(f, g)
+
+\method{tf_inner}{tf_mv}(f, g)
+
 tf_distance(f, g)
 
 tf_tangent(f)
 
+\method{tf_tangent}{default}(f)
+
+\method{tf_tangent}{tf}(f)
+
+\method{tf_tangent}{tf_mv}(f)
+
 tf_reparam_arclength(f)
 }
 \arguments{
-\item{f, g}{\code{tf_mv} objects (with identical \code{d} and component names where
-two arguments are required).}
+\item{f, g}{\code{tf_mv} objects, or univariate \code{tf} (\code{tfd}/\code{tfb}) objects (with
+identical \code{d} and component names where two \code{tf_mv} arguments are required).}
 }
 \value{
-a univariate \code{tfd} for \code{tf_norm}/\code{tf_speed}/\code{tf_inner}/\code{tf_distance},
-a \code{tf_mv} for \code{tf_tangent}/\code{tf_reparam_arclength}.
+a univariate \code{tfd} for \code{tf_norm}/\code{tf_speed}/\code{tf_inner}/\code{tf_distance};
+\code{tf_tangent} returns a \code{tf_mv} (or a univariate \code{tf} for univariate input)
+and \code{tf_reparam_arclength} a \code{tf_mv}.
 }
 \description{
-Small geometric helpers for \code{tf_mv} objects, defined by component-wise
-composition of the existing univariate \code{Ops} / \code{Math} machinery:
+Small geometric helpers defined by component-wise composition of the existing
+univariate \code{Ops} / \code{Math} machinery:
 \itemize{
 \item \code{tf_norm(f)}     -- pointwise Euclidean norm \eqn{\lVert f(t) \rVert};
 \item \code{tf_speed(f)}    -- pointwise speed \eqn{\lVert f'(t) \rVert};
 \item \code{tf_inner(f, g)} -- pointwise inner product \eqn{\langle f(t), g(t) \rangle};
 \item \code{tf_distance(f, g)} -- pointwise Euclidean distance \eqn{\lVert f(t) - g(t) \rVert};
-\item \code{tf_tangent(f)}  -- unit tangent \eqn{f'(t) / \lVert f'(t) \rVert}, returned
-as a \code{tf_mv} (undefined where the speed is zero -- callers get \code{NaN}s there);
+\item \code{tf_tangent(f)}  -- unit tangent \eqn{f'(t) / \lVert f'(t) \rVert}
+(undefined where the speed is zero -- callers get \code{NaN}s there);
 \item \code{tf_reparam_arclength(f)} -- re-parametrize the curve at constant speed
 (i.e. by its normalized cumulative arc length).
 }
+}
+\details{
+These also apply to \emph{univariate} \code{tfd}/\code{tfb} (treated as scalar-valued curves
+\eqn{f: T \to \mathbb{R}}), where they reduce to their one-dimensional
+specializations: \eqn{\lVert f(t) \rVert = |f(t)|},
+\eqn{\langle f(t), g(t) \rangle = f(t)\,g(t)}, and the unit tangent
+\eqn{f'(t) / |f'(t)| = \mathrm{sign}(f'(t))}.
 }
 \examples{
 set.seed(1)
@@ -50,13 +85,17 @@ f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
 tf_norm(f)
 tf_speed(f)
 tf_distance(f, tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2))))
+# univariate: tf_norm reduces to the pointwise absolute value
+u <- tf_rgp(2)
+tf_norm(u)
+tf_inner(u, tf_rgp(2))
 }
 \seealso{
 Other tf_mv-class:
-\code{\link[=plot.tf_mv]{plot.tf_mv()}},
-\code{\link[=tf_arclength]{tf_arclength()}},
+\code{\link{plot.tf_mv}()},
+\code{\link{tf_arclength}()},
 \code{\link{tf_mv_methods}},
-\code{\link[=tfb_mv]{tfb_mv()}},
-\code{\link[=tfd_mv]{tfd_mv()}}
+\code{\link{tfb_mv}()},
+\code{\link{tfd_mv}()}
 }
 \concept{tf_mv-class}

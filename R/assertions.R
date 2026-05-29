@@ -86,6 +86,10 @@ assert_tfb <- function(x, .var.name = vname(x)) {
   assert_class(x, "tfb", .var.name = .var.name)
 }
 
+assert_tf_mv <- function(x, .var.name = vname(x)) {
+  assert_class(x, "tf_mv", .var.name = .var.name)
+}
+
 # "strict" does not allow stretching/compressing or truncation of domain
 # (i.e. strict allows only bijective time transformations)
 assert_warp <- function(warp, x, strict = FALSE) {

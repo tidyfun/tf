@@ -118,3 +118,45 @@ test_that("tf_reparam_arclength leaves zero-length (constant) curves unchanged",
   )
   expect_false(any(is.nan(as.matrix(g[1]))))
 })
+
+# Univariate generalization of the geometric primitives ------------------------
+
+test_that("tf_norm/tf_inner/tf_distance reduce to scalar ops for univariate tf", {
+  set.seed(21)
+  u <- tf_rgp(3)
+  v <- tf_rgp(3)
+  # univariate norm is the pointwise absolute value
+  expect_equal(tf_norm(u), abs(u))
+  # univariate inner product is the pointwise product
+  expect_equal(tf_inner(u, v), u * v)
+  # univariate distance is |u - v|
+  expect_equal(tf_distance(u, v), abs(u - v))
+  # tf_speed and tf_tangent compose the same way
+  expect_equal(tf_speed(u), abs(tf_derive(u)))
+  expect_s3_class(tf_tangent(u), "tfd")
+})
+
+test_that("univariate geometric primitives also work for tfb", {
+  set.seed(22)
+  u <- tfb(tf_rgp(2), verbose = FALSE)
+  # tfb arithmetic warns about the lossy round-trip through tfd; that documented
+  # behaviour is not what we are testing here.
+  expect_s3_class(suppressWarnings(tf_norm(u)), "tfb")
+  expect_s3_class(suppressWarnings(tf_inner(u, u)), "tfb")
+})
+
+test_that("geometric primitives error informatively on non-tf input", {
+  expect_error(tf_norm(1:3), "not defined for")
+  expect_error(tf_tangent("a"), "not defined for")
+  expect_error(tf_inner(1:3, 1:3), "not defined for")
+  # univariate tf vs tf_mv is a mismatch
+  set.seed(23)
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(tf_inner(tf_rgp(2), f), "univariate")
+})
+
+test_that("tf_arclength rejects lower > upper", {
+  set.seed(24)
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(tf_arclength(f, lower = 0.8, upper = 0.2), "must not exceed")
+})

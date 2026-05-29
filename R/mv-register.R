@@ -2,12 +2,14 @@
 
 # univariate signal used to estimate the (joint) warp for a multivariate curve
 mv_registration_signal <- function(x, ref_component = 1L) {
+  assert_tf_mv(x)
   if (is.function(ref_component)) {
     return(ref_component(x))
   }
   if (identical(ref_component, "norm")) {
     return(tf_norm(x))
   }
+  # otherwise a component name or index -- tf_component() validates it.
   tf_component(x, ref_component)
 }
 
@@ -32,6 +34,8 @@ tf_estimate_warps.tf_mv <- function(
   ref_component = 1L
 ) {
   method <- match.arg(method)
+  assert_count(max_iter, positive = TRUE)
+  assert_number(tol, lower = 0, finite = TRUE)
   signal <- mv_registration_signal(x, ref_component)
   tmpl <- if (is_tf_mv(template)) {
     mv_registration_signal(template, ref_component)

@@ -64,20 +64,51 @@ map2_components <- function(x, y, .f, ...) {
 #' @rdname tf_mv_methods
 #' @export
 tf_component <- function(f, which) {
+  assert_tf_mv(f)
   comps <- tf_components(f)
-  if (is.character(which)) {
-    loc <- match(which, names(comps))
-    if (anyNA(loc)) {
-      cli::cli_abort("Unknown component {.val {which}}.")
-    }
-    which <- loc
-  }
+  which <- check_component_index(which, comps, arg = "which")
   comps[[which]]
+}
+
+# resolve a component selector (single name or single integer index) to a
+# valid positional index into `comps`, with informative errors.
+check_component_index <- function(which, comps, arg = "which") {
+  if (!length(comps)) {
+    cli::cli_abort(
+      "Cannot select component {.arg {arg}}: the object has no components."
+    )
+  }
+  if (is.character(which)) {
+    assert_string(which, .var.name = arg)
+    loc <- match(which, names(comps))
+    if (is.na(loc)) {
+      cli::cli_abort(c(
+        "Unknown component {.val {which}}.",
+        "i" = "Available component{?s}: {.val {names(comps)}}."
+      ))
+    }
+    return(loc)
+  }
+  if (
+    !is.numeric(which) ||
+      length(which) != 1L ||
+      is.na(which) ||
+      which != round(which) ||
+      which < 1 ||
+      which > length(comps)
+  ) {
+    cli::cli_abort(c(
+      "{.arg {arg}} must be a single component name or an integer index between 1 and {length(comps)}.",
+      "x" = "You supplied {.val {which}}."
+    ))
+  }
+  as.integer(which)
 }
 
 #' @rdname tf_mv_methods
 #' @export
 `tf_component<-` <- function(f, which, value) {
+  assert_tf_mv(f)
   assert_tf(value)
   if (vec_size(value) != vec_size(f)) {
     cli::cli_abort(
@@ -85,13 +116,23 @@ tf_component <- function(f, which) {
     )
   }
   comps <- tf_components(f)
-  if (is.character(which) && !(which %in% names(comps))) {
-    # allow adding a new component by name
-    comps[[which]] <- value
+  if (is.character(which)) {
+    # validate the scalar name *before* the vectorized `%in%` below, which
+    # would otherwise error ("length > 1 in coercion to logical") on a
+    # multi-element selector.
+    assert_string(which, min.chars = 1L, .var.name = "which")
+    if (which %in% names(comps)) {
+      comps[[match(which, names(comps))]] <- value
+    } else {
+      # allow adding a new component by name
+      comps[[which]] <- value
+    }
   } else {
-    if (is.character(which)) which <- match(which, names(comps))
+    which <- check_component_index(which, comps, arg = "which")
     comps[[which]] <- value
   }
+  # new_tf_mv() validates that `value` is the same kind (tfd/tfb) as the other
+  # components and that its domain is compatible.
   new_tf_mv(comps, domain = tf_domain(f))
 }
 

@@ -449,3 +449,58 @@ test_that("tf_component() uses exact component names", {
   expect_error(tf_component(f, "x"), "Unknown component")
   expect_s3_class(tf_component(f, "xpos"), "tfd")
 })
+
+test_that("tf_component validates the index/name selector", {
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(tf_component(f, 5), "between 1 and 2")
+  expect_error(tf_component(f, 0), "between 1 and 2")
+  expect_error(tf_component(f, 1.5), "between 1 and 2")
+  expect_error(tf_component(f, c(1, 2)), "single component")
+  expect_error(tf_component(42, 1), "tf_mv")
+  # valid selectors still work
+  expect_s3_class(tf_component(f, 2L), "tfd")
+  expect_s3_class(tf_component(f, "y"), "tfd")
+})
+
+test_that("tf_component<- validates the index but still appends new names", {
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(
+    {
+      f2 <- f
+      tf_component(f2, 7) <- tf_rgp(2)
+    },
+    "between 1 and 2"
+  )
+  # appending a brand-new component by name remains allowed
+  f3 <- f
+  tf_component(f3, "z") <- tf_rgp(2)
+  expect_named(tf_components(f3), c("x", "y", "z"))
+})
+
+test_that("tf_estimate_warps validates max_iter, tol and ref_component", {
+  f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  expect_error(tf_estimate_warps(f, max_iter = -1), "max_iter")
+  expect_error(tf_estimate_warps(f, tol = -0.1), "tol")
+  expect_error(tf_estimate_warps(f, ref_component = 9), "between 1 and 2")
+})
+
+test_that("tf_component<- rejects multi-length and empty selectors cleanly", {
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  # multi-length character selector must not hit the `&&` length>1 crash
+  expect_error(
+    {
+      f2 <- f
+      tf_component(f2, c("a", "b")) <- tf_rgp(2)
+    },
+    "must be a single|string"
+  )
+  # selecting from a component-less object gives a clear message
+  e <- tfd_mv(list())
+  expect_error(tf_component(e, 1), "no components")
+})
+
+test_that("tf_inner.tf_mv rejects a non-tf_mv second argument informatively", {
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(tf_inner(f, tf_rgp(2)), "tf_mv")
+  expect_error(tf_inner(f, 1:2), "tf_mv")
+})

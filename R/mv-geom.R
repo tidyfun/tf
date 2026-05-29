@@ -1,22 +1,29 @@
 # Geometric primitives for vector-valued curves --------------------------------
 
-#' Pointwise norm and inner product for vector-valued functional data
+#' Pointwise norm and inner product for functional data
 #'
-#' Small geometric helpers for `tf_mv` objects, defined by component-wise
-#' composition of the existing univariate `Ops` / `Math` machinery:
+#' Small geometric helpers defined by component-wise composition of the existing
+#' univariate `Ops` / `Math` machinery:
 #' - `tf_norm(f)`     -- pointwise Euclidean norm \eqn{\lVert f(t) \rVert};
 #' - `tf_speed(f)`    -- pointwise speed \eqn{\lVert f'(t) \rVert};
 #' - `tf_inner(f, g)` -- pointwise inner product \eqn{\langle f(t), g(t) \rangle};
 #' - `tf_distance(f, g)` -- pointwise Euclidean distance \eqn{\lVert f(t) - g(t) \rVert};
-#' - `tf_tangent(f)`  -- unit tangent \eqn{f'(t) / \lVert f'(t) \rVert}, returned
-#'   as a `tf_mv` (undefined where the speed is zero -- callers get `NaN`s there);
+#' - `tf_tangent(f)`  -- unit tangent \eqn{f'(t) / \lVert f'(t) \rVert}
+#'   (undefined where the speed is zero -- callers get `NaN`s there);
 #' - `tf_reparam_arclength(f)` -- re-parametrize the curve at constant speed
 #'   (i.e. by its normalized cumulative arc length).
 #'
-#' @param f,g `tf_mv` objects (with identical `d` and component names where
-#'   two arguments are required).
-#' @returns a univariate `tfd` for `tf_norm`/`tf_speed`/`tf_inner`/`tf_distance`,
-#'   a `tf_mv` for `tf_tangent`/`tf_reparam_arclength`.
+#' These also apply to *univariate* `tfd`/`tfb` (treated as scalar-valued curves
+#' \eqn{f: T \to \mathbb{R}}), where they reduce to their one-dimensional
+#' specializations: \eqn{\lVert f(t) \rVert = |f(t)|},
+#' \eqn{\langle f(t), g(t) \rangle = f(t)\,g(t)}, and the unit tangent
+#' \eqn{f'(t) / |f'(t)| = \mathrm{sign}(f'(t))}.
+#'
+#' @param f,g `tf_mv` objects, or univariate `tf` (`tfd`/`tfb`) objects (with
+#'   identical `d` and component names where two `tf_mv` arguments are required).
+#' @returns a univariate `tfd` for `tf_norm`/`tf_speed`/`tf_inner`/`tf_distance`;
+#'   `tf_tangent` returns a `tf_mv` (or a univariate `tf` for univariate input)
+#'   and `tf_reparam_arclength` a `tf_mv`.
 #' @family tf_mv-class
 #' @examples
 #' set.seed(1)
@@ -24,10 +31,31 @@
 #' tf_norm(f)
 #' tf_speed(f)
 #' tf_distance(f, tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2))))
+#' # univariate: tf_norm reduces to the pointwise absolute value
+#' u <- tf_rgp(2)
+#' tf_norm(u)
+#' tf_inner(u, tf_rgp(2))
 #' @name tf_geom
 #' @rdname tf_geom
 #' @export
-tf_norm <- function(f) {
+tf_norm <- function(f) UseMethod("tf_norm")
+
+#' @rdname tf_geom
+#' @export
+tf_norm.default <- function(f) {
+  cli::cli_abort(c(
+    "{.fn tf_norm} is not defined for {.cls {class(f)}} objects.",
+    "i" = "Supply a univariate {.cls tf} or a vector-valued {.cls tf_mv} object."
+  ))
+}
+
+#' @rdname tf_geom
+#' @export
+tf_norm.tf <- function(f) abs(f)
+
+#' @rdname tf_geom
+#' @export
+tf_norm.tf_mv <- function(f) {
   comps <- tf_components(f)
   if (!length(comps)) return(tfd(numeric(0)))
   sqrt(Reduce(`+`, map(comps, \(comp) comp^2)))
@@ -39,7 +67,38 @@ tf_speed <- function(f) tf_norm(tf_derive(f))
 
 #' @rdname tf_geom
 #' @export
-tf_inner <- function(f, g) {
+tf_inner <- function(f, g) UseMethod("tf_inner")
+
+#' @rdname tf_geom
+#' @export
+tf_inner.default <- function(f, g) {
+  cli::cli_abort(c(
+    "{.fn tf_inner} is not defined for {.cls {class(f)}} objects.",
+    "i" = "Supply univariate {.cls tf} or vector-valued {.cls tf_mv} objects."
+  ))
+}
+
+#' @rdname tf_geom
+#' @export
+tf_inner.tf <- function(f, g) {
+  if (!inherits(g, "tf") || is_tf_mv(g)) {
+    cli::cli_abort(c(
+      "{.arg g} must be a univariate {.cls tf} object to match {.arg f}.",
+      "x" = "You supplied a {.cls {class(g)}} object."
+    ))
+  }
+  f * g
+}
+
+#' @rdname tf_geom
+#' @export
+tf_inner.tf_mv <- function(f, g) {
+  if (!is_tf_mv(g)) {
+    cli::cli_abort(c(
+      "{.arg g} must be a vector-valued {.cls tf_mv} object to match {.arg f}.",
+      "x" = "You supplied a {.cls {class(g)}} object."
+    ))
+  }
   check_compatible_mv(f, g)
   prods <- map2(tf_components(f), tf_components(g), \(a, b) a * b)
   if (!length(prods)) return(tfd(numeric(0)))
@@ -52,7 +111,27 @@ tf_distance <- function(f, g) tf_norm(f - g)
 
 #' @rdname tf_geom
 #' @export
-tf_tangent <- function(f) {
+tf_tangent <- function(f) UseMethod("tf_tangent")
+
+#' @rdname tf_geom
+#' @export
+tf_tangent.default <- function(f) {
+  cli::cli_abort(c(
+    "{.fn tf_tangent} is not defined for {.cls {class(f)}} objects.",
+    "i" = "Supply a univariate {.cls tf} or a vector-valued {.cls tf_mv} object."
+  ))
+}
+
+#' @rdname tf_geom
+#' @export
+tf_tangent.tf <- function(f) {
+  df <- tf_derive(f)
+  df / tf_norm(df)
+}
+
+#' @rdname tf_geom
+#' @export
+tf_tangent.tf_mv <- function(f) {
   df <- tf_derive(f)
   inv_speed <- 1 / tf_norm(df)
   map_components(df, \(comp) comp * inv_speed)
@@ -146,6 +225,14 @@ tf_arclength.tf_mv <- function(
   ...
 ) {
   method <- match.arg(method)
+  assert_number(lower, finite = TRUE)
+  assert_number(upper, finite = TRUE)
+  if (lower > upper) {
+    cli::cli_abort(c(
+      "{.arg lower} must not exceed {.arg upper}.",
+      "x" = "You supplied {.arg lower} = {.val {lower}} and {.arg upper} = {.val {upper}}."
+    ))
+  }
   if (method == "derive") {
     speed <- tf_speed(f)
     call_args <- list(
