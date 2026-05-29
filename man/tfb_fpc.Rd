@@ -144,13 +144,13 @@ lines(x_pc, col = 2, lty = 2)
 \seealso{
 \code{\link[=fpc_wsvd]{fpc_wsvd()}} for FPCA options.
 
-Other tfb-class: 
-\code{\link{fpc_wsvd}()},
-\code{\link{tfb}},
-\code{\link{tfb_spline}()}
+Other tfb-class:
+\code{\link[=fpc_wsvd]{fpc_wsvd()}},
+\code{\link[=tfb]{tfb()}},
+\code{\link[=tfb_spline]{tfb_spline()}}
 
-Other tfb_fpc-class: 
-\code{\link{fpc_wsvd}()}
+Other tfb_fpc-class:
+\code{\link[=fpc_wsvd]{fpc_wsvd()}}
 }
 \concept{tfb-class}
 \concept{tfb_fpc-class}

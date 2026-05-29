@@ -39,7 +39,7 @@ set.seed(1)
 c(is_irreg(x_jig), is_irreg(x_sp))
 }
 \seealso{
-Other tidyfun RNG functions: 
-\code{\link{tf_rgp}()}
+Other tidyfun RNG functions:
+\code{\link[=tf_rgp]{tf_rgp()}}
 }
 \concept{tidyfun RNG functions}

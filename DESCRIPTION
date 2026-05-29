@@ -59,7 +59,6 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Collate:
     'approx.R'
     'assertions.R'
@@ -87,12 +86,12 @@ Collate:
     'mv-vctrs.R'
     'mv-accessors.R'
     'mv-brackets.R'
-    'mv-ops.R'
-    'mv-print-format.R'
-    'mv-plot.R'
-    'mv-convert.R'
     'mv-calculus.R'
+    'mv-convert.R'
     'mv-geom.R'
+    'mv-ops.R'
+    'mv-plot.R'
+    'mv-print-format.R'
     'mv-register.R'
     'print-format.R'
     'rebase.R'
@@ -117,3 +116,4 @@ Collate:
     'where.R'
     'zoom.R'
     'zzz.R'
+Config/roxygen2/version: 8.0.0

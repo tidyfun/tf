@@ -492,7 +492,7 @@ test_that("tf_component<- rejects multi-length and empty selectors cleanly", {
       f2 <- f
       tf_component(f2, c("a", "b")) <- tf_rgp(2)
     },
-    "must be a single|string"
+    "length 1"
   )
   # selecting from a component-less object gives a clear message
   e <- tfd_mv(list())

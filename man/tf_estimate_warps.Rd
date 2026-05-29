@@ -140,12 +140,12 @@ plot(warps)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other registration functions: 
-\code{\link{tf_align}()},
-\code{\link{tf_landmarks_extrema}()},
-\code{\link{tf_register}()},
+Other registration functions:
+\code{\link[=tf_align]{tf_align()}},
+\code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
+\code{\link[=tf_register]{tf_register()}},
 \code{\link{tf_registration}},
-\code{\link{tf_warp}()}
+\code{\link[=tf_warp]{tf_warp()}}
 }
 \author{
 Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6

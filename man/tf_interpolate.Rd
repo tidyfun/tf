@@ -68,9 +68,9 @@ tf_interpolate(sparse_irregular, arg = seq(0, 1, length.out = 51))
 \seealso{
 \code{\link[=tf_rebase]{tf_rebase()}}, which is more general.
 
-Other tidyfun inter/extrapolation functions: 
-\code{\link{tf_approx_linear}()},
-\code{\link{tf_evaluate}()}
+Other tidyfun inter/extrapolation functions:
+\code{\link[=tf_approx_linear]{tf_approx_linear()}},
+\code{\link[=tf_evaluate]{tf_evaluate()}}
 }
 \concept{tidyfun inter/extrapolation functions}
 \concept{tidyfun setters}

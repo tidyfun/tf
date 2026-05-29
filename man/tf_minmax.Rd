@@ -45,8 +45,8 @@ max(x, depth = "MHI")
 \seealso{
 \code{\link[=tf_depth]{tf_depth()}}, \code{\link[=rank.tf]{rank.tf()}}
 
-Other tidyfun ordering and ranking functions: 
-\code{\link{tf_depth}()},
+Other tidyfun ordering and ranking functions:
+\code{\link[=tf_depth]{tf_depth()}},
 \code{\link{tf_order}}
 }
 \concept{tidyfun ordering and ranking functions}

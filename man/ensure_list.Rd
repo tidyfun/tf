@@ -20,8 +20,8 @@ ensure_list(1:3)
 ensure_list(list(1, 2))
 }
 \seealso{
-Other tidyfun developer tools: 
-\code{\link{prep_plotting_arg}()},
-\code{\link{unique_id}()}
+Other tidyfun developer tools:
+\code{\link[=prep_plotting_arg]{prep_plotting_arg()}},
+\code{\link[=unique_id]{unique_id()}}
 }
 \concept{tidyfun developer tools}

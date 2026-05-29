@@ -118,8 +118,8 @@ tf_crosscor(x, -x)
 tf_crosscov(x, x) == tf_fvar(x)
 }
 \seealso{
-Other tidyfun summary functions: 
-\code{\link{fivenum}()},
+Other tidyfun summary functions:
+\code{\link[=fivenum]{fivenum()}},
 \code{\link{tfsummaries}}
 }
 \concept{tidyfun summary functions}

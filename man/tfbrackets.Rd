@@ -5,6 +5,7 @@
 \alias{[.tf}
 \alias{[<-.tf}
 \alias{[.tf_mv}
+\alias{[<-.tf_mv}
 \title{Accessing, evaluating, subsetting and subassigning \code{tf} vectors}
 \usage{
 \method{[}{tf}(x, i, j, interpolate = TRUE, matrix = TRUE)
@@ -12,6 +13,8 @@
 \method{[}{tf}(x, i) <- value
 
 \method{[}{tf_mv}(x, i, j, interpolate = TRUE, matrix = TRUE, component = NULL)
+
+\method{[}{tf_mv}(x, i) <- value
 }
 \arguments{
 \item{x}{an \code{tf}.}

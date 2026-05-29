@@ -43,8 +43,8 @@ tf_zoom(x, seq(0, 0.5, length.out = 10), seq(0.5, 1, length.out = 10)) |>
   lines(col = "blue", lty = 3)
 }
 \seealso{
-Other tidyfun utility functions: 
-\code{\link{in_range}()},
-\code{\link{tf_arg}()}
+Other tidyfun utility functions:
+\code{\link[=in_range]{in_range()}},
+\code{\link[=tf_arg]{tf_arg()}}
 }
 \concept{tidyfun utility functions}

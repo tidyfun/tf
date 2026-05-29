@@ -67,7 +67,7 @@ anti <- tf_integrate(x, definite = FALSE)
 tf_arg(anti)
 }
 \seealso{
-Other tidyfun calculus functions: 
-\code{\link{tf_derive}()}
+Other tidyfun calculus functions:
+\code{\link[=tf_derive]{tf_derive()}}
 }
 \concept{tidyfun calculus functions}

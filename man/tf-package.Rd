@@ -40,6 +40,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Fabian Scheipl \email{fabian.scheipl@googlemail.com} (\href{https://orcid.org/0000-0001-8172-3603}{ORCID}) [copyright holder]
   \item Jeff Goldsmith
   \item Maximilian Mücke (\href{https://orcid.org/0009-0000-9432-9795}{ORCID})
 }

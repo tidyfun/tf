@@ -19,8 +19,8 @@ See above.
 unique_id(c("a", "b", "a"))
 }
 \seealso{
-Other tidyfun developer tools: 
-\code{\link{ensure_list}()},
-\code{\link{prep_plotting_arg}()}
+Other tidyfun developer tools:
+\code{\link[=ensure_list]{ensure_list()}},
+\code{\link[=prep_plotting_arg]{prep_plotting_arg()}}
 }
 \concept{tidyfun developer tools}

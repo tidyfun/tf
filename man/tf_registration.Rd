@@ -112,12 +112,12 @@ summary(reg)
 plot(reg)
 }
 \seealso{
-Other registration functions: 
-\code{\link{tf_align}()},
-\code{\link{tf_estimate_warps}()},
-\code{\link{tf_landmarks_extrema}()},
-\code{\link{tf_register}()},
-\code{\link{tf_warp}()}
+Other registration functions:
+\code{\link[=tf_align]{tf_align()}},
+\code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
+\code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
+\code{\link[=tf_register]{tf_register()}},
+\code{\link[=tf_warp]{tf_warp()}}
 }
 \author{
 Fabian Scheipl, Claude Opus 4.6

@@ -144,12 +144,12 @@ Tucker JD, Wu W, Srivastava A (2013).
 \doi{10.1016/j.csda.2012.12.001}.
 }
 \seealso{
-Other registration functions: 
-\code{\link{tf_align}()},
-\code{\link{tf_estimate_warps}()},
-\code{\link{tf_landmarks_extrema}()},
+Other registration functions:
+\code{\link[=tf_align]{tf_align()}},
+\code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
+\code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
 \code{\link{tf_registration}},
-\code{\link{tf_warp}()}
+\code{\link[=tf_warp]{tf_warp()}}
 }
 \author{
 Maximilian Muecke, Fabian Scheipl, Claude Opus 4.6

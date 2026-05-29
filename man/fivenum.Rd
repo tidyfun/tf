@@ -37,7 +37,7 @@ f <- tf_rgp(7)
 fivenum(f)
 }
 \seealso{
-Other tidyfun summary functions: 
+Other tidyfun summary functions:
 \code{\link{functionwise}},
 \code{\link{tfsummaries}}
 }

@@ -29,7 +29,8 @@ head(growth)
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
 \emph{Functional Data Analysis with R and MATLAB},  series Use R!, 1 edition.
 Springer New York, New York.
-ISBN 978-0-387-98184-0, \doi{10.1007/978-0-387-98185-7}.
+ISBN 978-0-387-98184-0.
+\doi{10.1007/978-0-387-98185-7}.
 
 Ramsay, O. J, Silverman, W. B (2005).
 \emph{Functional Data Analysis},  series Springer Series in Statistics, 2nd edition.

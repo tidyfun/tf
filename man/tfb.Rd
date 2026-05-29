@@ -53,14 +53,9 @@ xb
 as.tfb(x, basis = "spline", k = 8)
 }
 \seealso{
-Other tfb-class: 
-\code{\link{fpc_wsvd}()},
-\code{\link{tfb_fpc}()},
-\code{\link{tfb_spline}()}
-
-Other tfb-class: 
-\code{\link{fpc_wsvd}()},
-\code{\link{tfb_fpc}()},
-\code{\link{tfb_spline}()}
+Other tfb-class:
+\code{\link[=fpc_wsvd]{fpc_wsvd()}},
+\code{\link[=tfb_fpc]{tfb_fpc()}},
+\code{\link[=tfb_spline]{tfb_spline()}}
 }
 \concept{tfb-class}

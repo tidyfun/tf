@@ -87,8 +87,8 @@ rank(x, depth = "MBD")
 \seealso{
 \code{\link[=tf_depth]{tf_depth()}}, \code{\link[=min.tf]{min.tf()}}, \code{\link[=max.tf]{max.tf()}}
 
-Other tidyfun ordering and ranking functions: 
-\code{\link{tf_depth}()},
+Other tidyfun ordering and ranking functions:
+\code{\link[=tf_depth]{tf_depth()}},
 \code{\link{tf_minmax}}
 }
 \concept{tidyfun ordering and ranking functions}

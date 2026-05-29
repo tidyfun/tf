@@ -68,7 +68,7 @@ accepts user-defined covariance functions (without "nugget" effect, see
 tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34))))
 }
 \seealso{
-Other tidyfun RNG functions: 
-\code{\link{tf_jiggle}()}
+Other tidyfun RNG functions:
+\code{\link[=tf_jiggle]{tf_jiggle()}}
 }
 \concept{tidyfun RNG functions}

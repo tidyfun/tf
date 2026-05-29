@@ -83,12 +83,12 @@ tf_landmarks_extrema(x, "both")
 \seealso{
 \code{\link[=tf_register]{tf_register()}} with \code{method = "landmark"}
 
-Other registration functions: 
-\code{\link{tf_align}()},
-\code{\link{tf_estimate_warps}()},
-\code{\link{tf_register}()},
+Other registration functions:
+\code{\link[=tf_align]{tf_align()}},
+\code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
+\code{\link[=tf_register]{tf_register()}},
 \code{\link{tf_registration}},
-\code{\link{tf_warp}()}
+\code{\link[=tf_warp]{tf_warp()}}
 }
 \concept{registration functions}
 \keyword{internal}

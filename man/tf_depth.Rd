@@ -93,7 +93,7 @@ Bočinec, Filip, Nagy, Stanislav, Yeon, Hyemin (2026).
 \emph{arXiv preprint arXiv:2602.22877}.
 }
 \seealso{
-Other tidyfun ordering and ranking functions: 
+Other tidyfun ordering and ranking functions:
 \code{\link{tf_minmax}},
 \code{\link{tf_order}}
 }

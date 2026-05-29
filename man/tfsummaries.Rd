@@ -79,8 +79,8 @@ summary(x)
 \seealso{
 \code{\link[=tf_fwise]{tf_fwise()}}
 
-Other tidyfun summary functions: 
-\code{\link{fivenum}()},
+Other tidyfun summary functions:
+\code{\link[=fivenum]{fivenum()}},
 \code{\link{functionwise}}
 }
 \concept{tidyfun summary functions}

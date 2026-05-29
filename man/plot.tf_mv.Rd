@@ -29,6 +29,14 @@ output dimension (delegating to the univariate \code{\link[=plot.tf]{plot.tf()}}
 \code{"trajectory"} (only for \code{d == 2}) draws the curves in the plane, i.e.
 \eqn{y(t)} against \eqn{x(t)} -- the natural view for movement data.
 }
+\details{
+In \code{"trajectory"} mode the two components must be paired at common argument
+values to form \eqn{(x(t), y(t))} points. When the components are sampled on
+different (or per-curve irregular) grids they are therefore evaluated on the
+union of their argument grids with \code{interpolate = TRUE} (values outside a
+component's observed range become \code{NA} and are skipped). For components that
+already share a grid this is a no-op.
+}
 \seealso{
 Other tf_mv-class:
 \code{\link[=tf_arclength]{tf_arclength()}},

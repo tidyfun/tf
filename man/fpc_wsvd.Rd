@@ -59,7 +59,8 @@ code adapted from / inspired by \code{mogsa::wsvd()} by Chen Meng
 and \code{softImpute::softImpute()} by Trevor Hastie and Rahul Mazumder.\cr
 Meng C (2023).
 \emph{mogsa: Multiple omics data integrative clustering and gene set analysis}.
-\doi{10.18129/B9.bioc.mogsa}, \url{https://bioconductor.org/packages/mogsa}.
+\doi{10.18129/B9.bioc.mogsa}.
+\url{https://bioconductor.org/packages/mogsa}.
 
 Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
 \dQuote{Spectral Regularization Algorithms for Learning Large Incomplete Matrices.}
@@ -67,16 +68,17 @@ Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
 
 Hastie T, Mazumder R (2021).
 \emph{softImpute: Matrix Completion via Iterative Soft-Thresholded SVD}.
-\doi{10.32614/CRAN.package.softImpute}, R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.
+\doi{10.32614/CRAN.package.softImpute}.
+R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.
 }
 \seealso{
-Other tfb-class: 
-\code{\link{tfb}},
-\code{\link{tfb_fpc}()},
-\code{\link{tfb_spline}()}
+Other tfb-class:
+\code{\link[=tfb]{tfb()}},
+\code{\link[=tfb_fpc]{tfb_fpc()}},
+\code{\link[=tfb_spline]{tfb_spline()}}
 
-Other tfb_fpc-class: 
-\code{\link{tfb_fpc}()}
+Other tfb_fpc-class:
+\code{\link[=tfb_fpc]{tfb_fpc()}}
 }
 \author{
 Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
