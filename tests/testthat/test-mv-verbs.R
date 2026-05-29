@@ -253,3 +253,16 @@ test_that("tf_arclength works for a 3-d helix", {
   helix <- tfd_mv(list(x = hx, y = hy, z = hz))
   expect_equal(tf_arclength(helix), 2 * pi * sqrt(1 + c0^2), tolerance = 1e-2)
 })
+
+test_that("tf_arclength errors clearly when component domains only partially overlap", {
+  x <- tfd(matrix(c(0, 1), nrow = 1), arg = c(0, 1))
+  y <- tfd(matrix(c(0, 0.5, 1), nrow = 1), arg = c(0.5, 0.75, 1))
+  f <- tfd_mv(list(x = x, y = y))
+
+  expect_error(tf_arclength(f), "missing paired component")
+  expect_equal(
+    tf_arclength(f, lower = 0.5, upper = 1),
+    sqrt(1.25),
+    tolerance = 1e-8
+  )
+})

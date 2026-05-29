@@ -41,6 +41,12 @@ tfb_mv <- function(data, ...) UseMethod("tfb_mv")
 tfb_mv.tf_mv <- function(data, basis = c("spline", "fpc"), ...) {
   basis <- match.arg(basis)
   dots <- list(...)
+  if (!tf_ncomp(data)) {
+    return(new_tf_mv(list(), domain = tf_domain(data), class = "tfb_mv"))
+  }
+  if (is_tfb_mv(data) && !length(dots)) {
+    return(data)
+  }
   comp_names <- attr(data, "comp_names")
   components <- map2(tf_components(data), comp_names, function(comp, nm) {
     # distribute any ... arg that is a list named by component names

@@ -10,6 +10,8 @@ test_that("empty tf_mv prototype: accessors, ops, c(), tibble", {
   expect_identical(tf_arg(f0), numeric(0))
   expect_identical(tf_evaluations(f0), list())
   expect_identical(is.na(f0), logical(0))
+  expect_identical(dim(as.matrix(f0)), c(0L, 0L, 0L))
+  expect_identical(dim(tf_count(f0)), c(0L, 0L))
   # c() with empty stays length 0
   expect_length(c(f0, f0), 0L)
   expect_silent(format(f0))
@@ -39,6 +41,17 @@ test_that("tfb_mv prototype is constructible and identifiable", {
   # default-method path
   tb0d <- tfb_mv(numeric(0))
   expect_s3_class(tb0d, "tfb_mv")
+  expect_s3_class(tfb_mv(tfd_mv(list())), "tfb_mv")
+})
+
+test_that("zero-curve tf_mv with components has empty matrix/count shapes", {
+  f0 <- tfd_mv(list(x = tfd(), y = tfd()))
+  expect_length(f0, 0L)
+  expect_identical(tf_ncomp(f0), 2L)
+  expect_identical(dim(as.matrix(f0)), c(0L, 0L, 2L))
+  counts <- tf_count(f0)
+  expect_identical(dim(counts), c(0L, 2L))
+  expect_identical(colnames(counts), c("x", "y"))
 })
 
 # ---- n = 1, d = 1 -------------------------------------------------------------
@@ -68,12 +81,15 @@ test_that("NA in any component marks the curve as NA, ops propagate NAs", {
   f <- tfd_mv(list(x = fx, y = fy))
   # any-component-NA => curve NA
   expect_equal(unname(is.na(f)), c(FALSE, TRUE, TRUE, FALSE))
-  # mean ignores NA curves (component-wise mean ignores its NAs)
-  expect_length(mean(f), 1L)
+  m_all <- suppressWarnings(mean(f))
+  expect_length(m_all, 1L)
+  m_complete <- mean(f, na.rm = TRUE)
+  expect_equal(m_complete, mean(f[!is.na(f)]))
   # subset preserves NA status
   expect_true(is.na(f[2]))
   # arithmetic with NA curves: result NA at NA positions
-  expect_equal(unname(is.na(f + f)), c(FALSE, TRUE, TRUE, FALSE))
+  ff <- suppressWarnings(f + f)
+  expect_equal(unname(is.na(ff)), c(FALSE, TRUE, TRUE, FALSE))
 })
 
 test_that("all-NA mv curve is handled in tf_evaluations()", {
@@ -217,16 +233,16 @@ test_that("tf_evaluate(<tf_mv>) returns per-curve matrices on requested arg", {
 test_that("as.matrix(<tf_mv>, arg = ...) re-evaluates on a new grid", {
   set.seed(22)
   f <- tfd_mv(list(x = tf_rgp(3, arg = 11L), y = tf_rgp(3, arg = 11L)))
-  m <- as.matrix(f, arg = seq(0, 1, length.out = 5))
+  m <- as.matrix(f, arg = seq(0, 1, length.out = 5), interpolate = TRUE)
   expect_identical(dim(m), c(3L, 5L, 2L))
   expect_equal(
     m[,, "x"],
-    as.matrix(f$x, arg = seq(0, 1, length.out = 5)),
+    as.matrix(f$x, arg = seq(0, 1, length.out = 5), interpolate = TRUE),
     ignore_attr = TRUE
   )
   expect_equal(
     m[,, "y"],
-    as.matrix(f$y, arg = seq(0, 1, length.out = 5)),
+    as.matrix(f$y, arg = seq(0, 1, length.out = 5), interpolate = TRUE),
     ignore_attr = TRUE
   )
 })
@@ -235,7 +251,7 @@ test_that("as.matrix(<tf_mv>) uses the union grid for mixed regular component gr
   x <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
   y <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
   f <- tfd_mv(list(x = x, y = y))
-  m <- as.matrix(f)
+  expect_warning(m <- as.matrix(f), "interpolate = FALSE")
   expect_identical(dim(m), c(1L, 4L, 2L))
   expect_true(is.na(m[1, "4", "x"]))
   expect_equal(unname(m[1, "4", "y"]), 14)
@@ -245,7 +261,10 @@ test_that("[.tf_mv(matrix = FALSE) uses per-curve union grids when j is missing"
   x <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
   y <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
   f <- tfd_mv(list(x = x, y = y))
-  out <- f[,, interpolate = FALSE, matrix = FALSE]
+  expect_warning(
+    out <- f[,, interpolate = FALSE, matrix = FALSE],
+    "interpolate = FALSE"
+  )
   expect_length(out, 1L)
   expect_equal(out[[1]]$arg, 1:4)
   expect_true(is.na(out[[1]]$x[4]))

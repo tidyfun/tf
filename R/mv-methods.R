@@ -173,6 +173,15 @@ tf_evaluations.tf_mv <- function(f) {
 #' @export
 tf_count.tf_mv <- function(f) {
   comps <- tf_components(f)
+  n <- vec_size(f)
+  if (!length(comps) || n == 0L) {
+    return(matrix(
+      integer(0),
+      nrow = n,
+      ncol = length(comps),
+      dimnames = list(names(f), attr(f, "comp_names"))
+    ))
+  }
   if (length(comps) && all(map_lgl(comps, is_tfb))) {
     cli::cli_abort(
       "{.fn tf_count} is not defined for basis-represented ({.cls tfb_mv}) data."
@@ -189,6 +198,29 @@ is.na.tf_mv <- function(x) {
   comp_na <- map(tf_components(x), is.na)
   if (!length(comp_na)) return(logical(0))
   Reduce(`|`, comp_na)
+}
+
+mv_complete <- function(x, na.rm = FALSE, missing = is.na(x)) {
+  if (!length(missing) || !any(missing)) {
+    return(x)
+  }
+  if (na.rm) {
+    return(x[!missing])
+  }
+  comps <- map(tf_components(x), function(comp) {
+    suppressWarnings(comp[missing] <- NA)
+    comp
+  })
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps, domain = tf_domain(x))
+}
+
+mv_missing <- function(...) {
+  mv_args <- list(...)
+  if (!length(mv_args)) {
+    return(logical(0))
+  }
+  Reduce(`|`, map(mv_args, is.na))
 }
 
 #-------------------------------------------------------------------------------
@@ -249,8 +281,16 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   }
 
   comps_i <- tf_components(xi)
+  n_i <- vec_size(xi)
   if (matrix) {
     if (missing(j)) j <- sort_unique(tf_mv_curve_grids(xi), simplify = TRUE)
+    if (!length(comps_i) || n_i == 0L) {
+      return(array(
+        numeric(0),
+        dim = c(n_i, length(j), length(comps_i)),
+        dimnames = list(names(xi), as.character(j), comp_names)
+      ))
+    }
     mats <- map(
       comps_i,
       \(comp) comp[, j, interpolate = interpolate, matrix = TRUE]
@@ -263,11 +303,13 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     return(arr)
   }
   # matrix = FALSE: list of per-curve data.frames with arg + one col per comp
+  if (!length(comps_i) || n_i == 0L) {
+    return(setNames(vector("list", n_i), names(xi)))
+  }
   dfs <- map(
     comps_i,
     \(comp) comp[, j, interpolate = interpolate, matrix = FALSE]
   )
-  n_i <- vec_size(xi)
   map(seq_len(n_i), function(k) {
     base <- dfs[[1]][[k]]
     out <- data_frame0(arg = base$arg)
@@ -367,6 +409,14 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
   mv_args <- map_lgl(dots, is_tf_mv)
   x <- dots[[which(mv_args)[1]]]
   walk(dots[mv_args], \(arg) check_compatible_mv(x, arg))
+  missing <- do.call(mv_missing, dots[mv_args])
+  dots[mv_args] <- map(
+    dots[mv_args],
+    mv_complete,
+    missing = missing,
+    na.rm = na.rm
+  )
+  x <- dots[[which(mv_args)[1]]]
   comps <- imap(tf_components(x), function(comp, nm) {
     comp_args <- map(dots, function(arg) {
       if (is_tf_mv(arg)) tf_component(arg, nm) else arg
@@ -391,17 +441,20 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
 `!=.tf_mv` <- function(e1, e2) !(e1 == e2)
 
 #' @export
-mean.tf_mv <- function(x, ...) {
-  map_components(x, \(a) mean(a, ...))
+mean.tf_mv <- function(x, ..., na.rm = FALSE) {
+  x <- mv_complete(x, na.rm = na.rm)
+  map_components(x, \(a) mean(a, ..., na.rm = na.rm))
 }
 
 #' @export
 median.tf_mv <- function(x, na.rm = FALSE, ...) {
+  x <- mv_complete(x, na.rm = na.rm)
   map_components(x, \(a) median(a, na.rm = na.rm, ...))
 }
 
 #' @export
 sd.tf_mv <- function(x, na.rm = FALSE) {
+  x <- mv_complete(x, na.rm = na.rm)
   map_components(x, \(a) sd(a, na.rm = na.rm))
 }
 
@@ -410,6 +463,9 @@ var.tf_mv <- function(x, y = NULL, na.rm = FALSE, use) {
   has_use <- !missing(use)
   if (!is.null(y) && is_tf_mv(y)) {
     check_compatible_mv(x, y)
+    missing <- mv_missing(x, y)
+    x <- mv_complete(x, missing = missing, na.rm = na.rm)
+    y <- mv_complete(y, missing = missing, na.rm = na.rm)
     return(map2_components(x, y, function(a, b) {
       if (has_use) {
         var(a, y = b, na.rm = na.rm, use = use)
@@ -418,6 +474,7 @@ var.tf_mv <- function(x, y = NULL, na.rm = FALSE, use) {
       }
     }))
   }
+  x <- mv_complete(x, na.rm = na.rm)
   map_components(x, function(a) {
     if (has_use) {
       var(a, y = y, na.rm = na.rm, use = use)
@@ -511,8 +568,9 @@ print.tf_mv <- function(x, n = 6, ...) {
   }
   len <- length(x)
   if (len > 0) {
-    format(x[seq_len(min(n, len))], ...) |>
-      paste0("[", seq_len(min(n, len)), "]: ", x = _) |>
+    n_show <- min(n, len)
+    formatted <- format(x[seq_len(n_show)], ...)
+    paste0("[", seq_len(n_show), "]: ", formatted) |>
       cat(sep = "\n")
     cat("\n")
     if (n < len) {
@@ -937,7 +995,6 @@ tf_arclength.tf_mv <- function(
 # between consecutive d-dimensional sample points.
 arclength_polyline <- function(f, arg, lower, upper, definite) {
   n <- vec_size(f)
-  comps <- tf_components(f)
   if (!n) {
     return(if (definite) numeric(0) else tfd(numeric(0)))
   }
@@ -945,23 +1002,7 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   grids <- if (!is.null(arg)) {
     rep(list(sort(unique(arg))), n)
   } else {
-    a <- tf_arg(f)
-    if (is.numeric(a)) {
-      rep(list(a), n)
-    } else if (
-      all(map_lgl(a, is.numeric)) &&
-        !identical(names(a), attr(f, "comp_names"))
-    ) {
-      a # case 1: per-curve, shared across components
-    } else {
-      # case 2/3: per-component args -> union per curve
-      lapply(seq_len(n), function(i) {
-        sort(unique(unlist(lapply(comps, function(comp) {
-          ai <- tf_arg(comp)
-          if (is.list(ai)) ai[[i]] else ai
-        }))))
-      })
-    }
+    tf_mv_curve_grids(f)
   }
   # clamp to [lower, upper] and guarantee endpoints (for accurate sub-interval
   # lengths even when the limits don't fall on sample points)
@@ -969,17 +1010,32 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     g <- g[g >= lower & g <= upper]
     sort(unique(c(lower, g, upper)))
   })
-  # evaluate each component on each curve's grid (tf_evaluate.tfd accepts a
-  # per-curve arg list)
-  comp_evals <- map(comps, function(comp) tf_evaluate(comp, arg = grids))
+  paired_evals <- tf_evaluate(f, arg = grids)
+  incomplete <- map_lgl(paired_evals, \(mat) is.matrix(mat) && anyNA(mat))
+  if (any(incomplete)) {
+    cli::cli_abort(c(
+      "Cannot compute polyline arc length with missing paired component evaluations.",
+      "i" = "Affected curve index{?es}: {.val {which(incomplete)}}.",
+      "i" = "Set {.arg lower}/{.arg upper} to a common observed interval or use an evaluator that supplies all requested component values."
+    ))
+  }
   per_curve_segs <- map(seq_len(n), function(i) {
-    mat <- do.call(cbind, lapply(comp_evals, \(ev) ev[[i]]))
+    mat <- paired_evals[[i]]
+    if (is.null(mat)) return(NA_real_)
     if (nrow(mat) < 2L) return(numeric(0))
     sqrt(rowSums(diff(mat)^2))
   })
   if (definite) {
-    setNames(map_dbl(per_curve_segs, sum), names(f))
+    setNames(
+      map_dbl(per_curve_segs, \(s) if (anyNA(s)) NA_real_ else sum(s)),
+      names(f)
+    )
   } else {
+    if (any(map_lgl(per_curve_segs, anyNA))) {
+      cli::cli_abort(
+        "Cannot compute cumulative arc length for missing vector-valued curves."
+      )
+    }
     cum_evals <- map(per_curve_segs, function(s) c(0, cumsum(s)))
     same_grid <- length(unique(lengths(grids))) == 1L &&
       all(map_lgl(grids[-1], \(g) isTRUE(all.equal(g, grids[[1]]))))

@@ -94,16 +94,15 @@ test_that("mean / median return a length-1 tf_mv", {
 })
 
 test_that("sd.tf_mv and var.tf_mv accept na.rm", {
-  f <- tfd_mv(list(
-    x = tfd(rbind(c(1, 2, 3), c(NA, NA, NA)), arg = 1:3),
-    y = tfd(rbind(c(2, 3, 4), c(NA, NA, NA)), arg = 1:3)
-  ))
+  f <- suppressWarnings(tfd_mv(list(
+    x = tfd(rbind(c(1, 2, 3), c(NA, NA, NA), c(4, 5, 6)), arg = 1:3),
+    y = tfd(rbind(c(2, 3, 4), c(NA, NA, NA), c(5, 6, 7)), arg = 1:3)
+  )))
   fsd <- sd(f, na.rm = TRUE)
   fvar <- var(f, na.rm = TRUE)
-  expect_equal(fsd$x, sd(f$x, na.rm = TRUE))
-  expect_equal(fsd$y, sd(f$y, na.rm = TRUE))
-  expect_equal(fvar$x, var(f$x, na.rm = TRUE))
-  expect_equal(fvar$y, var(f$y, na.rm = TRUE))
+  complete <- f[!is.na(f)]
+  expect_equal(fsd, sd(complete))
+  expect_equal(fvar, var(complete))
 })
 
 test_that("equality is component-wise", {
