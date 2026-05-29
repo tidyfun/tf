@@ -68,11 +68,11 @@ tf_arclength(circ, lower = 0, upper = 0.25) # quarter -> pi/2
 tf_arclength(circ, definite = FALSE)        # cumulative s(t)
 }
 \seealso{
-Other tf_mv-class: 
-\code{\link{plot.tf_mv}()},
+Other tf_mv-class:
+\code{\link[=plot.tf_mv]{plot.tf_mv()}},
 \code{\link{tf_geom}},
 \code{\link{tf_mv_methods}},
-\code{\link{tfb_mv}},
-\code{\link{tfd_mv}}
+\code{\link[=tfb_mv]{tfb_mv()}},
+\code{\link[=tfd_mv]{tfd_mv()}}
 }
 \concept{tf_mv-class}

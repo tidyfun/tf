@@ -61,8 +61,12 @@ test_that("tf_tangent has unit speed everywhere except where speed = 0", {
   expect_s3_class(tan, "tfd_mv")
   expect_identical(tf_ncomp(tan), 2L)
   # speed of the tangent at the middle of the domain should be ~ 1
-  expect_equal(unlist(tf_evaluate(tf_norm(tan), arg = 0.5)),
-               1, tolerance = 1e-2, ignore_attr = TRUE)
+  expect_equal(
+    unlist(tf_evaluate(tf_norm(tan), arg = 0.5)),
+    1,
+    tolerance = 1e-2,
+    ignore_attr = TRUE
+  )
 })
 
 test_that("tf_reparam_arclength yields a (nearly) constant-speed curve", {
@@ -80,4 +84,37 @@ test_that("tf_reparam_arclength yields a (nearly) constant-speed curve", {
   # sample speed on the interior of the domain (avoid boundary FD artefacts)
   sp <- tf_evaluate(tf_speed(g), arg = c(0.3, 0.5, 0.7))[[1]]
   expect_equal(sp, rep(1, 3), tolerance = 0.1)
+})
+
+test_that("tf_reparam_arclength preserves non-unit domains", {
+  t <- seq(0, 10, length.out = 11)
+  f <- tfd_mv(list(
+    x = tfd(matrix(t, nrow = 1), arg = t),
+    y = tfd(matrix(0, nrow = 1, ncol = length(t)), arg = t)
+  ))
+  r <- tf_reparam_arclength(f)
+  m <- as.matrix(r, arg = t, interpolate = TRUE)
+  expect_false(anyNA(m))
+  expect_equal(unname(m[1, , "x"]), t, tolerance = 1e-8)
+  expect_equal(unname(m[1, , "y"]), rep(0, length(t)), tolerance = 1e-8)
+})
+
+test_that("tf_reparam_arclength leaves zero-length (constant) curves unchanged", {
+  t <- seq(0, 1, length.out = 30)
+  # curve 1: a real (non-degenerate) curve; curve 2: constant in both components
+  f <- tfd_mv(list(
+    x = tfd(rbind(cos(2 * pi * t), rep(2, 30)), arg = t),
+    y = tfd(rbind(sin(2 * pi * t), rep(3, 30)), arg = t)
+  ))
+  expect_warning(g <- tf_reparam_arclength(f), "zero/undefined arc length")
+  expect_s3_class(g, "tfd_mv")
+  expect_length(g, 2L)
+  # degenerate curve returned untouched, well-defined curve free of NaN
+  expect_equal(
+    as.matrix(g[2]),
+    as.matrix(f[2]),
+    tolerance = 1e-8,
+    ignore_attr = TRUE
+  )
+  expect_false(any(is.nan(as.matrix(g[1]))))
 })

@@ -26,7 +26,7 @@ vec_restore.tf_mv <- function(x, to, ...) {
   if (!length(components)) {
     return(new_tf_mv(list(), domain = attr(to, "domain"), class = class(to)[1]))
   }
-  new_tf_mv(components)
+  new_tf_mv(components, check_curve_names = FALSE)
 }
 
 #-------------------------------------------------------------------------------
@@ -34,15 +34,19 @@ vec_restore.tf_mv <- function(x, to, ...) {
 check_compatible_mv <- function(x, y) {
   if (tf_ncomp(x) != tf_ncomp(y)) {
     stop_incompatible_type(
-      x, y,
-      x_arg = "", y_arg = "",
+      x,
+      y,
+      x_arg = "",
+      y_arg = "",
       details = "different number of components"
     )
   }
   if (!identical(attr(x, "comp_names"), attr(y, "comp_names"))) {
     stop_incompatible_type(
-      x, y,
-      x_arg = "", y_arg = "",
+      x,
+      y,
+      x_arg = "",
+      y_arg = "",
       details = "different component names"
     )
   }
@@ -69,6 +73,9 @@ vec_ptype2.tfd_mv.tfd_mv <- function(x, y, ...) tf_mv_ptype2(x, y)
 #' @rdname vctrs
 #' @export
 vec_ptype2.tfb_mv.tfb_mv <- function(x, y, ...) tf_mv_ptype2(x, y)
+# mixing a tfd_mv with a tfb_mv combines component-wise via the univariate
+# vec_ptype2(tfd, tfb), which resolves to tfd -- so the common type of a
+# tfd_mv and a tfb_mv is a tfd_mv (same demotion as in the univariate case).
 #' @rdname vctrs
 #' @export
 vec_ptype2.tfd_mv.tfb_mv <- function(x, y, ...) tf_mv_ptype2(x, y)

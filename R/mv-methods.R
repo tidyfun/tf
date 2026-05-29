@@ -22,6 +22,10 @@ NULL
 #' `"norm"` for the pointwise Euclidean norm, or a function mapping the
 #' `tf_mv` to a univariate `tf` vector.
 #'
+#' `is.na()` flags a curve as missing if **any** of its components is missing
+#' (the union, not the intersection), which also drives the `na.rm` behaviour
+#' of [mean()] / [median()] etc.
+#'
 #' @param f a `tf_mv` object.
 #' @param which a component name or index.
 #' @param value a univariate `tf` vector (replacement) of matching length and
@@ -44,12 +48,29 @@ tf_ncomp <- function(f) length(attr(f, "components"))
 #' @export
 tf_components <- function(f) attr(f, "components")
 
+map_components <- function(x, .f, ...) {
+  comps <- map(tf_components(x), .f, ...)
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps)
+}
+
+map2_components <- function(x, y, .f, ...) {
+  check_compatible_mv(x, y)
+  comps <- map2(tf_components(x), tf_components(y), .f, ...)
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps)
+}
+
 #' @rdname tf_mv_methods
 #' @export
 tf_component <- function(f, which) {
   comps <- tf_components(f)
   if (is.character(which)) {
-    which <- match.arg(which, names(comps))
+    loc <- match(which, names(comps))
+    if (anyNA(loc)) {
+      cli::cli_abort("Unknown component {.val {which}}.")
+    }
+    which <- loc
   }
   comps[[which]]
 }
@@ -119,6 +140,30 @@ assemble_mv_evals <- function(comp_evals, comp_names, n) {
   })
 }
 
+tf_mv_curve_grids <- function(x) {
+  n <- vec_size(x)
+  arg_vals <- tf_arg(x)
+  if (is.numeric(arg_vals)) {
+    rep(list(arg_vals), n)
+  } else if (
+    all(map_lgl(arg_vals, is.numeric)) &&
+      !identical(names(arg_vals), attr(x, "comp_names"))
+  ) {
+    arg_vals
+  } else {
+    comps <- tf_components(x)
+    lapply(seq_len(n), function(i) {
+      sort(unique(unlist(
+        lapply(comps, function(comp) {
+          comp_arg <- tf_arg(comp)
+          if (is.list(comp_arg)) comp_arg[[i]] else comp_arg
+        }),
+        use.names = FALSE
+      )))
+    })
+  }
+}
+
 #' @export
 tf_evaluations.tf_mv <- function(f) {
   comp_evals <- map(tf_components(f), tf_evaluations)
@@ -127,7 +172,13 @@ tf_evaluations.tf_mv <- function(f) {
 
 #' @export
 tf_count.tf_mv <- function(f) {
-  counts <- map(tf_components(f), tf_count)
+  comps <- tf_components(f)
+  if (length(comps) && all(map_lgl(comps, is_tfb))) {
+    cli::cli_abort(
+      "{.fn tf_count} is not defined for basis-represented ({.cls tfb_mv}) data."
+    )
+  }
+  counts <- map(comps, tf_count)
   mat <- do.call(cbind, counts)
   if (!is.null(mat)) colnames(mat) <- attr(f, "comp_names")
   mat
@@ -160,7 +211,14 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
 #'   univariate result. If `NULL` (default) all `d` components are returned (as
 #'   an `array` `[curve, arg, component]` when `matrix = TRUE`).
 #' @export
-`[.tf_mv` <- function(x, i, j, interpolate = TRUE, matrix = TRUE, component = NULL) {
+`[.tf_mv` <- function(
+  x,
+  i,
+  j,
+  interpolate = TRUE,
+  matrix = TRUE,
+  component = NULL
+) {
   if (!is.null(component)) {
     comp <- tf_component(x, component)
     if (missing(i)) i <- seq_along(comp)
@@ -187,16 +245,16 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     return(xi)
   }
   if (missing(j) && !missing(matrix) && isFALSE(matrix)) {
-    j <- tf_arg(xi)
+    j <- tf_mv_curve_grids(xi)
   }
 
   comps_i <- tf_components(xi)
   if (matrix) {
-    if (missing(j)) {
-      arg_vals <- tf_arg(xi)
-      j <- if (is.list(arg_vals)) sort_unique(arg_vals, simplify = TRUE) else arg_vals
-    }
-    mats <- map(comps_i, \(comp) comp[, j, interpolate = interpolate, matrix = TRUE])
+    if (missing(j)) j <- sort_unique(tf_mv_curve_grids(xi), simplify = TRUE)
+    mats <- map(
+      comps_i,
+      \(comp) comp[, j, interpolate = interpolate, matrix = TRUE]
+    )
     arr <- array(
       unlist(mats, use.names = FALSE),
       dim = c(nrow(mats[[1]]), ncol(mats[[1]]), length(comps_i)),
@@ -205,7 +263,10 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     return(arr)
   }
   # matrix = FALSE: list of per-curve data.frames with arg + one col per comp
-  dfs <- map(comps_i, \(comp) comp[, j, interpolate = interpolate, matrix = FALSE])
+  dfs <- map(
+    comps_i,
+    \(comp) comp[, j, interpolate = interpolate, matrix = FALSE]
+  )
   n_i <- vec_size(xi)
   map(seq_len(n_i), function(k) {
     base <- dfs[[1]][[k]]
@@ -216,6 +277,43 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     out
   }) |>
     setNames(names(xi))
+}
+
+#' @rdname tfbrackets
+#' @export
+`[<-.tf_mv` <- function(x, i, value) {
+  # Replace curves component-wise via the univariate `[<-.tf` (which handles
+  # NA assignment, length recycling and lossy casts per component), then
+  # rebuild. This is more robust than letting the default `[<-.tf` thread a
+  # `vec_slice<-` through the data-frame-of-components proxy.
+  if (missing(i)) i <- seq_along(x)
+  comps <- tf_components(x)
+  value_comps <- if (is_tf_mv(value)) {
+    check_compatible_mv(x, value)
+    tf_components(value)
+  } else {
+    # a scalar (typically NA) is broadcast to every component
+    rep(list(value), length(comps))
+  }
+  new_comps <- map2(comps, value_comps, function(comp, v) {
+    comp[i] <- v
+    comp
+  })
+  names(new_comps) <- attr(x, "comp_names")
+  new_tf_mv(new_comps, domain = tf_domain(x))
+}
+
+#' @export
+`names<-.tf_mv` <- function(x, value) {
+  # curve names live on the underlying components (that is what `vec_restore()`
+  # rebuilds from), so push them down to every component rather than only onto
+  # the outer vctr -- otherwise they are lost on the next subset / concatenation.
+  comps <- map(tf_components(x), function(comp) {
+    names(comp) <- value
+    comp
+  })
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps, domain = tf_domain(x))
 }
 
 # Arithmetic, math, summaries (all component-wise) -----------------------------
@@ -235,52 +333,46 @@ vec_arith.tf_mv.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tf_mv tf_mv
 vec_arith.tf_mv.tf_mv <- function(op, x, y, ...) {
-  check_compatible_mv(x, y)
-  comps <- map2(tf_components(x), tf_components(y), \(a, b) vec_arith(op, a, b))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map2_components(x, y, \(a, b) vec_arith(op, a, b))
 }
 
 #' @export
 #' @method vec_arith.tf_mv numeric
 vec_arith.tf_mv.numeric <- function(op, x, y, ...) {
-  comps <- map(tf_components(x), \(a) vec_arith(op, a, y))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(a) vec_arith(op, a, y))
 }
 
 #' @export
 #' @method vec_arith.numeric tf_mv
 vec_arith.numeric.tf_mv <- function(op, x, y, ...) {
-  comps <- map(tf_components(y), \(b) vec_arith(op, x, b))
-  names(comps) <- attr(y, "comp_names")
-  new_tf_mv(comps)
+  map_components(y, \(b) vec_arith(op, x, b))
 }
 
 #' @export
 #' @method vec_arith.tf_mv MISSING
 vec_arith.tf_mv.MISSING <- function(op, x, y, ...) {
-  comps <- map(tf_components(x), \(a) vec_arith(op, a, MISSING()))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(a) vec_arith(op, a, MISSING()))
 }
 
 #' @export
 Math.tf_mv <- function(x, ...) {
   generic <- .Generic
-  comps <- map(tf_components(x), \(a) do.call(generic, list(a, ...)))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(a) do.call(generic, list(a, ...)))
 }
 
 #' @export
 Summary.tf_mv <- function(..., na.rm = FALSE) {
   generic <- .Generic
-  x <- ..1
-  comps <- map(
-    tf_components(x),
-    \(a) do.call(generic, list(a, na.rm = na.rm))
-  )
+  dots <- list(...)
+  mv_args <- map_lgl(dots, is_tf_mv)
+  x <- dots[[which(mv_args)[1]]]
+  walk(dots[mv_args], \(arg) check_compatible_mv(x, arg))
+  comps <- imap(tf_components(x), function(comp, nm) {
+    comp_args <- map(dots, function(arg) {
+      if (is_tf_mv(arg)) tf_component(arg, nm) else arg
+    })
+    do.call(generic, c(comp_args, list(na.rm = na.rm)))
+  })
   names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps)
 }
@@ -288,6 +380,9 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
 #' @export
 `==.tf_mv` <- function(e1, e2) {
   check_compatible_mv(e1, e2)
+  # a zero-component object has no values to compare: trivially equal (and
+  # `Reduce()` on an empty list would return `NULL` rather than `logical(0)`).
+  if (!tf_ncomp(e1)) return(rep(TRUE, vec_size(e1)))
   eqs <- map2(tf_components(e1), tf_components(e2), \(a, b) a == b)
   Reduce(`&`, eqs)
 }
@@ -297,30 +392,39 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
 
 #' @export
 mean.tf_mv <- function(x, ...) {
-  comps <- map(tf_components(x), \(a) mean(a, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(a) mean(a, ...))
 }
 
 #' @export
 median.tf_mv <- function(x, na.rm = FALSE, ...) {
-  comps <- map(tf_components(x), \(a) median(a, na.rm = na.rm, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(a) median(a, na.rm = na.rm, ...))
 }
 
 #' @export
-sd.tf_mv <- function(x, ...) {
-  comps <- map(tf_components(x), \(a) sd(a, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+sd.tf_mv <- function(x, na.rm = FALSE) {
+  map_components(x, \(a) sd(a, na.rm = na.rm))
 }
 
 #' @export
-var.tf_mv <- function(x, ...) {
-  comps <- map(tf_components(x), \(a) var(a, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+var.tf_mv <- function(x, y = NULL, na.rm = FALSE, use) {
+  has_use <- !missing(use)
+  if (!is.null(y) && is_tf_mv(y)) {
+    check_compatible_mv(x, y)
+    return(map2_components(x, y, function(a, b) {
+      if (has_use) {
+        var(a, y = b, na.rm = na.rm, use = use)
+      } else {
+        var(a, y = b, na.rm = na.rm)
+      }
+    }))
+  }
+  map_components(x, function(a) {
+    if (has_use) {
+      var(a, y = y, na.rm = na.rm, use = use)
+    } else {
+      var(a, y = y, na.rm = na.rm)
+    }
+  })
 }
 
 # Printing / formatting --------------------------------------------------------
@@ -334,6 +438,34 @@ format.tf_mv <- function(x, ...) {
   map_chr(seq_len(n), function(i) {
     paste(map_chr(per_comp, \(p) p[i]), collapse = " | ")
   })
+}
+
+# one-line description of a single component's representation, mirroring the
+# "evaluations / interpolation / basis" lines of print.tfd / print.tfb.
+mv_component_info <- function(comp) {
+  if (is_tfb(comp)) {
+    return(paste0(
+      "in basis representation: ",
+      trimws(paste(attr(comp, "basis_label"), attr(comp, "family_label")))
+    ))
+  }
+  evaluator <- paste0("interpolation by ", attr(comp, "evaluator_name"))
+  if (is_irreg(comp)) {
+    n_evals <- tf_count(comp[!is.na(comp)])
+    grid <- if (length(n_evals)) {
+      paste0(
+        "based on ",
+        min(n_evals),
+        " to ",
+        max(n_evals),
+        " evaluations each"
+      )
+    } else {
+      "irregular"
+    }
+    return(paste0(grid, ", ", evaluator))
+  }
+  paste0("based on ", length(tf_arg(comp)), " evaluations each, ", evaluator)
 }
 
 #' @export
@@ -351,10 +483,32 @@ print.tf_mv <- function(x, n = 6, ...) {
       paste(collapse = " x ")
   }
   cat(paste0(
-    class(x)[1], "<d=", d, ">[", length(x), "] (",
-    paste(comp_names, collapse = ", "), "): [",
-    domain[1], ", ", domain[2], "] -> ", range_str, "\n"
+    class(x)[1],
+    "<d=",
+    d,
+    ">[",
+    length(x),
+    "] (",
+    paste(comp_names, collapse = ", "),
+    "): [",
+    domain[1],
+    ", ",
+    domain[2],
+    "] -> ",
+    range_str,
+    "\n"
   ))
+  if (d > 0L) {
+    info <- map_chr(tf_components(x), mv_component_info)
+    if (length(unique(info)) == 1L) {
+      # all components share the same grid / interpolator / basis
+      cat(paste0("components ", info[1], "\n"))
+    } else {
+      for (k in seq_along(info)) {
+        cat(paste0("  ", comp_names[k], ": ", info[k], "\n"))
+      }
+    }
+  }
   len <- length(x)
   if (len > 0) {
     format(x[seq_len(min(n, len))], ...) |>
@@ -375,6 +529,44 @@ format_glimpse.tf_mv <- function(x, ...) {
 
 # Plotting (rudimentary) -------------------------------------------------------
 
+# graphical parameters that should be recycled *per curve* in trajectory plots
+traj_curve_par <- c("col", "lty", "lwd", "pch", "cex", "lend", "ljoin")
+
+# Evaluate the two components of a 2-d tf_mv on a *common* argument grid so the
+# trajectory y(t)-vs-x(t) can be drawn as paired points. The components may be
+# observed on different (or per-curve irregular) grids, so we evaluate both on
+# the union of all their argument values (interpolating, NA outside each
+# component's observed range).
+trajectory_xy <- function(comps) {
+  grid <- sort(unique(unlist(
+    lapply(comps, \(comp) as.numeric(unlist(tf_arg(comp), use.names = FALSE))),
+    use.names = FALSE
+  )))
+  list(
+    x = as.matrix(comps[[1]], arg = grid, interpolate = TRUE),
+    y = as.matrix(comps[[2]], arg = grid, interpolate = TRUE)
+  )
+}
+
+# Draw each curve (row of mx/my) as a column of a matrix so that matlines()
+# recycles col/lty/lwd/... across curves -- matching univariate plot.tf().
+# A single lines() call per curve would only honour the first element of e.g.
+# `col`, so passing `col = 1:n` would draw every curve in the same colour.
+draw_trajectory <- function(mx, my, dots) {
+  line_args <- modifyList(
+    list(col = 1, lty = 1),
+    dots[intersect(names(dots), traj_curve_par)]
+  )
+  do.call(graphics::matlines, c(list(t(mx), t(my)), line_args))
+}
+
+# default display: "trajectory" for 2-d curves (the movement-data view),
+# "facet" otherwise.
+mv_plot_type <- function(type, comps) {
+  type <- type %||% if (length(comps) == 2L) "trajectory" else "facet"
+  match.arg(type, c("facet", "trajectory"))
+}
+
 #' Plot vector-valued functional data
 #'
 #' Two simple display modes for `tf_mv` objects: `"facet"` draws one panel per
@@ -382,30 +574,53 @@ format_glimpse.tf_mv <- function(x, ...) {
 #' `"trajectory"` (only for `d == 2`) draws the curves in the plane, i.e.
 #' \eqn{y(t)} against \eqn{x(t)} -- the natural view for movement data.
 #'
+#' @details
+#' In `"trajectory"` mode the two components must be paired at common argument
+#' values to form \eqn{(x(t), y(t))} points. When the components are sampled on
+#' different (or per-curve irregular) grids they are therefore evaluated on the
+#' union of their argument grids with `interpolate = TRUE` (values outside a
+#' component's observed range become `NA` and are skipped). For components that
+#' already share a grid this is a no-op.
+#'
 #' @param x a `tf_mv` object.
 #' @param y ignored.
-#' @param type `"facet"` (default) or `"trajectory"`.
-#' @param ... passed to the underlying plotting calls.
+#' @param type `"trajectory"` or `"facet"`. Defaults to `"trajectory"` for
+#'   two-component (`d == 2`) objects and to `"facet"` otherwise.
+#' @param ... passed to the underlying plotting calls. Per-curve graphical
+#'   parameters (`col`, `lty`, `lwd`, ...) are recycled across curves.
 #' @returns `x`, invisibly.
 #' @family tf_mv-class
 #' @export
-plot.tf_mv <- function(x, y, ..., type = c("facet", "trajectory")) {
-  type <- match.arg(type)
+plot.tf_mv <- function(x, y, ..., type = NULL) {
   comps <- tf_components(x)
+  type <- mv_plot_type(type, comps)
   comp_names <- attr(x, "comp_names")
   if (type == "trajectory") {
     if (length(comps) != 2) {
-      cli::cli_abort("{.code type = \"trajectory\"} requires exactly 2 components.")
+      cli::cli_abort(
+        "{.code type = \"trajectory\"} requires exactly 2 components."
+      )
     }
-    mx <- as.matrix(comps[[1]])
-    my <- as.matrix(comps[[2]])
-    plot(
-      range(mx, na.rm = TRUE), range(my, na.rm = TRUE),
-      type = "n", xlab = comp_names[1], ylab = comp_names[2], ...
+    xy <- trajectory_xy(comps)
+    mx <- xy$x
+    my <- xy$y
+    dots <- list(...)
+    # set up the plotting region without per-curve params, then draw the curves
+    setup_dots <- dots[setdiff(names(dots), traj_curve_par)]
+    do.call(
+      plot,
+      c(
+        list(
+          range(mx, na.rm = TRUE),
+          range(my, na.rm = TRUE),
+          type = "n",
+          xlab = comp_names[1],
+          ylab = comp_names[2]
+        ),
+        setup_dots
+      )
     )
-    for (i in seq_len(nrow(mx))) {
-      graphics::lines(mx[i, ], my[i, ], ...)
-    }
+    draw_trajectory(mx, my, dots)
     return(invisible(x))
   }
   op <- graphics::par(mfrow = grDevices::n2mfrow(length(comps)))
@@ -415,16 +630,15 @@ plot.tf_mv <- function(x, y, ..., type = c("facet", "trajectory")) {
 }
 
 #' @rdname plot.tf_mv
-#' @importFrom graphics par lines
+#' @importFrom graphics par lines matlines
 #' @importFrom grDevices n2mfrow
 #' @export
-lines.tf_mv <- function(x, ..., type = c("facet", "trajectory")) {
-  type <- match.arg(type)
+lines.tf_mv <- function(x, ..., type = NULL) {
   comps <- tf_components(x)
+  type <- mv_plot_type(type, comps)
   if (type == "trajectory" && length(comps) == 2) {
-    mx <- as.matrix(comps[[1]])
-    my <- as.matrix(comps[[2]])
-    for (i in seq_len(nrow(mx))) graphics::lines(mx[i, ], my[i, ], ...)
+    xy <- trajectory_xy(comps)
+    draw_trajectory(xy$x, xy$y, list(...))
     return(invisible(x))
   }
   walk(comps, \(comp) graphics::lines(comp, ...))
@@ -434,22 +648,22 @@ lines.tf_mv <- function(x, ..., type = c("facet", "trajectory")) {
 # Conversion / interop ---------------------------------------------------------
 
 #' @export
-as.matrix.tf_mv <- function(x, arg, ...) {
-  comps <- tf_components(x)
-  has_arg <- !missing(arg)
-  mats <- map(comps, \(comp) {
-    if (has_arg) as.matrix(comp, arg = arg, ...) else as.matrix(comp, ...)
-  })
-  arr <- array(
-    unlist(mats, use.names = FALSE),
-    dim = c(nrow(mats[[1]]), ncol(mats[[1]]), length(comps)),
-    dimnames = list(rownames(mats[[1]]), colnames(mats[[1]]), attr(x, "comp_names"))
-  )
-  arr
+as.matrix.tf_mv <- function(x, arg, interpolate = FALSE, ...) {
+  if (missing(arg)) {
+    x[,, interpolate = interpolate, matrix = TRUE]
+  } else {
+    x[, arg, interpolate = interpolate, matrix = TRUE]
+  }
 }
 
 #' @export
-as.data.frame.tf_mv <- function(x, row.names = NULL, optional = FALSE, unnest = FALSE, ...) {
+as.data.frame.tf_mv <- function(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  unnest = FALSE,
+  ...
+) {
   if (!unnest) {
     out <- vctrs::new_data_frame(list(x), n = vec_size(x))
     names(out) <- "data"
@@ -469,8 +683,13 @@ as.data.frame.tf_mv <- function(x, row.names = NULL, optional = FALSE, unnest = 
   })
   out <- per_comp[[1]]
   for (k in seq_along(per_comp)[-1]) {
-    out <- merge(out, per_comp[[k]], by = c("id", "arg"),
-                 all = TRUE, sort = FALSE)
+    out <- merge(
+      out,
+      per_comp[[k]],
+      by = c("id", "arg"),
+      all = TRUE,
+      sort = FALSE
+    )
   }
   out[order(out$id, out$arg), , drop = FALSE]
 }
@@ -485,7 +704,8 @@ tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
     check_compatible_mv(object, basis_from)
     bases <- tf_components(basis_from)
     new_comps <- map2(comps, bases, function(o, b) {
-      if (is.null(arg)) tf_rebase(o, b, ...) else tf_rebase(o, b, arg = arg, ...)
+      if (is.null(arg)) tf_rebase(o, b, ...) else
+        tf_rebase(o, b, arg = arg, ...)
     })
   } else {
     new_comps <- map(comps, function(o) {
@@ -503,15 +723,13 @@ tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
 #' @export
 tf_derive.tf_mv <- function(f, arg, order = 1, ...) {
   has_arg <- !missing(arg)
-  comps <- map(tf_components(f), function(comp) {
+  map_components(f, function(comp) {
     if (has_arg) {
       tf_derive(comp, arg = arg, order = order, ...)
     } else {
       tf_derive(comp, order = order, ...)
     }
   })
-  names(comps) <- attr(f, "comp_names")
-  new_tf_mv(comps)
 }
 
 #' @export
@@ -538,16 +756,17 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
 
 #' @export
 tf_smooth.tf_mv <- function(x, ...) {
-  comps <- map(tf_components(x), \(comp) tf_smooth(comp, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(comp) tf_smooth(comp, ...))
 }
 
 #' @export
-tf_zoom.tf_mv <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...) {
-  comps <- map(tf_components(f), \(comp) tf_zoom(comp, begin = begin, end = end, ...))
-  names(comps) <- attr(f, "comp_names")
-  new_tf_mv(comps)
+tf_zoom.tf_mv <- function(
+  f,
+  begin = tf_domain(f)[1],
+  end = tf_domain(f)[2],
+  ...
+) {
+  map_components(f, \(comp) tf_zoom(comp, begin = begin, end = end, ...))
 }
 
 # Geometric primitives for vector-valued curves --------------------------------
@@ -580,7 +799,9 @@ tf_zoom.tf_mv <- function(f, begin = tf_domain(f)[1], end = tf_domain(f)[2], ...
 #' @rdname tf_geom
 #' @export
 tf_norm <- function(f) {
-  sqrt(Reduce(`+`, map(tf_components(f), \(c) c^2)))
+  comps <- tf_components(f)
+  if (!length(comps)) return(tfd(numeric(0)))
+  sqrt(Reduce(`+`, map(comps, \(comp) comp^2)))
 }
 
 #' @rdname tf_geom
@@ -591,7 +812,9 @@ tf_speed <- function(f) tf_norm(tf_derive(f))
 #' @export
 tf_inner <- function(f, g) {
   check_compatible_mv(f, g)
-  Reduce(`+`, map2(tf_components(f), tf_components(g), \(a, b) a * b))
+  prods <- map2(tf_components(f), tf_components(g), \(a, b) a * b)
+  if (!length(prods)) return(tfd(numeric(0)))
+  Reduce(`+`, prods)
 }
 
 #' @rdname tf_geom
@@ -603,20 +826,36 @@ tf_distance <- function(f, g) tf_norm(f - g)
 tf_tangent <- function(f) {
   df <- tf_derive(f)
   inv_speed <- 1 / tf_norm(df)
-  comps <- map(tf_components(df), \(c) c * inv_speed)
-  names(comps) <- attr(f, "comp_names")
-  new_tf_mv(comps)
+  map_components(df, \(comp) comp * inv_speed)
 }
 
 #' @rdname tf_geom
 #' @export
 tf_reparam_arclength <- function(f) {
+  if (!vec_size(f)) return(f)
   s <- tf_arclength(f, definite = FALSE) # cumulative s(t), one per curve
-  L <- tf_arclength(f)                   # total length per curve
-  u <- s / L                             # u(t) = s(t)/L : domain -> [0, 1]
-  # `tf_warp(f, w)` computes `f o w^{-1}`, so passing `u` (not its inverse)
-  # gives the desired arc-length-parameterised curve `f o u^{-1}`.
-  tf_warp(f, u)
+  L <- tf_arclength(f) # total length per curve
+  dom <- tf_domain(f)
+  # curves that are constant in every component have zero (or undefined) arc
+  # length, so `s / L` would be 0/0 = NaN and produce an invalid (non-monotone)
+  # warp. Reparametrize only the well-defined curves; leave the rest unchanged.
+  degenerate <- !is.finite(L) | L == 0
+  out <- f
+  good <- which(!degenerate)
+  if (length(good)) {
+    # u(t) maps the domain monotonically onto itself. `tf_warp(f, w)` computes
+    # `f o w^{-1}`, so passing `u` (not its inverse) gives the arc-length-
+    # parameterised curve `f o u^{-1}`.
+    u <- dom[1] + diff(dom) * (s[good] / L[good])
+    out[good] <- tf_warp(f[good], u)
+  }
+  if (any(degenerate)) {
+    cli::cli_warn(c(
+      "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
+      "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
+    ))
+  }
+  out
 }
 
 # Arc length -------------------------------------------------------------------
@@ -669,8 +908,10 @@ tf_arclength.default <- function(f, ...) .NotYetImplemented()
 #' @rdname tf_arclength
 #' @export
 tf_arclength.tf_mv <- function(
-  f, arg = NULL,
-  lower = tf_domain(f)[1], upper = tf_domain(f)[2],
+  f,
+  arg = NULL,
+  lower = tf_domain(f)[1],
+  upper = tf_domain(f)[2],
   definite = TRUE,
   method = c("polyline", "derive"),
   ...
@@ -678,8 +919,13 @@ tf_arclength.tf_mv <- function(
   method <- match.arg(method)
   if (method == "derive") {
     speed <- tf_speed(f)
-    call_args <- list(speed, lower = lower, upper = upper,
-                      definite = definite, ...)
+    call_args <- list(
+      speed,
+      lower = lower,
+      upper = upper,
+      definite = definite,
+      ...
+    )
     if (!is.null(arg)) call_args$arg <- arg
     return(do.call(tf_integrate, call_args))
   }
@@ -702,13 +948,17 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     a <- tf_arg(f)
     if (is.numeric(a)) {
       rep(list(a), n)
-    } else if (all(map_lgl(a, is.numeric))) {
+    } else if (
+      all(map_lgl(a, is.numeric)) &&
+        !identical(names(a), attr(f, "comp_names"))
+    ) {
       a # case 1: per-curve, shared across components
     } else {
       # case 2/3: per-component args -> union per curve
       lapply(seq_len(n), function(i) {
         sort(unique(unlist(lapply(comps, function(comp) {
-          ai <- tf_arg(comp); if (is.list(ai)) ai[[i]] else ai
+          ai <- tf_arg(comp)
+          if (is.list(ai)) ai[[i]] else ai
         }))))
       })
     }
@@ -756,16 +1006,12 @@ mv_registration_signal <- function(x, ref_component = 1L) {
 
 #' @export
 tf_warp.tf_mv <- function(x, warp, ...) {
-  comps <- map(tf_components(x), \(comp) tf_warp(comp, warp, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(comp) tf_warp(comp, warp, ...))
 }
 
 #' @export
 tf_align.tf_mv <- function(x, warp, ...) {
-  comps <- map(tf_components(x), \(comp) tf_align(comp, warp, ...))
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  map_components(x, \(comp) tf_align(comp, warp, ...))
 }
 
 #' @export

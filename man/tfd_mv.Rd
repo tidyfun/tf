@@ -65,8 +65,7 @@ a \code{tfd_mv} object (a vctrs vector of length \code{n}).
 \description{
 \code{tfd_mv} represents \emph{vector-valued} functional data -- vectors of functions
 \eqn{f: \mathcal{T} \subset \mathbb{R} \to \mathbb{R}^d}, such as movement
-trajectories \eqn{(x(t), y(t))} or other multivariate-output curves (see
-GitHub issues #18 and #27).
+trajectories \eqn{(x(t), y(t))} or other multivariate-output curves.
 }
 \details{
 A \code{tfd_mv} object of length \code{n} bundles \code{d} \emph{univariate} \code{\link[=tfd]{tfd()}} vectors
@@ -77,21 +76,41 @@ exactly as in the univariate case -- and components may even live on
 different argument grids. Use \code{\link[=tfb_mv]{tfb_mv()}} for a basis representation.
 }
 \examples{
-# a 2-d trajectory built from two univariate tfd vectors:
+# (a) from a (named) list of univariate tfd vectors -- one per component:
 traj <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
 traj
 tf_ncomp(traj)
 traj$x
+
+# (b) from a list of matrices (one [curve, arg] matrix per component):
+t <- seq(0, 1, length.out = 50)
+mx <- matrix(sin(2 * pi * outer(1:3, t)), nrow = 3)
+my <- matrix(cos(2 * pi * outer(1:3, t)), nrow = 3)
+tfd_mv(list(x = mx, y = my), arg = t)
+
+# (c) from a 3-d array with dimensions [curve, arg, component]:
+arr <- array(c(mx, my), dim = c(3, 50, 2),
+             dimnames = list(NULL, NULL, c("x", "y")))
+tfd_mv(arr, arg = t)
+
+# (d) from a long data.frame (id, arg, one value column per component):
+df <- data.frame(
+  id = rep(1:3, each = 50),
+  arg = rep(t, times = 3),
+  x = as.vector(t(mx)),
+  y = as.vector(t(my))
+)
+tfd_mv(df, id = "id", arg = "arg", value = c("x", "y"))
 }
 \seealso{
 \code{\link[=tfb_mv]{tfb_mv()}} for basis representation; \code{\link[=tf_components]{tf_components()}},
 \code{\link[=tf_ncomp]{tf_ncomp()}} and the \code{$} operator to access components.
 
-Other tf_mv-class: 
-\code{\link{plot.tf_mv}()},
-\code{\link{tf_arclength}()},
+Other tf_mv-class:
+\code{\link[=plot.tf_mv]{plot.tf_mv()}},
+\code{\link[=tf_arclength]{tf_arclength()}},
 \code{\link{tf_geom}},
 \code{\link{tf_mv_methods}},
-\code{\link{tfb_mv}}
+\code{\link[=tfb_mv]{tfb_mv()}}
 }
 \concept{tf_mv-class}

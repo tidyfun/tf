@@ -52,11 +52,11 @@ tf_speed(f)
 tf_distance(f, tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2))))
 }
 \seealso{
-Other tf_mv-class: 
-\code{\link{plot.tf_mv}()},
-\code{\link{tf_arclength}()},
+Other tf_mv-class:
+\code{\link[=plot.tf_mv]{plot.tf_mv()}},
+\code{\link[=tf_arclength]{tf_arclength()}},
 \code{\link{tf_mv_methods}},
-\code{\link{tfb_mv}},
-\code{\link{tfd_mv}}
+\code{\link[=tfb_mv]{tfb_mv()}},
+\code{\link[=tfd_mv]{tfd_mv()}}
 }
 \concept{tf_mv-class}

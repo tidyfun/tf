@@ -30,15 +30,22 @@ test_that("tfd_mv construction from a list of matrices works", {
   expect_s3_class(f, "tfd_mv")
   expect_length(f, 3)
   expect_equal(tf_arg(f), arg)
+  expect_equal(f$x, tfd(mx, arg = arg))
+  expect_equal(f$y, tfd(my, arg = arg))
 })
 
 test_that("tfd_mv construction from a 3-d array works", {
-  arr <- array(rnorm(3 * 11 * 2), dim = c(3, 11, 2),
-               dimnames = list(NULL, NULL, c("x", "y")))
+  arr <- array(
+    rnorm(3 * 11 * 2),
+    dim = c(3, 11, 2),
+    dimnames = list(NULL, NULL, c("x", "y"))
+  )
   f <- tfd_mv(arr, arg = seq(0, 1, length.out = 11))
   expect_length(f, 3)
   expect_identical(tf_ncomp(f), 2L)
   expect_identical(names(tf_components(f)), c("x", "y"))
+  expect_equal(f$x, tfd(arr[,, "x"], arg = seq(0, 1, length.out = 11)))
+  expect_equal(f$y, tfd(arr[,, "y"], arg = seq(0, 1, length.out = 11)))
 })
 
 test_that("tfd_mv construction from a long data.frame works", {
@@ -51,6 +58,14 @@ test_that("tfd_mv construction from a long data.frame works", {
   f <- tfd_mv(df, id = "id", arg = "t", value = c("x", "y"))
   expect_length(f, 3)
   expect_identical(names(tf_components(f)), c("x", "y"))
+  expect_equal(
+    f$x,
+    tfd(df[, c("id", "t", "x")], id = "id", arg = "t", value = "x")
+  )
+  expect_equal(
+    f$y,
+    tfd(df[, c("id", "t", "y")], id = "id", arg = "t", value = "y")
+  )
 })
 
 test_that("tfd_mv supports regular and irregular components", {
@@ -77,10 +92,13 @@ test_that("tfd_mv accessors and replacement work", {
   f2 <- f
   f2$x <- f$x * 2
   expect_equal(tf_evaluations(f2$x)[[1]], 2 * tf_evaluations(f$x)[[1]])
+  expect_equal(f2$y, f$y)
   # add a new component by name
   f3 <- f
-  tf_component(f3, "z") <- tf_rgp(3)
+  z <- tf_rgp(3)
+  tf_component(f3, "z") <- z
   expect_identical(tf_ncomp(f3), 3L)
+  expect_equal(f3$z, z)
 })
 
 test_that("tfd_mv handles NA curves (any component NA)", {
@@ -113,19 +131,25 @@ test_that("tfd_mv unions differing component domains by default", {
 })
 
 test_that("tfd_mv accepts a user-supplied common domain", {
-  f <- tfd_mv(list(
-    x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
-    y = tf_rgp(2, arg = seq(0, 1, length.out = 5))
-  ), domain = c(-1, 2))
+  f <- tfd_mv(
+    list(
+      x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+      y = tf_rgp(2, arg = seq(0, 1, length.out = 5))
+    ),
+    domain = c(-1, 2)
+  )
   expect_equal(tf_domain(f), c(-1, 2))
 })
 
 test_that("tfd_mv rejects a domain that doesn't contain the components", {
   expect_error(
-    tfd_mv(list(
-      x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
-      y = tf_rgp(2, arg = seq(0, 2, length.out = 5))
-    ), domain = c(0, 1)),
+    tfd_mv(
+      list(
+        x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+        y = tf_rgp(2, arg = seq(0, 2, length.out = 5))
+      ),
+      domain = c(0, 1)
+    ),
     "not contained"
   )
 })

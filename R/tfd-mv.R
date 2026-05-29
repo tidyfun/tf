@@ -9,7 +9,12 @@ NULL
 # that simply bundles these `d` component-functions; (almost) all methods
 # delegate to the univariate machinery by mapping over the components. See
 # `design/multivariate.md` for the rationale.
-new_tf_mv <- function(components = list(), domain = NULL, class = NULL) {
+new_tf_mv <- function(
+  components = list(),
+  domain = NULL,
+  class = NULL,
+  check_curve_names = TRUE
+) {
   assert_list(components)
   if (length(components)) {
     if (!all(map_lgl(components, is_tf))) {
@@ -55,6 +60,26 @@ new_tf_mv <- function(components = list(), domain = NULL, class = NULL) {
       }
       comp
     })
+    curve_names <- map(components, names)
+    has_curve_names <- map_lgl(curve_names, Negate(is.null))
+    if (any(has_curve_names) && !all(has_curve_names)) {
+      cli::cli_abort(
+        "All components must either be unnamed or have identical curve names."
+      )
+    }
+    if (all(has_curve_names)) {
+      first_names <- curve_names[[1]]
+      if (!all(map_lgl(curve_names[-1], identical, y = first_names))) {
+        if (check_curve_names) {
+          cli::cli_abort("All components must have identical curve names.")
+        }
+        curve_names <- NULL
+      } else {
+        curve_names <- first_names
+      }
+    } else {
+      curve_names <- NULL
+    }
     subclass <- if (all_tfb) "tfb_mv" else "tfd_mv"
     if (!is.null(class) && !identical(class, subclass)) {
       cli::cli_abort(
@@ -70,9 +95,12 @@ new_tf_mv <- function(components = list(), domain = NULL, class = NULL) {
     domain <- domain %||% numeric(2)
     subclass <- class %||% "tfd_mv"
     n <- 0L
+    curve_names <- NULL
   }
+  data <- seq_len(n)
+  names(data) <- curve_names
   new_vctr(
-    seq_len(n),
+    data,
     components = components,
     comp_names = names(components),
     domain = domain,
@@ -100,8 +128,7 @@ build_components <- function(data, constructor, arg, domain, dots, extra) {
 #'
 #' `tfd_mv` represents *vector-valued* functional data -- vectors of functions
 #' \eqn{f: \mathcal{T} \subset \mathbb{R} \to \mathbb{R}^d}, such as movement
-#' trajectories \eqn{(x(t), y(t))} or other multivariate-output curves (see
-#' GitHub issues #18 and #27).
+#' trajectories \eqn{(x(t), y(t))} or other multivariate-output curves.
 #'
 #' A `tfd_mv` object of length `n` bundles `d` *univariate* [tfd()] vectors
 #' (one per output dimension / component), each of length `n`. All numeric work
@@ -125,11 +152,31 @@ build_components <- function(data, constructor, arg, domain, dots, extra) {
 #'   [tf_ncomp()] and the `$` operator to access components.
 #' @family tf_mv-class
 #' @examples
-#' # a 2-d trajectory built from two univariate tfd vectors:
+#' # (a) from a (named) list of univariate tfd vectors -- one per component:
 #' traj <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
 #' traj
 #' tf_ncomp(traj)
 #' traj$x
+#'
+#' # (b) from a list of matrices (one [curve, arg] matrix per component):
+#' t <- seq(0, 1, length.out = 50)
+#' mx <- matrix(sin(2 * pi * outer(1:3, t)), nrow = 3)
+#' my <- matrix(cos(2 * pi * outer(1:3, t)), nrow = 3)
+#' tfd_mv(list(x = mx, y = my), arg = t)
+#'
+#' # (c) from a 3-d array with dimensions [curve, arg, component]:
+#' arr <- array(c(mx, my), dim = c(3, 50, 2),
+#'              dimnames = list(NULL, NULL, c("x", "y")))
+#' tfd_mv(arr, arg = t)
+#'
+#' # (d) from a long data.frame (id, arg, one value column per component):
+#' df <- data.frame(
+#'   id = rep(1:3, each = 50),
+#'   arg = rep(t, times = 3),
+#'   x = as.vector(t(mx)),
+#'   y = as.vector(t(my))
+#' )
+#' tfd_mv(df, id = "id", arg = "arg", value = c("x", "y"))
 #' @rdname tfd_mv
 #' @export
 tfd_mv <- function(data, ...) UseMethod("tfd_mv")
@@ -177,7 +224,7 @@ tfd_mv.array <- function(
     )
   }
   comp_names <- dimnames(data)[[3]] %||% paste0("v", seq_len(d[3]))
-  slices <- map(seq_len(d[3]), \(k) data[, , k, drop = TRUE]) |>
+  slices <- map(seq_len(d[3]), \(k) data[,, k, drop = TRUE]) |>
     setNames(comp_names)
   evaluator <- enexpr(evaluator)
   components <- build_components(
@@ -211,9 +258,11 @@ tfd_mv.data.frame <- function(
   components <- map(value, function(v) {
     rlang::inject(
       tfd(
-        data[, c(if (is.character(id)) id else names(data)[id],
-                 if (is.character(arg)) arg else names(data)[arg],
-                 if (is.character(v)) v else names(data)[v])],
+        data[, c(
+          if (is.character(id)) id else names(data)[id],
+          if (is.character(arg)) arg else names(data)[arg],
+          if (is.character(v)) v else names(data)[v]
+        )],
         domain = domain,
         evaluator = !!evaluator,
         ...
@@ -235,7 +284,13 @@ tfd_mv.tf_mv <- function(
 ) {
   evaluator <- enexpr(evaluator)
   components <- map(tf_components(data), function(comp) {
-    rlang::inject(tfd(comp, arg = arg, domain = domain, evaluator = !!evaluator, ...))
+    rlang::inject(tfd(
+      comp,
+      arg = arg,
+      domain = domain,
+      evaluator = !!evaluator,
+      ...
+    ))
   })
   new_tf_mv(components, domain = domain)
 }

@@ -69,12 +69,13 @@ tfb_mv.list <- function(data, basis = c("spline", "fpc"), ...) {
     return(new_tf_mv(list(), class = "tfb_mv"))
   }
   if (all(map_lgl(data, is_tf))) {
-    components <- map(data, \(comp) {
-      if (is_tfb(comp)) comp else tfb(comp, basis = basis, ...)
-    })
-    return(new_tf_mv(components))
+    mv <- new_tf_mv(data)
+    if (all(map_lgl(data, is_tfb)) && !length(list(...))) {
+      return(mv)
+    }
+    return(tfb_mv(mv, basis = basis, ...))
   }
-  tfb_mv(tfd_mv(data, ...), basis = basis)
+  tfb_mv(tfd_mv(data, ...), basis = basis, ...)
 }
 
 #' @rdname tfb_mv

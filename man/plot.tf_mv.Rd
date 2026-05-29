@@ -5,18 +5,20 @@
 \alias{lines.tf_mv}
 \title{Plot vector-valued functional data}
 \usage{
-\method{plot}{tf_mv}(x, y, ..., type = c("facet", "trajectory"))
+\method{plot}{tf_mv}(x, y, ..., type = NULL)
 
-\method{lines}{tf_mv}(x, ..., type = c("facet", "trajectory"))
+\method{lines}{tf_mv}(x, ..., type = NULL)
 }
 \arguments{
 \item{x}{a \code{tf_mv} object.}
 
 \item{y}{ignored.}
 
-\item{...}{passed to the underlying plotting calls.}
+\item{...}{passed to the underlying plotting calls. Per-curve graphical
+parameters (\code{col}, \code{lty}, \code{lwd}, ...) are recycled across curves.}
 
-\item{type}{\code{"facet"} (default) or \code{"trajectory"}.}
+\item{type}{\code{"trajectory"} or \code{"facet"}. Defaults to \code{"trajectory"} for
+two-component (\code{d == 2}) objects and to \code{"facet"} otherwise.}
 }
 \value{
 \code{x}, invisibly.
@@ -28,11 +30,11 @@ output dimension (delegating to the univariate \code{\link[=plot.tf]{plot.tf()}}
 \eqn{y(t)} against \eqn{x(t)} -- the natural view for movement data.
 }
 \seealso{
-Other tf_mv-class: 
-\code{\link{tf_arclength}()},
+Other tf_mv-class:
+\code{\link[=tf_arclength]{tf_arclength()}},
 \code{\link{tf_geom}},
 \code{\link{tf_mv_methods}},
-\code{\link{tfb_mv}},
-\code{\link{tfd_mv}}
+\code{\link[=tfb_mv]{tfb_mv()}},
+\code{\link[=tfd_mv]{tfd_mv()}}
 }
 \concept{tf_mv-class}

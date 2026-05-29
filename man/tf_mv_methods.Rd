@@ -45,6 +45,10 @@ every component. The registration signal is, by default, the first
 component; use \code{ref_component} to pick another component (by name/index),
 \code{"norm"} for the pointwise Euclidean norm, or a function mapping the
 \code{tf_mv} to a univariate \code{tf} vector.
+
+\code{is.na()} flags a curve as missing if \strong{any} of its components is missing
+(the union, not the intersection), which also drives the \code{na.rm} behaviour
+of \code{\link[=mean]{mean()}} / \code{\link[=median]{median()}} etc.
 }
 \examples{
 f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
@@ -54,11 +58,11 @@ tf_component(f, "y")
 f$y
 }
 \seealso{
-Other tf_mv-class: 
-\code{\link{plot.tf_mv}()},
-\code{\link{tf_arclength}()},
+Other tf_mv-class:
+\code{\link[=plot.tf_mv]{plot.tf_mv()}},
+\code{\link[=tf_arclength]{tf_arclength()}},
 \code{\link{tf_geom}},
-\code{\link{tfb_mv}},
-\code{\link{tfd_mv}}
+\code{\link[=tfb_mv]{tfb_mv()}},
+\code{\link[=tfd_mv]{tfd_mv()}}
 }
 \concept{tf_mv-class}

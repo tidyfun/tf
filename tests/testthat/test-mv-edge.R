@@ -19,6 +19,19 @@ test_that("empty tf_mv prototype: accessors, ops, c(), tibble", {
   expect_identical(nrow(tibble::tibble(traj = f0)), 0L)
 })
 
+test_that("Reduce-based ops on a zero-component prototype stay zero-length", {
+  # d == 0 means the underlying component list is empty, so Reduce() has no
+  # accumulator and would return NULL without an explicit guard.
+  f0 <- tfd_mv(list())
+  expect_identical(f0 == f0, logical(0))
+  expect_identical(f0 != f0, logical(0))
+  expect_s3_class(tf_norm(f0), "tfd")
+  expect_length(tf_norm(f0), 0L)
+  expect_s3_class(tf_inner(f0, f0), "tfd")
+  expect_length(tf_inner(f0, f0), 0L)
+  expect_s3_class(tf_distance(f0, f0), "tfd")
+})
+
 test_that("tfb_mv prototype is constructible and identifiable", {
   tb0 <- tfb_mv(list())
   expect_s3_class(tb0, "tfb_mv")
@@ -48,8 +61,10 @@ test_that("single-curve and single-component tf_mv work end-to-end", {
 
 test_that("NA in any component marks the curve as NA, ops propagate NAs", {
   set.seed(12)
-  fx <- tf_rgp(4); fx[2] <- NA
-  fy <- tf_rgp(4); fy[3] <- NA
+  fx <- tf_rgp(4)
+  fx[2] <- NA
+  fy <- tf_rgp(4)
+  fy[3] <- NA
   f <- tfd_mv(list(x = fx, y = fy))
   # any-component-NA => curve NA
   expect_equal(unname(is.na(f)), c(FALSE, TRUE, TRUE, FALSE))
@@ -63,8 +78,10 @@ test_that("NA in any component marks the curve as NA, ops propagate NAs", {
 
 test_that("all-NA mv curve is handled in tf_evaluations()", {
   set.seed(13)
-  fx <- tf_rgp(3); fx[1] <- NA
-  fy <- tf_rgp(3); fy[1] <- NA
+  fx <- tf_rgp(3)
+  fx[1] <- NA
+  fy <- tf_rgp(3)
+  fy[1] <- NA
   f <- tfd_mv(list(x = fx, y = fy))
   ev <- tf_evaluations(f)
   expect_null(ev[[1]])
@@ -79,20 +96,26 @@ test_that("Summary group generic on tf_mv is component-wise", {
   s <- sum(f)
   expect_s3_class(s, "tfd_mv")
   expect_length(s, 1L)
-  # min/max delegate; just confirm they return a tf_mv (Summary route)
-  expect_s3_class(min(f), "tfd_mv")
-  expect_s3_class(max(f), "tfd_mv")
+  expect_equal(s$x, sum(f$x))
+  expect_equal(s$y, sum(f$y))
+  expect_equal(min(f)$x, min(f$x))
+  expect_equal(max(f)$y, max(f$y))
 })
 
 test_that("var and sd on tf_mv are component-wise and return length-1 mv", {
   set.seed(15)
   f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
-  v <- var(f); s <- sd(f)
-  expect_s3_class(v, "tfd_mv"); expect_length(v, 1L)
-  expect_s3_class(s, "tfd_mv"); expect_length(s, 1L)
+  v <- var(f)
+  s <- sd(f)
+  expect_s3_class(v, "tfd_mv")
+  expect_length(v, 1L)
+  expect_s3_class(s, "tfd_mv")
+  expect_length(s, 1L)
   expect_equal(
-    tf_evaluations(v$x)[[1]], tf_evaluations(var(f$x))[[1]]
+    tf_evaluations(v$x)[[1]],
+    tf_evaluations(var(f$x))[[1]]
   )
+  expect_equal(tf_evaluations(s$y)[[1]], tf_evaluations(sd(f$y))[[1]])
 })
 
 # ---- Arithmetic edge cases ----------------------------------------------------
@@ -102,8 +125,11 @@ test_that("unary minus on tf_mv works (vec_arith.tf_mv.MISSING)", {
   f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
   nf <- -f
   expect_s3_class(nf, "tfd_mv")
-  expect_equal(tf_evaluations((nf + f)$x)[[1]],
-               rep(0, length(tf_arg(f$x))), tolerance = 1e-9)
+  expect_equal(
+    tf_evaluations((nf + f)$x)[[1]],
+    rep(0, length(tf_arg(f$x))),
+    tolerance = 1e-9
+  )
 })
 
 test_that("incompatible arithmetic op errors via vec_arith.tf_mv.default", {
@@ -153,6 +179,8 @@ test_that("tfd_mv(<tf_mv>, arg = ...) re-evaluates on a new grid", {
   g <- tfd_mv(f, arg = new_grid)
   expect_s3_class(g, "tfd_mv")
   expect_equal(tf_arg(g), new_grid)
+  expect_equal(g$x, tfd(f$x, arg = new_grid))
+  expect_equal(g$y, tfd(f$y, arg = new_grid))
 })
 
 # ---- tf_rebase with an mv basis_from -----------------------------------------
@@ -161,10 +189,14 @@ test_that("tf_rebase(mv, mv_basis) uses each component as its own basis", {
   set.seed(20)
   f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
   basis_from <- tfb_mv(
-    tfd_mv(list(x = tf_rgp(1), y = tf_rgp(1))), k = 8, verbose = FALSE
+    tfd_mv(list(x = tf_rgp(1), y = tf_rgp(1))),
+    k = 8,
+    verbose = FALSE
   )
   r <- tf_rebase(f, basis_from)
   expect_s3_class(r, "tfb_mv")
+  expect_equal(r$x, tf_rebase(f$x, basis_from$x))
+  expect_equal(r$y, tf_rebase(f$y, basis_from$y))
 })
 
 # ---- tf_evaluate.tf_mv direct call -------------------------------------------
@@ -176,6 +208,8 @@ test_that("tf_evaluate(<tf_mv>) returns per-curve matrices on requested arg", {
   expect_length(out, 3L)
   expect_identical(dim(out[[1]]), c(3L, 2L))
   expect_identical(colnames(out[[1]]), c("x", "y"))
+  expect_equal(out[[1]][, "x"], tf_evaluate(f$x, arg = c(0.2, 0.5, 0.8))[[1]])
+  expect_equal(out[[3]][, "y"], tf_evaluate(f$y, arg = c(0.2, 0.5, 0.8))[[3]])
 })
 
 # ---- as.matrix(arg=...) and as.data.frame both modes -------------------------
@@ -185,6 +219,37 @@ test_that("as.matrix(<tf_mv>, arg = ...) re-evaluates on a new grid", {
   f <- tfd_mv(list(x = tf_rgp(3, arg = 11L), y = tf_rgp(3, arg = 11L)))
   m <- as.matrix(f, arg = seq(0, 1, length.out = 5))
   expect_identical(dim(m), c(3L, 5L, 2L))
+  expect_equal(
+    m[,, "x"],
+    as.matrix(f$x, arg = seq(0, 1, length.out = 5)),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    m[,, "y"],
+    as.matrix(f$y, arg = seq(0, 1, length.out = 5)),
+    ignore_attr = TRUE
+  )
+})
+
+test_that("as.matrix(<tf_mv>) uses the union grid for mixed regular component grids", {
+  x <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
+  y <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
+  f <- tfd_mv(list(x = x, y = y))
+  m <- as.matrix(f)
+  expect_identical(dim(m), c(1L, 4L, 2L))
+  expect_true(is.na(m[1, "4", "x"]))
+  expect_equal(unname(m[1, "4", "y"]), 14)
+})
+
+test_that("[.tf_mv(matrix = FALSE) uses per-curve union grids when j is missing", {
+  x <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
+  y <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
+  f <- tfd_mv(list(x = x, y = y))
+  out <- f[,, interpolate = FALSE, matrix = FALSE]
+  expect_length(out, 1L)
+  expect_equal(out[[1]]$arg, 1:4)
+  expect_true(is.na(out[[1]]$x[4]))
+  expect_equal(out[[1]]$y, 11:14)
 })
 
 test_that("as.data.frame(<tf_mv>) supports both unnested and 1-column forms", {
@@ -196,6 +261,8 @@ test_that("as.data.frame(<tf_mv>) supports both unnested and 1-column forms", {
   d2 <- as.data.frame(f, unnest = TRUE)
   expect_named(d2, c("id", "arg", "x", "y"))
   expect_identical(nrow(d2), 2L * 5L)
+  expect_equal(d2$x, as.data.frame(f$x, unnest = TRUE)$value)
+  expect_equal(d2$y, as.data.frame(f$y, unnest = TRUE)$value)
 })
 
 # ---- registration: ref_component = "norm" path -------------------------------
@@ -210,19 +277,35 @@ test_that("ref_component = 'norm' runs the norm-based registration path", {
   y <- tfd(t(sapply(shifts, \(s) 0.5 * bump(s))), arg = t)
   f <- tfd_mv(list(x = x, y = y))
   w <- suppressWarnings(suppressMessages(
-    tf_estimate_warps(f, method = "affine", type = "shift",
-                      ref_component = "norm")
+    tf_estimate_warps(
+      f,
+      method = "affine",
+      type = "shift",
+      ref_component = "norm"
+    )
   ))
+  aligned <- suppressWarnings(suppressMessages(tf_align(f, w)))
+  meanvar <- function(mv) {
+    mean(sapply(tf_components(mv), function(comp) {
+      suppressWarnings(mean(tf_evaluations(var(comp))[[1]], na.rm = TRUE))
+    }))
+  }
   expect_s3_class(w, "tfd")
   expect_length(w, 3L)
+  expect_equal(
+    as.matrix(w),
+    as.matrix(suppressWarnings(suppressMessages(
+      tf_estimate_warps(tf_norm(f), method = "affine", type = "shift")
+    )))
+  )
+  expect_lt(meanvar(aligned), 0.1 * meanvar(f))
 })
 
 # ---- tf_component<- adds new components, length mismatch errors --------------
 
 test_that("tfb_mv distributes a component-named list ... per component", {
   set.seed(202)
-  f <- tfd_mv(list(x = tf_rgp(3, arg = 101L),
-                   y = tf_rgp(3, arg = 101L)))
+  f <- tfd_mv(list(x = tf_rgp(3, arg = 101L), y = tf_rgp(3, arg = 101L)))
   # per-component k via a list keyed by component names
   tb <- tfb_mv(f, k = list(x = 5, y = 15), verbose = FALSE)
   expect_s3_class(tb, "tfb_mv")
@@ -240,9 +323,37 @@ test_that("tfb_mv distributes a component-named list ... per component", {
   expect_match(attr(tf_components(tb3)$y, "basis_label"), "k = 8")
 })
 
+test_that("tfb_mv.list forwards basis arguments after tfd_mv conversion", {
+  set.seed(203)
+  mx <- matrix(rnorm(3 * 20), nrow = 3)
+  my <- matrix(rnorm(3 * 20), nrow = 3)
+  tb <- suppressWarnings(suppressMessages(
+    tfb_mv(list(x = mx, y = my), k = 5, verbose = FALSE)
+  ))
+  expect_match(attr(tf_components(tb)$x, "basis_label"), "k = 5")
+  expect_match(attr(tf_components(tb)$y, "basis_label"), "k = 5")
+  expect_equal(
+    tb$x,
+    suppressWarnings(suppressMessages(tfb(tfd(mx), k = 5, verbose = FALSE)))
+  )
+  expect_equal(
+    tb$y,
+    suppressWarnings(suppressMessages(tfb(tfd(my), k = 5, verbose = FALSE)))
+  )
+})
+
+test_that("tfb_mv.list distributes component-named basis arguments for tf inputs", {
+  set.seed(204)
+  f <- list(x = tf_rgp(3, arg = 101L), y = tf_rgp(3, arg = 101L))
+  tb <- tfb_mv(f, k = list(x = 5, y = 15), verbose = FALSE)
+  expect_match(attr(tf_components(tb)$x, "basis_label"), "k = 5")
+  expect_match(attr(tf_components(tb)$y, "basis_label"), "k = 15")
+  expect_equal(tb$x, tfb(f$x, k = 5, verbose = FALSE))
+  expect_equal(tb$y, tfb(f$y, k = 15, verbose = FALSE))
+})
+
 test_that("tfb_mv: a non-component-named list is treated as a shared arg, not distributed", {
-  f <- tfd_mv(list(x = tf_rgp(2, arg = 51L),
-                   y = tf_rgp(2, arg = 51L)))
+  f <- tfd_mv(list(x = tf_rgp(2, arg = 51L), y = tf_rgp(2, arg = 51L)))
   # list whose names don't match component names is NOT distributed (treated as
   # a single arg-value; even though mgcv rejects this particular shape, my
   # dispatcher must still treat both components identically -- both end up with
@@ -288,8 +399,8 @@ test_that("mixed regular/irregular components work across the API", {
   # irregular column (this used to error with a row-count mismatch).
   df <- as.data.frame(f, unnest = TRUE)
   expect_named(df, c("id", "arg", "x", "y"))
-  expect_true(anyNA(df$y))            # irregular y is NA at most reg-grid points
-  expect_false(anyNA(df$x))           # regular x is observed everywhere
+  expect_true(anyNA(df$y)) # irregular y is NA at most reg-grid points
+  expect_false(anyNA(df$x)) # regular x is observed everywhere
 })
 
 test_that("tf_component<- can add a new component and rejects mismatched length", {
@@ -300,4 +411,22 @@ test_that("tf_component<- can add a new component and rejects mismatched length"
   expect_identical(tf_ncomp(f2), 3L)
   expect_named(tf_components(f2), c("x", "y", "z"))
   expect_error(tf_component(f, "x") <- tf_rgp(4), "length")
+})
+
+test_that("tf_mv constructors preserve and require compatible curve names", {
+  x <- tf_rgp(2)
+  y <- tf_rgp(2)
+  names(x) <- c("a", "b")
+  names(y) <- c("a", "b")
+  f <- tfd_mv(list(x = x, y = y))
+  expect_identical(names(f), c("a", "b"))
+
+  names(y) <- c("c", "d")
+  expect_error(tfd_mv(list(x = x, y = y)), "identical curve names")
+})
+
+test_that("tf_component() uses exact component names", {
+  f <- tfd_mv(list(xpos = tf_rgp(2), ypos = tf_rgp(2)))
+  expect_error(tf_component(f, "x"), "Unknown component")
+  expect_s3_class(tf_component(f, "xpos"), "tfd")
 })
