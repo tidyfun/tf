@@ -50,6 +50,7 @@ Suggests:
     fda,
     fdasrvf,
     knitr,
+    maps,
     pillar,
     refund,
     rmarkdown,

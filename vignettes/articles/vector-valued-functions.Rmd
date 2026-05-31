@@ -291,23 +291,27 @@ plot is approximately flat: each curve is traversed at the same speed
 throughout the cycle, equal to its per-subject arc length divided by the
 cycle duration.
 
-# 2. Do stronger Atlantic storms travel further and faster?
+# 2. Atlantic storms as 4-dimensional curves
 
-`dplyr::storms` records the position (latitude / longitude) and intensity
-(wind, pressure, category) of every Atlantic tropical storm or hurricane
-from 1975-2022, sampled (mostly) every 6 hours along the storm's life.
-Tracks have wildly different durations, so the data are genuinely
-**irregularly sampled across storms** even though within-storm cadence is
-regular -- a `tfd_irreg` per-storm structure on `(long, lat)`.
+`dplyr::storms` records four time-varying quantities for every Atlantic
+tropical storm or hurricane from 1975-2022, sampled every 6 hours along
+the storm's life: position (longitude, latitude) and intensity (sustained
+wind speed, central pressure). The natural object is a single
+**four-component** vector-valued curve per storm, `f_i: [0, T_i] -> R^4`
+-- spatial trajectory and intensity life-cycle bundled together.
 
-A naive `tfd_mv` on raw `(long, lat)` would let us do every analysis below,
-but `tf_arclength` / `tf_speed` would report results in degrees / deg per
-hour -- and longitude degrees aren't a physical unit: they shrink from
-~111 km at the equator to ~78 km at 45 N. Atlantic hurricanes spend most of
-their lives at moderate to high latitudes and *recurve to the northeast*,
-so a deg-based metric would systematically overstate the apparent speed of
-high-latitude motion. Project each storm into a local km coordinate system
-first, using its own mean latitude as the projection reference:
+Two practical points:
+
+* `tracks_km` -- the *spatial* `(x_km, y_km)` view in physical units
+  (projecting each storm's `long` / `lat` into a per-storm local-km
+  frame at its own mean latitude) -- is what we use for arc length and
+  forward speed, because deg/h speeds wrongly upweight east-west motion
+  at high latitudes (a longitude degree is ~111 km at the equator but
+  only ~78 km at 45 N).
+* Most life-cycle comparisons between short and long storms only make
+  sense on a **normalised time axis** `phase = t / T_i in [0, 1]`. We
+  build a normalised 4-d object on top of the real-time one and use the
+  appropriate version per question.
 
 ```{r storms-build}
 KM_PER_DEG <- 111.32
@@ -318,19 +322,33 @@ storms_clean <- storms |>
     ts       = as.POSIXct(ISOdate(year, month, day, hour), tz = "UTC")
   ) |>
   group_by(storm_id) |>
-  # IBTrACS occasionally records a landfall row at the same time-stamp as a
-  # regular 6-hourly obs; dedupe so `t_hours` is unique within a storm.
-  distinct(ts, .keep_all = TRUE) |>
+  distinct(ts, .keep_all = TRUE) |>      # dedupe duplicate-timestamp rows
   mutate(
     t_hours = as.numeric(ts - min(ts), units = "hours"),
-    ref_lat = mean(lat),                            # per-storm projection ref
+    phase   = if (max(t_hours) > 0) t_hours / max(t_hours) else 0,
+    ref_lat = mean(lat),
     x_km    = (long - mean(long)) * KM_PER_DEG * cos(ref_lat * pi / 180),
     y_km    = (lat  - ref_lat)    * KM_PER_DEG
   ) |>
-  filter(n() >= 16) |>                              # >= 4 days of life
+  filter(n() >= 16, !is.na(wind), !is.na(pressure)) |>  # >= 4 days
   ungroup()
 
-# peak Saffir-Simpson category per storm (0 = never reached hurricane status)
+# spatial (km, real time)
+tracks_km <- tfd_mv(list(
+  x = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "x_km"),
+  y = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "y_km")
+))
+
+# full 4-d, on normalised life-cycle phase
+tracks4 <- tfd_mv(list(
+  long = tfd(storms_clean, id = "storm_id", arg = "phase", value = "long"),
+  lat  = tfd(storms_clean, id = "storm_id", arg = "phase", value = "lat"),
+  wind = tfd(storms_clean, id = "storm_id", arg = "phase", value = "wind"),
+  pres = tfd(storms_clean, id = "storm_id", arg = "phase", value = "pressure")
+))
+tracks4
+
+# storm-level metadata
 peak <- storms |>
   group_by(name, year) |>
   summarise(peak_cat = suppressWarnings(max(category, na.rm = TRUE)),
@@ -338,22 +356,10 @@ peak <- storms |>
   mutate(peak_cat = ifelse(is.finite(peak_cat), as.integer(peak_cat), 0L),
          storm_id = paste(name, year))
 
-# (long, lat) for the map view
-tracks <- tfd_mv(list(
-  long = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "long"),
-  lat  = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "lat")
-))
-
-# (x_km, y_km) for physical-unit geometry
-tracks_km <- tfd_mv(list(
-  x = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "x_km"),
-  y = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "y_km")
-))
-
 df <- tibble::tibble(
-  storm_id = names(tracks),
-  track    = tracks,
-  track_km = tracks_km
+  storm_id  = names(tracks4),
+  track     = tracks4,
+  track_km  = tracks_km
 ) |>
   left_join(peak, by = "storm_id") |>
   mutate(strength = factor(
@@ -361,103 +367,212 @@ df <- tibble::tibble(
     levels = 0:4,
     labels = c("TS/TD", "Cat 1", "Cat 2", "Cat 3", "Cat 4+")
   ))
-
-df
 ```
 
-## Track map by peak intensity
+## A single 4-d curve: Hurricane Katrina (2005)
 
-The geographic map uses the raw `(long, lat)` view (degrees on both axes,
-as a reader would expect):
+For a single storm the 4-component `tf_mv` is naturally displayed
+in facet mode (`type = "facet"`) -- one panel per component, all on the
+same normalised cycle phase axis:
 
-```{r storms-map, fig.height = 5.2}
-pal <- c("grey70", "#fed976", "#feb24c", "#fd8d3c", "#e31a1c")
-cols_per_storm <- pal[as.integer(df$strength)]
-
-plot(df$track, alpha = 0.6, col = cols_per_storm,
-     xlab = "longitude", ylab = "latitude")
-legend("topleft", bty = "n", lwd = 2, col = pal, legend = levels(df$strength),
-       title = "peak intensity")
+```{r storms-katrina, fig.width = 8, fig.height = 5.4}
+katrina <- df |> filter(storm_id == "Katrina 2005") |> pull(track)
+plot(katrina, type = "facet", lwd = 2)
 ```
 
-Two visual populations: most tropical storms / weak hurricanes (grey /
-yellow) stay in the Gulf of Mexico or run a short westward leg before
-dissipating; major hurricanes (red) recurve into the mid-latitudes and
-often run a long northeastward leg into the open ocean.
+Wind and pressure are anti-correlated -- pressure dips below 920 mbar as
+wind peaks above 150 knots near phase ~0.55 -- and the `(long, lat)`
+panels show Katrina sliding northwest across the Gulf and turning north
+into Louisiana. Bundling intensity and trajectory as a single `tfd_mv`
+lets every operation downstream (subsetting, summaries, arithmetic,
+plotting) treat them as one object.
 
-## Path length and forward speed in physical units
+## Track map, faceted by peak intensity
 
-All geometric quantities below come from `tracks_km` (the projected, km
-view), so they report in kilometres and km/h:
+The geographic view uses the `(long, lat)` components only. Faceting by
+peak Saffir-Simpson category separates the populations cleanly, and a
+coastline backdrop (from `maps::map`) anchors the geography:
 
-```{r storms-arclen, fig.height = 4}
+```{r storms-map, fig.width = 8.2, fig.height = 6.8}
+have_maps <- requireNamespace("maps", quietly = TRUE)
+draw_coast <- function(xlim, ylim) {
+  if (!have_maps) return(invisible())
+  m <- maps::map("world", plot = FALSE,
+                 xlim = xlim, ylim = ylim, fill = FALSE)
+  lines(m$x, m$y, col = "grey55", lwd = 0.6)
+}
+
+xlim <- range(unlist(tf_evaluations(tf_component(df$track, "long"))), na.rm = TRUE)
+ylim <- range(unlist(tf_evaluations(tf_component(df$track, "lat"))),  na.rm = TRUE)
+
+op <- par(mfrow = c(2, 3), mar = c(3.4, 3.4, 2, 1), mgp = c(2, 0.7, 0))
+pal <- c("grey50", "#fed976", "#feb24c", "#fd8d3c", "#e31a1c")
+for (k in seq_along(levels(df$strength))) {
+  lev   <- levels(df$strength)[k]
+  trks  <- df$track[df$strength == lev]
+  spatial <- tfd_mv(list(
+    long = tf_component(trks, "long"),
+    lat  = tf_component(trks, "lat")
+  ))
+  plot(range(xlim), range(ylim), type = "n",
+       xlab = "long", ylab = "lat",
+       main = sprintf("%s (n = %d)", lev, length(trks)))
+  draw_coast(xlim, ylim)
+  lines(spatial, col = pal[k], alpha = 0.4, lwd = 1)
+}
+plot.new()
+legend("center", bty = "n", lwd = 2, col = pal, legend = levels(df$strength),
+       title = "peak intensity", cex = 1.05)
+par(op)
+```
+
+Tropical storms / depressions stay in the southern, western basin; cat-3
+and cat-4+ tracks reach further north and east -- they live longer, get
+caught by the westerlies, and recurve out to sea.
+
+## Scalar features extracted from the 4-d object
+
+Every component of a `tf_mv` is a real `tf` vector and supports the full
+univariate API, so per-storm scalar features fall out as one-liners:
+
+```{r storms-scalars}
 df <- df |> mutate(
-  path_km   = tf_arclength(track_km),
-  duration  = vapply(tf_arg(track_km), \(t) max(t) - min(t), numeric(1)),
-  mean_speed = path_km / duration              # km/h, lifetime average
+  path_km    = tf_arclength(track_km),
+  duration   = vapply(tf_arg(track_km), \(t) max(t) - min(t), numeric(1)),
+  mean_speed = path_km / duration,            # km/h, lifetime average
+  peak_wind  = vapply(tf_evaluations(tf_component(track, "wind")), max, numeric(1)),
+  min_pres   = vapply(tf_evaluations(tf_component(track, "pres")), min, numeric(1))
 )
 
-boxplot(path_km ~ strength, data = df,
-        xlab = "peak intensity", ylab = "track length (km)",
-        col = pal, outline = FALSE, log = "y")
-points(jitter(as.integer(df$strength), 0.4), df$path_km,
-       pch = 16, col = grDevices::adjustcolor(cols_per_storm, alpha.f = 0.4))
-
-df |> group_by(strength) |>
-  summarise(n = dplyr::n(),
-            median_path_km = round(median(path_km)),
-            median_dur_hr  = median(duration),
-            median_speed_kmh = round(median(mean_speed), 1))
+df |>
+  group_by(strength) |>
+  summarise(
+    n = dplyr::n(),
+    median_path_km     = round(median(path_km)),
+    median_speed_kmh   = round(median(mean_speed), 1),
+    median_peak_wind   = median(peak_wind),
+    median_min_pres    = median(min_pres),
+    .groups = "drop"
+  )
 ```
 
-Median path length grows sharply with peak intensity -- a Cat-4+ storm
-typically traces 3-4x the path of a tropical storm -- driven both by
-longer lifetimes *and* by higher mean forward speed.
+Median path length grows roughly 4x from tropical-storm to cat-4+ storms,
+median forward speed roughly doubles, and the canonical wind / pressure
+gap between categories is visible.
 
-## Forward speed time courses
+## Intensity and forward-speed life-cycles per category
 
-The pointwise speed `||dr/dt||` (now in km/h) is a univariate `tfd`. Split
-the speed envelope by peak intensity:
+Plotting all forward-speed and intensity time courses at once is hopeless
+(hundreds of irregular noodles). What we actually want is the
+*mean curve per intensity stratum* on the normalised lifecycle phase
+axis. Evaluate each component on a common phase grid, average within each
+stratum, and re-wrap the result as a length-`G` univariate `tfd` so we
+can use the standard `plot.tf` / `lines.tf` machinery:
 
-```{r storms-speed, fig.height = 4.2}
-df <- df |> mutate(forward_speed = tf_speed(track_km))
+```{r storms-lifecycle, fig.width = 8.2, fig.height = 6.8}
+phase_grid <- seq(0, 1, length.out = 41)
 
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-plot(df$forward_speed[df$strength == "TS/TD"], alpha = 0.35,
-     ylim = c(0, 80), main = "TS / TD",
-     xlab = "hours since genesis", ylab = "forward speed (km/h)")
-plot(df$forward_speed[df$strength == "Cat 4+"], alpha = 0.6, col = "firebrick",
-     ylim = c(0, 80), main = "Cat 4+",
-     xlab = "hours since genesis", ylab = "forward speed (km/h)")
+# forward speed on normalised time: re-arg each storm's km-speed by
+# t / T_i, so all storms share phase domain [0, 1].
+speed_km  <- tf_speed(df$track_km)
+durations <- df$duration
+speed_long <- do.call(rbind, lapply(seq_along(speed_km), function(i) {
+  data.frame(
+    id    = names(speed_km)[i],
+    phase = tf_arg(speed_km[i])[[1]] / durations[i],
+    value = tf_evaluations(speed_km[i])[[1]]
+  )
+}))
+speed_phase <- tfd(speed_long, id = "id", arg = "phase", value = "value",
+                   domain = c(0, 1))
+
+# per-stratum mean curve on the regular phase grid, packaged as length-G tfd
+stratum_mean_tfd <- function(comp, grp, grid = phase_grid) {
+  mat <- as.matrix(comp, arg = grid, interpolate = TRUE)
+  means <- vapply(levels(grp), function(g) {
+    rows <- which(grp == g)
+    if (length(rows) < 2L) return(rep(NA_real_, length(grid)))
+    colMeans(mat[rows, , drop = FALSE], na.rm = TRUE)
+  }, numeric(length(grid)))
+  out <- tfd(t(means), arg = grid, domain = c(0, 1))
+  names(out) <- levels(grp)
+  out
+}
+
+wind_avg  <- stratum_mean_tfd(tf_component(df$track, "wind"), df$strength)
+pres_avg  <- stratum_mean_tfd(tf_component(df$track, "pres"), df$strength)
+speed_avg <- stratum_mean_tfd(speed_phase,                     df$strength)
+
+op <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+plot(wind_avg, col = pal, lwd = 2, alpha = 1,
+     xlab = "lifecycle phase", ylab = "wind (knots)",
+     main = "mean sustained wind")
+legend("topright", bty = "n", lwd = 2, col = pal, legend = levels(df$strength),
+       cex = 0.9, title = "peak intensity")
+plot(pres_avg,  col = pal, lwd = 2, alpha = 1,
+     xlab = "lifecycle phase", ylab = "pressure (mbar)",
+     main = "mean central pressure")
+plot(speed_avg, col = pal, lwd = 2, alpha = 1,
+     xlab = "lifecycle phase", ylab = "forward speed (km/h)",
+     main = "mean forward speed")
+plot.new()
+text(0.5, 0.7, "wind and pressure peak\nnear lifecycle phase 0.5;",
+     adj = 0.5, cex = 1.05)
+text(0.5, 0.35, "forward speed peaks\nlate, during recurvature",
+     adj = 0.5, cex = 1.05)
 par(op)
-
-df |> group_by(strength) |>
-  summarise(median_lifetime_mean_speed_kmh = round(median(
-              vapply(tf_evaluations(forward_speed),
-                     \(v) mean(v, na.rm = TRUE), numeric(1))), 1),
-            n = dplyr::n())
 ```
 
-The Cat-4+ panel shows the canonical hurricane life-cycle in physical
-units: slow westward drift at 10-20 km/h for the first few days, then a
-sharp acceleration to 40-70 km/h during recurvature into the westerlies.
-Weak storms rarely exceed 20-25 km/h.
+Three clean stories on a single `tf_mv` object: intensity peaks
+mid-life-cycle (around `phase ~ 0.5`) and the gap between categories is
+roughly uniform across the cycle; central pressure mirrors wind; forward
+speed peaks much later (around `phase ~ 0.75`) and the strongest storms
+accelerate the most -- the canonical recurvature signature.
 
-## Smoothing the strongest tracks
+## Smoothing on normalised time
 
-`tfb_mv()` smooths each component into a spline basis. On the longest
-6 tracks, the smoothed `(long, lat)` curves give a cleaner picture of the
-overall track geometry without the 6-hourly sampling jitter:
+Fitting a basis representation on raw real-time data has a tractable
+domain-extrapolation problem -- the longest storm runs 600+ hours, but
+most tracks end after 100-200 hours, and a shared basis over [0, 600]
+extrapolates wildly. On the **normalised phase** version this just
+disappears, because every storm spans `[0, 1]`:
 
-```{r storms-tfb, fig.height = 4.8, warning = FALSE}
+```{r storms-tfb, fig.width = 8.2, fig.height = 4.8, warning = FALSE}
 top6 <- df |> arrange(desc(path_km)) |> slice(1:6) |> pull(storm_id)
-tb   <- tfb_mv(tracks[top6], k = 15, verbose = FALSE)
 
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-plot(tracks[top6], col = 1:6, alpha = 0.7,
+# fit a per-component spline basis on (long, lat, wind, pres) over [0, 1]
+tb <- tfb_mv(df$track[df$storm_id %in% top6], k = 12, verbose = FALSE)
+
+# pull just the (long, lat) components out of the 4-d objects so plot.tf_mv
+# defaults to the trajectory (long, lat) view
+raw_xy <- tfd_mv(tf_components(df$track[df$storm_id %in% top6])[c("long","lat")])
+sm_xy  <- tfd_mv(tf_components(tb)[c("long","lat")])
+
+op <- par(mfrow = c(1, 2), mar = c(3.6, 3.6, 2, 1), mgp = c(2, 0.7, 0))
+plot(range(xlim), range(ylim), type = "n",
      xlab = "long", ylab = "lat", main = "raw observations")
-plot(tb, col = 1:6,
+draw_coast(xlim, ylim)
+lines(raw_xy, col = 1:6, lwd = 1.6)
+plot(range(xlim), range(ylim), type = "n",
      xlab = "long", ylab = "lat", main = "spline-smoothed")
+draw_coast(xlim, ylim)
+lines(sm_xy, col = 1:6, lwd = 1.6)
+par(op)
+```
+
+The smoothed trajectories pick up the gross recurvature shape without the
+6-hourly sampling jitter and -- thanks to the normalised time axis --
+without any extrapolation pathology. The same `tb` object also carries
+clean smoothed wind / pressure curves for each storm; for example:
+
+```{r storms-tfb-intensity, fig.width = 8.2, fig.height = 3.4}
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(tf_component(tb, "wind"), col = 1:6, lwd = 2,
+     xlab = "lifecycle phase", ylab = "wind (knots)",
+     main = "smoothed wind")
+plot(tf_component(tb, "pres"), col = 1:6, lwd = 2,
+     xlab = "lifecycle phase", ylab = "pressure (mbar)",
+     main = "smoothed pressure")
 par(op)
 ```
 
