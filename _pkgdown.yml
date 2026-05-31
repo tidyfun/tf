@@ -27,6 +27,7 @@ reference:
   - tf_geom
   - tf_arclength
   - plot.tf_mv
+  - converters-mv
 - title: Evaluating, indexing & re-arranging
   desc: Accessing, appending, evaluating, splitting & combining functional data objects
   contents:
