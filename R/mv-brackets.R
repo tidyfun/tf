@@ -11,18 +11,36 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
 
 #' @rdname tfbrackets
 #' @param component for `tf_mv` objects only: optionally restrict evaluation /
-#'   extraction to a single output dimension (by name or index), returning the
-#'   univariate result. If `NULL` (default) all `d` components are returned (as
-#'   an `array` `[curve, arg, component]` when `matrix = TRUE`).
+#'   extraction to a subset of the output dimensions, given by name or integer
+#'   index. A single name/index drops to the univariate component (a `tfd` or
+#'   `tfb`); a vector of length > 1 returns a sub-`tf_mv` containing just those
+#'   components. `NULL` (default) keeps all `d` components.
 #' @export
 `[.tf_mv` <- function(
   x,
   i,
   j,
+  component = NULL,
   interpolate = TRUE,
-  matrix = TRUE,
-  component = NULL
+  matrix = TRUE
 ) {
+  # multi-component subset: rewrap as a smaller tf_mv with the selected
+  # components, then fall through to the rest of the bracket logic with
+  # `component = NULL` (which now operates on the smaller tf_mv).
+  if (!is.null(component) && length(component) > 1L) {
+    comp_names <- attr(x, "comp_names")
+    if (is.character(component)) {
+      bad <- setdiff(component, comp_names)
+      if (length(bad)) {
+        cli::cli_abort("Unknown component{?s}: {.val {bad}}.")
+      }
+    } else {
+      assert_integerish(component, any.missing = FALSE,
+                        lower = 1L, upper = length(comp_names))
+    }
+    x <- new_tf_mv(tf_components(x)[component], domain = tf_domain(x))
+    component <- NULL
+  }
   if (!is.null(component)) {
     comp <- tf_component(x, component)
     if (missing(i)) i <- seq_along(comp)

@@ -33,6 +33,53 @@ test_that("component= drops to the univariate result", {
   expect_equal(m, f$x[1:2, c(0.1, 0.9)], ignore_attr = TRUE)
 })
 
+test_that("component= with multiple names returns a sub-tf_mv", {
+  set.seed(31)
+  f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3), z = tf_rgp(3)))
+  sub <- f[, , c("x", "y")]
+  expect_s3_class(sub, "tfd_mv")
+  expect_identical(tf_ncomp(sub), 2L)
+  expect_identical(names(tf_components(sub)), c("x", "y"))
+  expect_length(sub, length(f))
+  expect_equal(tf_component(sub, "x"), f$x)
+  expect_equal(tf_component(sub, "y"), f$y)
+})
+
+test_that("component= with multiple indices and curve subset returns sub-tf_mv", {
+  set.seed(32)
+  f <- tfd_mv(list(a = tf_rgp(4), b = tf_rgp(4), c = tf_rgp(4)))
+  sub <- f[2:3, , c(1L, 3L)]
+  expect_s3_class(sub, "tfd_mv")
+  expect_identical(tf_ncomp(sub), 2L)
+  expect_identical(names(tf_components(sub)), c("a", "c"))
+  expect_length(sub, 2L)
+})
+
+test_that("component= with multiple names + j evaluates to a 3-d array", {
+  set.seed(33)
+  f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3), z = tf_rgp(3)))
+  arr <- f[, c(0.1, 0.5, 0.9), c("x", "z")]
+  expect_true(is.array(arr))
+  expect_identical(dim(arr), c(3L, 3L, 2L))
+  expect_identical(dimnames(arr)[[3]], c("x", "z"))
+})
+
+test_that("multi-component selection rejects unknown names", {
+  set.seed(34)
+  f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(f[, , c("x", "not_there")], "Unknown component")
+})
+
+test_that("multi-component selection on tfb_mv stays tfb_mv (no refit)", {
+  set.seed(35)
+  fb <- tfb_mv(tfd_mv(list(a = tf_rgp(3), b = tf_rgp(3), c = tf_rgp(3))),
+               verbose = FALSE)
+  sub <- fb[, , c("a", "b")]
+  expect_s3_class(sub, "tfb_mv")
+  expect_identical(tf_ncomp(sub), 2L)
+  expect_equal(tf_component(sub, "a"), fb$a)
+})
+
 test_that("matrix = FALSE returns per-curve data.frames", {
   set.seed(4)
   f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))

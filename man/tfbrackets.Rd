@@ -12,7 +12,7 @@
 
 \method{[}{tf}(x, i) <- value
 
-\method{[}{tf_mv}(x, i, j, interpolate = TRUE, matrix = TRUE, component = NULL)
+\method{[}{tf_mv}(x, i, j, component = NULL, interpolate = TRUE, matrix = TRUE)
 
 \method{[}{tf_mv}(x, i) <- value
 }
@@ -47,9 +47,10 @@ so subassignment never changes the type of \code{x} but may do a
 potentially lossy cast of \code{value} to the type of \code{x} (with a warning).}
 
 \item{component}{for \code{tf_mv} objects only: optionally restrict evaluation /
-extraction to a single output dimension (by name or index), returning the
-univariate result. If \code{NULL} (default) all \code{d} components are returned (as
-an \code{array} \verb{[curve, arg, component]} when \code{matrix = TRUE}).}
+extraction to a subset of the output dimensions, given by name or integer
+index. A single name/index drops to the univariate component (a \code{tfd} or
+\code{tfb}); a vector of length > 1 returns a sub-\code{tf_mv} containing just those
+components. \code{NULL} (default) keeps all \code{d} components.}
 }
 \value{
 If \code{i} is a two-column matrix, a numeric vector of pointwise
