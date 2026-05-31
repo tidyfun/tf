@@ -98,7 +98,12 @@ test_that("arithmetic is component-wise", {
   expect_s3_class(s, "tfd_mv")
   expect_equal(tf_evaluations(s$x)[[1]], 2 * tf_evaluations(f$x)[[1]])
   d <- f - f
-  expect_true(all(abs(unlist(tf_evaluations(d))) < 1e-9))
+  # tf_evaluations now returns per-curve data.frames (arg, x, y);
+  # the component columns should all be ~0.
+  for (cdf in tf_evaluations(d)) {
+    expect_true(all(abs(cdf$x) < 1e-9))
+    expect_true(all(abs(cdf$y) < 1e-9))
+  }
   scaled <- 3 * f
   expect_equal(tf_evaluations(scaled$y)[[2]], 3 * tf_evaluations(f$y)[[2]])
 })

@@ -75,6 +75,19 @@ regular and irregular sampling, the choice of \code{evaluator}, etc. all behave
 exactly as in the univariate case -- and components may even live on
 different argument grids. Use \code{\link[=tfb_mv]{tfb_mv()}} for a basis representation.
 }
+\section{Inheritance contract}{
+
+\code{tf_mv} classes inherit from \code{"tf"}, so any S3 generic registered on \code{"tf"}
+without an explicit \code{.tf_mv} method is dispatched to the univariate
+implementation -- the right thing component-wise for almost every verb in
+the package (the \code{Math} / \code{Ops} / \code{Summary} group generics, \code{[}, \code{format},
+\code{print}, \code{plot}, \code{lines}, \code{tf_evaluate}, \code{tf_evaluations}, \code{tf_arg},
+\code{tf_domain}, \code{as.matrix}, \code{as.data.frame}, ... all have explicit \code{.tf_mv}
+methods). When you need to \emph{distinguish} univariate-only from any-\code{tf}
+inside a helper, use \code{\link[=is_tf_1d]{is_tf_1d()}}: it returns \code{TRUE} for \code{tfd} / \code{tfb} and
+\code{FALSE} for \code{tfd_mv} / \code{tfb_mv}.
+}
+
 \examples{
 # (a) from a (named) list of univariate tfd vectors -- one per component:
 traj <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
@@ -106,11 +119,11 @@ tfd_mv(df, id = "id", arg = "arg", value = c("x", "y"))
 \code{\link[=tfb_mv]{tfb_mv()}} for basis representation; \code{\link[=tf_components]{tf_components()}},
 \code{\link[=tf_ncomp]{tf_ncomp()}} and the \code{$} operator to access components.
 
-Other tf_mv-class:
-\code{\link[=plot.tf_mv]{plot.tf_mv()}},
-\code{\link[=tf_arclength]{tf_arclength()}},
+Other tf_mv-class: 
+\code{\link{plot.tf_mv}()},
+\code{\link{tf_arclength}()},
 \code{\link{tf_geom}},
 \code{\link{tf_mv_methods}},
-\code{\link[=tfb_mv]{tfb_mv()}}
+\code{\link{tfb_mv}}
 }
 \concept{tf_mv-class}

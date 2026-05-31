@@ -2,7 +2,11 @@
 # op has to be a string!
 summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
   dots <- list(...)
-  funs <- map_lgl(dots, is_tf)
+  # only univariate tf vectors flow through this scalar-evaluations summary
+  # path; tf_mv inputs have their own .tf_mv group-generic in R/ops-mv.R and
+  # must not be silently absorbed into the as.matrix() + apply() reduction
+  # below (which assumes 2-d [curve, arg] not 3-d [curve, arg, component]).
+  funs <- map_lgl(dots, is_tf_1d)
   op_args <- dots[!funs]
   funs <- dots[funs]
   op_call <- function(x) do.call(op, c(list(x), op_args))

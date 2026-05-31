@@ -22,7 +22,7 @@
 #' @keywords internal
 #' @importFrom checkmate assert_choice assert_class assert_count
 #' @importFrom checkmate assert_data_frame assert_flag assert_function
-#' @importFrom checkmate assert_int assert_list assert_logical assert_matrix
+#' @importFrom checkmate assert_int assert_integerish assert_list assert_logical assert_matrix
 #' @importFrom checkmate assert_number assert_numeric assert_string
 #' @importFrom checkmate assert_set_equal assert_subset assert_true
 #' @importFrom checkmate allMissing check_numeric makeAssertionFunction vname

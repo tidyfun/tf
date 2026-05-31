@@ -38,10 +38,20 @@ tf_derive.tf_mv <- function(f, arg, order = 1, ...) {
 
 #' @export
 tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
-  cn <- attr(f, "comp_names")
+  cn <- attr(f, "comp_names") %||% character(0)
   has_arg <- !missing(arg)
   has_lower <- !missing(lower)
   has_upper <- !missing(upper)
+  # zero-component object: return a shape-appropriate empty result instead of
+  # crashing on results[[1]] below.
+  if (!length(cn)) {
+    n <- vec_size(f)
+    if (definite) {
+      return(matrix(numeric(0), nrow = n, ncol = 0,
+                    dimnames = list(names(f), NULL)))
+    }
+    return(new_tf_mv(list(), domain = tf_domain(f), class = "tfd_mv"))
+  }
   results <- map(tf_components(f), function(comp) {
     call_args <- list(comp, definite = definite, ...)
     if (has_arg) call_args$arg <- arg

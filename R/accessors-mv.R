@@ -165,20 +165,41 @@ tf_arg.tf_mv <- function(f) {
   args
 }
 
-# assemble per-component evaluation lists into a list of (n_arg x d) matrices
-assemble_mv_evals <- function(comp_evals, comp_names, n) {
+# assemble per-component evaluation lists into a uniform list of per-curve
+# data.frames with columns (arg, comp1, ..., compd). `grids` is either a single
+# numeric vector (shared across curves) or a length-n list of per-curve grids.
+# `comp_evals[[k]][[i]]` holds the k-th component's numeric evaluations at
+# `grids[[i]]` (or `grids`); NA-fill where a component has no value at that arg.
+assemble_mv_evals <- function(comp_evals, grids, comp_names, n) {
   if (!n) return(list())
+  d <- length(comp_evals)
+  shared_grid <- !is.list(grids)
   map(seq_len(n), function(i) {
-    cols <- map(comp_evals, \(ce) ce[[i]])
-    if (any(map_lgl(cols, is.null))) return(NULL)
-    if (length(unique(lengths(cols))) > 1L) {
-      # components on differing grids: cannot form a single matrix
-      return(setNames(cols, comp_names))
+    g <- if (shared_grid) grids else grids[[i]]
+    df <- data_frame0(arg = if (length(g)) g else numeric(0))
+    if (!d) return(df)
+    for (k in seq_len(d)) {
+      v <- comp_evals[[k]][[i]]
+      df[[comp_names[k]]] <- if (is.null(v) || length(v) != length(g)) {
+        rep(NA_real_, length(g))
+      } else {
+        v
+      }
     }
-    mat <- do.call(cbind, cols)
-    colnames(mat) <- comp_names
-    mat
+    df
   })
+}
+
+# private companion: drop the leading `arg` column and return the component
+# evaluations as a plain numeric matrix [n_arg, d]. Used by callers (e.g.
+# arclength_polyline) that need the matrix shape internally.
+evals_to_matrix <- function(df) {
+  if (!ncol(df) || ncol(df) == 1L) {
+    return(matrix(numeric(0), nrow = nrow(df), ncol = 0))
+  }
+  mat <- as.matrix(df[, -1L, drop = FALSE])
+  rownames(mat) <- NULL
+  mat
 }
 
 tf_mv_curve_grids <- function(x) {
@@ -207,8 +228,18 @@ tf_mv_curve_grids <- function(x) {
 
 #' @export
 tf_evaluations.tf_mv <- function(f) {
-  comp_evals <- map(tf_components(f), tf_evaluations)
-  assemble_mv_evals(comp_evals, attr(f, "comp_names"), vec_size(f))
+  if (!vec_size(f)) return(list())
+  comps <- tf_components(f)
+  comp_names <- attr(f, "comp_names")
+  n <- vec_size(f)
+  # Evaluate every component on each curve's union grid so the per-curve
+  # data.frame has a single shared `arg` column with NA-fill where a component
+  # has no native observation. (For aligned-grid mv this is a no-op.)
+  grids <- tf_mv_curve_grids(f)
+  comp_evals <- map(comps, \(comp) {
+    map(comp[, grids, matrix = FALSE], `[[`, "value")
+  })
+  assemble_mv_evals(comp_evals, grids, comp_names, n)
 }
 
 #' @export

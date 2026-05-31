@@ -86,8 +86,8 @@ test_that("tfd_mv accessors and replacement work", {
   expect_equal(tf_domain(f), c(0, 1))
   evs <- tf_evaluations(f)
   expect_length(evs, 3)
-  expect_true(is.matrix(evs[[1]]))
-  expect_identical(colnames(evs[[1]]), c("x", "y"))
+  expect_s3_class(evs[[1]], "data.frame")
+  expect_identical(colnames(evs[[1]]), c("arg", "x", "y"))
   # replace a component
   f2 <- f
   f2$x <- f$x * 2

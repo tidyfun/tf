@@ -2,11 +2,25 @@
 
 #' @export
 tf_evaluate.tf_mv <- function(object, arg, ...) {
-  has_arg <- !missing(arg)
-  comp_evals <- map(tf_components(object), function(comp) {
-    if (has_arg) tf_evaluate(comp, arg = arg, ...) else tf_evaluate(comp)
+  if (!vec_size(object)) return(list())
+  comps <- tf_components(object)
+  comp_names <- attr(object, "comp_names")
+  n <- vec_size(object)
+  has_arg <- !missing(arg) && !is.null(arg)
+  # Build the per-curve evaluation grid: caller's `arg` (a numeric vector or
+  # per-curve list) if supplied, otherwise the per-curve union of the
+  # components' native grids. Then evaluate each component on that grid so
+  # every per-curve data.frame has a single `arg` column with NA-fill where
+  # a component has no value at that arg.
+  if (has_arg) {
+    grids <- if (is.list(arg)) arg else rep(list(arg), n)
+  } else {
+    grids <- tf_mv_curve_grids(object)
+  }
+  comp_evals <- map(comps, function(comp) {
+    tf_evaluate(comp, arg = grids, ...)
   })
-  assemble_mv_evals(comp_evals, attr(object, "comp_names"), vec_size(object))
+  assemble_mv_evals(comp_evals, grids, comp_names, n)
 }
 
 #' @rdname tfbrackets

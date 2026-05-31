@@ -137,6 +137,17 @@ build_components <- function(data, constructor, arg, domain, dots, extra) {
 #' exactly as in the univariate case -- and components may even live on
 #' different argument grids. Use [tfb_mv()] for a basis representation.
 #'
+#' @section Inheritance contract:
+#' `tf_mv` classes inherit from `"tf"`, so any S3 generic registered on `"tf"`
+#' without an explicit `.tf_mv` method is dispatched to the univariate
+#' implementation -- the right thing component-wise for almost every verb in
+#' the package (the `Math` / `Ops` / `Summary` group generics, `[`, `format`,
+#' `print`, `plot`, `lines`, `tf_evaluate`, `tf_evaluations`, `tf_arg`,
+#' `tf_domain`, `as.matrix`, `as.data.frame`, ... all have explicit `.tf_mv`
+#' methods). When you need to *distinguish* univariate-only from any-`tf`
+#' inside a helper, use [is_tf_1d()]: it returns `TRUE` for `tfd` / `tfb` and
+#' `FALSE` for `tfd_mv` / `tfb_mv`.
+#'
 #' @param data one of: a (named) `list` of univariate `tf` vectors (used
 #'   directly, one per component); a (named) `list` of numeric matrices /
 #'   data.frames (one *per component*, each turned into a [tfd()]); a 3-d

@@ -100,8 +100,15 @@ test_that("all-NA mv curve is handled in tf_evaluations()", {
   fy[1] <- NA
   f <- tfd_mv(list(x = fx, y = fy))
   ev <- tf_evaluations(f)
-  expect_null(ev[[1]])
-  expect_true(is.matrix(ev[[2]]))
+  # new uniform shape: list of per-curve (arg, x, y) data.frames. For the
+  # all-NA curve the arg grid is still well-defined (the union of the
+  # components' native grids) but the value columns are NA-filled.
+  expect_s3_class(ev[[1]], "data.frame")
+  expect_identical(colnames(ev[[1]]), c("arg", "x", "y"))
+  expect_true(all(is.na(ev[[1]]$x)) && all(is.na(ev[[1]]$y)))
+  expect_s3_class(ev[[2]], "data.frame")
+  expect_identical(colnames(ev[[2]]), c("arg", "x", "y"))
+  expect_false(anyNA(ev[[2]]$x) || anyNA(ev[[2]]$y))
 })
 
 # ---- Summary group generic and stat methods ----------------------------------
@@ -217,15 +224,18 @@ test_that("tf_rebase(mv, mv_basis) uses each component as its own basis", {
 
 # ---- tf_evaluate.tf_mv direct call -------------------------------------------
 
-test_that("tf_evaluate(<tf_mv>) returns per-curve matrices on requested arg", {
+test_that("tf_evaluate(<tf_mv>) returns per-curve data.frames on requested arg", {
   set.seed(21)
   f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
   out <- tf_evaluate(f, arg = c(0.2, 0.5, 0.8))
   expect_length(out, 3L)
-  expect_identical(dim(out[[1]]), c(3L, 2L))
-  expect_identical(colnames(out[[1]]), c("x", "y"))
-  expect_equal(out[[1]][, "x"], tf_evaluate(f$x, arg = c(0.2, 0.5, 0.8))[[1]])
-  expect_equal(out[[3]][, "y"], tf_evaluate(f$y, arg = c(0.2, 0.5, 0.8))[[3]])
+  # uniform shape: list of n per-curve data.frames (arg, comp1, ..., compd)
+  expect_s3_class(out[[1]], "data.frame")
+  expect_identical(colnames(out[[1]]), c("arg", "x", "y"))
+  expect_identical(nrow(out[[1]]), 3L)
+  expect_identical(out[[1]]$arg, c(0.2, 0.5, 0.8))
+  expect_equal(out[[1]]$x, tf_evaluate(f$x, arg = c(0.2, 0.5, 0.8))[[1]])
+  expect_equal(out[[3]]$y, tf_evaluate(f$y, arg = c(0.2, 0.5, 0.8))[[3]])
 })
 
 # ---- as.matrix(arg=...) and as.data.frame both modes -------------------------
@@ -277,11 +287,23 @@ test_that("as.data.frame(<tf_mv>) supports both unnested and 1-column forms", {
   d1 <- as.data.frame(f)
   expect_identical(nrow(d1), 2L)
   expect_named(d1, "data")
+  # default schema is long: (id, arg, component, value), 2 * 5 * 2 = 20 rows
   d2 <- as.data.frame(f, unnest = TRUE)
-  expect_named(d2, c("id", "arg", "x", "y"))
-  expect_identical(nrow(d2), 2L * 5L)
-  expect_equal(d2$x, as.data.frame(f$x, unnest = TRUE)$value)
-  expect_equal(d2$y, as.data.frame(f$y, unnest = TRUE)$value)
+  expect_named(d2, c("id", "arg", "component", "value"))
+  expect_s3_class(d2$component, "factor")
+  expect_identical(levels(d2$component), c("x", "y"))
+  expect_identical(nrow(d2), 2L * 5L * 2L)
+  # x values match the univariate as.data.frame on the x-component
+  expect_equal(d2$value[d2$component == "x"],
+               as.data.frame(f$x, unnest = TRUE)$value)
+  expect_equal(d2$value[d2$component == "y"],
+               as.data.frame(f$y, unnest = TRUE)$value)
+  # opt-in to legacy wide schema
+  d2w <- as.data.frame(f, unnest = TRUE, long = FALSE)
+  expect_named(d2w, c("id", "arg", "x", "y"))
+  expect_identical(nrow(d2w), 2L * 5L)
+  expect_equal(d2w$x, as.data.frame(f$x, unnest = TRUE)$value)
+  expect_equal(d2w$y, as.data.frame(f$y, unnest = TRUE)$value)
 })
 
 # ---- registration: ref_component = "norm" path -------------------------------
@@ -397,10 +419,12 @@ test_that("mixed regular/irregular components work across the API", {
   expect_named(a, c("x", "y"))
   expect_true(is.numeric(a$x))
   expect_true(is.list(a$y))
-  # tf_evaluations[[i]] is a named per-curve list (lengths differ across comps)
+  # tf_evaluations[[i]] is a per-curve data.frame (arg, x, y) on the union grid;
+  # NA-filled where a component lacks a native observation at that arg.
   ev <- tf_evaluations(f)[[1]]
-  expect_named(ev, c("x", "y"))
-  expect_false(length(ev$x) == length(ev$y))
+  expect_s3_class(ev, "data.frame")
+  expect_named(ev, c("arg", "x", "y"))
+  expect_true(anyNA(ev$x) || anyNA(ev$y))
   # tf_count is n x d
   expect_identical(dim(tf_count(f)), c(3L, 2L))
   # subset preserves component classes
@@ -413,10 +437,10 @@ test_that("mixed regular/irregular components work across the API", {
   cc <- c(f, f)
   expect_length(cc, 6L)
   expect_true(is_reg(cc$x) && is_irreg(cc$y))
-  # as.data.frame(unnest = TRUE) full-outer-joins on (id, arg) so that
-  # rows where only the regular component has a value get NAs in the
+  # as.data.frame(unnest = TRUE, long = FALSE) full-outer-joins on (id, arg)
+  # so that rows where only the regular component has a value get NAs in the
   # irregular column (this used to error with a row-count mismatch).
-  df <- as.data.frame(f, unnest = TRUE)
+  df <- as.data.frame(f, unnest = TRUE, long = FALSE)
   expect_named(df, c("id", "arg", "x", "y"))
   expect_true(anyNA(df$y)) # irregular y is NA at most reg-grid points
   expect_false(anyNA(df$x)) # regular x is observed everywhere

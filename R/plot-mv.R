@@ -3,20 +3,18 @@
 # graphical parameters that should be recycled *per curve* in trajectory plots
 traj_curve_par <- c("col", "lty", "lwd", "pch", "cex", "lend", "ljoin")
 
-# Evaluate the two components of a 2-d tf_mv on a *common* argument grid so the
-# trajectory y(t)-vs-x(t) can be drawn as paired points. The components may be
-# observed on different (or per-curve irregular) grids, so we evaluate both on
-# the union of all their argument values (interpolating, NA outside each
-# component's observed range).
-trajectory_xy <- function(comps) {
-  grid <- sort(unique(unlist(
-    lapply(comps, \(comp) as.numeric(unlist(tf_arg(comp), use.names = FALSE))),
-    use.names = FALSE
-  )))
-  list(
-    x = as.matrix(comps[[1]], arg = grid, interpolate = TRUE),
-    y = as.matrix(comps[[2]], arg = grid, interpolate = TRUE)
-  )
+# Extract paired (x(t), y(t)) matrices from a 2-component tf_mv for matlines.
+# Delegates to the *exported* `as.matrix.tf_mv`, which already does the
+# union-grid + NA-fill coercion. Kept as a 2-line internal so the plot
+# methods read clearly; downstream consumers wanting the same semantics
+# should use `as.matrix.tf_mv()` or `as.data.frame.tf_mv(long = TRUE)`
+# directly rather than reach into this private helper.
+mv_paired_xy <- function(x) {
+  arr <- as.matrix(x, interpolate = TRUE)  # [n_curve, n_arg, 2]
+  list(x = matrix(arr[, , 1L], nrow = dim(arr)[1L], ncol = dim(arr)[2L],
+                  dimnames = dimnames(arr)[1:2]),
+       y = matrix(arr[, , 2L], nrow = dim(arr)[1L], ncol = dim(arr)[2L],
+                  dimnames = dimnames(arr)[1:2]))
 }
 
 # Draw each curve (row of mx/my) as a column of a matrix so that matlines()
@@ -76,7 +74,7 @@ plot.tf_mv <- function(x, y, ..., type = NULL) {
         "{.code type = \"trajectory\"} requires exactly 2 components."
       )
     }
-    xy <- trajectory_xy(comps)
+    xy <- mv_paired_xy(x)
     mx <- xy$x
     my <- xy$y
     dots <- list(...)
@@ -118,7 +116,7 @@ lines.tf_mv <- function(x, ..., type = NULL) {
   comps <- tf_components(x)
   type <- mv_plot_type(type, comps)
   if (type == "trajectory" && length(comps) == 2) {
-    xy <- trajectory_xy(comps)
+    xy <- mv_paired_xy(x)
     draw_trajectory(xy$x, xy$y, list(...))
     return(invisible(x))
   }

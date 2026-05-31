@@ -18,6 +18,7 @@
 \alias{is.na.tf}
 \alias{is.na.tfd_irreg}
 \alias{is_tf}
+\alias{is_tf_1d}
 \alias{is_tfd}
 \alias{is_reg}
 \alias{is_tfd_reg}
@@ -64,6 +65,8 @@ tf_arg(x) <- value
 \method{is.na}{tfd_irreg}(x)
 
 is_tf(x)
+
+is_tf_1d(x)
 
 is_tfd(x)
 
@@ -115,6 +118,11 @@ the input object with modified properties.
 \description{
 A bunch of methods & utilities that do what they say: get or set the
 respective attributes of a \code{tf}-object.
+
+\code{is_tf_1d()} distinguishes \emph{univariate} \code{tf} vectors (length-\code{n}
+samples of \code{f: R -> R}) from any \code{tf} vector. Returns \code{TRUE} for \code{tfd} /
+\code{tfb} and \code{FALSE} for \code{tfd_mv} / \code{tfb_mv}. Useful as a dispatch / guard
+predicate inside helpers that assume scalar per-arg evaluations.
 }
 \examples{
 x <- tf_rgp(3)
@@ -134,8 +142,8 @@ tf_basis(xb)(c(0, .1, .2))
 c(is_tfb(xb), is_tfb_spline(xb), is_tfb_fpc(xb))
 }
 \seealso{
-Other tidyfun utility functions:
-\code{\link[=in_range]{in_range()}},
-\code{\link[=tf_zoom]{tf_zoom()}}
+Other tidyfun utility functions: 
+\code{\link{in_range}()},
+\code{\link{tf_zoom}()}
 }
 \concept{tidyfun utility functions}

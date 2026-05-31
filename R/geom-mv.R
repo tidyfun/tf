@@ -57,8 +57,22 @@ tf_norm.tf <- function(f) abs(f)
 #' @export
 tf_norm.tf_mv <- function(f) {
   comps <- tf_components(f)
-  if (!length(comps)) return(tfd(numeric(0)))
-  sqrt(Reduce(`+`, map(comps, \(comp) comp^2)))
+  n <- vec_size(f)
+  if (!length(comps) || !n) return(tfd(numeric(0), domain = tf_domain(f)))
+  # Components may live on different argument grids (the constructor allows
+  # this); the univariate `+` would error or misalign. Evaluate every component
+  # on each curve's union grid, compute sqrt(sum_k val_k^2) pointwise, then
+  # build a fresh tfd from the resulting (arg, value) pairs. Also dodges the
+  # tfb-squaring path that would otherwise rebase comp^2 lossily.
+  per_curve <- tf_evaluate(f)
+  vals <- map(per_curve, function(cdf) {
+    if (!nrow(cdf)) return(numeric(0))
+    sqrt(rowSums(evals_to_matrix(cdf)^2))
+  })
+  args <- map(per_curve, `[[`, "arg")
+  out <- tfd(vals, arg = args, domain = tf_domain(f))
+  names(out) <- names(f)
+  out
 }
 
 #' @rdname tf_geom
@@ -293,11 +307,17 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     sort(unique(c(lo_i, g, up_i)))
   })
   empty <- vapply(grids, function(g) length(g) < 2L, logical(1))
-  paired_evals <- vector("list", n)
+  paired_dfs <- vector("list", n)
   if (any(!empty)) {
-    paired_evals[!empty] <- tf_evaluate(f[!empty], arg = grids[!empty])
+    paired_dfs[!empty] <- tf_evaluate(f[!empty], arg = grids[!empty])
   }
-  incomplete <- map_lgl(paired_evals, \(mat) is.matrix(mat) && anyNA(mat))
+  # `tf_evaluate.tf_mv` now returns a uniform list of per-curve data.frames
+  # `(arg, comp1, ..., compd)`. Drop the arg column to get the value matrix
+  # required by the polyline segment-length computation.
+  incomplete <- map_lgl(paired_dfs, function(df) {
+    is.data.frame(df) && nrow(df) > 0L &&
+      anyNA(df[, -1L, drop = FALSE])
+  })
   if (any(incomplete)) {
     idx <- which(incomplete)
     cli::cli_abort(c(
@@ -308,8 +328,9 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   }
   per_curve_segs <- map(seq_len(n), function(i) {
     if (empty[i]) return(NA_real_)
-    mat <- paired_evals[[i]]
-    if (is.null(mat)) return(NA_real_)
+    df <- paired_dfs[[i]]
+    if (is.null(df) || !nrow(df)) return(NA_real_)
+    mat <- evals_to_matrix(df)
     if (nrow(mat) < 2L) return(numeric(0))
     sqrt(rowSums(diff(mat)^2))
   })

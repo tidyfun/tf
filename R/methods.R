@@ -258,6 +258,14 @@ is.na.tfd_irreg <- function(x) {
 is_tf <- function(x) inherits(x, "tf")
 
 #' @rdname tfmethods
+#' @description `is_tf_1d()` distinguishes *univariate* `tf` vectors (length-`n`
+#'   samples of `f: R -> R`) from any `tf` vector. Returns `TRUE` for `tfd` /
+#'   `tfb` and `FALSE` for `tfd_mv` / `tfb_mv`. Useful as a dispatch / guard
+#'   predicate inside helpers that assume scalar per-arg evaluations.
+#' @export
+is_tf_1d <- function(x) inherits(x, "tf") && !inherits(x, "tf_mv")
+
+#' @rdname tfmethods
 #' @export
 is_tfd <- function(x) inherits(x, "tfd")
 
