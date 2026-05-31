@@ -49,11 +49,8 @@ Suggests:
     dplyr,
     fda,
     fdasrvf,
-    knitr,
-    maps,
     pillar,
     refund,
-    rmarkdown,
     testthat (>= 3.0.0),
     tibble,
     tidyr,
@@ -86,16 +83,16 @@ Collate:
     'tfd-class.R'
     'tfd-mv.R'
     'tfb-mv.R'
-    'mv-vctrs.R'
-    'mv-accessors.R'
-    'mv-brackets.R'
-    'mv-calculus.R'
-    'mv-convert.R'
-    'mv-geom.R'
-    'mv-ops.R'
-    'mv-plot.R'
-    'mv-print-format.R'
-    'mv-register.R'
+    'vctrs-mv.R'
+    'accessors-mv.R'
+    'brackets-mv.R'
+    'calculus-mv.R'
+    'convert-mv.R'
+    'geom-mv.R'
+    'ops-mv.R'
+    'plot-mv.R'
+    'print-format-mv.R'
+    'register-mv.R'
     'print-format.R'
     'rebase.R'
     'register-cc.R'
