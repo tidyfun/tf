@@ -148,21 +148,40 @@ tf_reparam_arclength <- function(f) {
   # length, so `s / L` would be 0/0 = NaN and produce an invalid (non-monotone)
   # warp. Reparametrize only the well-defined curves; leave the rest unchanged.
   degenerate <- !is.finite(L) | L == 0
-  out <- f
   good <- which(!degenerate)
-  if (length(good)) {
-    # u(t) maps the domain monotonically onto itself. `tf_warp(f, w)` computes
-    # `f o w^{-1}`, so passing `u` (not its inverse) gives the arc-length-
-    # parameterised curve `f o u^{-1}`.
-    u <- dom[1] + diff(dom) * (s[good] / L[good])
-    out[good] <- tf_warp(f[good], u)
+  if (!length(good)) {
+    if (any(degenerate)) {
+      cli::cli_warn(c(
+        "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
+        "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
+      ))
+    }
+    return(f)
   }
-  if (any(degenerate)) {
-    cli::cli_warn(c(
-      "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
-      "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
-    ))
+  # u(t) maps the domain monotonically onto itself. `tf_warp(f, w)` computes
+  # `f o w^{-1}`, so passing `u` (not its inverse) gives the arc-length-
+  # parameterised curve `f o u^{-1}`.
+  u <- dom[1] + diff(dom) * (s[good] / L[good])
+  warped <- tf_warp(f[good], u)
+  if (!any(degenerate)) {
+    return(warped)
   }
+  # `warped` may have a more general per-component type than `f` (e.g.
+  # tfd_irreg from a tfd_reg input), so in-place `out[good] <- warped`
+  # can fail with a vctrs ptype mismatch. Build the output by ptype-aware
+  # concatenation of warped + untouched, then reorder back to input index.
+  cli::cli_warn(c(
+    "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
+    "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
+  ))
+  bad <- which(degenerate)
+  common <- vctrs::vec_ptype_common(warped, f[bad])
+  out <- vctrs::vec_c(
+    vctrs::vec_cast(warped,    common),
+    vctrs::vec_cast(f[bad],    common)
+  )
+  out <- out[order(c(good, bad))]
+  names(out) <- names(f)
   out
 }
 

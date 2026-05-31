@@ -19,280 +19,404 @@ knitr::opts_chunk$set(
 set.seed(1)
 ```
 
-A `tf` vector represents a sample of functions `f: R -> R`. Many real-world
-processes, though, produce several coupled signals that share a common argument
--- a `(hip, knee)` joint-angle pair sampled along a gait cycle, a `(longitude,
-latitude)` storm track sampled in time, a `(x, y, z)` position recorded along
-the body of a moving animal. The natural object is then a **vector-valued
-function** `f: R -> R^d`, and `tf` represents a sample of those with the
-`tf_mv` family:
+A `tf` vector represents a sample of functions `f: R -> R`. Many real
+measurement processes, though, produce several coupled signals that share a
+common argument: the `(hip, knee)` joint-angle pair sampled across a gait
+cycle, the `(longitude, latitude)` position of a hurricane sampled in time,
+the `(x, y, z)` body coordinates of a moving animal. The natural object is a
+**vector-valued function** `f: R -> R^d`, and `tf` represents a sample of
+those with the `tf_mv` family: `tfd_mv` for raw evaluations and `tfb_mv` for
+basis representations. Internally a `tf_mv` is just a bundle of `d` ordinary
+`tf` vectors, so every univariate verb -- evaluation, arithmetic, smoothing,
+basis fitting, derivatives, integration -- extends component-wise for free.
 
-* `tfd_mv` -- raw evaluations on a (regular or irregular) grid
-* `tfb_mv` -- basis representations (spline or FPC)
+This article uses two real datasets to put the API through its paces:
 
-Both are bundles of `d` ordinary `tf` components, so every numeric routine that
-works on a univariate `tf` vector -- evaluation, arithmetic, summaries,
-derivatives, integration, smoothing, basis fitting, registration -- carries
-over component-wise without new code paths.
-
-This article walks through two case studies:
-
-1. **Gait data** (built into `tf`): regularly sampled hip / knee angles for 39
-   boys. Shows construction, plotting, arithmetic, and basis fitting.
-2. **Atlantic hurricane tracks** (from `dplyr::storms`): irregularly sampled
-   longitude / latitude trajectories. Shows construction from a long
-   data.frame, geometric primitives (arc length, speed), and dplyr integration.
+* **`tf::gait`** -- regularly sampled hip and knee angles for 39 boys across
+  one gait cycle. *Question: how variable is "normal" gait, where in the
+  cycle does that variation concentrate, and what are the dominant modes of
+  variation?*
+* **`dplyr::storms`** -- irregularly sampled position and intensity of every
+  Atlantic tropical storm or hurricane from 1975-2022. *Question: do
+  stronger storms travel further and move faster than weak ones?*
 
 ```{r packages, message = FALSE}
 library(tf)
 library(dplyr)
 ```
 
-# 1. Gait cycles
+# 1. How variable is a "normal" gait cycle?
 
-`gait` contains hip and knee angles, in degrees, for 39 boys, evaluated at 20
-equally spaced points across one gait cycle. The two angle columns are already
-ordinary `tfd` vectors:
-
-```{r gait-data}
-data(gait)
-gait
-```
-
-A `tfd_mv` is built by passing a named list of `tf` vectors -- one per output
-dimension -- to `tfd_mv()`:
+`gait` contains hip and knee angles, in degrees, for 39 boys, each evaluated
+at 20 equally spaced points across one gait cycle. Wrap them into a single
+two-component object:
 
 ```{r gait-mv}
+data(gait)
 g <- tfd_mv(list(hip = gait$hip_angle, knee = gait$knee_angle))
 g
 ```
 
-The print header summarises the structural pieces: `d = 2` components named
-`(hip, knee)`, a common argument grid on `[0.025, 0.975]` (one gait cycle), and
-per-component value ranges (`hip` in `[-12, 64]` degrees, `knee` in `[0, 82]`
-degrees).
+The two natural views of these 39 curves are the **time-series**
+(`type = "facet"`, one panel per component) and the **trajectory in phase
+space** (`type = "trajectory"`, the default for two-component objects).
 
-## Accessors
-
-The component-wise design surfaces directly in the accessor API:
-
-```{r gait-access}
-tf_ncomp(g)
-names(tf_components(g))
-tf_domain(g)
-g$hip                 # a plain tfd
-identical(g$hip, gait$hip_angle)
+```{r gait-facet, fig.height = 3.6}
+plot(g, type = "facet", alpha = 0.4)
 ```
 
-`g[1:3]` subsets curves (length-preserving), `g$hip` and `tf_component(g, "knee")`
-extract a single component as an ordinary univariate `tf`.
-
-## Plotting
-
-`plot()` on a `tf_mv` produces a small-multiples view, one panel per component,
-sharing the argument axis:
-
-```{r gait-plot, fig.height = 3.6}
-plot(g)
+```{r gait-traj, fig.height = 4.2}
+plot(g, alpha = 0.4)   # type = "trajectory" by default for d = 2
 ```
 
-For `d = 2` the geometric *trajectory* in the value space is often more
-informative than the time-series view. `lines(g, type = "trajectory")` and
-`plot(g, type = "trajectory")` switch to that:
+The facet view shows that both joints flex twice per cycle; the trajectory
+view collapses time and reveals the characteristic "butterfly" loop traced
+out as the leg cycles through stance and swing. Both views suggest the
+between-subject spread is far from uniform along the cycle.
 
-```{r gait-traj, fig.height = 4.5}
-plot(g, type = "trajectory", alpha = 0.5)
+## Pointwise mean and standard deviation
+
+`mean()` and `sd()` are vctrs group generics and dispatch component-wise:
+they each return a length-1 `tfd_mv`.
+
+```{r gait-mean-sd, fig.height = 3.8}
+mu <- mean(g)
+s  <- sd(g)
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+for (k in seq_len(tf_ncomp(g))) {
+  plot(tf_component(g, k), alpha = 0.25, ylab = names(tf_components(g))[k],
+       main = names(tf_components(g))[k])
+  arg <- tf_arg(mu)
+  lines(arg, unlist(tf_evaluate(tf_component(mu, k), arg)), col = "red", lwd = 2)
+  ev  <- unlist(tf_evaluate(tf_component(mu, k), arg))
+  sdv <- unlist(tf_evaluate(tf_component(s,  k), arg))
+  lines(arg, ev + 2 * sdv, col = "red", lwd = 1.2, lty = 2)
+  lines(arg, ev - 2 * sdv, col = "red", lwd = 1.2, lty = 2)
+}
+par(op)
 ```
 
-Each curve is one subject's `(hip(t), knee(t))` orbit over the gait cycle. The
-loop reflects the coordinated swing-stance phasing.
+The pointwise sd peaks roughly where the angle itself is changing fastest --
+around the stance/swing transitions -- so most of the between-subject
+variability lives in *timing* of those transitions, not in the angles
+attained at rest.
 
-## Arithmetic and summaries
+## Most- and least-varied subjects
 
-All vctrs arithmetic, `Math`, and `Summary` group generics work
-component-wise:
+`tf_arclength()` measures the path length traced out in `(hip, knee)`-space.
+A short orbit = a subject whose `(hip, knee)` excursions are small or who
+moves the two joints in lock-step; a long orbit = a subject with
+large-amplitude, less synchronised excursions.
 
-```{r gait-arith}
-g_centered <- g - mean(g)
-mean(g)
-sd(g)
+```{r gait-arc, fig.height = 4.2}
+arc <- tf_arclength(g)
+extreme <- c(which.min(arc), which.max(arc))
+extreme
+
+plot(g, alpha = 0.15)
+lines(g[extreme[1]], col = "steelblue", lwd = 2.2)
+lines(g[extreme[2]], col = "firebrick", lwd = 2.2)
+legend("bottomright", bty = "n",
+       legend = c(sprintf("min arc length (%.0f deg)", arc[extreme[1]]),
+                  sprintf("max arc length (%.0f deg)", arc[extreme[2]])),
+       col = c("steelblue", "firebrick"), lwd = 2)
 ```
 
-`mean(g)` is a length-1 `tfd_mv` -- the average gait cycle -- and `g - mean(g)`
-is the centered sample.
+## Modes of variation via FPC
 
-## Fitting a smooth basis
+`tfb_mv()` defaults to a spline basis; passing `basis = "fpc"` fits a
+functional principal component basis per component. The reconstruction `g_b`
+is itself a `tf_mv` and can be subtracted, plotted, or summarised like any
+other:
 
-`tfb_mv()` smooths each component independently into a basis expansion (spline
-by default), returning a `tfb_mv`:
+```{r gait-fpc, fig.height = 3.8}
+g_b <- tfb_mv(g, basis = "fpc", verbose = FALSE)
 
-```{r gait-tfb}
-gb <- tfb_mv(g, k = 15)
-gb
+# how much of the per-component variance is captured by the leading few PCs?
+fpc_var <- function(comp) attr(comp, "score_variance")
+v_hip  <- fpc_var(tf_component(g_b, "hip"));  v_hip  <- v_hip  / sum(v_hip)
+v_knee <- fpc_var(tf_component(g_b, "knee")); v_knee <- v_knee / sum(v_knee)
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+barplot(head(v_hip,  6), names.arg = 1:6, main = "hip: variance share",
+        ylab = "proportion", col = "grey70")
+barplot(head(v_knee, 6), names.arg = 1:6, main = "knee: variance share",
+        ylab = "proportion", col = "grey70")
+par(op)
+
+# residual = how well does a low-rank FPC basis approximate the raw curves?
+g_round  <- vctrs::vec_cast(g_b, g)
+resid    <- g - g_round
+rmse_per_subject <- sqrt(unlist(lapply(tf_evaluations(resid),
+                                       function(m) mean(m^2))))
+summary(rmse_per_subject)
 ```
 
-Per-component basis options can be passed as component-named lists:
+The first 2-3 FPCs explain almost all the variance in each joint, and the
+RMSE between the raw and FPC-reconstructed `(hip, knee)` curves is on the
+order of a degree -- consistent with a few interpretable modes (timing,
+amplitude, asymmetry) accounting for almost all between-subject differences.
 
-```{r gait-tfb-percomp, eval = FALSE}
-tfb_mv(g, k = list(hip = 12, knee = 18), bs = list(hip = "cr", knee = "ps"))
+## Phase alignment with `tf_register`
+
+Most of the pointwise variability above lives in *timing* (when does
+heel-strike happen?), not amplitude. `tf_register()` on a `tf_mv` estimates
+**one shared time-warp per curve** -- derived from a chosen reference
+signal, here the hip angle -- and applies it to all components jointly.
+That separates phase variability from amplitude variability:
+
+```{r gait-register, fig.height = 4.4}
+reg <- tf_register(g, method = "cc", ref_component = "hip")
+
+g_aligned <- reg$registered
+sd_b <- sd(g);         sd_a <- sd(g_aligned)
+arg  <- tf_arg(sd_b)
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+for (k in seq_len(tf_ncomp(g))) {
+  nm <- names(tf_components(g))[k]
+  yb <- unlist(tf_evaluate(tf_component(sd_b, k), arg))
+  ya <- unlist(tf_evaluate(tf_component(sd_a, k), arg))
+  plot(arg, yb, type = "l", lwd = 2, col = "grey40",
+       ylim = c(0, max(yb, ya)),
+       xlab = "cycle phase", ylab = paste("pointwise sd of", nm),
+       main = nm)
+  lines(arg, ya, lwd = 2, col = "firebrick")
+  legend("topright", bty = "n", lwd = 2, col = c("grey40", "firebrick"),
+         legend = c("raw", "phase-aligned"))
+}
+par(op)
 ```
 
-Casting between `tfd_mv` and `tfb_mv` is symmetric and lossless up to the basis
-quality:
+Phase alignment knocks the largest sd peaks down by ~20-30 %: the
+variability that remains is genuine between-subject *amplitude* difference,
+the variability that was removed was just timing.
 
-```{r gait-roundtrip}
-g_round <- vctrs::vec_cast(gb, g)  # tfb_mv -> tfd_mv on the original arg grid
-max(abs(tf_evaluations(g - g_round)[[1]]))
+## Arc-length reparametrization
+
+`tf_reparam_arclength()` traverses each curve at *unit speed in its value
+space*. Visually the trajectory looks identical -- it's the same set of
+points -- but the time axis has been redistributed so that equal time
+intervals correspond to equal arc-length intervals. This is useful when
+you care about the geometric *shape* of the orbit rather than how it was
+traversed:
+
+```{r gait-reparam, fig.height = 4.0}
+g_unit <- tf_reparam_arclength(g)
+sp_raw  <- tf_speed(g)
+sp_unit <- tf_speed(g_unit)
+
+# pointwise speed on the (FD-stable) interior of the cycle
+tt <- seq(0.1, 0.9, length.out = 41)
+mat_raw  <- vapply(seq_along(g), \(i) unlist(tf_evaluate(sp_raw[i],  tt)), numeric(41))
+mat_unit <- vapply(seq_along(g), \(i) unlist(tf_evaluate(sp_unit[i], tt)), numeric(41))
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+matplot(tt, mat_raw,  type = "l", lty = 1, col = grDevices::adjustcolor("steelblue", 0.4),
+        xlab = "cycle phase", ylab = "speed (deg / cycle)",
+        main = "raw parameterization")
+matplot(tt, mat_unit, type = "l", lty = 1, col = grDevices::adjustcolor("firebrick", 0.4),
+        xlab = "cycle phase", ylab = "speed (deg / cycle)",
+        main = "arc-length parameterization")
+par(op)
 ```
 
-# 2. Hurricane tracks
+The raw plot shows large per-subject speed swings -- joints flex quickly
+through the swing phase and stand almost still during stance. The
+reparameterized plot is nearly flat: each curve is now traversed at the
+same speed throughout the cycle. That speed is exactly the per-subject arc
+length divided by the cycle duration -- the value we computed earlier.
+
+# 2. Do stronger Atlantic storms travel further and faster?
 
 `dplyr::storms` records the position (latitude / longitude) and intensity
-(wind, pressure, category) of every Atlantic tropical storm or hurricane from
-1975 through 2022, sampled (mostly) every 6 hours along the storm's life.
+(wind, pressure, category) of every Atlantic tropical storm or hurricane
+from 1975-2022, sampled (mostly) every 6 hours along the storm's life.
+Tracks have wildly different durations, so the data are genuinely
+**irregularly sampled across storms** even though within-storm cadence is
+regular -- a `tfd_irreg` per-storm structure on `(long, lat)`.
 
-```{r storms-peek}
-storms
-```
+A naive `tfd_mv` on raw `(long, lat)` would let us do every analysis below,
+but `tf_arclength` / `tf_speed` would report results in degrees / deg per
+hour -- and longitude degrees aren't a physical unit: they shrink from
+~111 km at the equator to ~78 km at 45 N. Atlantic hurricanes spend most of
+their lives at moderate to high latitudes and *recurve to the northeast*,
+so a deg-based metric would systematically overstate the apparent speed of
+high-latitude motion. Project each storm into a local km coordinate system
+first, using its own mean latitude as the projection reference:
 
-Two characteristics make this dataset interesting as a `tf_mv` example:
+```{r storms-build}
+KM_PER_DEG <- 111.32
 
-* Tracks have **different durations** -- from a couple of days to a few weeks
-  -- so the data are genuinely *irregularly* sampled across storms even though
-  the within-storm cadence is regular.
-* Each row contains both spatial coordinates: `(long, lat)` is naturally a
-  single `R^2`-valued function of time, not two separate functions.
-
-Build a per-storm time-from-genesis variable, keep storms with at least 16
-observations (4+ days of life), and assemble the `tfd_mv`:
-
-```{r storms-mv}
-tracks_long <- storms |>
+storms_clean <- storms |>
   mutate(
     storm_id = paste(name, year),
     ts       = as.POSIXct(ISOdate(year, month, day, hour), tz = "UTC")
   ) |>
   group_by(storm_id) |>
-  # IBTrACS occasionally records a landfall row at the same time-stamp as the
-  # regular 6-hourly observation; drop those so `t_hours` is unique per storm.
+  # IBTrACS occasionally records a landfall row at the same time-stamp as a
+  # regular 6-hourly obs; dedupe so `t_hours` is unique within a storm.
   distinct(ts, .keep_all = TRUE) |>
-  mutate(t_hours = as.numeric(ts - min(ts), units = "hours")) |>
-  filter(n() >= 16) |>
+  mutate(
+    t_hours = as.numeric(ts - min(ts), units = "hours"),
+    ref_lat = mean(lat),                            # per-storm projection ref
+    x_km    = (long - mean(long)) * KM_PER_DEG * cos(ref_lat * pi / 180),
+    y_km    = (lat  - ref_lat)    * KM_PER_DEG
+  ) |>
+  filter(n() >= 16) |>                              # >= 4 days of life
   ungroup()
 
+# peak Saffir-Simpson category per storm (0 = never reached hurricane status)
+peak <- storms |>
+  group_by(name, year) |>
+  summarise(peak_cat = suppressWarnings(max(category, na.rm = TRUE)),
+            .groups = "drop") |>
+  mutate(peak_cat = ifelse(is.finite(peak_cat), as.integer(peak_cat), 0L),
+         storm_id = paste(name, year))
+
+# (long, lat) for the map view
 tracks <- tfd_mv(list(
-  long = tfd(tracks_long, id = "storm_id", arg = "t_hours", value = "long"),
-  lat  = tfd(tracks_long, id = "storm_id", arg = "t_hours", value = "lat")
+  long = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "long"),
+  lat  = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "lat")
 ))
-tracks
-```
 
-The print header shows `long` and `lat` ranges spanning the North Atlantic
-basin, and notes that the components have between 16 and ~100 evaluations each
--- the per-storm irregularity.
+# (x_km, y_km) for physical-unit geometry
+tracks_km <- tfd_mv(list(
+  x = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "x_km"),
+  y = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "y_km")
+))
 
-## Geographic trajectory plot
-
-Plotting `(long(t), lat(t))` as a trajectory gives a map of the storm tracks:
-
-```{r tracks-traj, fig.height = 4.5}
-plot(tracks[1:50], type = "trajectory", alpha = 0.4,
-     xlab = "longitude", ylab = "latitude")
-```
-
-The classic Atlantic basin shape emerges -- low-latitude westward tracks near
-the Cape Verde Islands, recurvature into the mid-latitudes, and northeastward
-tracks into the open ocean.
-
-## Arc length: how far does a storm travel?
-
-`tf_arclength()` computes the total path length traced out by each curve in
-its value space. For lat/long coordinates that is (to first order) the great-
-circle distance integrated along the track -- a proxy for how far the storm
-travelled.
-
-```{r tracks-arclength}
-tracks_df <- tibble::tibble(
+df <- tibble::tibble(
   storm_id = names(tracks),
   track    = tracks,
-  path_deg = tf_arclength(tracks)
-)
-tracks_df |> arrange(desc(path_deg)) |> head(5)
+  track_km = tracks_km
+) |>
+  left_join(peak, by = "storm_id") |>
+  mutate(strength = factor(
+    pmin(peak_cat, 4),
+    levels = 0:4,
+    labels = c("TS/TD", "Cat 1", "Cat 2", "Cat 3", "Cat 4+")
+  ))
+
+df
 ```
 
-Even though we built `tracks` from a list of irregular component vectors with
-varying observed time spans, `tf_arclength()` handles the per-curve domain
-clipping automatically.
+## Track map by peak intensity
 
-## Speed and the segment view
+The geographic map uses the raw `(long, lat)` view (degrees on both axes,
+as a reader would expect):
 
-`tf_speed(tracks)` returns the pointwise norm of the time derivative -- the
-storm's forward speed in degrees/hour. The result is a length-`n` univariate
-`tfd` and can be plotted, summarised, and joined back into the data frame
-exactly like any other functional column:
+```{r storms-map, fig.height = 5.2}
+pal <- c("grey70", "#fed976", "#feb24c", "#fd8d3c", "#e31a1c")
+cols_per_storm <- pal[as.integer(df$strength)]
 
-```{r tracks-speed, fig.height = 4}
-tracks_df <- tracks_df |>
-  mutate(forward_speed = tf_speed(track))
-
-plot(tracks_df$forward_speed[1:30], alpha = 0.4,
-     xlab = "hours since genesis", ylab = "forward speed (deg/h)")
-```
-
-## Working inside tibbles with dplyr
-
-`tf_mv` columns are full-fledged vctrs vectors, so they slot into tibbles and
-flow through every dplyr verb:
-
-```{r tracks-dplyr}
-tracks_df |>
-  mutate(
-    decade   = 10 * (as.integer(sub(".* ", "", storm_id)) %/% 10),
-    max_lat  = vapply(tf_evaluations(track), \(m) max(m[, "lat"]), numeric(1))
-  ) |>
-  group_by(decade) |>
-  summarise(
-    n_storms     = n(),
-    mean_path    = mean(path_deg),
-    mean_max_lat = mean(max_lat),
-    .groups = "drop"
-  )
-```
-
-`filter`, `arrange`, `slice`, `group_by` / `summarise`, `bind_rows`, and
-`tidyr::nest` / `unnest` all keep the `tf_mv` column aligned with the rest of
-the data frame.
-
-## Fitting a smooth basis to a subset
-
-The basis representation also works on this irregular sample. For brevity fit
-a spline basis to a small subset of storms:
-
-```{r tracks-tfb, warning = FALSE, fig.height = 4.5}
-subset_ids <- tracks_df |>
-  arrange(desc(path_deg)) |>
-  slice(1:6) |>
-  pull(storm_id)
-
-tracks_b <- tfb_mv(tracks[subset_ids], k = 15, verbose = FALSE)
-plot(tracks_b, type = "trajectory",
+plot(df$track, alpha = 0.6, col = cols_per_storm,
      xlab = "longitude", ylab = "latitude")
+legend("topleft", bty = "n", lwd = 2, col = pal, legend = levels(df$strength),
+       title = "peak intensity")
 ```
 
-The smoothed trajectories highlight the gross shape of each track without the
-6-hourly sampling jitter.
+Two visual populations: most tropical storms / weak hurricanes (grey /
+yellow) stay in the Gulf of Mexico or run a short westward leg before
+dissipating; major hurricanes (red) recurve into the mid-latitudes and
+often run a long northeastward leg into the open ocean.
 
-# Where to next
+## Path length and forward speed in physical units
 
-* The `tf_mv` family is *additive* on top of the univariate machinery: any new
-  univariate `tf_*` verb you add automatically extends, component-wise, to
-  `tf_mv` via the shared `vec_proxy` design.
-* Tier-1 geometric primitives -- `tf_norm()`, `tf_speed()`, `tf_inner()`,
-  `tf_distance()`, `tf_tangent()`, `tf_reparam_arclength()` -- are available
-  for any `tf_mv` (and many work on univariate `tf` as well).
-* Registration and warping (`tf_register`, `tf_warp`) treat `tf_mv` as a
-  rigid bundle: a single warp is estimated from a chosen reference component
-  (or a derived signal) and applied to all components in lockstep.
+All geometric quantities below come from `tracks_km` (the projected, km
+view), so they report in kilometres and km/h:
 
-For the design rationale and a comparison with matrix-valued and long-format
-alternatives, see `attic/design/multivariate.md` in the package source.
+```{r storms-arclen, fig.height = 4}
+df <- df |> mutate(
+  path_km   = tf_arclength(track_km),
+  duration  = vapply(tf_arg(track_km), \(t) max(t) - min(t), numeric(1)),
+  mean_speed = path_km / duration              # km/h, lifetime average
+)
+
+boxplot(path_km ~ strength, data = df,
+        xlab = "peak intensity", ylab = "track length (km)",
+        col = pal, outline = FALSE, log = "y")
+points(jitter(as.integer(df$strength), 0.4), df$path_km,
+       pch = 16, col = grDevices::adjustcolor(cols_per_storm, alpha.f = 0.4))
+
+df |> group_by(strength) |>
+  summarise(n = dplyr::n(),
+            median_path_km = round(median(path_km)),
+            median_dur_hr  = median(duration),
+            median_speed_kmh = round(median(mean_speed), 1))
+```
+
+Median path length grows sharply with peak intensity -- a Cat-4+ storm
+typically traces 3-4x the path of a tropical storm -- driven both by
+longer lifetimes *and* by higher mean forward speed.
+
+## Forward speed time courses
+
+The pointwise speed `||dr/dt||` (now in km/h) is a univariate `tfd`. Split
+the speed envelope by peak intensity:
+
+```{r storms-speed, fig.height = 4.2}
+df <- df |> mutate(forward_speed = tf_speed(track_km))
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(df$forward_speed[df$strength == "TS/TD"], alpha = 0.35,
+     ylim = c(0, 80), main = "TS / TD",
+     xlab = "hours since genesis", ylab = "forward speed (km/h)")
+plot(df$forward_speed[df$strength == "Cat 4+"], alpha = 0.6, col = "firebrick",
+     ylim = c(0, 80), main = "Cat 4+",
+     xlab = "hours since genesis", ylab = "forward speed (km/h)")
+par(op)
+
+df |> group_by(strength) |>
+  summarise(median_lifetime_mean_speed_kmh = round(median(
+              vapply(tf_evaluations(forward_speed),
+                     \(v) mean(v, na.rm = TRUE), numeric(1))), 1),
+            n = dplyr::n())
+```
+
+The Cat-4+ panel shows the canonical hurricane life-cycle in physical
+units: slow westward drift at 10-20 km/h for the first few days, then a
+sharp acceleration to 40-70 km/h during recurvature into the westerlies.
+Weak storms rarely exceed 20-25 km/h.
+
+## Smoothing the strongest tracks
+
+`tfb_mv()` smooths each component into a spline basis. On the longest
+6 tracks, the smoothed `(long, lat)` curves give a cleaner picture of the
+overall track geometry without the 6-hourly sampling jitter:
+
+```{r storms-tfb, fig.height = 4.8, warning = FALSE}
+top6 <- df |> arrange(desc(path_km)) |> slice(1:6) |> pull(storm_id)
+tb   <- tfb_mv(tracks[top6], k = 15, verbose = FALSE)
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(tracks[top6], col = 1:6, alpha = 0.7,
+     xlab = "long", ylab = "lat", main = "raw observations")
+plot(tb, col = 1:6,
+     xlab = "long", ylab = "lat", main = "spline-smoothed")
+par(op)
+```
+
+# 3. Recap
+
+The two case studies above exercised exactly the same surface:
+
+* construction from per-component `tf` vectors (`tfd_mv(list(...))`);
+* `tf_components()`, `$component`, `tf_ncomp()` for component access;
+* facet vs. trajectory plotting (`plot(..., type = ...)`);
+* vctrs-native arithmetic / `mean()` / `sd()` returning a length-1 `tf_mv`;
+* `tf_arclength()` and `tf_speed()` as geometric primitives on the bundle;
+* `tfb_mv()` for smoothing (`basis = "spline"`) or PC decomposition
+  (`basis = "fpc"`);
+* `tf_register()` for joint warp estimation from a reference component, and
+  `tf_reparam_arclength()` for unit-speed (shape-only) reparameterization;
+* full dplyr / tibble integration via the underlying vctrs proxy.
+
+Every numeric kernel here is the existing univariate one, mapped over the
+`d` components by `vec_proxy.tf_mv`. Adding a new univariate `tf_*` verb
+therefore extends to `tf_mv` automatically.
+
+For the design rationale -- bundle-of-components vs. matrix-valued
+evaluations vs. long/stacked vectors -- see `attic/design/multivariate.md`
+in the package source.

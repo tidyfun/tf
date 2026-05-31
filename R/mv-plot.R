@@ -100,7 +100,11 @@ plot.tf_mv <- function(x, y, ..., type = NULL) {
     draw_trajectory(mx, my, dots)
     return(invisible(x))
   }
-  op <- graphics::par(mfrow = grDevices::n2mfrow(length(comps)))
+  # Prefer a single row for up to 3 components (wider figures are typical);
+  # fall back to n2mfrow's roughly-square layout for larger d.
+  mfrow_layout <- if (length(comps) <= 3L) c(1L, length(comps)) else
+    grDevices::n2mfrow(length(comps))
+  op <- graphics::par(mfrow = mfrow_layout)
   on.exit(graphics::par(op))
   iwalk(comps, \(comp, nm) plot(comp, main = nm, ...))
   invisible(x)
