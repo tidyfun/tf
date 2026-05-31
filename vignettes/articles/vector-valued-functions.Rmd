@@ -77,7 +77,10 @@ between-subject spread is far from uniform along the cycle.
 ## Pointwise mean and standard deviation
 
 `mean()` and `sd()` are vctrs group generics and dispatch component-wise:
-they each return a length-1 `tfd_mv`.
+they each return a length-1 `tfd_mv`. Plot the raw curves with `plot.tf`,
+then overlay the mean +/- 2 sd envelope with `lines.tf` -- all arithmetic
+on the components is component-wise on `tf_mv`, so `mu + 2 * s` is itself
+a `tfd_mv` and `tf_component(...)` gives the per-axis envelope:
 
 ```{r gait-mean-sd, fig.height = 3.8}
 mu <- mean(g)
@@ -85,14 +88,12 @@ s  <- sd(g)
 
 op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
 for (k in seq_len(tf_ncomp(g))) {
-  plot(tf_component(g, k), alpha = 0.25, ylab = names(tf_components(g))[k],
-       main = names(tf_components(g))[k])
-  arg <- tf_arg(mu)
-  lines(arg, unlist(tf_evaluate(tf_component(mu, k), arg)), col = "red", lwd = 2)
-  ev  <- unlist(tf_evaluate(tf_component(mu, k), arg))
-  sdv <- unlist(tf_evaluate(tf_component(s,  k), arg))
-  lines(arg, ev + 2 * sdv, col = "red", lwd = 1.2, lty = 2)
-  lines(arg, ev - 2 * sdv, col = "red", lwd = 1.2, lty = 2)
+  nm <- names(tf_components(g))[k]
+  plot(tf_component(g, k), alpha = 0.25,
+       ylab = nm, main = nm)
+  lines(tf_component(mu, k),              col = "red", lwd = 2)
+  lines(tf_component(mu + 2 * s, k),      col = "red", lwd = 1.2, lty = 2)
+  lines(tf_component(mu - 2 * s, k),      col = "red", lwd = 1.2, lty = 2)
 }
 par(op)
 ```
@@ -123,17 +124,117 @@ legend("bottomright", bty = "n",
        col = c("steelblue", "firebrick"), lwd = 2)
 ```
 
+## Phase alignment with `tf_register`
+
+The pointwise sd above conflates two very different kinds of
+between-subject variability: *amplitude* (how high does the knee swing?)
+and *phase* (at what fraction of the cycle does heel-strike happen?).
+`tf_register()` on a `tf_mv` estimates **one shared time-warp per curve**
+and applies it to all components jointly. The warp is derived from a
+single univariate "reference signal" -- which component (or which derived
+quantity) to use is the central modelling choice.
+
+Three reasonable choices, each emphasising different events in the cycle:
+
+```{r gait-register-fit, results = "hide"}
+r_hip   <- tf_register(g, method = "cc", ref_component = "hip")
+r_knee  <- tf_register(g, method = "cc", ref_component = "knee")
+# any univariate function of x can serve as the reference signal -- here the
+# tangential *speed* in (hip, knee)-space, combining both components
+r_speed <- tf_register(g, method = "cc", ref_component = tf_speed)
+```
+
+### Aligned trajectories
+
+`plot(..., type = "facet")` shows the aligned curves for each choice of
+reference signal. The reference signal that was *used* to register a
+sample shrinks most strongly, but the partner component can shrink or
+expand depending on how phase-coupled the two are:
+
+```{r gait-register-traj, fig.width = 8.2, fig.height = 7.2}
+plot_aligned <- function(reg, title) {
+  plot(reg$registered, type = "facet", alpha = 0.3)
+  mtext(title, side = 3, line = -1.3, outer = TRUE, font = 2)
+}
+
+op <- par(mfrow = c(3, 1), oma = c(0, 0, 0, 0))
+plot_aligned(r_hip,   "ref = hip angle")
+plot_aligned(r_knee,  "ref = knee angle")
+plot_aligned(r_speed, "ref = speed = ||(hip', knee')||")
+par(op)
+```
+
+The "ref = knee" panel visibly tightens both components -- the knee carries
+the sharper heel-strike signal that the alignment can lock onto, and the
+hip (which is phase-coupled to it) tightens for free. The hip-only and
+speed-driven alignments knock down their target signal but leave the
+partner component largely untouched.
+
+### Estimated warping functions
+
+The warps themselves are univariate `tfd`s (one per subject), mapping the
+raw cycle phase to the aligned phase. `plot.tf` handles them directly:
+
+```{r gait-register-warps, fig.width = 8.2, fig.height = 3.6}
+warps_hip   <- tf_invert(r_hip$inv_warps)
+warps_knee  <- tf_invert(r_knee$inv_warps)
+warps_speed <- tf_invert(r_speed$inv_warps)
+
+op <- par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+plot(warps_hip,   alpha = 0.5, main = "warp from hip",   ylab = "aligned phase")
+abline(0, 1, lty = 3)
+plot(warps_knee,  alpha = 0.5, main = "warp from knee",  ylab = "aligned phase")
+abline(0, 1, lty = 3)
+plot(warps_speed, alpha = 0.5, main = "warp from speed", ylab = "aligned phase")
+abline(0, 1, lty = 3)
+par(op)
+```
+
+The dotted diagonal is the identity warp (no time distortion). The
+spread around the diagonal tells you the magnitude and pattern of the
+phase variability captured by each reference signal: warps from `knee`
+and `speed` bunch tightly near identity in the first half of the cycle
+and fan out around the swing phase, where heel-strike timing varies
+between subjects. The `hip`-driven warps are noticeably broader
+elsewhere -- the hip signal is too smooth to lock the alignment to a
+single sharp event.
+
+### Quantifying the alignment
+
+Compare the maximum pointwise sd before and after each registration:
+
+```{r gait-register-table}
+peak_sd <- function(f, k) {
+  arg <- tf_arg(f)
+  max(unlist(tf_evaluate(tf_component(sd(f), k), arg)))
+}
+out <- data.frame(
+  reference = c("raw (no reg)", "hip", "knee", "speed"),
+  sd_hip = c(peak_sd(g, "hip"),
+             peak_sd(r_hip$registered,  "hip"),
+             peak_sd(r_knee$registered, "hip"),
+             peak_sd(r_speed$registered,"hip")),
+  sd_knee = c(peak_sd(g, "knee"),
+              peak_sd(r_hip$registered,  "knee"),
+              peak_sd(r_knee$registered, "knee"),
+              peak_sd(r_speed$registered,"knee"))
+)
+out
+```
+
+`knee` is the most informative reference signal here, both because the
+knee has the cycle's strongest event (heel-strike) and because that event
+phase-couples to hip flexion. We carry the knee-aligned sample forward.
+
 ## Modes of variation via FPC
 
-`tfb_mv()` defaults to a spline basis; passing `basis = "fpc"` fits a
-functional principal component basis per component. The reconstruction `g_b`
-is itself a `tf_mv` and can be subtracted, plotted, or summarised like any
-other:
+With phase variability removed, fit a per-component FPC basis. The
+leading PCs now describe *amplitude* modes only:
 
 ```{r gait-fpc, fig.height = 3.8}
-g_b <- tfb_mv(g, basis = "fpc", verbose = FALSE)
+g_aligned <- r_knee$registered
+g_b <- tfb_mv(g_aligned, basis = "fpc", verbose = FALSE)
 
-# how much of the per-component variance is captured by the leading few PCs?
 fpc_var <- function(comp) attr(comp, "score_variance")
 v_hip  <- fpc_var(tf_component(g_b, "hip"));  v_hip  <- v_hip  / sum(v_hip)
 v_knee <- fpc_var(tf_component(g_b, "knee")); v_knee <- v_knee / sum(v_knee)
@@ -145,88 +246,50 @@ barplot(head(v_knee, 6), names.arg = 1:6, main = "knee: variance share",
         ylab = "proportion", col = "grey70")
 par(op)
 
-# residual = how well does a low-rank FPC basis approximate the raw curves?
-g_round  <- vctrs::vec_cast(g_b, g)
-resid    <- g - g_round
+# residual: how well does the low-rank FPC basis approximate the curves?
+g_round <- vctrs::vec_cast(g_b, g_aligned)
+resid   <- g_aligned - g_round
 rmse_per_subject <- sqrt(unlist(lapply(tf_evaluations(resid),
                                        function(m) mean(m^2))))
 summary(rmse_per_subject)
 ```
 
-The first 2-3 FPCs explain almost all the variance in each joint, and the
-RMSE between the raw and FPC-reconstructed `(hip, knee)` curves is on the
-order of a degree -- consistent with a few interpretable modes (timing,
-amplitude, asymmetry) accounting for almost all between-subject differences.
-
-## Phase alignment with `tf_register`
-
-Most of the pointwise variability above lives in *timing* (when does
-heel-strike happen?), not amplitude. `tf_register()` on a `tf_mv` estimates
-**one shared time-warp per curve** -- derived from a chosen reference
-signal, here the hip angle -- and applies it to all components jointly.
-That separates phase variability from amplitude variability:
-
-```{r gait-register, fig.height = 4.4}
-reg <- tf_register(g, method = "cc", ref_component = "hip")
-
-g_aligned <- reg$registered
-sd_b <- sd(g);         sd_a <- sd(g_aligned)
-arg  <- tf_arg(sd_b)
-
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-for (k in seq_len(tf_ncomp(g))) {
-  nm <- names(tf_components(g))[k]
-  yb <- unlist(tf_evaluate(tf_component(sd_b, k), arg))
-  ya <- unlist(tf_evaluate(tf_component(sd_a, k), arg))
-  plot(arg, yb, type = "l", lwd = 2, col = "grey40",
-       ylim = c(0, max(yb, ya)),
-       xlab = "cycle phase", ylab = paste("pointwise sd of", nm),
-       main = nm)
-  lines(arg, ya, lwd = 2, col = "firebrick")
-  legend("topright", bty = "n", lwd = 2, col = c("grey40", "firebrick"),
-         legend = c("raw", "phase-aligned"))
-}
-par(op)
-```
-
-Phase alignment knocks the largest sd peaks down by ~20-30 %: the
-variability that remains is genuine between-subject *amplitude* difference,
-the variability that was removed was just timing.
+The first 2-3 FPCs explain almost all the amplitude variance in each
+joint, and the RMSE between the registered and FPC-reconstructed
+`(hip, knee)` curves is on the order of a degree.
 
 ## Arc-length reparametrization
 
 `tf_reparam_arclength()` traverses each curve at *unit speed in its value
-space*. Visually the trajectory looks identical -- it's the same set of
-points -- but the time axis has been redistributed so that equal time
-intervals correspond to equal arc-length intervals. This is useful when
-you care about the geometric *shape* of the orbit rather than how it was
-traversed:
+space*. The trajectory looks identical -- it's the same set of points --
+but the time axis has been redistributed so that equal time intervals
+correspond to equal arc-length intervals. `tf_speed()` returns a plain
+`tfd`, so `plot.tf` and `lines.tf` work directly:
 
 ```{r gait-reparam, fig.height = 4.0}
-g_unit <- tf_reparam_arclength(g)
+g_unit  <- tf_reparam_arclength(g)
 sp_raw  <- tf_speed(g)
 sp_unit <- tf_speed(g_unit)
 
-# pointwise speed on the (FD-stable) interior of the cycle
-tt <- seq(0.1, 0.9, length.out = 41)
-mat_raw  <- vapply(seq_along(g), \(i) unlist(tf_evaluate(sp_raw[i],  tt)), numeric(41))
-mat_unit <- vapply(seq_along(g), \(i) unlist(tf_evaluate(sp_unit[i], tt)), numeric(41))
-
 op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-matplot(tt, mat_raw,  type = "l", lty = 1, col = grDevices::adjustcolor("steelblue", 0.4),
-        xlab = "cycle phase", ylab = "speed (deg / cycle)",
-        main = "raw parameterization")
-matplot(tt, mat_unit, type = "l", lty = 1, col = grDevices::adjustcolor("firebrick", 0.4),
-        xlab = "cycle phase", ylab = "speed (deg / cycle)",
-        main = "arc-length parameterization")
+plot(sp_raw,  alpha = 0.4, ylim = c(0, max(c(
+       unlist(tf_evaluations(sp_raw)),
+       unlist(tf_evaluations(sp_unit))), na.rm = TRUE)),
+     main = "raw parameterization", ylab = "speed (deg / cycle)")
+lines(mean(sp_raw),  col = "firebrick", lwd = 2)
+plot(sp_unit, alpha = 0.4, ylim = c(0, max(c(
+       unlist(tf_evaluations(sp_raw)),
+       unlist(tf_evaluations(sp_unit))), na.rm = TRUE)),
+     main = "arc-length parameterization", ylab = "speed (deg / cycle)")
+lines(mean(sp_unit), col = "firebrick", lwd = 2)
 par(op)
 ```
 
 The raw plot shows large per-subject speed swings -- joints flex quickly
-through the swing phase and stand almost still during stance. The
-reparameterized plot is nearly flat: each curve is now traversed at the
-same speed throughout the cycle. That speed is exactly the per-subject arc
-length divided by the cycle duration -- the value we computed earlier.
+through swing and stand almost still during stance. The reparameterized
+plot is approximately flat: each curve is traversed at the same speed
+throughout the cycle, equal to its per-subject arc length divided by the
+cycle duration.
 
 # 2. Do stronger Atlantic storms travel further and faster?
 
