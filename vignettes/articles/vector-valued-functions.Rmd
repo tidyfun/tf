@@ -545,7 +545,7 @@ tb <- tfb_mv(df$track[df$storm_id %in% top6], k = 12, verbose = FALSE)
 
 # pull just the (long, lat) components out of the 4-d objects so plot.tf_mv
 # defaults to the trajectory (long, lat) view
-raw_xy <- df$track[df$storm_id %in% top6][, , c("long", "lat")]
+raw_xy <- df$track[df$storm_id %in% top6, , c("long", "lat")]
 sm_xy  <- tb[, , c("long", "lat")]
 
 op <- par(mfrow = c(1, 2), mar = c(3.6, 3.6, 2, 1), mgp = c(2, 0.7, 0))
