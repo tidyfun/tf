@@ -23,11 +23,15 @@ trajectory_xy <- function(comps) {
 # recycles col/lty/lwd/... across curves -- matching univariate plot.tf().
 # A single lines() call per curve would only honour the first element of e.g.
 # `col`, so passing `col = 1:n` would draw every curve in the same colour.
+# `alpha` (if given) tints the line colour(s) -- consistent with plot.tf().
 draw_trajectory <- function(mx, my, dots) {
   line_args <- modifyList(
     list(col = 1, lty = 1),
     dots[intersect(names(dots), traj_curve_par)]
   )
+  if (!is.null(dots$alpha)) {
+    line_args$col <- grDevices::adjustcolor(line_args$col, alpha.f = dots$alpha)
+  }
   do.call(graphics::matlines, c(list(t(mx), t(my)), line_args))
 }
 
@@ -77,18 +81,20 @@ plot.tf_mv <- function(x, y, ..., type = NULL) {
     my <- xy$y
     dots <- list(...)
     # set up the plotting region without per-curve params, then draw the curves
-    setup_dots <- dots[setdiff(names(dots), traj_curve_par)]
+    setup_dots <- dots[setdiff(names(dots), c(traj_curve_par, "alpha"))]
+    plot_args <- modifyList(
+      list(xlab = comp_names[1], ylab = comp_names[2]),
+      setup_dots
+    )
     do.call(
       plot,
       c(
         list(
           range(mx, na.rm = TRUE),
           range(my, na.rm = TRUE),
-          type = "n",
-          xlab = comp_names[1],
-          ylab = comp_names[2]
+          type = "n"
         ),
-        setup_dots
+        plot_args
       )
     )
     draw_trajectory(mx, my, dots)

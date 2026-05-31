@@ -94,6 +94,12 @@ reference:
   - gait
   - growth
   - pinch
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - vector-valued-functions
+
 navbar:
   type: default
   left:
@@ -101,5 +107,7 @@ navbar:
     href: https://github.com/tidyfun/tf
   - text: Reference
     href: reference/index.html
+  - text: Articles
+    href: articles/index.html
 development:
   mode: auto

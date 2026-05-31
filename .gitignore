@@ -18,6 +18,8 @@ tf.Rproj
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+vignettes/articles/*.html
+vignettes/articles/*_files/
 doc/
 Meta/
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3

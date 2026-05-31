@@ -160,3 +160,18 @@ test_that("tf_arclength rejects lower > upper", {
   f <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
   expect_error(tf_arclength(f, lower = 0.8, upper = 0.2), "must not exceed")
 })
+
+test_that("tf_arclength handles irregular curves with sub-domain support", {
+  # two curves on a [0, 10] domain, each observed on a different sub-interval:
+  # curve A on [0, 3] -- straight line of length sqrt(2) * 3 in 2-D
+  # curve B on [5, 10] -- straight line of length sqrt(2) * 5
+  curveA <- data.frame(id = "A", t = c(0, 1, 2, 3), x = c(0, 1, 2, 3), y = c(0, 1, 2, 3))
+  curveB <- data.frame(id = "B", t = c(5, 6, 8, 10), x = c(0, 1, 3, 5), y = c(0, 1, 3, 5))
+  long <- rbind(curveA, curveB)
+  trk <- tfd_mv(list(
+    x = tfd(long, id = "id", arg = "t", value = "x", domain = c(0, 10)),
+    y = tfd(long, id = "id", arg = "t", value = "y", domain = c(0, 10))
+  ))
+  al <- tf_arclength(trk)
+  expect_equal(unname(al), c(3 * sqrt(2), 5 * sqrt(2)), tolerance = 1e-8)
+})

@@ -262,22 +262,33 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   } else {
     tf_mv_curve_grids(f)
   }
-  # clamp to [lower, upper] and guarantee endpoints (for accurate sub-interval
-  # lengths even when the limits don't fall on sample points)
+  # clamp each curve's grid to the intersection of [lower, upper] with its own
+  # observed argument range. Without this, irregular curves that don't span the
+  # full global domain would be evaluated outside their support and yield NA.
   grids <- lapply(grids, function(g) {
-    g <- g[g >= lower & g <= upper]
-    sort(unique(c(lower, g, upper)))
+    if (!length(g)) return(numeric(0))
+    lo_i <- max(lower, min(g))
+    up_i <- min(upper, max(g))
+    if (lo_i > up_i) return(numeric(0))
+    g <- g[g >= lo_i & g <= up_i]
+    sort(unique(c(lo_i, g, up_i)))
   })
-  paired_evals <- tf_evaluate(f, arg = grids)
+  empty <- vapply(grids, function(g) length(g) < 2L, logical(1))
+  paired_evals <- vector("list", n)
+  if (any(!empty)) {
+    paired_evals[!empty] <- tf_evaluate(f[!empty], arg = grids[!empty])
+  }
   incomplete <- map_lgl(paired_evals, \(mat) is.matrix(mat) && anyNA(mat))
   if (any(incomplete)) {
+    idx <- which(incomplete)
     cli::cli_abort(c(
       "Cannot compute polyline arc length with missing paired component evaluations.",
-      "i" = "Affected curve index{?es}: {.val {which(incomplete)}}.",
+      "i" = "Affected curve {cli::qty(length(idx))}index{?/es}: {.val {idx}}.",
       "i" = "Set {.arg lower}/{.arg upper} to a common observed interval or use an evaluator that supplies all requested component values."
     ))
   }
   per_curve_segs <- map(seq_len(n), function(i) {
+    if (empty[i]) return(NA_real_)
     mat <- paired_evals[[i]]
     if (is.null(mat)) return(NA_real_)
     if (nrow(mat) < 2L) return(numeric(0))
