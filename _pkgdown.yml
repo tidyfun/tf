@@ -98,7 +98,7 @@ articles:
 - title: Articles
   navbar: ~
   contents:
-  - vector-valued-functions
+  - articles/vector-valued-functions
 
 navbar:
   type: default
