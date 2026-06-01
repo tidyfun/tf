@@ -4,10 +4,12 @@
 > Diese Fragensammlung dient als improvisierte mündliche Prüfung, um einzuschätzen,
 > ob die/der Studierende über ausreichende Programmier- und Software-Engineering-Kenntnisse
 > verfügt, um die Bachelorarbeit am [`tf`-Paket](https://github.com/tidyfun/tf) zu beginnen.
-> Die Fragen sind nach Schwierigkeit und Themengebiet gegliedert. Zu jeder Frage gibt es
-> stichpunktartige *Erwartete Antworten* als Orientierung – diese müssen nicht wörtlich
-> getroffen werden. Ziel ist, das **Verständnis** und die **Denkweise** zu prüfen, nicht
-> auswendig gelerntes Detailwissen.
+> Die Fragen sind nach Schwierigkeit und Themengebiet gegliedert. Die *erwarteten Antworten*
+> sind als **HTML-Kommentare** (`<!-- … -->`) hinterlegt: In der gerenderten Ansicht (z. B.
+> auf GitHub oder im Markdown-Preview) sind sie **unsichtbar**, im Rohtext aber lesbar.
+> So können Sie das Dokument bei Bedarf auch der/dem Studierenden zeigen, ohne die Lösungen
+> zu verraten. Die Antworten müssen nicht wörtlich getroffen werden – Ziel ist, das
+> **Verständnis** und die **Denkweise** zu prüfen.
 >
 > Empfehlung: Mit den Grundlagen (Teil 1–2) beginnen, dann anhand der Code-Snippets
 > (Teil 5) ins Gespräch kommen. 30–45 Minuten sind realistisch.
@@ -17,74 +19,74 @@
 ## Teil 1 – Grundlagen R & Programmierung
 
 1. **Was ist der Unterschied zwischen einem `vector`, einer `list` und einem `data.frame` in R?**
-   *Erwartet:* Vektor = homogen (ein Typ), Liste = heterogen (beliebige Elemente, auch verschachtelt),
-   data.frame = Liste gleich langer Spalten/Vektoren. Bezug zu `tf`: ein `tf`-Objekt ist „im Kern“
-   eine Liste, verhält sich aber wie ein Vektor von Funktionen.
+<!-- Erwartet: Vektor = homogen (ein Typ), Liste = heterogen (beliebige Elemente, auch
+verschachtelt), data.frame = Liste gleich langer Spalten/Vektoren. Bezug zu tf: ein tf-Objekt
+ist „im Kern" eine Liste, verhält sich aber wie ein Vektor von Funktionen. -->
 
 2. **Was bedeutet „vektorisiertes" Rechnen in R, und warum ist es schneller als eine `for`-Schleife?**
-   *Erwartet:* Operationen auf ganzen Vektoren statt elementweise in R-Schleife; Schleife läuft
-   intern in C; weniger Overhead. Wichtig im Paket bei den Rechen-/Statistik-Operationen.
+<!-- Erwartet: Operationen auf ganzen Vektoren statt elementweise in R-Schleife; Schleife läuft
+intern in C; weniger Overhead. Wichtig im Paket bei den Rechen-/Statistik-Operationen. -->
 
 3. **Was ist der Unterschied zwischen `<-` und `=`? Und was macht der Pipe-Operator `|>`?**
-   *Erwartet:* `<-` Zuweisung (idiomatisch), `=` u. a. für Argumente; `|>` reicht das Ergebnis
-   links als erstes Argument der Funktion rechts weiter (siehe Snippet C).
+<!-- Erwartet: <- Zuweisung (idiomatisch), = u. a. für Argumente; |> reicht das Ergebnis links
+als erstes Argument der Funktion rechts weiter (siehe Snippet C). -->
 
 4. **Was sind `NA`, `NULL`, `NaN` und `Inf`? Wo liegt jeweils der Unterschied?**
-   *Erwartet:* `NA` = fehlender Wert (typisiert), `NULL` = „nichts"/leeres Objekt der Länge 0,
-   `NaN` = ungültiges Rechenergebnis, `Inf` = Unendlich. Im Paket werden leere Funktionen z. B.
-   als `NA`-Einträge behandelt.
+<!-- Erwartet: NA = fehlender Wert (typisiert), NULL = „nichts"/leeres Objekt der Länge 0,
+NaN = ungültiges Rechenergebnis, Inf = Unendlich. Im Paket werden leere Funktionen z. B. als
+NA-Einträge behandelt. -->
 
 5. **Was bedeutet der `%||%`-Operator (`a %||% b`)?**
-   *Erwartet:* „null-coalescing": gib `a` zurück, falls nicht `NULL`, sonst `b`. Wird im Paket
-   für Default-Werte verwendet, z. B. `domain <- domain %||% range(data$arg)`.
+<!-- Erwartet: „null-coalescing": gib a zurück, falls nicht NULL, sonst b. Wird im Paket für
+Default-Werte verwendet, z. B. domain <- domain %||% range(data$arg). -->
 
 ---
 
 ## Teil 2 – Objektorientierung in R (S3, vctrs)
 
 6. **R kennt mehrere OOP-Systeme (S3, S4, R5/RC, R6). Was ist das Besondere an S3?**
-   *Erwartet:* S3 = leichtgewichtig, basiert auf einem `class`-Attribut und Methoden-Dispatch
-   über Namenskonvention `generic.class`. Keine formale Klassendefinition nötig.
+<!-- Erwartet: S3 = leichtgewichtig, basiert auf einem class-Attribut und Methoden-Dispatch über
+Namenskonvention generic.class. Keine formale Klassendefinition nötig. -->
 
 7. **Wie funktioniert Methoden-Dispatch bei S3? Was passiert bei `print(x)`, wenn `x` die Klasse
    `c("tfd_reg", "tfd", "tf")` hat?**
-   *Erwartet:* R sucht der Reihe nach `print.tfd_reg`, `print.tfd`, `print.tf`, dann `print.default`.
-   Klassen-Vektor = Vererbungshierarchie von speziell nach allgemein.
+<!-- Erwartet: R sucht der Reihe nach print.tfd_reg, print.tfd, print.tf, dann print.default.
+Klassen-Vektor = Vererbungshierarchie von speziell nach allgemein. -->
 
 8. **Im Paket steht in der `CLAUDE.md`: „Use `ClassName.method` pattern for S3 methods" und
    „Follow vctrs framework". Was leistet das `vctrs`-Paket gegenüber „nacktem" S3?**
-   *Erwartet:* vctrs definiert klare Regeln für Größe (`vec_size`), Prototypen (`ptype`),
-   Typ-Kombination (`vec_ptype2`) und Casting (`vec_cast`); sorgt für konsistentes Verhalten
-   bei `c()`, Subsetting, in data.frames etc. → daher die Dateien `vctrs-cast.R`, `vctrs-ptype2.R`.
+<!-- Erwartet: vctrs definiert klare Regeln für Größe (vec_size), Prototypen (ptype),
+Typ-Kombination (vec_ptype2) und Casting (vec_cast); sorgt für konsistentes Verhalten bei c(),
+Subsetting, in data.frames etc. → daher die Dateien vctrs-cast.R, vctrs-ptype2.R. -->
 
 9. **Warum kann man ein `tf`-Objekt als Spalte in einen `data.frame` packen, eine gewöhnliche
    Liste von Funktionen aber nicht so einfach?**
-   *Erwartet:* Weil `tf` über vctrs als „echter" Vektor mit definierter Länge/Subsetting auftritt;
-   das ist gerade der Kernnutzen des Pakets (Funktionen neben Skalaren/Faktoren in einem data.frame).
+<!-- Erwartet: Weil tf über vctrs als „echter" Vektor mit definierter Länge/Subsetting auftritt;
+das ist gerade der Kernnutzen des Pakets (Funktionen neben Skalaren/Faktoren in einem data.frame). -->
 
 ---
 
 ## Teil 3 – Fachliche / paket-spezifische Konzepte
 
 10. **Das Paket hat zwei Hauptklassen: `tfd` und `tfb`. Was ist der konzeptionelle Unterschied?**
-    *Erwartet:* `tfd` = *tidy functional data*, Rohdaten auf einem Gitter (arg/value-Paare);
-    `tfb` = *tidy functional basis*, Darstellung in einer Basis (z. B. Splines oder FPC),
-    also über Koeffizienten + Basis. Trade-off: Speicher/Glättung vs. Rohtreue.
+<!-- Erwartet: tfd = tidy functional data, Rohdaten auf einem Gitter (arg/value-Paare);
+tfb = tidy functional basis, Darstellung in einer Basis (z. B. Splines oder FPC), also über
+Koeffizienten + Basis. Trade-off: Speicher/Glättung vs. Rohtreue. -->
 
 11. **Was bedeuten die Begriffe `arg`, `value`, `domain` und `evaluator` bei einem `tfd`-Objekt?**
-    *Erwartet:* `arg` = Argument-/Stützstellen (x-Werte, „Zeitpunkte"), `value` = Funktionswerte,
-    `domain` = Definitionsbereich (Intervallgrenzen), `evaluator` = Funktion, die zwischen den
-    Stützstellen aus-/interpoliert.
+<!-- Erwartet: arg = Argument-/Stützstellen (x-Werte, „Zeitpunkte"), value = Funktionswerte,
+domain = Definitionsbereich (Intervallgrenzen), evaluator = Funktion, die zwischen den
+Stützstellen aus-/interpoliert. -->
 
 12. **Was ist der Unterschied zwischen einem „regular" und einem „irregular" `tfd`
     (Klassen `tfd_reg` vs. `tfd_irreg`)?**
-    *Erwartet:* regular = alle Funktionen auf demselben gemeinsamen `arg`-Gitter; irregular =
-    jede Funktion kann eigene/unterschiedliche Stützstellen haben (z. B. wegen `NA`s).
+<!-- Erwartet: regular = alle Funktionen auf demselben gemeinsamen arg-Gitter; irregular = jede
+Funktion kann eigene/unterschiedliche Stützstellen haben (z. B. wegen NAs). -->
 
 13. **Warum braucht man bei funktionalen Daten überhaupt einen „evaluator"/Interpolation –
     anders als bei einem normalen Zahlenvektor?**
-    *Erwartet:* Eine Funktion ist konzeptionell auf dem ganzen `domain` definiert, gespeichert
-    sind aber nur endlich viele Stützstellen → Werte dazwischen müssen interpoliert werden.
+<!-- Erwartet: Eine Funktion ist konzeptionell auf dem ganzen domain definiert, gespeichert sind
+aber nur endlich viele Stützstellen → Werte dazwischen müssen interpoliert werden. -->
 
 ---
 
@@ -92,17 +94,17 @@
 
 14. **Das Paket nutzt `purrr::map()`, `map2()`, `map_lgl()` etc. Was macht `map()` und was ist der
     Vorteil gegenüber einer `for`-Schleife?**
-    *Erwartet:* `map` wendet eine Funktion auf jedes Listenelement an und gibt eine Liste zurück;
-    deklarativer, keine manuelle Index-/Akkumulator-Verwaltung, typsichere Varianten (`map_lgl`
-    → logischer Vektor, `map_dbl` → double …).
+<!-- Erwartet: map wendet eine Funktion auf jedes Listenelement an und gibt eine Liste zurück;
+deklarativer, keine manuelle Index-/Akkumulator-Verwaltung, typsichere Varianten (map_lgl →
+logischer Vektor, map_dbl → double …). -->
 
 15. **Was bedeutet die anonyme Funktion `\(x) x[y]` bzw. `\(.x) max(.x$value)`?**
-    *Erwartet:* `\(...)` ist Kurzschreibweise für `function(...)` (ab R 4.1). Lambda/anonyme Funktion.
+<!-- Erwartet: \(...) ist Kurzschreibweise für function(...) (ab R 4.1). Lambda/anonyme Funktion. -->
 
 16. **In `tf_fwise` steht `f_map <- as_mapper(.f, ...)`. Was leistet `as_mapper` und warum erlaubt
     das Paket Formeln wie `~ max(.x$value)`?**
-    *Erwartet:* `as_mapper` wandelt Funktionen *oder* Formeln in eine aufrufbare Funktion um;
-    ergibt bequeme, kurze Syntax für die Nutzer:innen.
+<!-- Erwartet: as_mapper wandelt Funktionen oder Formeln in eine aufrufbare Funktion um; ergibt
+bequeme, kurze Syntax für die Nutzer:innen. -->
 
 ---
 
@@ -134,12 +136,16 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
 **Fragen:**
 - Was passiert in der `if (vec_size(data) == 0)`-Verzweigung und warum prüft man diesen Fall
-  ganz am Anfang? *(Erwartet: Sonderfall „leere Eingabe" → leeres Prototyp-Objekt; „early return"
-  / Guard-Clause, vermeidet Fehler im Rest.)*
-- Erklären Sie `domain <- domain %||% range(data$arg)`. *(Default = Wertebereich der Argumente.)*
-- Was bewirkt der `...`-Parameter in der Argumentliste? *(Weiterreichen zusätzlicher Argumente,
-  hier später z. B. an `s()`/`gam()`.)*
-- Wofür steht der Klassenvektor `c("tfb_spline", "tfb", "tf")`? *(S3-Vererbung, siehe Frage 7.)*
+  ganz am Anfang?
+- Erklären Sie `domain <- domain %||% range(data$arg)`.
+- Was bewirkt der `...`-Parameter in der Argumentliste?
+- Wofür steht der Klassenvektor `c("tfb_spline", "tfb", "tf")`?
+<!-- Erwartet:
+- Sonderfall „leere Eingabe" → leeres Prototyp-Objekt; „early return" / Guard-Clause, vermeidet
+  Fehler im Rest.
+- Default = Wertebereich der Argumente (siehe %||%, Frage 5).
+- Weiterreichen zusätzlicher Argumente, hier später z. B. an s()/gam().
+- S3-Vererbung, siehe Frage 7. -->
 
 ### Snippet B – Subsetting-Operator (`R/brackets.R`)
 
@@ -165,13 +171,14 @@ new_tfb_spline <- function(data, domain = NULL, arg = NULL,
 
 **Fragen:**
 - Was bedeutet `` `[.tf` `` als Funktionsname? Welche generische Funktion wird hier überschrieben?
-  *(Eigene Methode für den `[`-Operator für Klasse `tf`; Backticks, weil `[` ein Sonderzeichen ist.)*
 - Was prüft `!missing(i)`? Warum kann man hier nicht einfach `is.null(i)` schreiben?
-  *(`missing()` testet, ob das Argument beim Aufruf überhaupt angegeben wurde.)*
-- Warum wird für `tfb` `interpolate` zwangsweise auf `TRUE` gesetzt? *(Basisdarstellung ist
-  ohnehin „kontinuierlich"/immer auswertbar; siehe Frage 10/13.)*
+- Warum wird für `tfb` `interpolate` zwangsweise auf `TRUE` gesetzt?
 - Wozu dienen `cli::cli_inform` / `cli::cli_abort` statt `message`/`stop`?
-  *(Einheitliche, formatierte Meldungen; Projektkonvention laut `CLAUDE.md`.)*
+<!-- Erwartet:
+- Eigene Methode für den [-Operator für Klasse tf; Backticks, weil [ ein Sonderzeichen ist.
+- missing() testet, ob das Argument beim Aufruf überhaupt angegeben wurde (nicht dasselbe wie NULL).
+- Basisdarstellung ist ohnehin „kontinuierlich"/immer auswertbar; siehe Frage 10/13.
+- Einheitliche, formatierte Meldungen; Projektkonvention laut CLAUDE.md. -->
 
 ### Snippet C – Pipe + funktionale Verarbeitung (`R/fwise.R`)
 
@@ -195,12 +202,14 @@ tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
 
 **Fragen:**
 - Lesen Sie die `tf_fmax`-Pipe vor: Was passiert Schritt für Schritt?
-  *(Funktion → fwise-Max je Kurve → Liste zu Vektor flach machen → Namen setzen.)*
-- Wozu dienen `assert_tf(x)` und `assert_arg(...)` ganz am Anfang? *(Defensive Programmierung /
-  Input-Validierung; frühe, klare Fehlermeldungen.)*
-- Wie hängen `tf_fmax` und `tf_fwise` zusammen? *(`tf_fmax` ist Spezialfall, der `tf_fwise`
-  mit einer konkreten Lambda nutzt → Code-Wiederverwendung.)*
+- Wozu dienen `assert_tf(x)` und `assert_arg(...)` ganz am Anfang?
+- Wie hängen `tf_fmax` und `tf_fwise` zusammen?
 - Was bewirkt `unlist(use.names = FALSE)` und warum danach trotzdem `setNames(names(x))`?
+<!-- Erwartet:
+- Funktion → fwise-Max je Kurve → Liste zu Vektor flach machen → Namen setzen.
+- Defensive Programmierung / Input-Validierung; frühe, klare Fehlermeldungen.
+- tf_fmax ist Spezialfall, der tf_fwise mit einer konkreten Lambda nutzt → Code-Wiederverwendung.
+- unlist verwirft die (inneren) Namen; danach werden bewusst die Funktions-Namen aus x gesetzt. -->
 
 ### Snippet D – aussagekräftige Fehler/Warnungen (`R/tfd-class.R`)
 
@@ -213,9 +222,10 @@ if (domain[1] > min(u_args) || max(u_args) > domain[2]) {
 
 **Fragen:**
 - Was wird hier inhaltlich geprüft, und warum ist diese Prüfung sinnvoll?
-  *(Alle Stützstellen müssen innerhalb des Definitionsbereichs liegen.)*
 - Erklären Sie die Bedingung mit `||`. Was ist der Unterschied zwischen `||` und `|` in R?
-  *(`||` = skalar, kurzschließend; `|` = elementweise auf Vektoren.)*
+<!-- Erwartet:
+- Alle Stützstellen müssen innerhalb des Definitionsbereichs liegen.
+- || = skalar, kurzschließend (wertet 2. Bedingung nur bei Bedarf aus); | = elementweise auf Vektoren. -->
 
 ### Snippet E – Test mit `testthat` (`tests/testthat/test-tfd-class.R`)
 
@@ -233,79 +243,136 @@ test_that("tfd.numeric works", {
 
 **Fragen:**
 - Was ist der Zweck eines Unit-Tests? Was prüft dieser konkret?
-- Warum steht hier `set.seed(1234)`? *(Reproduzierbarkeit bei Zufallszahlen.)*
+- Warum steht hier `set.seed(1234)`?
 - Was bedeuten `expect_s3_class`, `expect_length`, `expect_identical`? Worin unterscheiden sich
-  `expect_identical` und `expect_equal`? *(identical = strikt inkl. Typ; equal = mit Toleranz.)*
+  `expect_identical` und `expect_equal`?
 - Wenn Sie ein neues Feature einbauen würden – würden Sie zuerst den Test oder den Code schreiben?
-  Begründen Sie. *(Offene Frage → TDD-Verständnis.)*
+  Begründen Sie.
+<!-- Erwartet:
+- Automatisierte Prüfung, dass Code sich wie erwartet verhält; hier: tfd() auf einem numeric
+  erzeugt ein regular tfd mit Länge 1, korrektem arg-Gitter und domain.
+- Reproduzierbarkeit bei Zufallszahlen (runif).
+- expect_s3_class prüft Klasse, expect_length die Länge, expect_identical strikte Gleichheit inkl.
+  Typ/Attribute; expect_equal erlaubt numerische Toleranz.
+- Offene Frage → TDD-Verständnis; Tests zuerst zwingen zu klarer Spezifikation. -->
+
+### Snippet F – SCHLECHTER Code: Was ist hier alles falsch? (kein Paketcode!)
+
+> Dieses Snippet stammt **nicht** aus `tf`. Bitten Sie die/den Studierenden, möglichst viele
+> Probleme zu finden und jeweils eine Verbesserung vorzuschlagen. Gut geeignet als „Code-Review".
+
+```r
+faktor <- 2
+
+berechne_ergebnis <- function(daten) {
+  for (i in 1:length(daten)) {
+    wert <- daten[[i]] * faktor
+    if (wert > 0) {
+      ergebnis <- cbind(ergebnis, wert)
+    } else {
+      print("negativ!")
+    }
+  }
+  return(ergebnis)
+}
+
+x = berechne_ergebnis(meine_liste)
+```
+
+**Fragen:**
+- Finden Sie so viele Probleme wie möglich. Was würden Sie konkret ändern?
+- Was passiert, wenn `daten` leer ist (`length(daten) == 0`)?
+- Wo kommen `faktor` und `ergebnis` her? Welches Risiko entsteht dadurch?
+<!-- Erwartet (Auswahl – je mehr, desto besser):
+1. Globale/implizite Variablen: `faktor` wird aus dem Workspace „eingefangen" (lexical scoping)
+   statt als Argument übergeben → nicht nachvollziehbar, nicht testbar, Seiteneffekte.
+   Fix: faktor als Argument mit Default, z. B. function(daten, faktor = 2).
+2. `ergebnis` ist beim ersten cbind nicht initialisiert/prä-allokiert → entweder Fehler oder es
+   wird ebenfalls aus dem globalen Workspace gezogen. Klassischer Bug.
+3. „Growing object" im Loop: ergebnis <- cbind(ergebnis, wert) lässt das Objekt in jeder Iteration
+   wachsen → O(n^2) Kopieren, sehr langsam. Besser prä-allokieren oder vektorisiert/`vapply`/`Map`.
+4. `1:length(daten)`: bei leerem daten ergibt das `1:0` = c(1, 0) → Loop läuft fälschlich zweimal
+   rückwärts. Besser `seq_along(daten)`. (Fehlender „early exit"/Guard für leere Eingabe.)
+5. Kein Early-Return / keine Behandlung des Sonderfalls leere Eingabe.
+6. `print("negativ!")` als „Logging" mitten in der Berechnung → Seiteneffekt, sollte mind. message()/
+   warning() oder gar nichts sein; vermischt Logik und Ausgabe.
+7. Funktion ist nicht vektorisiert, obwohl daten * faktor in einem Schritt ginge.
+8. Zuweisung mit `=` statt `<-` auf Top-Level (Stilbruch); unklare/uneinheitliche Benennung.
+9. Rückgabe-Typ uneinheitlich: mal Matrix via cbind, mal (bei nur negativen Werten) das, was
+   `ergebnis` global war → keine klar definierte Schnittstelle.
+Beispiel-Refaktor:
+  berechne_ergebnis <- function(daten, faktor = 2) {
+    werte <- unlist(daten) * faktor
+    werte[werte > 0]
+  }
+-->
 
 ---
 
 ## Teil 6 – Paket-Infrastruktur & Software Engineering
 
 17. **Wozu dienen die Dateien `DESCRIPTION` und `NAMESPACE` in einem R-Paket?**
-    *Erwartet:* `DESCRIPTION` = Metadaten, Version, Autoren, Abhängigkeiten (`Imports`/`Suggests`/`Depends`);
-    `NAMESPACE` = welche Funktionen exportiert (`export`) bzw. importiert werden – steuert Sichtbarkeit.
+<!-- Erwartet: DESCRIPTION = Metadaten, Version, Autoren, Abhängigkeiten (Imports/Suggests/Depends);
+NAMESPACE = welche Funktionen exportiert (export) bzw. importiert werden – steuert Sichtbarkeit. -->
 
 18. **Was ist der Unterschied zwischen `Imports`, `Suggests` und `Depends` im `DESCRIPTION`?**
-    *Erwartet:* `Imports` = nötig, wird installiert aber nicht angehängt; `Depends` = wird mit
-    angehängt (sparsam nutzen); `Suggests` = optional (z. B. für Tests/Vignetten wie `testthat`, `fda`).
+<!-- Erwartet: Imports = nötig, wird installiert aber nicht angehängt; Depends = wird mit angehängt
+(sparsam nutzen); Suggests = optional (z. B. für Tests/Vignetten wie testthat, fda). -->
 
 19. **Im Paket stehen über Funktionen Kommentare mit `#'` und `@param`, `@return`, `@export`.
     Was ist das und was passiert damit?**
-    *Erwartet:* roxygen2-Dokumentation; `devtools::document()` erzeugt daraus die `.Rd`-Hilfeseiten
-    in `man/` und aktualisiert `NAMESPACE`.
+<!-- Erwartet: roxygen2-Dokumentation; devtools::document() erzeugt daraus die .Rd-Hilfeseiten in
+man/ und aktualisiert NAMESPACE. -->
 
 20. **Welche Schritte würden Sie ausführen, um eine Änderung am Paket lokal zu testen?**
-    *Erwartet (laut `CLAUDE.md`):* `devtools::load_all()` (neu laden), `devtools::test()` (Tests),
-    `devtools::document()` (Doku), evtl. `devtools::check()` (voller Check).
+<!-- Erwartet (laut CLAUDE.md): devtools::load_all() (neu laden), devtools::test() (Tests),
+devtools::document() (Doku), evtl. devtools::check() (voller Check). -->
 
 21. **Was bedeutet die Namenskonvention im Paket: exportierte Funktionen heißen `tf_…` und
     sind in `snake_case`? Warum sind solche Konventionen wichtig?**
-    *Erwartet:* Einheitlichkeit, Lesbarkeit, Auffindbarkeit (alle `tf_`-Funktionen via Autocomplete),
-    Vermeidung von Namenskollisionen.
+<!-- Erwartet: Einheitlichkeit, Lesbarkeit, Auffindbarkeit (alle tf_-Funktionen via Autocomplete),
+Vermeidung von Namenskollisionen. -->
 
 ---
 
 ## Teil 7 – Git & Versionskontrolle
 
 22. **Wozu dient Git, und was ist der Unterschied zwischen Git und GitHub?**
-    *Erwartet:* Git = verteiltes Versionskontrollsystem (lokal); GitHub = Hosting-Plattform/Remote
-    + Zusammenarbeit (Issues, PRs).
+<!-- Erwartet: Git = verteiltes Versionskontrollsystem (lokal); GitHub = Hosting-Plattform/Remote
++ Zusammenarbeit (Issues, PRs). -->
 
 23. **Erklären Sie den typischen Ablauf: `git add` → `git commit` → `git push`. Was passiert in
     jedem Schritt?**
-    *Erwartet:* `add` = Änderungen in die Staging-Area; `commit` = Snapshot lokal mit Nachricht;
-    `push` = lokale Commits zum Remote (z. B. GitHub) hochladen.
+<!-- Erwartet: add = Änderungen in die Staging-Area; commit = Snapshot lokal mit Nachricht;
+push = lokale Commits zum Remote (z. B. GitHub) hochladen. -->
 
 24. **Was ist ein Branch und warum arbeitet man nicht direkt auf `main`?**
-    *Erwartet:* unabhängige Entwicklungslinie; schützt stabilen `main`-Stand; ermöglicht parallele
-    Arbeit und Review vor dem Mergen. (Laut `CLAUDE.md`: PRs gegen `main`.)
+<!-- Erwartet: unabhängige Entwicklungslinie; schützt stabilen main-Stand; ermöglicht parallele
+Arbeit und Review vor dem Mergen. (Laut CLAUDE.md: PRs gegen main.) -->
 
 25. **Was ist ein Pull Request (PR) und wozu dient ein Code-Review?**
-    *Erwartet:* Antrag, einen Branch in einen anderen zu mergen; ermöglicht Review/Diskussion/CI
-    vor der Integration; Qualitätssicherung.
+<!-- Erwartet: Antrag, einen Branch in einen anderen zu mergen; ermöglicht Review/Diskussion/CI vor
+der Integration; Qualitätssicherung. -->
 
 26. **Was bedeutet ein „Merge-Konflikt" und wie geht man damit um?**
-    *Erwartet:* zwei Änderungen an derselben Stelle; Git kann nicht automatisch zusammenführen →
-    manuell auflösen (Konfliktmarker `<<<<`/`====`/`>>>>` editieren), dann committen.
+<!-- Erwartet: zwei Änderungen an derselben Stelle; Git kann nicht automatisch zusammenführen →
+manuell auflösen (Konfliktmarker <<<<, ====, >>>> editieren), dann committen. -->
 
 27. **Was würden Sie in einer guten Commit-Nachricht schreiben? (Vgl. echte Historie unten.)**
-    *Erwartet:* kurze, präzise Zusammenfassung im Imperativ; ggf. Bezug zum Issue; *warum*, nicht
-    nur *was*.
-
     Beispiele aus der echten Git-Historie des Pakets:
     ```
     perf(depth): vectorize fsd() with Gram-matrix pairwise norms
     Fix checkmate imports for rlang export conflicts
     Bump version to 0.4.1
     ```
-    *Frage:* Was bedeutet vermutlich das Präfix `perf(depth):`? *(Conventional-Commits-Stil:
-    Art der Änderung + betroffener Bereich.)*
+    *Frage:* Was bedeutet vermutlich das Präfix `perf(depth):`?
+<!-- Erwartet: kurze, präzise Zusammenfassung im Imperativ; ggf. Bezug zum Issue; warum, nicht nur
+was. perf(depth): = Conventional-Commits-Stil: Art der Änderung (Performance) + betroffener Bereich
+(depth). -->
 
 28. **Was ist „Continuous Integration" (CI)? Im Repo gibt es einen `R-CMD-check`-Workflow.**
-    *Erwartet:* automatisches Bauen/Testen bei jedem Push/PR; fängt Fehler früh; Badge im README
-    zeigt Status.
+<!-- Erwartet: automatisches Bauen/Testen bei jedem Push/PR; fängt Fehler früh; Badge im README
+zeigt Status. -->
 
 ---
 
@@ -313,15 +380,16 @@ test_that("tfd.numeric works", {
 
 29. **Sie sollen in `tf` eine neue Funktion `tf_fmedian()` (Median je Funktion) ergänzen.
     Wie gingen Sie vor – an welchem bestehenden Code würden Sie sich orientieren?**
-    *Erwartet:* an `tf_fmax`/`tf_fmin` orientieren (`tf_fwise` + Lambda), Doku via roxygen,
-    Test schreiben, `load_all()`/`test()`, Branch + PR. → prüft Transfer.
+<!-- Erwartet: an tf_fmax/tf_fmin orientieren (tf_fwise + Lambda), Doku via roxygen, Test schreiben,
+load_all()/test(), Branch + PR. → prüft Transfer. -->
 
 30. **Wo würden Sie nachschauen, wenn Sie nicht wissen, was eine Funktion tut –
-    in der Hilfe, im Quellcode, in den Tests?** *(Offen; gut ist „alle drei", v. a. Tests als
-    ausführbare Beispiele.)*
+    in der Hilfe, im Quellcode, in den Tests?**
+<!-- Erwartet: Offen; gut ist „alle drei", v. a. Tests als ausführbare Beispiele. -->
 
 31. **Welche Programmiersprachen/Werkzeuge kennen Sie bereits, und wie schätzen Sie Ihren
-    eigenen Kenntnisstand in R ein?** *(Selbsteinschätzung, Gesprächseinstieg/-abschluss.)*
+    eigenen Kenntnisstand in R ein?**
+<!-- Selbsteinschätzung, Gesprächseinstieg/-abschluss. -->
 
 ---
 
@@ -334,6 +402,7 @@ test_that("tfd.numeric works", {
 | Fachkonzepte tf (Teil 3) | | | |
 | Funktionale Prog. (Teil 4) | | | |
 | Code lesen/erklären (Teil 5) | | | |
+| Bad-Code-Review (Snippet F) | | | |
 | Paket-Infrastruktur (Teil 6) | | | |
 | Git (Teil 7) | | | |
 | Transfer/Denkweise (Teil 8) | | | |
