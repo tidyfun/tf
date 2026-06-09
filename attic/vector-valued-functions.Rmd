@@ -571,6 +571,84 @@ The first 2-3 FPCs explain most of the remaining within-component variance,
 and the RMSE between the registered and FPC-reconstructed `(hip, knee)`
 curves is well below a degree for most subjects.
 
+## Joint modes of variation via MFPCA
+
+The per-component FPC above gives each component its *own* scores: a subject's
+hip-mode-1 score and knee-mode-1 score are separate numbers, so the basis
+cannot, on its own, express that the two joints co-vary. **Multivariate FPCA**
+(Happ & Greven, 2018; `tfb_mfpc()`) instead produces a *single* score per
+subject per mode, paired with a **vector-valued eigenfunction**
+$\Psi_m = (\Psi_m^{\text{hip}}, \Psi_m^{\text{knee}})$. One shared score
+$s_{im}$ scales both halves at once, so each mode encodes coupled hip-knee
+co-variation in a single coordinate system:
+$$ f_i(t) \approx \mu(t) + \sum_m s_{im}\,\Psi_m(t). $$
+
+The default `weights = "inverse_variance"` normalises each component to equal
+total variance before combining, so the (larger-range) knee does not simply
+dominate the hip; `"snr"`, `"equal"`, or a numeric vector are also available.
+
+```{r gait-mfpc}
+g_m <- tfb_mfpc(g_aligned, pve = 0.95)
+g_m
+
+scores <- tf_mfpc_scores(g_m)          # 39 x M, shared across both components
+nu     <- attr(g_m, "mfpc")$evalues    # joint (multivariate) eigenvalues
+ve     <- nu / sum(nu)                  # variance share per shared mode
+dim(scores)
+round(head(ve, 4), 3)
+```
+
+The multivariate eigenfunctions come back as a `tfd_mv` -- one bivariate "curve"
+per mode -- so each MFPC can be inspected component by component. The leading
+mode's hip and knee parts move together, which is exactly the coupling the
+independent per-component analysis could not represent:
+
+```{r gait-mfpc-efun, fig.width = 8.2, fig.height = 3.6}
+psi    <- tf_mfpc_efunctions(g_m)
+k_show <- min(3L, length(psi))
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(tf_component(psi, "hip")[seq_len(k_show)], col = seq_len(k_show), lwd = 2,
+     main = "MFPC eigenfunctions: hip", ylab = "loading")
+plot(tf_component(psi, "knee")[seq_len(k_show)], col = seq_len(k_show), lwd = 2,
+     main = "MFPC eigenfunctions: knee", ylab = "loading")
+legend("topright", bty = "n", lwd = 2, col = seq_len(k_show),
+       legend = paste("MFPC", seq_len(k_show)), cex = 0.85)
+par(op)
+```
+
+The shared scores live in one coordinate system, so MFPCA summarises each
+subject with a single set of `M` numbers rather than one set per component.
+That is a genuine trade-off: the independent per-component basis is free to
+optimise each component separately, so it reconstructs more accurately for a
+given per-component truncation, while MFPCA spends fewer, *coupled* scores and
+accepts a little more error in exchange for the shared coordinate system:
+
+```{r gait-mfpc-rmse, class.source = "fold-hide"}
+rmse_mv <- function(approx) {
+  resid <- g_aligned - vctrs::vec_cast(approx, g_aligned)
+  sqrt(mean(unlist(lapply(tf_evaluations(resid), function(m) {
+    as.matrix(m[, -1L, drop = FALSE])^2
+  }))))
+}
+n_indep <- sum(vapply(tf_components(g_b),
+                      function(co) length(attr(co, "score_variance")), integer(1)))
+data.frame(
+  representation = c("independent FPC", "joint MFPCA"),
+  stored_scores  = c(n_indep, attr(g_m, "mfpc")$npc),
+  rmse           = round(c(rmse_mv(g_b), rmse_mv(g_m)), 3)
+)
+```
+
+```{r gait-mfpc-recap, echo = FALSE, results = "asis"}
+cat(sprintf(
+  "The first %d shared modes already capture %.0f%% of the joint variance. ",
+  min(2L, length(ve)), 100 * sum(head(ve, 2))
+))
+cat(sprintf(
+  "New subjects can be projected onto this fitted basis with `tf_rebase()`, which re-scores them jointly rather than component by component."
+))
+```
+
 # 3. Atlantic storms as 4-dimensional curves
 
 `dplyr::storms` records four time-varying quantities for every Atlantic
