@@ -49,6 +49,27 @@ test_that("per-component basis is reachable via tf_components()", {
   expect_equal(b$y(tf_arg(tb$y)), tf_basis(tb$y)(tf_arg(tb$y)))
 })
 
+test_that("tfb_mv() distributes a properly-named per-component list arg", {
+  set.seed(41)
+  d <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  tb <- tfb_mv(d, k = list(x = 4, y = 6), penalized = FALSE, verbose = FALSE)
+  # per-component k values flow through to the underlying tfb basis
+  expect_identical(length(attr(tb$x, "basis_matrix")[1, ]), 4L)
+  expect_identical(length(attr(tb$y, "basis_matrix")[1, ]), 6L)
+})
+
+test_that("tfb_mv() rejects per-component lists with duplicated names", {
+  set.seed(42)
+  d <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # `list(x = 4, x = 6)` previously slipped through the distribution predicate
+  # (length 2, all names %in% comp_names) and silently passed NULL to tfb()
+  # for component "y". Now it falls back to "treat the whole list as a single
+  # scalar arg to tfb()", which tfb rejects as a malformed k.
+  expect_error(
+    tfb_mv(d, k = list(x = 4, x = 6), penalized = FALSE, verbose = FALSE)
+  )
+})
+
 test_that("tf_count aborts with a clear message on basis-represented data", {
   set.seed(5)
   tb <- tfb_mv(tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3))), verbose = FALSE)
