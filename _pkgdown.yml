@@ -55,6 +55,7 @@ reference:
   desc: Functions for registering, and warping functional data
   contents:
   - tf_register
+  - tf_register_shape
   - tf_estimate_warps
   - tf_registration
   - tf_align
