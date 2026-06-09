@@ -1,6 +1,8 @@
 ---
 title: "Vector-valued functional data: gait cycles and hurricane tracks"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    code_folding: show
 vignette: >
   %\VignetteIndexEntry{Vector-valued functional data: gait cycles and hurricane tracks}
   %\VignetteEngine{knitr::rmarkdown}
@@ -26,9 +28,9 @@ cycle, the `(longitude, latitude)` position of a hurricane sampled in time,
 the `(x, y, z)` body coordinates of a moving animal. The natural object is a
 **vector-valued function** `f: R -> R^d`, and `tf` represents a sample of
 those with the `tf_mv` family: `tfd_mv` for raw evaluations and `tfb_mv` for
-basis representations. Internally a `tf_mv` is just a bundle of `d` ordinary
-`tf` vectors, so every univariate verb -- evaluation, arithmetic, smoothing,
-basis fitting, derivatives, integration -- extends component-wise for free.
+basis representations. Internally a `tf_mv` is a bundle of `d` ordinary
+`tf` vectors, so the multivariate methods shown below reuse the existing
+univariate numerical kernels by mapping over components.
 
 This article uses two real datasets to put the API through its paces:
 
@@ -37,8 +39,9 @@ This article uses two real datasets to put the API through its paces:
   cycle does that variation concentrate, and what are the dominant modes of
   variation?*
 * **`dplyr::storms`** -- irregularly sampled position and intensity of every
-  Atlantic tropical storm or hurricane from 1975-2022. *Question: do
-  stronger storms travel further and move faster than weak ones?*
+  Atlantic tropical storm or hurricane from `r min(dplyr::storms$year)` to
+  `r max(dplyr::storms$year)`. *Question: do stronger storms travel further
+  and move faster than weak ones?*
 
 ```{r packages, message = FALSE}
 library(tf)
@@ -97,7 +100,18 @@ g
 ```
 
 The print-out shows `d = 2` components on a shared grid, with a sparkline pair
-per subject. The *same* object can be built from a **3-d array**
+per subject. It behaves like a vector of 39 bivariate curves; component
+accessors and bracket extraction expose the two levels separately -- curves on
+rows, argument values on columns, components on the third array dimension:
+
+```{r gait-anatomy}
+tf_ncomp(g)
+names(tf_components(g))
+dim(g[1:3, c(0.1, 0.5, 0.9)])
+class(g[, , component = "hip"])
+```
+
+The *same* object can be built from a **3-d array**
 `[curve, arg, component]` -- the layout `as.matrix()` returns --
 
 ```{r tour-array}
@@ -258,12 +272,14 @@ reference signal. The reference signal that was *used* to register a
 sample shrinks most strongly, but the partner component can shrink or
 expand depending on how phase-coupled the two are:
 
-```{r gait-register-traj, fig.width = 8.2, fig.height = 7.2}
+```{r gait-register-helpers, class.source = "fold-hide"}
 plot_aligned <- function(reg, title) {
   plot(tf_aligned(reg), type = "facet", alpha = 0.3)
   mtext(title, side = 3, line = -1.3, outer = TRUE, font = 2)
 }
+```
 
+```{r gait-register-traj, fig.width = 8.2, fig.height = 7.2}
 op <- par(mfrow = c(3, 1), oma = c(0, 0, 0, 0))
 plot_aligned(r_hip,   "ref = hip angle")
 plot_aligned(r_knee,  "ref = knee angle")
@@ -271,11 +287,10 @@ plot_aligned(r_speed, "ref = speed = ||(hip', knee')||")
 par(op)
 ```
 
-The "ref = knee" panel visibly tightens both components -- the knee carries
-the sharper heel-strike signal that the alignment can lock onto, and the
-hip (which is phase-coupled to it) tightens for free. The hip-only and
-speed-driven alignments knock down their target signal but leave the
-partner component largely untouched.
+The "ref = knee" panel visibly tightens the knee component. Hip variation
+changes much less, which is useful to see: a single shared warp can improve
+the component that carries the sharpest event without necessarily removing
+all variability in the smoother partner signal.
 
 ### Estimated warping functions
 
@@ -310,11 +325,14 @@ single sharp event.
 
 Compare the maximum pointwise sd before and after each registration:
 
-```{r gait-register-table}
+```{r gait-register-table-helper, class.source = "fold-hide"}
 peak_sd <- function(f, k) {
   arg <- tf_arg(f)
   max(unlist(tf_evaluate(tf_component(sd(f), k), arg)))
 }
+```
+
+```{r gait-register-table}
 out <- data.frame(
   reference = c("raw (no reg)", "hip", "knee", "speed"),
   sd_hip = c(peak_sd(g, "hip"),
@@ -329,20 +347,24 @@ out <- data.frame(
 out
 ```
 
-`knee` is the most informative reference signal here, both because the
-knee has the cycle's strongest event (heel-strike) and because that event
-phase-couples to hip flexion. We carry the knee-aligned sample forward.
+`knee` is the most informative reference signal for the sharp heel-strike
+event: it substantially reduces knee variation, while hip variation is mostly
+unchanged. We carry the knee-aligned sample forward because it best targets
+the event where phase variation is most visible.
 
 ## Modes of variation via FPC
 
-With phase variability removed, fit a per-component FPC basis. The
-leading PCs now describe *amplitude* modes only:
+With the most visible phase variation reduced, fit a per-component FPC basis.
+The leading PCs now mostly describe within-component amplitude modes:
+
+```{r gait-fpc-helper, class.source = "fold-hide"}
+fpc_var <- function(comp) attr(comp, "score_variance")
+```
 
 ```{r gait-fpc, fig.height = 3.8}
 g_aligned <- tf_aligned(r_knee)
 g_b <- tfb_mv(g_aligned, basis = "fpc", verbose = FALSE)
 
-fpc_var <- function(comp) attr(comp, "score_variance")
 v_hip  <- fpc_var(tf_component(g_b, "hip"));  v_hip  <- v_hip  / sum(v_hip)
 v_knee <- fpc_var(tf_component(g_b, "knee")); v_knee <- v_knee / sum(v_knee)
 
@@ -362,9 +384,9 @@ rmse_per_subject <- sqrt(unlist(lapply(tf_evaluations(resid), function(m) {
 summary(rmse_per_subject)
 ```
 
-The first 2-3 FPCs explain almost all the amplitude variance in each
-joint, and the RMSE between the registered and FPC-reconstructed
-`(hip, knee)` curves is on the order of a degree.
+The first 2-3 FPCs explain most of the remaining within-component variance,
+and the RMSE between the registered and FPC-reconstructed `(hip, knee)`
+curves is well below a degree for most subjects.
 
 ## Three ways to factor out "nuisance" variation
 
@@ -375,12 +397,12 @@ walk all three rungs on the same gait sample.
 
 ### Rung 1 -- arc-length reparametrization
 
-`tf_reparam_arclength()` traverses each curve at *unit speed in its value
-space*. The trajectory in the `(hip, knee)` plane is unchanged -- it is the same
-set of points -- but the time axis is redistributed so that equal time intervals
-cover equal arc length. No template and no other curve enter: this is a property
-of each curve on its own. `tf_speed()` returns a plain `tfd`, so `plot.tf` and
-`lines.tf` work directly:
+`tf_reparam_arclength()` traverses each curve at *approximately constant speed
+in its value space*. The trajectory in the `(hip, knee)` plane is unchanged --
+it is the same set of points -- but the time axis is redistributed so that equal
+time intervals cover equal arc length. No template and no other curve enter:
+this is a property of each curve on its own. `tf_speed()` returns a plain `tfd`,
+so `plot.tf` and `lines.tf` work directly:
 
 ```{r gait-reparam, fig.height = 4.0}
 g_unit  <- tf_reparam_arclength(g)
@@ -517,9 +539,10 @@ data.frame(curve           = c("a", "b", "c"),
 # 3. Atlantic storms as 4-dimensional curves
 
 `dplyr::storms` records four time-varying quantities for every Atlantic
-tropical storm or hurricane from 1975-2022, sampled every 6 hours along
-the storm's life: position (longitude, latitude) and intensity (sustained
-wind speed, central pressure). The natural object is a single
+tropical storm or hurricane from `r min(dplyr::storms$year)` to
+`r max(dplyr::storms$year)`, sampled every 6 hours along the storm's life:
+position (longitude, latitude) and intensity (sustained wind speed, central
+pressure). The natural object is a single
 **four-component** vector-valued curve per storm, `f_i: [0, T_i] -> R^4`
 -- spatial trajectory and intensity life-cycle bundled together.
 
@@ -536,7 +559,7 @@ Two practical points:
   build a normalised 4-d object on top of the real-time one and use the
   appropriate version per question.
 
-```{r storms-build}
+```{r storms-build, class.source = "fold-hide"}
 KM_PER_DEG <- 111.32
 
 storms_clean <- storms |>
@@ -556,8 +579,13 @@ storms_clean <- storms |>
   filter(n() >= 16, !is.na(wind), !is.na(pressure)) |>  # >= 4 days
   ungroup()
 
-# spatial (km, real time)
-tracks_km <- tfd_mv(list(
+# spatial (km, real time): the compact data-frame constructor.
+tracks_km <- storms_clean |>
+  transmute(storm_id, t_hours, x = x_km, y = y_km) |>
+  tfd_mv(id = "storm_id", arg = "t_hours", value = c("x", "y"))
+
+# Equivalent spelling if the component tfd vectors are already available.
+tracks_km_from_components <- tfd_mv(list(
   x = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "x_km"),
   y = tfd(storms_clean, id = "storm_id", arg = "t_hours", value = "y_km")
 ))
@@ -576,7 +604,8 @@ peak <- storms |>
   group_by(name, year) |>
   summarise(peak_cat = suppressWarnings(max(category, na.rm = TRUE)),
             .groups = "drop") |>
-  mutate(peak_cat = ifelse(is.finite(peak_cat), as.integer(peak_cat), 0L),
+  mutate(peak_cat = if_else(is.finite(peak_cat), peak_cat, 0),
+         peak_cat = as.integer(peak_cat),
          storm_id = paste(name, year))
 
 df <- tibble::tibble(
@@ -590,6 +619,16 @@ df <- tibble::tibble(
     levels = 0:4,
     labels = c("TS/TD", "Cat 1", "Cat 2", "Cat 3", "Cat 4+")
   ))
+```
+
+Before analysing the storms, inspect the irregular object directly. Counts
+vary by storm because each lifetime has a different number of 6-hourly
+observations, while the long data-frame representation keeps the components
+aligned by `(storm, phase)`.
+
+```{r storms-irregular}
+head(tf_count(tracks4))
+as.data.frame(tracks4[1:2], unnest = TRUE) |> head()
 ```
 
 ## Movement workflow: regularize, then describe
@@ -697,22 +736,25 @@ plotting) treat them as one object.
 
 The geographic view uses the `(long, lat)` components only. Faceting by
 peak Saffir-Simpson category separates the populations cleanly, and a
-coastline backdrop (from `maps::map`) anchors the geography:
+coastline backdrop (from `maps::map`, if installed) anchors the geography:
 
-```{r storms-map, fig.width = 8.2, fig.height = 6.8}
+```{r storms-plot-helpers, class.source = "fold-hide"}
 have_maps <- requireNamespace("maps", quietly = TRUE)
+pal <- c("grey50", "#fed976", "#feb24c", "#fd8d3c", "#e31a1c")
+
 draw_coast <- function(xlim, ylim) {
   if (!have_maps) return(invisible())
   m <- maps::map("world", plot = FALSE,
                  xlim = xlim, ylim = ylim, fill = FALSE)
   lines(m$x, m$y, col = "grey55", lwd = 0.6)
 }
+```
 
+```{r storms-map, fig.width = 8.2, fig.height = 6.8}
 xlim <- range(unlist(tf_evaluations(tf_component(df$track, "long"))), na.rm = TRUE)
 ylim <- range(unlist(tf_evaluations(tf_component(df$track, "lat"))),  na.rm = TRUE)
 
 op <- par(mfrow = c(2, 3), mar = c(3.4, 3.4, 2, 1), mgp = c(2, 0.7, 0))
-pal <- c("grey50", "#fed976", "#feb24c", "#fd8d3c", "#e31a1c")
 for (k in seq_along(levels(df$strength))) {
   lev   <- levels(df$strength)[k]
   trks  <- df$track[df$strength == lev]
@@ -762,9 +804,9 @@ df |>
   )
 ```
 
-Median path length grows roughly 4x from tropical-storm to cat-4+ storms,
-median forward speed roughly doubles, and the canonical wind / pressure
-gap between categories is visible.
+Median path length grows strongly from tropical-storm to cat-4+ storms,
+whereas lifetime-average forward speed increases more modestly. The
+canonical wind / pressure gap between categories is visible.
 
 ## Intensity and forward-speed life-cycles per category
 
@@ -775,7 +817,7 @@ axis. Evaluate each component on a common phase grid, average within each
 stratum, and re-wrap the result as a length-`G` univariate `tfd` so we
 can use the standard `plot.tf` / `lines.tf` machinery:
 
-```{r storms-lifecycle, fig.width = 8.2, fig.height = 6.8}
+```{r storms-lifecycle-prep, class.source = "fold-hide"}
 phase_grid <- seq(0, 1, length.out = 41)
 
 # forward speed on normalised time: re-arg each storm's km-speed by
@@ -808,7 +850,9 @@ stratum_mean_tfd <- function(comp, grp, grid = phase_grid) {
 wind_avg  <- stratum_mean_tfd(tf_component(df$track, "wind"), df$strength)
 pres_avg  <- stratum_mean_tfd(tf_component(df$track, "pres"), df$strength)
 speed_avg <- stratum_mean_tfd(speed_phase,                     df$strength)
+```
 
+```{r storms-lifecycle, fig.width = 8.2, fig.height = 6.8}
 op <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
 plot(wind_avg, col = pal, lwd = 2, alpha = 1,
      xlab = "lifecycle phase", ylab = "wind (knots)",
@@ -894,7 +938,7 @@ The two case studies above exercised exactly the same surface:
 * `tf_arclength()` and `tf_speed()` as geometric primitives on the bundle;
 * `tfb_mv()` for smoothing (`basis = "spline"`) or PC decomposition
   (`basis = "fpc"`);
-* the alignment ladder: `tf_reparam_arclength()` for unit-speed (shape-only)
+* the alignment ladder: `tf_reparam_arclength()` for constant-speed (shape-only)
   reparametrization, `tf_register()` for shared-warp alignment -- from a single
   reference component (`method = "cc"`) or jointly from all components
   (`method = "srvf_mv"`) -- and `tf_register_shape()` for full elastic shape
@@ -902,10 +946,6 @@ The two case studies above exercised exactly the same surface:
   estimated rotations and (template-relative) scale factors;
 * full dplyr / tibble integration via the underlying vctrs proxy.
 
-Every numeric kernel here is the existing univariate one, mapped over the
-`d` components by `vec_proxy.tf_mv`. Adding a new univariate `tf_*` verb
-therefore extends to `tf_mv` automatically.
-
-For the design rationale -- bundle-of-components vs. matrix-valued
-evaluations vs. long/stacked vectors -- see `attic/design/multivariate.md`
-in the package source.
+The common pattern is simple: keep coupled signals bundled as one object, use
+component accessors when a scalar or univariate summary is needed, and let the
+multivariate methods reuse the existing univariate kernels component-wise.
