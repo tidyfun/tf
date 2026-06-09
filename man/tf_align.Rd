@@ -43,6 +43,7 @@ Other registration functions:
 \code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
 \code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
 \code{\link[=tf_register]{tf_register()}},
+\code{\link[=tf_register_shape]{tf_register_shape()}},
 \code{\link{tf_registration}},
 \code{\link[=tf_warp]{tf_warp()}}
 }

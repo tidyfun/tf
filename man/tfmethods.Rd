@@ -142,8 +142,8 @@ tf_basis(xb)(c(0, .1, .2))
 c(is_tfb(xb), is_tfb_spline(xb), is_tfb_fpc(xb))
 }
 \seealso{
-Other tidyfun utility functions: 
-\code{\link{in_range}()},
-\code{\link{tf_zoom}()}
+Other tidyfun utility functions:
+\code{\link[=in_range]{in_range()}},
+\code{\link[=tf_zoom]{tf_zoom()}}
 }
 \concept{tidyfun utility functions}

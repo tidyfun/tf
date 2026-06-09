@@ -8,7 +8,7 @@ tf_estimate_warps(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 0.01
 )
@@ -27,6 +27,9 @@ Not used for \code{method = "landmark"}.}
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
 For details, see \code{\link[fdasrvf:time_warping]{fdasrvf::time_warping()}}. Default template is the Karcher mean.
+\item \code{"srvf_mv"}: true multivariate SRVF time registration for \code{tf_mv}
+objects on a regular shared grid. This method estimates one shared warp
+from all components jointly and does not rotate or rescale curves.
 \item \code{"cc"}: continuous-criterion registration via a tf-native dense-grid
 optimizer with monotone spline warps. Default template is the arithmetic
 mean.
@@ -144,6 +147,7 @@ Other registration functions:
 \code{\link[=tf_align]{tf_align()}},
 \code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
 \code{\link[=tf_register]{tf_register()}},
+\code{\link[=tf_register_shape]{tf_register_shape()}},
 \code{\link{tf_registration}},
 \code{\link[=tf_warp]{tf_warp()}}
 }

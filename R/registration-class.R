@@ -6,6 +6,9 @@
 #' \eqn{h_i^{-1}} (observed \eqn{\to} aligned time), and the template used.
 #' Use accessors [tf_aligned()], [tf_inv_warps()], and [tf_template()] to extract
 #' components.
+#' `tf_shape_registration` objects, returned by [tf_register_shape()], extend
+#' this structure with shape-space rotations and scale factors. Use
+#' [tf_rotations()] and [tf_scales()] to extract those components.
 #'
 #' @section Summary diagnostics:
 #' `summary()` computes per-curve diagnostics for assessing registration
@@ -50,8 +53,14 @@
 #'   \eqn{h_i^{-1}(t)} that map observed time to aligned time (`tfd` vector).
 #'   Use [tf_invert()] on the result to obtain forward warps if needed.
 #' - `tf_template(x)`: extract the template function (`tf` vector of length 1).
+#' - `tf_rotations(x)`: extract the per-curve rotation matrices from a
+#'   `tf_shape_registration` object.
+#' - `tf_scales(x)`: extract the per-curve scale factors from a
+#'   `tf_shape_registration` object. Each factor is relative to the template
+#'   (template SRVF norm divided by the curve's SRVF norm); see
+#'   [tf_register_shape()].
 #'
-#' @param x a `tf_registration` object
+#' @param x a `tf_registration` or `tf_shape_registration` object
 #' @param i index for subsetting (integer, logical, or character)
 #' @param object a `tf_registration` object
 #' @param ... additional arguments (currently unused)
@@ -60,7 +69,9 @@
 #'   (inverse warping functions aligning `x` to the template function), the
 #'   `template` function, the original data `x` (if `store_x = TRUE` was used
 #'   in [tf_register()]), and the `call` to [tf_register()] that created the
-#'   object. Accessors return the respective component.
+#'   object. `tf_shape_registration` objects additionally contain the forward
+#'   `warps`, `rotations`, and `scales`. Accessors return the respective
+#'   component.
 #' @examples
 #' reg <- tf_register(pinch[1:5], method = "affine", type = "shift_scale")
 #' reg
@@ -82,6 +93,31 @@ new_tf_registration <- function(registered, inv_warps, template, x, call) {
       call = call
     ),
     class = "tf_registration"
+  )
+}
+
+new_tf_shape_registration <- function(
+  registered,
+  warps,
+  inv_warps,
+  template,
+  x,
+  rotations,
+  scales,
+  call
+) {
+  structure(
+    list(
+      registered = registered,
+      warps = warps,
+      inv_warps = inv_warps,
+      template = template,
+      x = x,
+      rotations = rotations,
+      scales = scales,
+      call = call
+    ),
+    class = c("tf_shape_registration", "tf_registration")
   )
 }
 
@@ -108,6 +144,20 @@ tf_template <- function(x) {
 
 #' @rdname tf_registration
 #' @export
+tf_rotations <- function(x) {
+  assert_class(x, "tf_shape_registration")
+  x$rotations
+}
+
+#' @rdname tf_registration
+#' @export
+tf_scales <- function(x) {
+  assert_class(x, "tf_shape_registration")
+  x$scales
+}
+
+#' @rdname tf_registration
+#' @export
 print.tf_registration <- function(x, ...) {
   domain <- tf_domain(x$registered)
   cli::cli_text("{.cls tf_registration}")
@@ -120,6 +170,30 @@ print.tf_registration <- function(x, ...) {
     "aligned" = !is.null(x$registered),
     "inv_warps" = !is.null(x$inv_warps),
     "template" = !is.null(x$template),
+    "original data" = !is.null(x$x)
+  )
+  cli::cli_text(
+    "Components: {paste(names(components)[components], collapse = ', ')}"
+  )
+  invisible(x)
+}
+
+#' @rdname tf_registration
+#' @export
+print.tf_shape_registration <- function(x, ...) {
+  domain <- tf_domain(x$registered)
+  cli::cli_text("{.cls tf_shape_registration}")
+  cat("Call: ")
+  print(x$call)
+  cli::cli_text(
+    "{length(x$registered)} curve{?s} with {tf_ncomp(x$registered)} component{?s} on [{domain[1]}, {domain[2]}]"
+  )
+  components <- c(
+    "aligned" = !is.null(x$registered),
+    "inv_warps" = !is.null(x$inv_warps),
+    "template" = !is.null(x$template),
+    "rotations" = !is.null(x$rotations),
+    "scales" = !is.null(x$scales),
     "original data" = !is.null(x$x)
   )
   cli::cli_text(
@@ -377,4 +451,19 @@ plot.tf_registration <- function(x, ...) {
 #' @export
 length.tf_registration <- function(x) {
   length(x$registered)
+}
+
+#' @rdname tf_registration
+#' @export
+`[.tf_shape_registration` <- function(x, i) {
+  new_tf_shape_registration(
+    registered = x$registered[i],
+    warps = x$warps[i],
+    inv_warps = x$inv_warps[i],
+    template = x$template,
+    x = if (!is.null(x$x)) x$x[i] else NULL,
+    rotations = x$rotations[,, i, drop = FALSE],
+    scales = x$scales[i],
+    call = x$call
+  )
 }

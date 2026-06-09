@@ -119,11 +119,11 @@ tfd_mv(df, id = "id", arg = "arg", value = c("x", "y"))
 \code{\link[=tfb_mv]{tfb_mv()}} for basis representation; \code{\link[=tf_components]{tf_components()}},
 \code{\link[=tf_ncomp]{tf_ncomp()}} and the \code{$} operator to access components.
 
-Other tf_mv-class: 
-\code{\link{plot.tf_mv}()},
-\code{\link{tf_arclength}()},
+Other tf_mv-class:
+\code{\link[=plot.tf_mv]{plot.tf_mv()}},
+\code{\link[=tf_arclength]{tf_arclength()}},
 \code{\link{tf_geom}},
 \code{\link{tf_mv_methods}},
-\code{\link{tfb_mv}}
+\code{\link[=tfb_mv]{tfb_mv()}}
 }
 \concept{tf_mv-class}

@@ -61,7 +61,7 @@ evaluated long/wide data.frame (\code{unnest = TRUE}).
 \code{\link[=as.matrix.tf]{as.matrix.tf()}} (2-d sibling), \code{\link[=as.data.frame.tf]{as.data.frame.tf()}} (univariate
 contract), \code{\link[=tf_evaluate]{tf_evaluate()}}.
 
-Other tidyfun converters: 
-\code{\link{as.data.frame.tf}()}
+Other tidyfun converters:
+\code{\link[=as.data.frame.tf]{as.data.frame.tf()}}
 }
 \concept{tidyfun converters}

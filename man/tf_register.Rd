@@ -8,7 +8,7 @@ tf_register(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 0.01,
   store_x = TRUE
@@ -28,6 +28,8 @@ Not used for \code{method = "landmark"}.}
 \item{method}{the registration method to use:
 \itemize{
 \item \code{"srvf"}: Square Root Velocity Framework (elastic registration).
+\item \code{"srvf_mv"}: true multivariate SRVF time registration for \code{tf_mv}
+objects on a regular shared grid.
 \item \code{"cc"}: continuous-criterion registration via a tf-native dense-grid
 optimizer with monotone spline warps.
 \item \code{"affine"}: affine (linear) registration.
@@ -148,6 +150,7 @@ Other registration functions:
 \code{\link[=tf_align]{tf_align()}},
 \code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
 \code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
+\code{\link[=tf_register_shape]{tf_register_shape()}},
 \code{\link{tf_registration}},
 \code{\link[=tf_warp]{tf_warp()}}
 }

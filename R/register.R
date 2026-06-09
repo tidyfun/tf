@@ -204,6 +204,8 @@ tf_align.tfb <- function(x, warp, ...) {
 #'   Not used for `method = "landmark"`.
 #' @param method the registration method to use:
 #'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
+#'   * `"srvf_mv"`: true multivariate SRVF time registration for `tf_mv`
+#'     objects on a regular shared grid.
 #'   * `"cc"`: continuous-criterion registration via a tf-native dense-grid
 #'     optimizer with monotone spline warps.
 #'   * `"affine"`: affine (linear) registration.
@@ -261,7 +263,7 @@ tf_register <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2,
   store_x = TRUE
@@ -361,6 +363,9 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
 #' @param method the registration method to use:
 #'   * `"srvf"`: Square Root Velocity Framework (elastic registration).
 #'     For details, see [fdasrvf::time_warping()]. Default template is the Karcher mean.
+#'   * `"srvf_mv"`: true multivariate SRVF time registration for `tf_mv`
+#'     objects on a regular shared grid. This method estimates one shared warp
+#'     from all components jointly and does not rotate or rescale curves.
 #'   * `"cc"`: continuous-criterion registration via a tf-native dense-grid
 #'     optimizer with monotone spline warps. Default template is the arithmetic
 #'     mean.
@@ -455,7 +460,7 @@ tf_estimate_warps <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -467,7 +472,7 @@ tf_estimate_warps.tfd_reg <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -476,6 +481,13 @@ tf_estimate_warps.tfd_reg <- function(
   method <- match.arg(method)
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
+
+  if (method == "srvf_mv") {
+    cli::cli_abort(c(
+      "{.val srvf_mv} registration is only available for {.cls tf_mv} objects.",
+      "i" = "Use {.val srvf} for univariate functional data."
+    ))
+  }
 
   # Landmark method doesn't use template, uses landmarks instead
   if (method == "landmark") {
@@ -632,7 +644,7 @@ tf_estimate_warps.tfb <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -652,7 +664,7 @@ tf_estimate_warps.tfd_irreg <- function(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 1e-2
 ) {
@@ -660,6 +672,13 @@ tf_estimate_warps.tfd_irreg <- function(
   method <- match.arg(method)
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
+
+  if (method == "srvf_mv") {
+    cli::cli_abort(c(
+      "{.val srvf_mv} registration is only available for {.cls tf_mv} objects.",
+      "i" = "Use {.val srvf} for univariate functional data."
+    ))
+  }
 
   if (method %in% c("srvf", "cc")) {
     cli::cli_abort(
