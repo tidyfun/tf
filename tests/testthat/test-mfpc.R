@@ -1,0 +1,173 @@
+test_that("tfb_mfpc returns a tfb_mv with shared-score tfb_fpc components", {
+  set.seed(1)
+  g <- tfd_mv(list(x = tf_rgp(15), y = tf_rgp(15)))
+  m <- tfb_mfpc(g, pve = 0.99)
+  expect_s3_class(m, "tfb_mv")
+  expect_true(is_tfb_mv(m))
+  expect_true(is_tfb_mfpc(m))
+  expect_false(is_tfb_mfpc(tfb_mv(g, basis = "fpc", verbose = FALSE)))
+  expect_true(all(map_lgl(tf_components(m), is_tfb_fpc)))
+  expect_length(m, 15)
+  expect_identical(tf_ncomp(m), 2L)
+})
+
+test_that("MFPC scores are shared (identical) across all components", {
+  set.seed(2)
+  g <- tfd_mv(list(x = tf_rgp(12), y = tf_rgp(12), z = tf_rgp(12)))
+  m <- tfb_mfpc(g, npc = 4)
+  # the per-curve coefficient vectors (1, scores) are identical component-wise
+  c1 <- unclass(tf_component(m, 1))
+  c2 <- unclass(tf_component(m, 2))
+  c3 <- unclass(tf_component(m, 3))
+  expect_equal(c1, c2, ignore_attr = TRUE)
+  expect_equal(c1, c3, ignore_attr = TRUE)
+  S <- tf_mfpc_scores(m)
+  expect_equal(dim(S), c(12L, 4L))
+})
+
+test_that("reconstruction is exact at full rank with equal weights", {
+  set.seed(3)
+  g <- tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10)))
+  m <- tfb_mfpc(g, weights = "equal", uni_pve = 1, pve = 1)
+  rec <- as.tfd_mv(m)
+  expect_equal(as.matrix(rec), as.matrix(g), tolerance = 1e-10)
+})
+
+test_that("multivariate eigenfunctions are weighted-orthonormal", {
+  set.seed(4)
+  g <- tfd_mv(list(x = tf_rgp(40, nugget = .05), y = tf_rgp(40, nugget = .05)))
+  m <- tfb_mfpc(g, weights = "inverse_variance", npc = 5)
+  w <- attr(m, "mfpc")$weights
+  ef <- tf_mfpc_efunctions(m) # tfd_mv, length M
+  M <- length(ef)
+  gram <- matrix(0, M, M)
+  for (j in seq_len(tf_ncomp(ef))) {
+    mat <- as.matrix(tf_component(ef, j))
+    arg <- as.numeric(attr(mat, "arg"))
+    delta <- c(0, diff(arg))
+    qw <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+    gram <- gram + w[j] * (mat %*% (qw * t(mat)))
+  }
+  expect_equal(unname(gram), diag(M), tolerance = 1e-6)
+})
+
+test_that("multivariate eigenvalues account for the total weighted variance", {
+  set.seed(5)
+  g <- tfd_mv(list(x = tf_rgp(30, nugget = .05), y = tf_rgp(30, nugget = .05)))
+  m <- tfb_mfpc(g, weights = "equal", uni_pve = 1, pve = 1)
+  nu <- attr(m, "mfpc")$evalues
+  w <- attr(m, "mfpc")$weights
+  ind <- tfb_mv(g, basis = "fpc", pve = 1, verbose = FALSE)
+  tv <- map_dbl(tf_components(ind), \(co) sum(attr(co, "score_variance")))
+  expect_equal(sum(nu), sum(w * tv), tolerance = 1e-6)
+  # eigenvalues are non-increasing and non-negative
+  expect_true(all(nu >= -1e-8))
+  expect_false(is.unsorted(rev(nu)))
+})
+
+test_that("weight schemes and user weights produce valid, normalized weights", {
+  set.seed(6)
+  g <- tfd_mv(list(x = tf_rgp(25), y = tf_rgp(25)))
+  m_iv <- tfb_mfpc(g, weights = "inverse_variance", npc = 3)
+  m_eq <- tfb_mfpc(g, weights = "equal", npc = 3)
+  m_snr <- tfb_mfpc(g, weights = "snr", uni_pve = 0.9, npc = 3)
+  m_num <- tfb_mfpc(g, weights = c(3, 1), npc = 3)
+  # all schemes rescale to sum to d (= 2)
+  for (m in list(m_iv, m_eq, m_snr, m_num)) {
+    expect_equal(sum(attr(m, "mfpc")$weights), 2)
+  }
+  expect_equal(unname(attr(m_eq, "mfpc")$weights), c(1, 1))
+  expect_equal(unname(attr(m_num, "mfpc")$weights), c(1.5, 0.5))
+  # wrong-length numeric weights error
+  expect_error(tfb_mfpc(g, weights = c(1, 2, 3)), "weights")
+  # zero / negative weights error (would yield Inf eigenfunctions via 1/sqrt(w))
+  expect_error(tfb_mfpc(g, weights = c(1, 0)), "strictly positive")
+  expect_error(tfb_mfpc(g, weights = c(2, -1)), "strictly positive")
+})
+
+test_that("re-scoring rejects a custom arg and incompatible domains", {
+  set.seed(15)
+  g <- tfd_mv(list(x = tf_rgp(15), y = tf_rgp(15)))
+  m <- tfb_mfpc(g, npc = 3)
+  expect_error(tf_rebase(g, m, arg = seq(0, 1, length.out = 10)), "custom")
+})
+
+test_that("joint re-scoring round-trips the training data exactly", {
+  set.seed(7)
+  g <- tfd_mv(list(x = tf_rgp(20), y = tf_rgp(20)))
+  m <- tfb_mfpc(g, pve = 0.99)
+  S <- tf_mfpc_scores(m)
+  # re-scoring the *training* data must recover the stored scores
+  m_re <- tf_rebase(g, m)
+  expect_true(is_tfb_mfpc(m_re))
+  expect_equal(tf_mfpc_scores(m_re), S, tolerance = 1e-8)
+  # the same via vec_cast
+  m_cast <- vctrs::vec_cast(g, m)
+  expect_equal(tf_mfpc_scores(m_cast), S, tolerance = 1e-8)
+})
+
+test_that("re-scoring new data is well-defined and component-compatible", {
+  set.seed(8)
+  g <- tfd_mv(list(x = tf_rgp(30), y = tf_rgp(30)))
+  m <- tfb_mfpc(g, npc = 4)
+  g_new <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  proj <- tf_rebase(g_new, m)
+  expect_s3_class(proj, "tfb_mv")
+  expect_true(is_tfb_mfpc(proj))
+  expect_length(proj, 5)
+  expect_equal(dim(tf_mfpc_scores(proj)), c(5L, 4L))
+  # mismatched component count errors
+  g_bad <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5), z = tf_rgp(5)))
+  expect_error(tf_rebase(g_bad, m))
+})
+
+test_that("uni_pve / per-component args control the univariate truncation", {
+  set.seed(9)
+  g <- tfd_mv(list(x = tf_rgp(30, nugget = .05), y = tf_rgp(30, nugget = .05)))
+  m_lo <- tfb_mfpc(g, uni_pve = 0.5, pve = 1)
+  m_hi <- tfb_mfpc(g, uni_pve = 0.99, pve = 1)
+  # fewer univariate PCs => fewer available multivariate PCs
+  expect_lte(attr(m_lo, "mfpc")$npc, attr(m_hi, "mfpc")$npc)
+})
+
+test_that("scoring a single MFPC component directly is an error", {
+  set.seed(10)
+  g <- tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10)))
+  m <- tfb_mfpc(g, npc = 3)
+  comp <- tf_component(m, 1)
+  expect_s3_class(comp, "tfb_fpc")
+  # the stored per-component scoring function refuses to run
+  expect_error(
+    attr(comp, "scoring_function")(),
+    "single component"
+  )
+})
+
+test_that("slicing preserves the MFPC spec; concatenation drops it", {
+  set.seed(11)
+  g <- tfd_mv(list(x = tf_rgp(12), y = tf_rgp(12)))
+  m <- tfb_mfpc(g, npc = 3)
+  # subsetting keeps the curve-independent eigenbasis -> still re-scorable
+  expect_true(is_tfb_mfpc(m[1:5]))
+  expect_equal(dim(tf_mfpc_scores(m[1:5])), c(5L, 3L))
+  # concatenation uses a bare prototype -> spec intentionally dropped
+  expect_false(is_tfb_mfpc(c(m[1:6], m[7:12])))
+})
+
+test_that("mixing a tfd_mv with an MFPC tfb_mv demotes (no spec carried)", {
+  set.seed(12)
+  g <- tfd_mv(list(x = tf_rgp(8), y = tf_rgp(8)))
+  m <- tfb_mfpc(g, npc = 2)
+  expect_false(is_tfb_mfpc(c(as.tfd_mv(m), g)))
+})
+
+test_that("npc beyond available components warns and is capped", {
+  set.seed(13)
+  g <- tfd_mv(list(x = tf_rgp(6), y = tf_rgp(6)))
+  expect_warning(m <- tfb_mfpc(g, uni_pve = 0.5, npc = 1000), "exceeds")
+  expect_lte(attr(m, "mfpc")$npc, length(g) * 2)
+})
+
+test_that("empty / degenerate inputs error informatively", {
+  expect_error(tfb_mfpc(tfd_mv(list())), "no components")
+})

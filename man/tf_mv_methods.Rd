@@ -62,6 +62,7 @@ Other tf_mv-class:
 \code{\link[=plot.tf_mv]{plot.tf_mv()}},
 \code{\link[=tf_arclength]{tf_arclength()}},
 \code{\link{tf_geom}},
+\code{\link[=tfb_mfpc]{tfb_mfpc()}},
 \code{\link[=tfb_mv]{tfb_mv()}},
 \code{\link[=tfd_mv]{tfd_mv()}}
 }

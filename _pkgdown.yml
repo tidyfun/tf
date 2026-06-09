@@ -23,6 +23,7 @@ reference:
   contents:
   - tfd_mv
   - tfb_mv
+  - tfb_mfpc
   - tf_mv_methods
   - tf_geom
   - tf_arclength

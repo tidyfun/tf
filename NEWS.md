@@ -1,3 +1,15 @@
+# tf 0.4.2
+
+## New features
+
+* `tfb_mfpc()` implements multivariate functional principal component analysis
+  (Happ & Greven, 2018) for vector-valued (`tf_mv`) data: a single set of scalar
+  scores per curve shared across all components, with vector-valued
+  eigenfunctions. Component weighting is configurable (`"inverse_variance"`
+  default, `"snr"`, `"equal"`, or user-supplied). New data can be projected onto
+  a fitted basis via `tf_rebase()` / `vec_cast()`. Accessors `tf_mfpc_scores()`,
+  `tf_mfpc_efunctions()` and the predicate `is_tfb_mfpc()`.
+
 # tf 0.4.1
 
 ## Bug fixes

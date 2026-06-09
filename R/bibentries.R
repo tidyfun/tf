@@ -1,4 +1,15 @@
 bibentries <- c(
+  happ2018 = bibentry(
+    "article",
+    title = "Multivariate functional principal component analysis for data observed on different (dimensional) domains",
+    author = "Happ, Clara and Greven, Sonja",
+    journal = "Journal of the American Statistical Association",
+    volume = "113",
+    number = "522",
+    pages = "649--659",
+    year = "2018",
+    publisher = "Taylor & Francis"
+  ),
   sun2012exact = bibentry(
     "article",
     title = "Exact fast computation of band depth for large functional datasets: How quickly can one million curves be ranked?",

@@ -150,7 +150,8 @@ Other tfb-class:
 \code{\link[=tfb_spline]{tfb_spline()}}
 
 Other tfb_fpc-class:
-\code{\link[=fpc_wsvd]{fpc_wsvd()}}
+\code{\link[=fpc_wsvd]{fpc_wsvd()}},
+\code{\link[=tfb_mfpc]{tfb_mfpc()}}
 }
 \concept{tfb-class}
 \concept{tfb_fpc-class}

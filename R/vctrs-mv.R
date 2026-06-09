@@ -23,10 +23,22 @@ vec_proxy.tf_mv <- function(x, ...) {
 #' @export
 vec_restore.tf_mv <- function(x, to, ...) {
   components <- as.list(x)
+  # An MFPC fit carries a curve-independent joint spec. Slicing reuses the
+  # original object as `to`, so the spec (and the ability to re-score) is
+  # preserved. Concatenation (`vec_c`/`c`) uses a bare prototype as `to` (built
+  # by `tf_mv_ptype2()` without a spec), so it intentionally drops the spec --
+  # stamping one fit's eigenbasis onto a concatenation of possibly different
+  # fits would be wrong.
+  mfpc <- attr(to, "mfpc")
   if (!length(components)) {
-    return(new_tf_mv(list(), domain = attr(to, "domain"), class = class(to)[1]))
+    return(new_tf_mv(
+      list(),
+      domain = attr(to, "domain"),
+      class = class(to)[1],
+      mfpc = mfpc
+    ))
   }
-  new_tf_mv(components, check_curve_names = FALSE)
+  new_tf_mv(components, check_curve_names = FALSE, mfpc = mfpc)
 }
 
 #-------------------------------------------------------------------------------
@@ -61,6 +73,12 @@ tf_mv_ptype2 <- function(x, y, ...) {
 }
 
 tf_mv_cast <- function(x, to, ...) {
+  # casting *onto* a multivariate FPCA basis means jointly re-scoring the new
+  # data (per-component casting would give wrong, component-local scores).
+  # Reconstruction (`to` a plain tfd_mv) keeps the component-wise path below.
+  if (is_tfb_mfpc(to)) {
+    return(mfpc_rescore(x, to))
+  }
   check_compatible_mv(x, to)
   comps <- map2(tf_components(x), tf_components(to), \(a, b) vec_cast(a, b))
   names(comps) <- attr(x, "comp_names")

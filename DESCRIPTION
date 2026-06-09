@@ -109,6 +109,7 @@ Collate:
     'tfb-spline.R'
     'tf-s4.R'
     'tfb-fpc-utils.R'
+    'tfb-mfpc.R'
     'tfb-spline-utils.R'
     'utils.R'
     'vctrs-cast.R'

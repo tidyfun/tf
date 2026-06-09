@@ -4,6 +4,11 @@
 tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
   cn <- attr(object, "comp_names")
   comps <- tf_components(object)
+  # re-express onto a multivariate FPCA basis -> joint re-scoring, not the
+  # independent component-wise rebase below.
+  if (is_tf_mv(basis_from) && is_tfb_mfpc(basis_from)) {
+    return(mfpc_rescore(object, basis_from, arg = arg))
+  }
   if (is_tf_mv(basis_from)) {
     check_compatible_mv(object, basis_from)
     bases <- tf_components(basis_from)
@@ -47,8 +52,12 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
   if (!length(cn)) {
     n <- vec_size(f)
     if (definite) {
-      return(matrix(numeric(0), nrow = n, ncol = 0,
-                    dimnames = list(names(f), NULL)))
+      return(matrix(
+        numeric(0),
+        nrow = n,
+        ncol = 0,
+        dimnames = list(names(f), NULL)
+      ))
     }
     return(new_tf_mv(list(), domain = tf_domain(f), class = "tfd_mv"))
   }

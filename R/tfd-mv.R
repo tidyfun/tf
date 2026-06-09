@@ -13,7 +13,8 @@ new_tf_mv <- function(
   components = list(),
   domain = NULL,
   class = NULL,
-  check_curve_names = TRUE
+  check_curve_names = TRUE,
+  mfpc = NULL
 ) {
   assert_list(components)
   if (length(components)) {
@@ -104,6 +105,7 @@ new_tf_mv <- function(
     components = components,
     comp_names = names(components),
     domain = domain,
+    mfpc = mfpc,
     class = c(subclass, "tf_mv", "tf")
   )
 }

@@ -78,7 +78,8 @@ Other tfb-class:
 \code{\link[=tfb_spline]{tfb_spline()}}
 
 Other tfb_fpc-class:
-\code{\link[=tfb_fpc]{tfb_fpc()}}
+\code{\link[=tfb_fpc]{tfb_fpc()}},
+\code{\link[=tfb_mfpc]{tfb_mfpc()}}
 }
 \author{
 Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
