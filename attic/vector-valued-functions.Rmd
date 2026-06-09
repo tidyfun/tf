@@ -3,6 +3,8 @@ title: "Vector-valued functional data: gait cycles and hurricane tracks"
 output:
   rmarkdown::html_vignette:
     code_folding: show
+bibliography: references.bib
+link-citations: true
 vignette: >
   %\VignetteIndexEntry{Vector-valued functional data: gait cycles and hurricane tracks}
   %\VignetteEngine{knitr::rmarkdown}
@@ -69,8 +71,8 @@ integration, smoothing, basis fitting -- extends component-wise for free.
 
 Two kinds of variation run through everything below: **amplitude** (how large
 the values get) and **phase** (*where in* $t$ the features happen). Much of the
-work in functional data analysis is telling the two apart, and Section 2 is
-largely about exactly that.
+work in functional data analysis [@ramsay2005functional] is telling the two
+apart [@marron2015], and Section 2 is largely about exactly that.
 
 ## The `tf_mv` classes: `tfd_mv` and `tfb_mv`
 
@@ -89,8 +91,9 @@ Components are named, and a few accessors reach into the bundle: `tf_ncomp()`
 ## Constructing `tf_mv` objects
 
 `tfd_mv()` accepts three interchangeable input layouts. We use the built-in
-`gait` data throughout the gait case study -- hip and knee angles, in degrees,
-for 39 boys, each sampled at 20 points across one gait cycle. The most direct
+`gait` data [@olshen1989gait; @ramsay2005functional] throughout the gait case
+study -- hip and knee angles, in degrees, for 39 boys, each sampled at 20
+points across one gait cycle. The most direct
 construction is a **named list** of univariate `tf` vectors:
 
 ```{r tour-list}
@@ -161,7 +164,7 @@ plot(tf_speed(g), alpha = 0.3, main = expression("pointwise speed " * "||" * f*"
 When curves differ mainly in *timing*, we usually want to factor that out --
 but "factor out" can mean several different things. There is a ladder of
 increasingly aggressive operations, distinguished by *what each treats as a
-nuisance*:
+nuisance* [@marron2015]:
 
 | rung | operation | removes | keeps | `tf` entry point |
 |---|---|---|---|---|
@@ -320,7 +323,8 @@ abline(0, 1, lty = 3)
 
 `method = "srvf_mv"` removes the choice of reference: it estimates the single
 time-warp that best aligns the joint `(hip, knee)` trajectories in the elastic
-(square-root-velocity) sense, using all components at once. It is still only a
+(square-root-velocity) sense, using all components at once
+[@srivastava2011registration; @tucker2013generative]. It is still only a
 re-timing -- values are never rotated or rescaled -- and the template is the
 multivariate Karcher mean in `tf_template(reg_mv)`.
 
@@ -343,8 +347,8 @@ it needs no reference choice and respects both axes symmetrically.
 
 `tf_register_shape()` goes furthest: on top of the time-warp it also fits, per
 curve, a **rotation** and a **scale**, and reports the aligned curves in a
-centered, normalised **shape space**. Translation, rotation and size are all
-quotiented out.
+centered, normalised **shape space** [@srivastava2011shape; @srivastava2016].
+Translation, rotation and size are all quotiented out.
 
 ```{r gait-rung4, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 3.6}
 reg_shape <- tf_register_shape(g, max_iter = 2)
@@ -537,8 +541,9 @@ data.frame(curve      = c("a", "b", "c"),
 ## Modes of variation via FPC
 
 Back on the gait sample, with the most visible phase variation reduced (we carry
-the knee-aligned curves forward), fit a per-component FPC basis. The leading PCs
-now mostly describe within-component amplitude modes:
+the knee-aligned curves forward), fit a per-component FPC basis
+[@ramsay2005functional]. The leading PCs now mostly describe within-component
+amplitude modes:
 
 ```{r gait-fpc-helper, class.source = "fold-hide"}
 fpc_var <- function(comp) attr(comp, "score_variance")
@@ -576,7 +581,7 @@ curves is well below a degree for most subjects.
 The per-component FPC above gives each component its *own* scores: a subject's
 hip-mode-1 score and knee-mode-1 score are separate numbers, so the basis
 cannot, on its own, express that the two joints co-vary. **Multivariate FPCA**
-(Happ & Greven, 2018; `tfb_mfpc()`) instead produces a *single* score per
+[@happ2018], via `tfb_mfpc()`, instead produces a *single* score per
 subject per mode, paired with a **vector-valued eigenfunction**
 $\Psi_m = (\Psi_m^{\text{hip}}, \Psi_m^{\text{knee}})$. One shared score
 $s_{im}$ scales both halves at once, so each mode encodes coupled hip-knee
@@ -746,7 +751,7 @@ as.data.frame(tracks4[1:2], unnest = TRUE) |> head()
 
 ## Movement workflow: regularize, then describe
 
-Joo et al. (2019) describe movement analysis as a workflow built around
+@joo2019 describe movement analysis as a workflow built around
 tracking records `(x, y, t)`: clean the fixes, regularize or reconstruct
 the path when needed, visualize the track, then extract descriptors such
 as speed, heading and turning angles. The storm data follow the same
@@ -1049,8 +1054,9 @@ The two case studies above exercised exactly the same surface:
 * facet vs. trajectory plotting (`plot(..., type = ...)`);
 * vctrs-native arithmetic / `mean()` / `sd()` returning a length-1 `tf_mv`;
 * `tf_arclength()` and `tf_speed()` as geometric primitives on the bundle;
-* `tfb_mv()` for smoothing (`basis = "spline"`) or PC decomposition
-  (`basis = "fpc"`);
+* `tfb_mv()` for smoothing (`basis = "spline"`) or per-component PC
+  decomposition (`basis = "fpc"`), and `tfb_mfpc()` for joint multivariate
+  FPCA with a single set of shared scores per curve [@happ2018];
 * the alignment ladder: `tf_reparam_arclength()` for constant-speed (shape-only)
   reparametrization, `tf_register()` for shared-warp alignment -- from a single
   reference component (`method = "cc"`) or jointly from all components
@@ -1062,3 +1068,5 @@ The two case studies above exercised exactly the same surface:
 The common pattern is simple: keep coupled signals bundled as one object, use
 component accessors when a scalar or univariate summary is needed, and let the
 multivariate methods reuse the existing univariate kernels component-wise.
+
+# References
