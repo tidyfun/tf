@@ -249,8 +249,9 @@ par(op)
 # residual: how well does the low-rank FPC basis approximate the curves?
 g_round <- vctrs::vec_cast(g_b, g_aligned)
 resid   <- g_aligned - g_round
-rmse_per_subject <- sqrt(unlist(lapply(tf_evaluations(resid),
-                                       function(m) mean(m^2))))
+rmse_per_subject <- sqrt(unlist(lapply(tf_evaluations(resid), function(m) {
+  mean(as.matrix(m[, -1L, drop = FALSE])^2)
+})))
 summary(rmse_per_subject)
 ```
 
@@ -368,6 +369,89 @@ df <- tibble::tibble(
     labels = c("TS/TD", "Cat 1", "Cat 2", "Cat 3", "Cat 4+")
   ))
 ```
+
+## Movement workflow: regularize, then describe
+
+Joo et al. (2019) describe movement analysis as a workflow built around
+tracking records `(x, y, t)`: clean the fixes, regularize or reconstruct
+the path when needed, visualize the track, then extract descriptors such
+as speed, heading and turning angles. The storm data follow the same
+pattern. The build step above already performed basic preprocessing:
+duplicate timestamps were removed, very short tracks were dropped, and
+longitude/latitude were projected into local kilometre coordinates.
+
+For diagnostic plots it is useful to regularize a few storms onto a
+common lifecycle grid. Differentiating the regularized `(x, y)` curves
+gives velocity components; their norm is forward speed, and `atan2(v_y,
+v_x)` gives heading. Turning angle is the wrapped difference between
+successive headings.
+
+```{r storms-movement-workflow, fig.width = 8.2, fig.height = 6.6}
+movement_ids <- c("Andrew 1992", "Katrina 2005", "Sandy 2012")
+movement_ids <- movement_ids[movement_ids %in% df$storm_id]
+movement_rows <- match(movement_ids, df$storm_id)
+movement_grid <- seq(0, 1, length.out = 81)
+movement_duration <- vapply(
+  tf_arg(df$track_km[movement_rows]),
+  \(t) max(t) - min(t),
+  numeric(1)
+)
+
+movement_eval <- lapply(seq_along(movement_rows), function(k) {
+  tf_evaluate(
+    df$track_km[movement_rows[k]],
+    arg = movement_grid * movement_duration[k]
+  )[[1]]
+})
+movement_x <- do.call(rbind, lapply(movement_eval, `[[`, "x"))
+movement_y <- do.call(rbind, lapply(movement_eval, `[[`, "y"))
+
+movement_track <- tfd_mv(list(
+  x = tfd(movement_x, arg = movement_grid, domain = c(0, 1)),
+  y = tfd(movement_y, arg = movement_grid, domain = c(0, 1))
+), domain = c(0, 1))
+names(movement_track) <- movement_ids
+
+movement_velocity <- tf_derive(movement_track)
+movement_speed <- tf_norm(movement_velocity) / movement_duration
+
+vx <- as.matrix(tf_component(movement_velocity, "x"),
+                arg = movement_grid, interpolate = TRUE)
+vy <- as.matrix(tf_component(movement_velocity, "y"),
+                arg = movement_grid, interpolate = TRUE)
+heading_mat <- atan2(vy, vx) * 180 / pi
+heading <- tfd(heading_mat, arg = movement_grid, domain = c(0, 1))
+names(heading) <- movement_ids
+
+wrap_degrees <- function(x) ((x + 180) %% 360) - 180
+turning_mat <- t(apply(heading_mat, 1, function(x) {
+  c(NA_real_, wrap_degrees(diff(x)))
+}))
+turning <- tfd(turning_mat, arg = movement_grid, domain = c(0, 1))
+names(turning) <- movement_ids
+
+movement_cols <- c("#1b9e77", "#d95f02", "#7570b3")[seq_along(movement_ids)]
+xy <- as.matrix(movement_track, interpolate = TRUE)
+
+op <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+plot(range(xy[, , "x"], na.rm = TRUE), range(xy[, , "y"], na.rm = TRUE),
+     type = "n", asp = 1, xlab = "x (km)", ylab = "y (km)",
+     main = "regularized tracks")
+lines(movement_track, col = movement_cols, lwd = 2)
+legend("topleft", bty = "n", lwd = 2, col = movement_cols,
+       legend = movement_ids, cex = 0.85)
+plot(movement_speed, col = movement_cols, lwd = 2, alpha = 1,
+     xlab = "lifecycle phase", ylab = "km / h", main = "forward speed")
+plot(heading, col = movement_cols, lwd = 2, alpha = 1,
+     xlab = "lifecycle phase", ylab = "degrees", main = "heading")
+plot(turning, col = movement_cols, lwd = 2, alpha = 1,
+     xlab = "lifecycle phase", ylab = "degrees", main = "turning angle")
+par(op)
+```
+
+The result is a movement-data diagnostic rather than just a map: storms
+with visually similar tracks can differ sharply in when they accelerate,
+when they turn, and how abruptly their heading changes during recurvature.
 
 ## A single 4-d curve: Hurricane Katrina (2005)
 

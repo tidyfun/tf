@@ -114,9 +114,37 @@ tf_inner.tf_mv <- function(f, g) {
     ))
   }
   check_compatible_mv(f, g)
-  prods <- map2(tf_components(f), tf_components(g), \(a, b) a * b)
-  if (!length(prods)) return(tfd(numeric(0)))
-  Reduce(`+`, prods)
+  assert_compatible_size("tf_inner", f, g)
+  # vctrs recycling: a size-0 operand makes the whole result size 0.
+  n <- if (min(vec_size(f), vec_size(g)) == 0L) {
+    0L
+  } else {
+    max(vec_size(f), vec_size(g))
+  }
+  if (!tf_ncomp(f) || !n) return(tfd(numeric(0), domain = tf_domain(f)))
+  # the inner product is only defined where both curves are -- the intersection
+  # of their domains. Evaluating on the union would step outside one operand's
+  # support (mirrors univariate `tfd * tfd`, which errors on non-overlapping
+  # domains and restricts to the common arguments otherwise).
+  dom <- c(
+    max(tf_domain(f)[1], tf_domain(g)[1]),
+    min(tf_domain(f)[2], tf_domain(g)[2])
+  )
+  if (dom[1] > dom[2]) {
+    cli::cli_abort(
+      "{.fn tf_inner} is not permitted for non-overlapping domains
+       ({.val {tf_domain(f)}} and {.val {tf_domain(g)}})."
+    )
+  }
+  grids <- tf_mv_pair_grids(f, g, domain = dom)
+  f_evals <- tf_mv_evaluate_on_grids(f, grids)
+  g_evals <- tf_mv_evaluate_on_grids(g, grids)
+  vals <- map2(f_evals, g_evals, function(fdf, gdf) {
+    if (!nrow(fdf)) return(numeric(0))
+    rowSums(evals_to_matrix(fdf) * evals_to_matrix(gdf))
+  })
+  names(vals) <- if (vec_size(f) >= vec_size(g)) names(f) else names(g)
+  tfd(vals, arg = grids, domain = dom)
 }
 
 #' @rdname tf_geom
@@ -148,7 +176,42 @@ tf_tangent.tf <- function(f) {
 tf_tangent.tf_mv <- function(f) {
   df <- tf_derive(f)
   inv_speed <- 1 / tf_norm(df)
-  map_components(df, \(comp) comp * inv_speed)
+  grids <- tf_mv_curve_grids(df)
+  df_evals <- tf_evaluate(df, arg = grids)
+  speed_evals <- tf_evaluate(inv_speed, arg = grids)
+  comp_names <- attr(df, "comp_names")
+  comps <- map(comp_names, function(nm) {
+    vals <- map2(df_evals, speed_evals, \(cdf, speed) cdf[[nm]] * speed)
+    names(vals) <- names(df)
+    tfd(vals, arg = grids, domain = tf_domain(df))
+  })
+  names(comps) <- comp_names
+  new_tf_mv(comps, domain = tf_domain(df))
+}
+
+tf_mv_pair_grids <- function(x, y, domain = NULL) {
+  sizes <- c(vec_size(x), vec_size(y))
+  # vctrs recycling: a size-0 operand collapses the common size to 0.
+  n <- if (min(sizes) == 0L) 0L else max(sizes)
+  if (!n) return(list())
+  x_grids <- tf_mv_curve_grids(x)
+  y_grids <- tf_mv_curve_grids(y)
+  grid_at <- function(grids, i) {
+    if (!length(grids)) return(numeric(0))
+    grids[[if (length(grids) == 1L) 1L else i]]
+  }
+  map(seq_len(n), function(i) {
+    g <- sort(unique(c(grid_at(x_grids, i), grid_at(y_grids, i))))
+    if (!is.null(domain)) g <- g[g >= domain[1] & g <= domain[2]]
+    g
+  })
+}
+
+tf_mv_evaluate_on_grids <- function(x, grids) {
+  if (vec_size(x) == length(grids)) {
+    return(tf_evaluate(x, arg = grids))
+  }
+  tf_evaluate(x[rep(1L, length(grids))], arg = grids)
 }
 
 #' @rdname tf_geom
@@ -191,8 +254,8 @@ tf_reparam_arclength <- function(f) {
   bad <- which(degenerate)
   common <- vctrs::vec_ptype_common(warped, f[bad])
   out <- vctrs::vec_c(
-    vctrs::vec_cast(warped,    common),
-    vctrs::vec_cast(f[bad],    common)
+    vctrs::vec_cast(warped, common),
+    vctrs::vec_cast(f[bad], common)
   )
   out <- out[order(c(good, bad))]
   names(out) <- names(f)
@@ -266,6 +329,20 @@ tf_arclength.tf_mv <- function(
       "x" = "You supplied {.arg lower} = {.val {lower}} and {.arg upper} = {.val {upper}}."
     ))
   }
+  dom <- tf_domain(f)
+  if (lower < dom[1] || upper > dom[2]) {
+    cli::cli_abort(c(
+      "{.arg lower}/{.arg upper} must lie within the domain {.val {dom}}.",
+      "x" = "You supplied {.arg lower} = {.val {lower}} and {.arg upper} = {.val {upper}}."
+    ))
+  }
+  if (!definite && lower == upper) {
+    cli::cli_abort(c(
+      "Cumulative arc length ({.code definite = FALSE}) is undefined for a \\
+       zero-width interval.",
+      "x" = "You supplied {.arg lower} == {.arg upper} == {.val {lower}}."
+    ))
+  }
   if (method == "derive") {
     speed <- tf_speed(f)
     call_args <- list(
@@ -299,6 +376,7 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   # observed argument range. Without this, irregular curves that don't span the
   # full global domain would be evaluated outside their support and yield NA.
   grids <- lapply(grids, function(g) {
+    if (lower == upper) return(lower)
     if (!length(g)) return(numeric(0))
     lo_i <- max(lower, min(g))
     up_i <- min(upper, max(g))
@@ -306,17 +384,20 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     g <- g[g >= lo_i & g <= up_i]
     sort(unique(c(lo_i, g, up_i)))
   })
-  empty <- vapply(grids, function(g) length(g) < 2L, logical(1))
+  empty <- vapply(grids, function(g) length(g) == 0L, logical(1))
+  needs_eval <- vapply(grids, function(g) length(g) >= 2L, logical(1))
   paired_dfs <- vector("list", n)
-  if (any(!empty)) {
-    paired_dfs[!empty] <- tf_evaluate(f[!empty], arg = grids[!empty])
+  if (any(needs_eval)) {
+    paired_dfs[needs_eval] <- tf_evaluate(
+      f[needs_eval],
+      arg = grids[needs_eval]
+    )
   }
   # `tf_evaluate.tf_mv` now returns a uniform list of per-curve data.frames
   # `(arg, comp1, ..., compd)`. Drop the arg column to get the value matrix
   # required by the polyline segment-length computation.
   incomplete <- map_lgl(paired_dfs, function(df) {
-    is.data.frame(df) && nrow(df) > 0L &&
-      anyNA(df[, -1L, drop = FALSE])
+    is.data.frame(df) && nrow(df) > 0L && anyNA(df[, -1L, drop = FALSE])
   })
   if (any(incomplete)) {
     idx <- which(incomplete)
@@ -328,6 +409,7 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   }
   per_curve_segs <- map(seq_len(n), function(i) {
     if (empty[i]) return(NA_real_)
+    if (length(grids[[i]]) < 2L) return(numeric(0))
     df <- paired_dfs[[i]]
     if (is.null(df) || !nrow(df)) return(NA_real_)
     mat <- evals_to_matrix(df)

@@ -34,7 +34,7 @@
 #' @name converters-mv
 #' @export
 as.matrix.tf_mv <- function(x, arg, interpolate = FALSE, ...) {
-  if (missing(arg)) {
+  if (missing(arg) || is.null(arg)) {
     x[,, interpolate = interpolate, matrix = TRUE]
   } else {
     x[, arg, interpolate = interpolate, matrix = TRUE]
@@ -66,17 +66,20 @@ as.data.frame.tf_mv <- function(
 
   empty_long <- function() {
     data_frame0(
-      id        = factor(character(0), levels = id_levels),
-      arg       = numeric(0),
+      id = factor(character(0), levels = id_levels),
+      arg = numeric(0),
       component = factor(character(0), levels = comp_names),
-      value     = numeric(0)
+      value = numeric(0)
     )
   }
   empty_wide <- function() {
-    do.call(data_frame0, c(
-      list(id = factor(character(0), levels = id_levels), arg = numeric(0)),
-      setNames(rep(list(numeric(0)), length(comp_names)), comp_names)
-    ))
+    do.call(
+      data_frame0,
+      c(
+        list(id = factor(character(0), levels = id_levels), arg = numeric(0)),
+        setNames(rep(list(numeric(0)), length(comp_names)), comp_names)
+      )
+    )
   }
 
   if (!length(comp_names) || !n) {
@@ -96,14 +99,17 @@ as.data.frame.tf_mv <- function(
       cdf <- per_curve[[i]]
       if (!nrow(cdf)) return(empty_long())
       nr <- nrow(cdf)
-      do.call(rbind, lapply(comp_names, function(nm) {
-        data_frame0(
-          id        = rep(id_factor[i], nr),
-          arg       = cdf$arg,
-          component = factor(rep(nm, nr), levels = comp_names),
-          value     = cdf[[nm]]
-        )
-      }))
+      do.call(
+        rbind,
+        lapply(comp_names, function(nm) {
+          data_frame0(
+            id = rep(id_factor[i], nr),
+            arg = cdf$arg,
+            component = factor(rep(nm, nr), levels = comp_names),
+            value = cdf[[nm]]
+          )
+        })
+      )
     })
     out <- do.call(rbind, parts)
     if (!nrow(out)) return(empty_long())

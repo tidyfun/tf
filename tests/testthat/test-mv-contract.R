@@ -8,7 +8,7 @@ test_that("is_tf_1d() is TRUE for tfd/tfb and FALSE for tfd_mv/tfb_mv", {
   set.seed(1)
   fu <- tf_rgp(2)
   fb <- tfb(fu, k = 4, penalized = FALSE, verbose = FALSE)
-  fm  <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  fm <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
   fmb <- tfb_mv(fm, verbose = FALSE)
   expect_true(is_tf_1d(fu))
   expect_true(is_tf_1d(fb))
@@ -82,6 +82,26 @@ test_that("as.data.frame.tf_mv on a zero-component tf_mv returns an empty df", {
   expect_identical(nrow(d_wide), 0L)
 })
 
+test_that("single component extraction without arg preserves tf class", {
+  set.seed(51)
+  fm <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  out <- fm[, component = "x"]
+  expect_s3_class(out, "tfd")
+  expect_false(is_tf_mv(out))
+  expect_equal(out, tf_component(fm, "x"))
+
+  out_i <- fm[1:2, component = 1]
+  expect_s3_class(out_i, "tfd")
+  expect_equal(out_i, tf_component(fm, 1)[1:2])
+
+  mat <- fm[, c(0.25, 0.5), component = "x"]
+  expect_true(is.matrix(mat))
+  expect_identical(dim(mat), c(3L, 2L))
+
+  fb <- tfb_mv(fm, k = 5, penalized = FALSE, verbose = FALSE)
+  expect_s3_class(fb[, component = "x"], "tfb")
+})
+
 # --- tf_evaluate.tf_mv uniform per-curve data.frame --------------------------
 
 test_that("tf_evaluate(<tf_mv>) returns uniform list-of-data.frames", {
@@ -99,9 +119,9 @@ test_that("tf_evaluate(<tf_mv>) returns uniform list-of-data.frames", {
 test_that("tf_evaluate(<mixed-grid tf_mv>) returns data.frames (no list-shape)", {
   set.seed(7)
   fx <- tf_rgp(2, arg = 5L)
-  fy <- tf_jiggle(tf_rgp(2, arg = 7L))  # irregular
+  fy <- tf_jiggle(tf_rgp(2, arg = 7L)) # irregular
   fm <- tfd_mv(list(x = fx, y = fy))
-  out <- tf_evaluate(fm)  # native (union) grids per curve
+  out <- tf_evaluate(fm) # native (union) grids per curve
   for (df in out) {
     expect_s3_class(df, "data.frame")
     expect_identical(colnames(df), c("arg", "x", "y"))
@@ -117,6 +137,12 @@ test_that("as.matrix.tf_mv returns a 3-d array with named third dim", {
   expect_identical(length(dim(m)), 3L)
   expect_identical(dim(m), c(3L, 5L, 2L))
   expect_identical(dimnames(m)[[3]], c("x", "y"))
+})
+
+test_that("as.matrix.tf_mv treats arg NULL like a missing arg", {
+  set.seed(81)
+  fm <- tfd_mv(list(x = tf_rgp(2, arg = 5L), y = tf_rgp(2, arg = 5L)))
+  expect_equal(as.matrix(fm, arg = NULL), as.matrix(fm))
 })
 
 # --- mat_2_df id column is plain factor, not ordered -------------------------

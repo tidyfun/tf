@@ -49,8 +49,12 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
         cli::cli_abort("Unknown component{?s}: {.val {bad}}.")
       }
     } else {
-      assert_integerish(component, any.missing = FALSE,
-                        lower = 1L, upper = length(comp_names))
+      assert_integerish(
+        component,
+        any.missing = FALSE,
+        lower = 1L,
+        upper = length(comp_names)
+      )
     }
     x <- new_tf_mv(tf_components(x)[component], domain = tf_domain(x))
     component <- NULL
@@ -59,7 +63,13 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     comp <- tf_component(x, component)
     if (missing(i)) i <- seq_along(comp)
     if (missing(j)) {
+      if (missing(matrix)) {
+        return(comp[i, interpolate = interpolate])
+      }
       return(comp[i, interpolate = interpolate, matrix = matrix])
+    }
+    if (missing(matrix)) {
+      return(comp[i, j, interpolate = interpolate])
     }
     return(comp[i, j, interpolate = interpolate, matrix = matrix])
   }

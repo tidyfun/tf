@@ -226,6 +226,52 @@ test_that("tf_arclength respects lower / upper limits", {
     pi,
     tolerance = 1e-2
   )
+  expect_equal(tf_arclength(circ, lower = 0.5, upper = 0.5), 0)
+  expect_equal(
+    tf_arclength(circ, lower = 0.5, upper = 0.5, method = "derive"),
+    0
+  )
+  point <- tfd_mv(
+    list(
+      x = tfd(matrix(1, nrow = 1), arg = 0.5, domain = c(0, 1)),
+      y = tfd(matrix(2, nrow = 1), arg = 0.5, domain = c(0, 1))
+    ),
+    domain = c(0, 1)
+  )
+  expect_equal(tf_arclength(point), 0)
+})
+
+test_that("tf_arclength rejects limits outside the domain (both methods)", {
+  t <- seq(0, 1, length.out = 41)
+  circ <- tfd_mv(list(
+    x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+    y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+  ))
+  # a zero-width interval *outside* the domain must error, not silently give 0
+  expect_error(tf_arclength(circ, lower = 2, upper = 2), "within the domain")
+  expect_error(
+    tf_arclength(circ, lower = 2, upper = 2, method = "derive"),
+    "within the domain"
+  )
+  expect_error(tf_arclength(circ, lower = -1, upper = 0.5), "within the domain")
+  expect_error(tf_arclength(circ, lower = 0.5, upper = 5), "within the domain")
+})
+
+test_that("tf_arclength(definite = FALSE) rejects a zero-width interval", {
+  t <- seq(0, 1, length.out = 41)
+  circ <- tfd_mv(list(
+    x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+    y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+  ))
+  expect_error(
+    tf_arclength(circ, lower = 0.5, upper = 0.5, definite = FALSE),
+    "zero-width"
+  )
+  # a proper interval still returns a cumulative tfd
+  expect_s3_class(
+    tf_arclength(circ, lower = 0.25, upper = 0.75, definite = FALSE),
+    "tfd"
+  )
 })
 
 test_that("tf_arclength polyline is more accurate than derive on raw tfd", {
