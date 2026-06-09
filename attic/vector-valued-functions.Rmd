@@ -45,19 +45,126 @@ library(tf)
 library(dplyr)
 ```
 
-# 1. How variable is a "normal" gait cycle?
+# 1. A quick tour of vector-valued functional data
 
-`gait` contains hip and knee angles, in degrees, for 39 boys, each evaluated
-at 20 equally spaced points across one gait cycle. Wrap them into a single
-two-component object:
+Before the case studies, this part introduces the objects: what a vector-valued
+function *is*, the two classes that represent samples of them, how to construct
+them, and the handful of geometric operations the case studies lean on.
 
-```{r gait-mv}
+## What is a vector-valued function?
+
+A `tf` vector stores a sample of scalar functions $f: [a, b] \to \mathbb{R}$. A
+**vector-valued** function bundles $d$ of them on a *shared* argument,
+
+$$ f(t) = \big(f_1(t), \dots, f_d(t)\big), \qquad t \in [a, b], $$
+
+so that as $t$ runs over the domain the value $f(t)$ traces a *path* through
+$\mathbb{R}^d$. `tf` represents a sample of such paths with the `tf_mv` family.
+Internally a `tf_mv` *is* a bundle of `d` ordinary `tf` vectors sharing one
+argument, so every univariate verb -- evaluation, arithmetic, derivatives,
+integration, smoothing, basis fitting -- extends component-wise for free.
+
+Two kinds of variation run through everything below: **amplitude** (how large
+the values get) and **phase** (*where in* $t$ the features happen). Much of the
+work in functional data analysis is telling the two apart, and Section 2 is
+largely about exactly that.
+
+## The `tf_mv` classes: `tfd_mv` and `tfb_mv`
+
+Like their univariate cousins `tfd`/`tfb`, vector-valued functions come in two
+flavours:
+
+* `tfd_mv` -- *raw evaluations*: each component is a `tfd`, i.e. values on a grid
+  plus an interpolation rule.
+* `tfb_mv` -- *basis representation*: each component is a `tfb` (spline or FPC),
+  i.e. basis coefficients.
+
+Components are named, and a few accessors reach into the bundle: `tf_ncomp()`
+(number of components), `tf_components()` (the list of univariate `tf` vectors),
+`tf_component(x, k)` (one component, by name or index), and `names()`.
+
+## Constructing `tf_mv` objects
+
+`tfd_mv()` accepts three interchangeable input layouts. We use the built-in
+`gait` data throughout the gait case study -- hip and knee angles, in degrees,
+for 39 boys, each sampled at 20 points across one gait cycle. The most direct
+construction is a **named list** of univariate `tf` vectors:
+
+```{r tour-list}
 data(gait)
 g <- tfd_mv(list(hip = gait$hip_angle, knee = gait$knee_angle))
 g
 ```
 
-The two natural views of these 39 curves are the **time-series**
+The print-out shows `d = 2` components on a shared grid, with a sparkline pair
+per subject. The *same* object can be built from a **3-d array**
+`[curve, arg, component]` -- the layout `as.matrix()` returns --
+
+```{r tour-array}
+arr <- as.matrix(g)            # [curve, arg, component]
+dim(arr)
+g_arr <- tfd_mv(arr, arg = tf_arg(g))
+identical(as.matrix(g_arr), arr)
+```
+
+or from a **wide data frame** with one column per component (the long
+`(id, arg, component, value)` schema is what `as.data.frame(unnest = TRUE)`
+emits; `long = FALSE` gives the wide schema the constructor consumes):
+
+```{r tour-df}
+df <- as.data.frame(g, unnest = TRUE, long = FALSE)   # id, arg, hip, knee
+head(df, 2)
+g_df <- tfd_mv(df, id = "id", arg = "arg", value = c("hip", "knee"))
+```
+
+Each route also takes an optional `domain` and a per-component `evaluator`
+(interpolation rule, default `tf_approx_linear`). A `tfd_mv` becomes a basis
+object with `tfb_mv()`, choosing a `"spline"` or `"fpc"` basis; basis arguments
+apply globally or per component when passed as a named list:
+
+```{r tour-basis}
+g_spline <- tfb_mv(g, basis = "spline", k = list(hip = 5, knee = 12),
+                   verbose = FALSE)
+g_spline
+```
+
+## Geometry on the bundle: speed, arc length, reparametrization
+
+Because a `tf_mv` traces a path, the usual curve-geometry quantities are
+available, and they return *univariate* summaries of the multivariate object:
+
+* `tf_speed(f)` $= \lVert f'(t)\rVert$ -- pointwise speed, a `tfd`,
+* `tf_arclength(f)` -- total path length, one number per curve,
+* `tf_reparam_arclength(f)` -- the same path traversed at *unit speed*.
+
+```{r tour-geom, fig.height = 3.6}
+head(tf_arclength(g))
+plot(tf_speed(g), alpha = 0.3, main = expression("pointwise speed " * "||" * f*"'"*(t) * "||"))
+```
+
+## Aligning vector-valued curves: three notions
+
+When curves differ mainly in *timing*, we usually want to factor that out --
+but "factor out" can mean several different things. There is a ladder of
+increasingly aggressive operations, distinguished by *what each treats as a
+nuisance*:
+
+| operation | removes | keeps | `tf` entry point |
+|---|---|---|---|
+| arc-length reparametrization | the clock (parametrization only) | shape **and** size | `tf_reparam_arclength()` |
+| shared time-warp alignment | phase, onto a common template | amplitude, size, orientation | `tf_register(., method = "srvf_mv")` |
+| full elastic shape registration | phase **+** rotation **+** scale | shape only | `tf_register_shape()` |
+
+The first re-labels time without picking a template; the second warps every
+curve onto a common template but leaves the values untouched; the third
+*additionally* rotates and rescales each curve, landing in a **shape space**
+where only the geometric form remains. Section 2 walks this ladder on the gait
+data -- and shows where the top rung is, and is not, the right tool.
+
+# 2. How variable is a "normal" gait cycle?
+
+We built the two-component object `g` above. The two natural views of these 39
+curves are the **time-series**
 (`type = "facet"`, one panel per component) and the **trajectory in phase
 space** (`type = "trajectory"`, the default for two-component objects).
 
@@ -153,7 +260,7 @@ expand depending on how phase-coupled the two are:
 
 ```{r gait-register-traj, fig.width = 8.2, fig.height = 7.2}
 plot_aligned <- function(reg, title) {
-  plot(reg$registered, type = "facet", alpha = 0.3)
+  plot(tf_aligned(reg), type = "facet", alpha = 0.3)
   mtext(title, side = 3, line = -1.3, outer = TRUE, font = 2)
 }
 
@@ -176,9 +283,9 @@ The warps themselves are univariate `tfd`s (one per subject), mapping the
 raw cycle phase to the aligned phase. `plot.tf` handles them directly:
 
 ```{r gait-register-warps, fig.width = 8.2, fig.height = 3.6}
-warps_hip   <- tf_invert(r_hip$inv_warps)
-warps_knee  <- tf_invert(r_knee$inv_warps)
-warps_speed <- tf_invert(r_speed$inv_warps)
+warps_hip   <- tf_invert(tf_inv_warps(r_hip))
+warps_knee  <- tf_invert(tf_inv_warps(r_knee))
+warps_speed <- tf_invert(tf_inv_warps(r_speed))
 
 op <- par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
 plot(warps_hip,   alpha = 0.5, main = "warp from hip",   ylab = "aligned phase")
@@ -211,13 +318,13 @@ peak_sd <- function(f, k) {
 out <- data.frame(
   reference = c("raw (no reg)", "hip", "knee", "speed"),
   sd_hip = c(peak_sd(g, "hip"),
-             peak_sd(r_hip$registered,  "hip"),
-             peak_sd(r_knee$registered, "hip"),
-             peak_sd(r_speed$registered,"hip")),
+             peak_sd(tf_aligned(r_hip),   "hip"),
+             peak_sd(tf_aligned(r_knee),  "hip"),
+             peak_sd(tf_aligned(r_speed), "hip")),
   sd_knee = c(peak_sd(g, "knee"),
-              peak_sd(r_hip$registered,  "knee"),
-              peak_sd(r_knee$registered, "knee"),
-              peak_sd(r_speed$registered,"knee"))
+              peak_sd(tf_aligned(r_hip),   "knee"),
+              peak_sd(tf_aligned(r_knee),  "knee"),
+              peak_sd(tf_aligned(r_speed), "knee"))
 )
 out
 ```
@@ -232,7 +339,7 @@ With phase variability removed, fit a per-component FPC basis. The
 leading PCs now describe *amplitude* modes only:
 
 ```{r gait-fpc, fig.height = 3.8}
-g_aligned <- r_knee$registered
+g_aligned <- tf_aligned(r_knee)
 g_b <- tfb_mv(g_aligned, basis = "fpc", verbose = FALSE)
 
 fpc_var <- function(comp) attr(comp, "score_variance")
@@ -259,13 +366,21 @@ The first 2-3 FPCs explain almost all the amplitude variance in each
 joint, and the RMSE between the registered and FPC-reconstructed
 `(hip, knee)` curves is on the order of a degree.
 
-## Arc-length reparametrization
+## Three ways to factor out "nuisance" variation
+
+The reference-signal registration above is *one* way to strip out phase
+variability. It is worth seeing it next to its neighbours on the ladder from
+Section 1, each treating a *different* feature of the curves as a nuisance. We
+walk all three rungs on the same gait sample.
+
+### Rung 1 -- arc-length reparametrization
 
 `tf_reparam_arclength()` traverses each curve at *unit speed in its value
-space*. The trajectory looks identical -- it's the same set of points --
-but the time axis has been redistributed so that equal time intervals
-correspond to equal arc-length intervals. `tf_speed()` returns a plain
-`tfd`, so `plot.tf` and `lines.tf` work directly:
+space*. The trajectory in the `(hip, knee)` plane is unchanged -- it is the same
+set of points -- but the time axis is redistributed so that equal time intervals
+cover equal arc length. No template and no other curve enter: this is a property
+of each curve on its own. `tf_speed()` returns a plain `tfd`, so `plot.tf` and
+`lines.tf` work directly:
 
 ```{r gait-reparam, fig.height = 4.0}
 g_unit  <- tf_reparam_arclength(g)
@@ -290,9 +405,116 @@ The raw plot shows large per-subject speed swings -- joints flex quickly
 through swing and stand almost still during stance. The reparameterized
 plot is approximately flat: each curve is traversed at the same speed
 throughout the cycle, equal to its per-subject arc length divided by the
-cycle duration.
+cycle duration. This removes *parametrization* differences but keeps every
+curve's shape and size intact.
 
-# 2. Atlantic storms as 4-dimensional curves
+### Rung 2 -- shared time-warp alignment (`srvf_mv`)
+
+`method = "srvf_mv"` estimates one time-warp per curve onto a common template,
+using *all* components jointly -- in contrast to `method = "cc"` above, which
+derived the warp from a single reference signal. There is no `ref_component`:
+the warp is the one that best aligns the joint `(hip, knee)` trajectories in the
+elastic (square-root-velocity) sense. The values are only re-timed, never
+rotated or rescaled.
+
+```{r gait-srvfmv, message = FALSE, warning = FALSE, fig.height = 3.6}
+reg_mv <- tf_register(g, method = "srvf_mv", max_iter = 2)
+reg_mv
+
+plot(tf_aligned(reg_mv), type = "facet", alpha = 0.3)
+```
+
+The estimated warps are univariate `tfd`s, recovered from the inverse warps with
+`tf_invert()`. Every curve is aligned to the shared Karcher-mean template in
+`tf_template(reg_mv)`:
+
+```{r gait-srvfmv-warps, fig.height = 4.0}
+warps_mv <- tf_invert(tf_inv_warps(reg_mv))
+plot(warps_mv, alpha = 0.5, main = "srvf_mv warps", ylab = "aligned phase")
+abline(0, 1, lty = 3)
+```
+
+Unlike rung 1 this uses the whole sample (curves are aligned *to each other*
+through the template); like rung 1 it leaves amplitude untouched.
+
+### Rung 3 -- full elastic shape registration, and why *not* on gait
+
+`tf_register_shape()` goes one step further: on top of the time-warp it finds,
+per curve, a **rotation** and a **scale** that best match the template. It
+returns a `tf_shape_registration` with two extra accessors, `tf_rotations()`
+and `tf_scales()`:
+
+```{r gait-shape, message = FALSE, warning = FALSE}
+reg_shape <- tf_register_shape(g, max_iter = 2)
+reg_shape
+round(tf_rotations(reg_shape)[, , 1], 3)    # rotation for subject 1
+summary(as.numeric(tf_scales(reg_shape)))   # scales, relative to the template
+```
+
+The estimated rotations sit essentially at the identity and the scales bunch
+tightly around 1 -- the method finds almost nothing to do. That is the correct
+answer, and the cautionary point: **gait's two axes are not interchangeable.**
+Hip angle and knee angle are distinct physical quantities in fixed units.
+Rotating the `(hip, knee)` plane would mix them into meaningless linear
+combinations, and rescaling would discard amplitude -- which here *is* the
+signal of interest. Shape registration is simply the wrong tool for a bundle of
+fixed-unit channels.
+
+> **When is rung 3 the right tool?** When the components are *interchangeable
+> spatial coordinates* and orientation and overall size are genuine nuisances:
+> handwriting and gesture trajectories, animal movement paths, outlines of
+> objects. It is *not* appropriate for fixed-unit channel bundles such as
+> `(hip, knee)` angles, `(wind, pressure)`, or geographic `(long, lat)`.
+
+### A planar shape where rung 3 *is* the right tool
+
+To see shape registration do real work, here is a small synthetic example: a
+single base curve $(t,\, t^2)$, copied three times, with each copy rotated,
+rescaled and shifted in the plane. Now orientation and size *are* nuisances and
+only the common shape should survive.
+
+```{r shape-demo-build}
+t      <- seq(0, 1, length.out = 51)
+base   <- rbind(t, t^2)
+scales <- c(1, 0.7, 1.3)
+angles <- c(0, 0.4, -0.25)
+offset <- rbind(c(0.2, -0.1), c(0.4, -0.2), c(0.6, -0.3))
+beta   <- array(NA_real_, dim = c(3, length(t), 2),
+                dimnames = list(c("a", "b", "c"), NULL, c("x", "y")))
+for (i in 1:3) {
+  rot   <- matrix(c(cos(angles[i]),  sin(angles[i]),
+                    -sin(angles[i]), cos(angles[i])), nrow = 2)
+  curve <- scales[i] * (rot %*% base) + matrix(offset[i, ], 2, length(t))
+  beta[i, , 1] <- curve[1, ]
+  beta[i, , 2] <- curve[2, ]
+}
+shapes <- tfd_mv(beta, arg = t)
+```
+
+```{r shape-demo-register, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 4.2}
+reg_p <- tf_register_shape(shapes, max_iter = 2)
+
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(shapes,            asp = 1, col = 1:3, lwd = 2,
+     main = "three placements of one shape")
+plot(tf_aligned(reg_p), asp = 1, col = 1:3, lwd = 2,
+     main = "after shape registration")
+par(op)
+```
+
+The three curves were drawn at different positions, orientations and sizes;
+after registration they collapse onto essentially one curve. The recovered scale
+factors track the injected sizes -- reported *relative to the template*, so a
+curve drawn larger comes back with a factor below 1 (shrunk toward the template)
+and a smaller one above 1:
+
+```{r shape-demo-scales}
+data.frame(curve           = c("a", "b", "c"),
+           injected_scale  = scales,
+           recovered_scale = round(as.numeric(tf_scales(reg_p)), 3))
+```
+
+# 3. Atlantic storms as 4-dimensional curves
 
 `dplyr::storms` records four time-varying quantities for every Atlantic
 tropical storm or hurricane from 1975-2022, sampled every 6 hours along
@@ -660,19 +882,24 @@ plot(tf_component(tb, "pres"), col = 1:6, lwd = 2,
 par(op)
 ```
 
-# 3. Recap
+# 4. Recap
 
 The two case studies above exercised exactly the same surface:
 
-* construction from per-component `tf` vectors (`tfd_mv(list(...))`);
+* construction from per-component `tf` vectors (`tfd_mv(list(...))`), from a 3-d
+  `[curve, arg, component]` array, or from a long/wide data frame;
 * `tf_components()`, `$component`, `tf_ncomp()` for component access;
 * facet vs. trajectory plotting (`plot(..., type = ...)`);
 * vctrs-native arithmetic / `mean()` / `sd()` returning a length-1 `tf_mv`;
 * `tf_arclength()` and `tf_speed()` as geometric primitives on the bundle;
 * `tfb_mv()` for smoothing (`basis = "spline"`) or PC decomposition
   (`basis = "fpc"`);
-* `tf_register()` for joint warp estimation from a reference component, and
-  `tf_reparam_arclength()` for unit-speed (shape-only) reparameterization;
+* the alignment ladder: `tf_reparam_arclength()` for unit-speed (shape-only)
+  reparametrization, `tf_register()` for shared-warp alignment -- from a single
+  reference component (`method = "cc"`) or jointly from all components
+  (`method = "srvf_mv"`) -- and `tf_register_shape()` for full elastic shape
+  registration, whose `tf_rotations()` / `tf_scales()` accessors expose the
+  estimated rotations and (template-relative) scale factors;
 * full dplyr / tibble integration via the underlying vctrs proxy.
 
 Every numeric kernel here is the existing univariate one, mapped over the
