@@ -23,16 +23,16 @@ knitr::opts_chunk$set(
 set.seed(1)
 ```
 
-A `tf` vector represents a sample of functions `f: R -> R`. Many real
-measurement processes, though, produce several coupled signals that share a
-common argument: the `(hip, knee)` joint-angle pair sampled across a gait
-cycle, the `(longitude, latitude)` position of a hurricane sampled in time,
-the `(x, y, z)` body coordinates of a moving animal. The natural object is a
-**vector-valued function** `f: R -> R^d`, and `tf` represents a sample of
-those with the `tf_mv` family: `tfd_mv` for raw evaluations and `tfb_mv` for
-basis representations. Internally a `tf_mv` is a bundle of `d` ordinary
-`tf` vectors, so the multivariate methods shown below reuse the existing
-univariate numerical kernels by mapping over components.
+A `tf` vector represents a sample of functions $f: \mathbb{R} \to \mathbb{R}$.
+Many real measurement processes, though, produce several coupled signals that
+share a common argument: the `(hip, knee)` joint-angle pair sampled across a
+gait cycle, the `(longitude, latitude)` position of a hurricane sampled in
+time, the `(x, y, z)` body coordinates of a moving animal. The natural object
+is a **vector-valued function** $f: \mathbb{R} \to \mathbb{R}^d$, and `tf`
+represents a sample of those with the `tf_mv` family: `tfd_mv` for raw
+evaluations and `tfb_mv` for basis representations. Internally a `tf_mv` is a
+bundle of $d$ ordinary `tf` vectors, so the multivariate methods shown below
+reuse the existing univariate numerical kernels by mapping over components.
 
 This article uses two real datasets to put the API through its paces:
 
