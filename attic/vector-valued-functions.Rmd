@@ -156,24 +156,26 @@ head(tf_arclength(g))
 plot(tf_speed(g), alpha = 0.3, main = expression("pointwise speed " * "||" * f*"'"*(t) * "||"))
 ```
 
-## Aligning vector-valued curves: three notions
+## Aligning vector-valued curves: a ladder
 
 When curves differ mainly in *timing*, we usually want to factor that out --
 but "factor out" can mean several different things. There is a ladder of
 increasingly aggressive operations, distinguished by *what each treats as a
 nuisance*:
 
-| operation | removes | keeps | `tf` entry point |
-|---|---|---|---|
-| arc-length reparametrization | the clock (parametrization only) | shape **and** size | `tf_reparam_arclength()` |
-| shared time-warp alignment | phase, onto a common template | amplitude, size, orientation | `tf_register(., method = "srvf_mv")` |
-| full elastic shape registration | phase **+** rotation **+** scale | shape only | `tf_register_shape()` |
+| rung | operation | removes | keeps | `tf` entry point |
+|---|---|---|---|---|
+| 1 | arc-length reparametrization | the clock (parametrization only) | shape **and** size | `tf_reparam_arclength()` |
+| 2 | warp from a 1-d reference signal | phase, onto a chosen reference | amplitude, size, orientation | `tf_register(., method = "cc")` |
+| 3 | joint multivariate warp | phase, from all components at once | amplitude, size, orientation | `tf_register(., method = "srvf_mv")` |
+| 4 | full elastic shape registration | phase **+** rotation **+** scale | shape only | `tf_register_shape()` |
 
-The first re-labels time without picking a template; the second warps every
-curve onto a common template but leaves the values untouched; the third
-*additionally* rotates and rescales each curve, landing in a **shape space**
-where only the geometric form remains. Section 2 walks this ladder on the gait
-data -- and shows where the top rung is, and is not, the right tool.
+Rung 1 re-labels time within each curve without picking a template; rungs 2 and
+3 warp every curve onto a common template (from one reference signal, or from all
+components jointly) but leave the values untouched; rung 4 *additionally* rotates
+and rescales each curve, landing in a **shape space** where only the geometric
+form remains. Section 2 walks all four rungs on the gait data -- and shows where
+the top rung is, and is not, the right tool.
 
 # 2. How variable is a "normal" gait cycle?
 
@@ -245,85 +247,200 @@ legend("bottomright", bty = "n",
        col = c("steelblue", "firebrick"), lwd = 2)
 ```
 
-## Phase alignment with `tf_register`
+## A ladder of registrations
 
-The pointwise sd above conflates two very different kinds of
-between-subject variability: *amplitude* (how high does the knee swing?)
-and *phase* (at what fraction of the cycle does heel-strike happen?).
-`tf_register()` on a `tf_mv` estimates **one shared time-warp per curve**
-and applies it to all components jointly. The warp is derived from a
-single univariate "reference signal" -- which component (or which derived
-quantity) to use is the central modelling choice.
+The pointwise sd above conflates two kinds of between-subject variability:
+*amplitude* (how far the knee swings) and *phase* (at what fraction of the cycle
+heel-strike happens). Removing phase -- "registration" -- can mean progressively
+more, depending on what we are willing to treat as a nuisance. Below are four
+rungs, applied in turn to the gait sample, each followed by a facet plot of the
+result; we quantify them together at the end.
 
-Three reasonable choices, each emphasising different events in the cycle:
+### Rung 1 -- arc-length reparametrization
 
-```{r gait-register-fit, results = "hide"}
-r_hip   <- tf_register(g, method = "cc", ref_component = "hip")
-r_knee  <- tf_register(g, method = "cc", ref_component = "knee")
-# any univariate function of x can serve as the reference signal -- here the
-# tangential *speed* in (hip, knee)-space, combining both components
-r_speed <- tf_register(g, method = "cc", ref_component = tf_speed)
+The mildest operation re-labels time *within each curve* and uses no template at
+all. `tf_reparam_arclength()` traverses every curve at approximately constant
+speed in its value space: the `(hip, knee)` path is unchanged -- the same set of
+points -- but equal time intervals now cover equal arc length.
+
+```{r gait-rung1, fig.width = 8.2, fig.height = 3.6}
+g_unit <- tf_reparam_arclength(g)
+plot(g_unit, type = "facet", alpha = 0.3)
 ```
 
-### Aligned trajectories
+`tf_speed()` makes the effect explicit. The raw speeds swing wildly (fast
+through swing, near-still in stance); after reparametrization they are nearly
+flat -- each curve traversed at constant speed:
 
-`plot(..., type = "facet")` shows the aligned curves for each choice of
-reference signal. The reference signal that was *used* to register a
-sample shrinks most strongly, but the partner component can shrink or
-expand depending on how phase-coupled the two are:
+```{r gait-rung1-speed, fig.height = 4.0}
+sp_raw  <- tf_speed(g)
+sp_unit <- tf_speed(g_unit)
+yl <- c(0, max(c(unlist(tf_evaluations(sp_raw)),
+                 unlist(tf_evaluations(sp_unit))), na.rm = TRUE))
 
-```{r gait-register-helpers, class.source = "fold-hide"}
-plot_aligned <- function(reg, title) {
-  plot(tf_aligned(reg), type = "facet", alpha = 0.3)
-  mtext(title, side = 3, line = -1.3, outer = TRUE, font = 2)
-}
-```
-
-```{r gait-register-traj, fig.width = 8.2, fig.height = 7.2}
-op <- par(mfrow = c(3, 1), oma = c(0, 0, 0, 0))
-plot_aligned(r_hip,   "ref = hip angle")
-plot_aligned(r_knee,  "ref = knee angle")
-plot_aligned(r_speed, "ref = speed = ||(hip', knee')||")
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(sp_raw,  alpha = 0.4, ylim = yl, main = "raw parameterization",
+     ylab = "speed (deg / cycle)")
+lines(mean(sp_raw),  col = "firebrick", lwd = 2)
+plot(sp_unit, alpha = 0.4, ylim = yl, main = "arc-length parameterization",
+     ylab = "speed (deg / cycle)")
+lines(mean(sp_unit), col = "firebrick", lwd = 2)
 par(op)
 ```
 
-The "ref = knee" panel visibly tightens the knee component. Hip variation
-changes much less, which is useful to see: a single shared warp can improve
-the component that carries the sharpest event without necessarily removing
-all variability in the smoother partner signal.
+No curve is moved toward any other: this removes the *parametrization* only,
+leaving shape and size untouched and aligning nothing to a common reference.
 
-### Estimated warping functions
+### Rung 2 -- alignment to a 1-d reference signal
 
-The warps themselves are univariate `tfd`s (one per subject), mapping the
-raw cycle phase to the aligned phase. `plot.tf` handles them directly:
+The next rung aligns curves *to each other* by estimating one shared time-warp
+per curve and applying it to both components. The warp is driven by a single
+univariate **reference signal** -- a component, or any derived quantity. The
+choice matters: the knee carries the cycle's sharpest event (heel-strike), so it
+locks the alignment best.
 
-```{r gait-register-warps, fig.width = 8.2, fig.height = 3.6}
-warps_hip   <- tf_invert(tf_inv_warps(r_hip))
-warps_knee  <- tf_invert(tf_inv_warps(r_knee))
-warps_speed <- tf_invert(tf_inv_warps(r_speed))
+```{r gait-rung2, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 3.6}
+r_knee <- tf_register(g, method = "cc", ref_component = "knee")
+plot(tf_aligned(r_knee), type = "facet", alpha = 0.3)
+```
 
-op <- par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
-plot(warps_hip,   alpha = 0.5, main = "warp from hip",   ylab = "aligned phase")
+The knee component visibly tightens; the hip, phase-coupled to it, tightens only
+incidentally. Choosing `ref_component = "hip"` or `= tf_speed` would emphasise
+different events -- a 1-d reference forces that modelling choice. The warps
+themselves are univariate `tfd`s mapping raw to aligned phase, fanning out around
+the swing phase where heel-strike timing varies between subjects:
+
+```{r gait-rung2-warps, fig.height = 4.0}
+plot(tf_invert(tf_inv_warps(r_knee)), alpha = 0.5,
+     main = "reference (knee) warps", ylab = "aligned phase")
 abline(0, 1, lty = 3)
-plot(warps_knee,  alpha = 0.5, main = "warp from knee",  ylab = "aligned phase")
+```
+
+### Rung 3 -- joint multivariate reparametrization (`srvf_mv`)
+
+`method = "srvf_mv"` removes the choice of reference: it estimates the single
+time-warp that best aligns the joint `(hip, knee)` trajectories in the elastic
+(square-root-velocity) sense, using all components at once. It is still only a
+re-timing -- values are never rotated or rescaled -- and the template is the
+multivariate Karcher mean in `tf_template(reg_mv)`.
+
+```{r gait-rung3, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 3.6}
+reg_mv <- tf_register(g, method = "srvf_mv", max_iter = 2)
+plot(tf_aligned(reg_mv), type = "facet", alpha = 0.3)
+```
+
+```{r gait-rung3-warps, fig.height = 4.0}
+plot(tf_invert(tf_inv_warps(reg_mv)), alpha = 0.5,
+     main = "srvf_mv warps", ylab = "aligned phase")
 abline(0, 1, lty = 3)
-plot(warps_speed, alpha = 0.5, main = "warp from speed", ylab = "aligned phase")
-abline(0, 1, lty = 3)
+```
+
+Because the warp must compromise between both components rather than chase one,
+it need not shrink any single channel as hard as a reference-targeted warp -- but
+it needs no reference choice and respects both axes symmetrically.
+
+### Rung 4 -- full elastic shape registration
+
+`tf_register_shape()` goes furthest: on top of the time-warp it also fits, per
+curve, a **rotation** and a **scale**, and reports the aligned curves in a
+centered, normalised **shape space**. Translation, rotation and size are all
+quotiented out.
+
+```{r gait-rung4, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 3.6}
+reg_shape <- tf_register_shape(g, max_iter = 2)
+plot(tf_aligned(reg_shape), type = "facet", alpha = 0.3)   # note the y-axis: shape space
+```
+
+The `(hip, knee)` trajectory view makes the collapse vivid -- the original
+butterfly loops on the left, the shape-registered curves on the right reduced to
+essentially one normalised shape (note the very different axis ranges):
+
+```{r gait-rung4-traj, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 4.2}
+op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(g,                     type = "trajectory", alpha = 0.3, main = "original")
+plot(tf_aligned(reg_shape), type = "trajectory", alpha = 0.3,
+     main = "shape-registered (shape space)")
 par(op)
 ```
 
-The dotted diagonal is the identity warp (no time distortion). The
-spread around the diagonal tells you the magnitude and pattern of the
-phase variability captured by each reference signal: warps from `knee`
-and `speed` bunch tightly near identity in the first half of the cycle
-and fan out around the swing phase, where heel-strike timing varies
-between subjects. The `hip`-driven warps are noticeably broader
-elsewhere -- the hip signal is too smooth to lock the alignment to a
-single sharp event.
+The estimated rotations sit near the identity and the scales near 1 (little
+genuine rotation or scaling is present), yet the normalisation alone flattens
+the real between-subject differences:
+
+```{r gait-rung4-diag, message = FALSE, warning = FALSE}
+round(tf_rotations(reg_shape)[, , 1], 3)   # rotation for subject 1
+summary(as.numeric(tf_scales(reg_shape)))  # scales, relative to the template
+```
+
+**Gait's two axes are not interchangeable**: hip angle and knee angle are
+distinct physical quantities in fixed units. Quotienting out rotation mixes them
+into meaningless combinations, and quotienting out scale discards amplitude --
+which here *is* the signal of interest. Shape registration is the wrong tool for
+a bundle of fixed-unit channels; we return to where it *is* right below.
 
 ### Quantifying the alignment
 
-Compare the maximum pointwise sd before and after each registration:
+Two views across the rungs. First, a visual overview: the two components (rows
+*hip*, *knee*) and the estimated time-warp (row *warp*) for each registration,
+side by side -- *as-observed*, *arc-length* reparametrized, registered to a 1-d
+*reference* (knee), registered jointly (*srvf_mv*), and fully *shape*-registered.
+Raw data has no warp; arc-length has no template warp but does reparametrize, so
+its warp panel shows the normalised cumulative arc length.
+
+```{r quant-warp-helper, class.source = "fold-hide"}
+# warp implied by arc-length reparametrization: normalised cumulative arc length
+# (raw cycle phase -> arc-length phase, same direction as the registration warps)
+arclen_warp <- function(mv) {
+  sp  <- tf_speed(mv)
+  arg <- as.numeric(tf_arg(sp))
+  dom <- tf_domain(sp)
+  d   <- diff(arg)
+  w <- sapply(tf_evaluations(sp), function(s) {
+    cum <- c(0, cumsum((head(s, -1) + tail(s, -1)) / 2 * d))
+    dom[1] + diff(dom) * cum / cum[length(cum)]
+  })
+  tfd(t(w), arg = arg, domain = dom)
+}
+```
+
+```{r gait-grid, message = FALSE, warning = FALSE, fig.width = 9, fig.height = 6.6}
+cols <- list(
+  list(nm = "as-observed", data = g,                     warp = NULL),
+  list(nm = "arc-length",  data = g_unit,                warp = arclen_warp(g)),
+  list(nm = "ref = knee",  data = tf_aligned(r_knee),    warp = tf_invert(tf_inv_warps(r_knee))),
+  list(nm = "srvf_mv",     data = tf_aligned(reg_mv),    warp = tf_invert(tf_inv_warps(reg_mv))),
+  list(nm = "shape",       data = tf_aligned(reg_shape), warp = tf_invert(tf_inv_warps(reg_shape)))
+)
+
+op <- par(mfrow = c(3, 5), mar = c(2.6, 3.2, 2, 0.8), mgp = c(1.9, 0.6, 0))
+for (j in seq_along(cols))
+  plot(tf_component(cols[[j]]$data, "hip"),  alpha = 0.3,
+       main = cols[[j]]$nm, ylab = if (j == 1) "hip" else "")
+for (j in seq_along(cols))
+  plot(tf_component(cols[[j]]$data, "knee"), alpha = 0.3,
+       main = "", ylab = if (j == 1) "knee" else "")
+for (j in seq_along(cols)) {
+  w <- cols[[j]]$warp
+  if (is.null(w)) {
+    plot.new(); text(0.5, 0.5, "(identity)", col = "grey55")
+  } else {
+    plot(w, alpha = 0.4, main = "", ylab = if (j == 1) "warp" else "")
+    abline(0, 1, lty = 3)
+  }
+}
+par(op)
+```
+
+Across the warp row, the registration warps fan out around the swing phase where
+heel-strike timing varies between subjects; the shape warp is comparable, since
+it shares the same time-warp step. Down the `shape` column the components have
+been rescaled into normalised shape space -- note the compressed vertical axis --
+which is why those curves look so much tighter than the others.
+
+Second, the numbers: the maximum pointwise sd of each component, before and
+after. Rungs 1--3 keep the data in its original degree units and are directly
+comparable; rung 4 (marked `*`) lives in normalised shape space, so its row is on
+a different scale and only illustrates the collapse.
 
 ```{r gait-register-table-helper, class.source = "fold-hide"}
 peak_sd <- function(f, k) {
@@ -333,29 +450,95 @@ peak_sd <- function(f, k) {
 ```
 
 ```{r gait-register-table}
-out <- data.frame(
-  reference = c("raw (no reg)", "hip", "knee", "speed"),
-  sd_hip = c(peak_sd(g, "hip"),
-             peak_sd(tf_aligned(r_hip),   "hip"),
-             peak_sd(tf_aligned(r_knee),  "hip"),
-             peak_sd(tf_aligned(r_speed), "hip")),
-  sd_knee = c(peak_sd(g, "knee"),
-              peak_sd(tf_aligned(r_hip),   "knee"),
-              peak_sd(tf_aligned(r_knee),  "knee"),
-              peak_sd(tf_aligned(r_speed), "knee"))
+rungs <- list(
+  "raw"                = g,
+  "1 arc-length"       = g_unit,
+  "2 reference (knee)" = tf_aligned(r_knee),
+  "3 srvf_mv"          = tf_aligned(reg_mv),
+  "4 shape (*)"        = tf_aligned(reg_shape)
 )
-out
+data.frame(
+  registration = names(rungs),
+  sd_hip       = sapply(rungs, peak_sd, "hip"),
+  sd_knee      = sapply(rungs, peak_sd, "knee"),
+  row.names    = NULL
+)
 ```
 
-`knee` is the most informative reference signal for the sharp heel-strike
-event: it substantially reduces knee variation, while hip variation is mostly
-unchanged. We carry the knee-aligned sample forward because it best targets
-the event where phase variation is most visible.
+In degree units the phase rungs chip away at the spread only modestly -- gait's
+phase variation is real but subtle. The knee-reference warp shrinks the knee
+component most (it targets that channel); `srvf_mv` spreads a gentler correction
+across both; and arc-length reparametrization, which aligns nothing to a common
+template, barely moves the pointwise sd at all. Rung 4's near-zero entries are
+*not* a better alignment -- they are the signal being quotiented away.
+
+## Shape registration and its quotient spaces
+
+Shape registration earns its keep when the components really are *interchangeable
+spatial coordinates* and position, orientation and size are all nuisances:
+handwriting, gesture or movement paths, object outlines. Here is a synthetic
+example -- a single base curve $(t,\, t^2)$, copied three times with each copy
+rotated, rescaled and shifted in the plane:
+
+```{r shape-demo-build}
+t      <- seq(0, 1, length.out = 51)
+base   <- rbind(t, t^2)
+scales <- c(1, 0.7, 1.3)
+angles <- c(0, 0.4, -0.25)
+offset <- rbind(c(0.2, -0.1), c(0.4, -0.2), c(0.6, -0.3))
+beta   <- array(NA_real_, dim = c(3, length(t), 2),
+                dimnames = list(c("a", "b", "c"), NULL, c("x", "y")))
+for (i in 1:3) {
+  rot   <- matrix(c(cos(angles[i]),  sin(angles[i]),
+                    -sin(angles[i]), cos(angles[i])), nrow = 2)
+  curve <- scales[i] * (rot %*% base) + matrix(offset[i, ], 2, length(t))
+  beta[i, , 1] <- curve[1, ]
+  beta[i, , 2] <- curve[2, ]
+}
+shapes <- tfd_mv(beta, arg = t)
+```
+
+What counts as "the same shape" depends on which transformations we quotient
+out, and `tf_register_shape()` lets us choose via the `rotation` and `scale`
+flags (translation and the time-warp are always removed). The three quotients
+differ in what survives:
+
+```{r shape-demo-quotients, message = FALSE, warning = FALSE, fig.width = 7.4, fig.height = 6.6}
+reg_full  <- tf_register_shape(shapes, max_iter = 2, rotation = TRUE,  scale = TRUE)
+reg_rot   <- tf_register_shape(shapes, max_iter = 2, rotation = TRUE,  scale = FALSE)
+reg_scale <- tf_register_shape(shapes, max_iter = 2, rotation = FALSE, scale = TRUE)
+
+op <- par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+plot(shapes,                asp = 1, col = 1:3, lwd = 2, main = "input: 3 placements")
+plot(tf_aligned(reg_rot),   asp = 1, col = 1:3, lwd = 2, main = "rotation-only (keeps size)")
+plot(tf_aligned(reg_scale), asp = 1, col = 1:3, lwd = 2, main = "scale-only (keeps orientation)")
+plot(tf_aligned(reg_full),  asp = 1, col = 1:3, lwd = 2, main = "rotation + scale (full)")
+par(op)
+```
+
+* **rotation-only** (`scale = FALSE`): orientations are aligned but the original
+  sizes are kept, so the curves stay nested.
+* **scale-only** (`rotation = FALSE`): sizes are equalised but orientations are
+  kept, so the curves fan out at one common size.
+* **rotation + scale** (the full shape quotient): both are removed, and the three
+  congruent curves collapse onto a single shape.
+
+`tf_scales()` reports the per-curve size factors that were removed (relative to
+the template; `1` whenever scaling is off):
+
+```{r shape-demo-scales}
+data.frame(curve      = c("a", "b", "c"),
+           injected   = scales,
+           full       = round(as.numeric(tf_scales(reg_full)),  3),
+           rot_only   = round(as.numeric(tf_scales(reg_rot)),   3),
+           scale_only = round(as.numeric(tf_scales(reg_scale)), 3))
+```
 
 ## Modes of variation via FPC
 
-With the most visible phase variation reduced, fit a per-component FPC basis.
-The leading PCs now mostly describe within-component amplitude modes:
+Back on the gait sample, with the most visible phase variation reduced (we carry
+the knee-aligned curves forward), fit a per-component FPC basis. The leading PCs
+now mostly describe within-component amplitude modes:
 
 ```{r gait-fpc-helper, class.source = "fold-hide"}
 fpc_var <- function(comp) attr(comp, "score_variance")
@@ -387,154 +570,6 @@ summary(rmse_per_subject)
 The first 2-3 FPCs explain most of the remaining within-component variance,
 and the RMSE between the registered and FPC-reconstructed `(hip, knee)`
 curves is well below a degree for most subjects.
-
-## Three ways to factor out "nuisance" variation
-
-The reference-signal registration above is *one* way to strip out phase
-variability. It is worth seeing it next to its neighbours on the ladder from
-Section 1, each treating a *different* feature of the curves as a nuisance. We
-walk all three rungs on the same gait sample.
-
-### Rung 1 -- arc-length reparametrization
-
-`tf_reparam_arclength()` traverses each curve at *approximately constant speed
-in its value space*. The trajectory in the `(hip, knee)` plane is unchanged --
-it is the same set of points -- but the time axis is redistributed so that equal
-time intervals cover equal arc length. No template and no other curve enter:
-this is a property of each curve on its own. `tf_speed()` returns a plain `tfd`,
-so `plot.tf` and `lines.tf` work directly:
-
-```{r gait-reparam, fig.height = 4.0}
-g_unit  <- tf_reparam_arclength(g)
-sp_raw  <- tf_speed(g)
-sp_unit <- tf_speed(g_unit)
-
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-plot(sp_raw,  alpha = 0.4, ylim = c(0, max(c(
-       unlist(tf_evaluations(sp_raw)),
-       unlist(tf_evaluations(sp_unit))), na.rm = TRUE)),
-     main = "raw parameterization", ylab = "speed (deg / cycle)")
-lines(mean(sp_raw),  col = "firebrick", lwd = 2)
-plot(sp_unit, alpha = 0.4, ylim = c(0, max(c(
-       unlist(tf_evaluations(sp_raw)),
-       unlist(tf_evaluations(sp_unit))), na.rm = TRUE)),
-     main = "arc-length parameterization", ylab = "speed (deg / cycle)")
-lines(mean(sp_unit), col = "firebrick", lwd = 2)
-par(op)
-```
-
-The raw plot shows large per-subject speed swings -- joints flex quickly
-through swing and stand almost still during stance. The reparameterized
-plot is approximately flat: each curve is traversed at the same speed
-throughout the cycle, equal to its per-subject arc length divided by the
-cycle duration. This removes *parametrization* differences but keeps every
-curve's shape and size intact.
-
-### Rung 2 -- shared time-warp alignment (`srvf_mv`)
-
-`method = "srvf_mv"` estimates one time-warp per curve onto a common template,
-using *all* components jointly -- in contrast to `method = "cc"` above, which
-derived the warp from a single reference signal. There is no `ref_component`:
-the warp is the one that best aligns the joint `(hip, knee)` trajectories in the
-elastic (square-root-velocity) sense. The values are only re-timed, never
-rotated or rescaled.
-
-```{r gait-srvfmv, message = FALSE, warning = FALSE, fig.height = 3.6}
-reg_mv <- tf_register(g, method = "srvf_mv", max_iter = 2)
-reg_mv
-
-plot(tf_aligned(reg_mv), type = "facet", alpha = 0.3)
-```
-
-The estimated warps are univariate `tfd`s, recovered from the inverse warps with
-`tf_invert()`. Every curve is aligned to the shared Karcher-mean template in
-`tf_template(reg_mv)`:
-
-```{r gait-srvfmv-warps, fig.height = 4.0}
-warps_mv <- tf_invert(tf_inv_warps(reg_mv))
-plot(warps_mv, alpha = 0.5, main = "srvf_mv warps", ylab = "aligned phase")
-abline(0, 1, lty = 3)
-```
-
-Unlike rung 1 this uses the whole sample (curves are aligned *to each other*
-through the template); like rung 1 it leaves amplitude untouched.
-
-### Rung 3 -- full elastic shape registration, and why *not* on gait
-
-`tf_register_shape()` goes one step further: on top of the time-warp it finds,
-per curve, a **rotation** and a **scale** that best match the template. It
-returns a `tf_shape_registration` with two extra accessors, `tf_rotations()`
-and `tf_scales()`:
-
-```{r gait-shape, message = FALSE, warning = FALSE}
-reg_shape <- tf_register_shape(g, max_iter = 2)
-reg_shape
-round(tf_rotations(reg_shape)[, , 1], 3)    # rotation for subject 1
-summary(as.numeric(tf_scales(reg_shape)))   # scales, relative to the template
-```
-
-The estimated rotations sit essentially at the identity and the scales bunch
-tightly around 1 -- the method finds almost nothing to do. That is the correct
-answer, and the cautionary point: **gait's two axes are not interchangeable.**
-Hip angle and knee angle are distinct physical quantities in fixed units.
-Rotating the `(hip, knee)` plane would mix them into meaningless linear
-combinations, and rescaling would discard amplitude -- which here *is* the
-signal of interest. Shape registration is simply the wrong tool for a bundle of
-fixed-unit channels.
-
-> **When is rung 3 the right tool?** When the components are *interchangeable
-> spatial coordinates* and orientation and overall size are genuine nuisances:
-> handwriting and gesture trajectories, animal movement paths, outlines of
-> objects. It is *not* appropriate for fixed-unit channel bundles such as
-> `(hip, knee)` angles, `(wind, pressure)`, or geographic `(long, lat)`.
-
-### A planar shape where rung 3 *is* the right tool
-
-To see shape registration do real work, here is a small synthetic example: a
-single base curve $(t,\, t^2)$, copied three times, with each copy rotated,
-rescaled and shifted in the plane. Now orientation and size *are* nuisances and
-only the common shape should survive.
-
-```{r shape-demo-build}
-t      <- seq(0, 1, length.out = 51)
-base   <- rbind(t, t^2)
-scales <- c(1, 0.7, 1.3)
-angles <- c(0, 0.4, -0.25)
-offset <- rbind(c(0.2, -0.1), c(0.4, -0.2), c(0.6, -0.3))
-beta   <- array(NA_real_, dim = c(3, length(t), 2),
-                dimnames = list(c("a", "b", "c"), NULL, c("x", "y")))
-for (i in 1:3) {
-  rot   <- matrix(c(cos(angles[i]),  sin(angles[i]),
-                    -sin(angles[i]), cos(angles[i])), nrow = 2)
-  curve <- scales[i] * (rot %*% base) + matrix(offset[i, ], 2, length(t))
-  beta[i, , 1] <- curve[1, ]
-  beta[i, , 2] <- curve[2, ]
-}
-shapes <- tfd_mv(beta, arg = t)
-```
-
-```{r shape-demo-register, message = FALSE, warning = FALSE, fig.width = 8.2, fig.height = 4.2}
-reg_p <- tf_register_shape(shapes, max_iter = 2)
-
-op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-plot(shapes,            asp = 1, col = 1:3, lwd = 2,
-     main = "three placements of one shape")
-plot(tf_aligned(reg_p), asp = 1, col = 1:3, lwd = 2,
-     main = "after shape registration")
-par(op)
-```
-
-The three curves were drawn at different positions, orientations and sizes;
-after registration they collapse onto essentially one curve. The recovered scale
-factors track the injected sizes -- reported *relative to the template*, so a
-curve drawn larger comes back with a factor below 1 (shrunk toward the template)
-and a smaller one above 1:
-
-```{r shape-demo-scales}
-data.frame(curve           = c("a", "b", "c"),
-           injected_scale  = scales,
-           recovered_scale = round(as.numeric(tf_scales(reg_p)), 3))
-```
 
 # 3. Atlantic storms as 4-dimensional curves
 
