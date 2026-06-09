@@ -187,6 +187,36 @@ srvf_mv_gamma_to_warps <- function(gamma, arg, domain, curve_names = NULL) {
   tfd(warp, arg = arg, domain = domain)
 }
 
+# Work around an fdasrvf scaling quirk in scale-quotient shape registration.
+#
+# `fdasrvf::multiple_align_multivariate(..., scale = TRUE)` is meant to return
+# every aligned curve (`betan`) in a common, scale-normalised frame, but it does
+# not: the returned curves come out with size *inversely* proportional to each
+# input curve's length. Concretely, for curves that are identical up to a
+# similarity transform, `betan` fails to collapse, and the residual sizes invert
+# the order seen with `scale = FALSE` -- a curve drawn smaller comes back larger
+# (verified against fdasrvf directly; `betan` for `scale = FALSE` is fine, sizes
+# are preserved as expected). This looks like an upstream bug rather than a
+# convention, so we correct it on our side here.
+#
+# We renormalise every returned aligned curve to a shared (mean) arc length, so
+# congruent shapes overlay as they should. The per-curve scale factors that were
+# removed are reported separately and left untouched in `tf_scales()`.
+# `beta` is `[component, arg, curve]`.
+srvf_mv_equalize_scale <- function(beta) {
+  arclen <- apply(beta, 3, function(m) {
+    d <- m[, -1, drop = FALSE] - m[, -ncol(m), drop = FALSE]
+    sum(sqrt(colSums(d^2)))
+  })
+  target <- mean(arclen)
+  for (k in seq_len(dim(beta)[3])) {
+    if (arclen[k] > 0) {
+      beta[,, k] <- beta[,, k] * (target / arclen[k])
+    }
+  }
+  beta
+}
+
 tf_register_srvf_mv <- function(
   x,
   template,
@@ -457,6 +487,13 @@ tf_register_shape_srvf_mv <- function(
       break
     }
     current_template <- new_template
+  }
+
+  if (scale) {
+    # fdasrvf returns scale-aligned curves at the wrong (inverted) size; see
+    # srvf_mv_equalize_scale() above. Renormalise, then refresh the template.
+    best$betan <- srvf_mv_equalize_scale(best$betan)
+    best_template <- rowMeans(best$betan, dims = 2)
   }
 
   warps <- srvf_mv_gamma_to_warps(best$gamma, arg, domain, curve_names)
