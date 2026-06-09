@@ -65,7 +65,8 @@ distribute_dots <- function(dots, nm, comp_names) {
       is.list(arg) &&
         !is.null(names(arg)) &&
         length(arg) == length(comp_names) &&
-        all(names(arg) %in% comp_names)
+        !anyDuplicated(names(arg)) &&
+        setequal(names(arg), comp_names)
     ) {
       arg[[nm]]
     } else {
