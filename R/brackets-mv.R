@@ -170,14 +170,22 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     check_compatible_mv(x, value)
     tf_components(value)
   } else {
-    # only NA (scalar logical/numeric, or all-NA atomic) is broadcast across
-    # every component. Anything else -- including a univariate tf -- is a
-    # type error: it would silently make every component identical.
-    is_atomic_all_na <- is.atomic(value) && length(value) &&
-      all(is.na(value))
-    if (!is_atomic_all_na) {
+    # Only logical NA is broadcast across every component. Typed NAs
+    # (NA_real_, NA_integer_) and any non-NA value -- including a univariate
+    # tf -- are rejected: they would silently make every component identical
+    # or trigger a confusing downstream "Can't combine" error.
+    is_logical_na <- is.logical(value) && length(value) && all(is.na(value))
+    if (!is_logical_na) {
       cli::cli_abort(
-        "univariate tf cannot be combined with vector-valued tf_mv"
+        "expected logical {.code NA} or another {.cls tf_mv} on the right-hand side."
+      )
+    }
+    # Validate length upfront so we emit a clean message rather than the
+    # downstream vec_slice<- "Can't recycle" complaint.
+    if (length(value) > 1L && length(value) != length(i)) {
+      cli::cli_abort(
+        "length of {.arg value} ({length(value)}) must be 1 or match \\
+        {.arg i} ({length(i)})."
       )
     }
     rep(list(value), length(comps))

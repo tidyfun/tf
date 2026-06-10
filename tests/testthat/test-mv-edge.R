@@ -535,14 +535,40 @@ test_that("[<-.tf_mv rejects a univariate tf and other non-NA scalars (#244)", {
   set.seed(244)
   g <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
   # broadcasting a univariate tf would silently corrupt every component:
-  expect_error(g[1] <- tf_rgp(1), "univariate tf")
+  expect_error(g[1] <- tf_rgp(1), "logical.*NA|tf_mv")
   # bare numeric scalars are not a valid "all components NA" sentinel either
-  expect_error(g[1] <- 0, "univariate tf")
+  expect_error(g[1] <- 0, "logical.*NA|tf_mv")
   # NA still works (the documented broadcast use-case)
   g_na <- g
   g_na[1] <- NA
   expect_true(is.na(g_na$x[1]))
   expect_true(is.na(g_na$y[1]))
+})
+
+test_that("[<-.tf_mv rejects typed NAs and validates length upfront (#244)", {
+  set.seed(2441)
+  g <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # Typed NAs are rejected with the new message rather than the downstream
+  # "Can't combine <double> and <tfd_reg>" complaint.
+  expect_error(g[1] <- NA_real_, "logical.*NA|tf_mv")
+  expect_error(g[1] <- NA_integer_, "logical.*NA|tf_mv")
+  # Length-mismatched all-NA value is rejected upfront with a clean message
+  # rather than the downstream vec_slice<- "Can't recycle" error.
+  expect_error(g[1] <- c(NA, NA), "length")
+  # logical(0) was already rejected; pin the behaviour.
+  expect_error(g[1] <- logical(0), "logical.*NA|tf_mv")
+})
+
+test_that("var(<tf|tf_mv>, y = NULL) explicitly works (#245)", {
+  set.seed(2451)
+  f <- tf_rgp(5)
+  fm <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  # passing an explicit NULL is the deliberate use case and must not error
+  expect_s3_class(var(f, y = NULL), "tf")
+  expect_s3_class(var(fm, y = NULL), "tf_mv")
+  # direct method calls too
+  expect_s3_class(var.tf(f, y = NULL), "tf")
+  expect_s3_class(var.tf_mv(fm, y = NULL), "tf_mv")
 })
 
 test_that("var.tf and var.tf_mv error on a non-NULL y (#245)", {
