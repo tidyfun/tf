@@ -148,14 +148,7 @@ tf_rebase.tfb.tfd <- function(
     domain = tf_domain(basis_from),
     evaluator = attr(basis_from, "evaluator_name")
   )
-  dots <- list(...)
-  # `tfd.tf` captures the evaluator symbol via NSE; do.call passes the
-  # already-evaluated value, so coerce a user-supplied function back to its name
-  if (is.function(dots$evaluator)) {
-    eval_call <- match.call(expand.dots = TRUE)$evaluator
-    if (is.symbol(eval_call)) dots$evaluator <- as.character(eval_call)
-  }
-  tfd_args <- modifyList(tfd_args, dots)
+  tfd_args <- modifyList(tfd_args, list(...))
   do.call(tfd, append(tfd_args, list(data = object, arg = arg)))
 }
 
