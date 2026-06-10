@@ -42,7 +42,7 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
     }
     return(unname(ret))
   }
-  ret <- do.call(
+  do.call(
     tfb,
     c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args"))
   ) |>

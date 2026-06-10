@@ -243,3 +243,9 @@ test_that("cum* functions work for tfb objects", {
   #   )
   # }
 })
+
+test_that("sd/var return visibly for tfb (#250)", {
+  xb <- suppressWarnings(tfb(tf_rgp(5), verbose = FALSE))
+  expect_true(withVisible(sd(xb))$visible)
+  expect_true(withVisible(var(xb))$visible)
+})
