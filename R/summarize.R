@@ -248,51 +248,41 @@ Summary.tf <- function(...) {
   summarize_tf(..., op = .Generic, eval = is_tfd(list(...)[[1]]))
 }
 
-#' @rdname tfgroupgenerics
-#' @export
-cummax.tfd <- function(...) {
-  summarize_tf(..., op = "cummax", eval = TRUE)
+# Single dispatcher for the four cum* Math-group operations across tfd / tfb.
+# Each cum* S3 method below is a thin wrapper that forwards .Generic.
+cum_tf <- function(op, ..., eval) {
+  summarize_tf(..., op = op, eval = eval)
 }
 
 #' @rdname tfgroupgenerics
 #' @export
-cummin.tfd <- function(...) {
-  summarize_tf(..., op = "cummin", eval = TRUE)
-}
+cummax.tfd <- function(...) cum_tf("cummax", ..., eval = TRUE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cumsum.tfd <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = TRUE)
-}
+cummin.tfd <- function(...) cum_tf("cummin", ..., eval = TRUE)
+
+#' @rdname tfgroupgenerics
+#' @export
+cumsum.tfd <- function(...) cum_tf("cumsum", ..., eval = TRUE)
 
 #' @rdname tfgroupgenerics
 #' @export
 #' @family tidyfun compute
-cumprod.tfd <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = TRUE)
-}
+cumprod.tfd <- function(...) cum_tf("cumprod", ..., eval = TRUE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cummax.tfb <- function(...) {
-  summarize_tf(..., op = "cummax", eval = FALSE)
-}
+cummax.tfb <- function(...) cum_tf("cummax", ..., eval = FALSE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cummin.tfb <- function(...) {
-  summarize_tf(..., op = "cummin", eval = FALSE)
-}
+cummin.tfb <- function(...) cum_tf("cummin", ..., eval = FALSE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cumsum.tfb <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = FALSE)
-}
+cumsum.tfb <- function(...) cum_tf("cumsum", ..., eval = FALSE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cumprod.tfb <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = FALSE)
-}
+cumprod.tfb <- function(...) cum_tf("cumprod", ..., eval = FALSE)
