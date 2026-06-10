@@ -192,27 +192,20 @@ get_args <- function(args, f) {
 
 #' Turns any object into a list
 #'
-#' See above.
 #' @param x any input.
 #' @returns `x` turned into a list.
-#' @examples
-#' ensure_list(1:3)
-#' ensure_list(list(1, 2))
-#' @export
-#' @family tidyfun developer tools
+#' @keywords internal
+#' @noRd
 ensure_list <- function(x) {
   if (is.list(x)) x else list(x)
 }
 
 #' Make syntactically valid unique names
 #'
-#' See above.
 #' @param x any input.
 #' @returns `x` turned into a list.
-#' @examples
-#' unique_id(c("a", "b", "a"))
-#' @export
-#' @family tidyfun developer tools
+#' @keywords internal
+#' @noRd
 unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)
