@@ -44,6 +44,11 @@ NULL
 #' tf_crosscor(x, -x)
 #' tf_crosscov(x, x) == tf_fvar(x)
 tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
+  UseMethod("tf_fwise")
+}
+
+#' @export
+tf_fwise.default <- function(x, .f, arg = tf_arg(x), ...) {
   assert_tf(x)
   assert_arg(arg = arg, x = x)
   x_ <- x[, arg, matrix = FALSE]
@@ -93,6 +98,11 @@ tf_frange <- function(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE) {
 #' @describeIn functionwise mean of each function:
 #'   \eqn{\tfrac{1}{|T|}\int_T x_i(t) dt}
 tf_fmean <- function(x, arg = tf_arg(x)) {
+  UseMethod("tf_fmean")
+}
+
+#' @export
+tf_fmean.default <- function(x, arg = tf_arg(x)) {
   assert_tf(x)
   assert_arg(arg = arg, x = x)
   x_ <- tf_interpolate(x, arg = arg)
@@ -126,6 +136,11 @@ tf_fsd <- function(x, arg = tf_arg(x)) {
 #' @describeIn functionwise cross-covariances between two functional vectors:
 #'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}
 tf_crosscov <- function(x, y, arg = tf_arg(x)) {
+  UseMethod("tf_crosscov")
+}
+
+#' @export
+tf_crosscov.default <- function(x, y, arg = tf_arg(x)) {
   # check same domain, arg
   assert_tf(x)
   assert_tf(y)
@@ -153,5 +168,10 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
 #' @describeIn functionwise cross-correlation between two functional vectors:
 #'   `tf_crosscov(x, y) / (tf_fsd(x) * tf_fsd(y))`
 tf_crosscor <- function(x, y, arg = tf_arg(x)) {
+  UseMethod("tf_crosscor")
+}
+
+#' @export
+tf_crosscor.default <- function(x, y, arg = tf_arg(x)) {
   tf_crosscov(x, y, arg) / sqrt(tf_fvar(x, arg) * tf_fvar(y, arg))
 }
