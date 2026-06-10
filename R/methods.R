@@ -227,8 +227,8 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
-#' @param object as usual
-#' @param ... dots
+#' @param object a `tfb` object.
+#' @param ... not used.
 #' @export
 #' @importFrom stats coef
 coef.tfb <- function(object, ...) {
