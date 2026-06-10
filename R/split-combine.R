@@ -135,7 +135,8 @@ tf_combine <- function(..., strict = FALSE) {
       )
     }
     cli::cli_warn(
-      "removing {length(duplicates)} duplicated points from input data."
+      "removing {length(duplicates)} duplicated points from input data.",
+      class = "tf_combine_duplicates"
     )
     tfs_data <- tfs_data[-duplicates, ]
   }
