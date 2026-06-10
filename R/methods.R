@@ -232,7 +232,9 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @export
 #' @importFrom stats coef
 coef.tfb <- function(object, ...) {
+  nms <- names(object)
   attributes(object) <- NULL
+  names(object) <- nms
   object
 }
 
