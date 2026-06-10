@@ -1,7 +1,6 @@
 new_tfb_spline <- function(
   data, # data.frame with id, arg, value
   domain = NULL,
-  arg = NULL,
   penalized = TRUE,
   global = FALSE,
   verbose = FALSE,
@@ -545,7 +544,6 @@ tfb_spline.tfb <- function(
 
     new_tfb_spline(
       data,
-      arg = arg,
       domain = domain,
       penalized = penalized,
       global = global,

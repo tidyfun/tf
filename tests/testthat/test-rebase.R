@@ -127,7 +127,17 @@ for (i in seq_along(l)) {
 }
 
 #-------------------------------------------------------------------------------
-# regression tests for #240
+# regression tests for #239, #240
+
+test_that("#239 tf_rebase(tfd, tfb_spline) fits on the target spline grid", {
+  set.seed(239)
+  x <- tf_rgp(3, arg = seq(0, 1, length.out = 11))
+  b <- tfb(tf_rgp(3, arg = seq(0, 1, length.out = 51)), k = 25, verbose = FALSE)
+  res <- tf_rebase(x, b)
+  expect_true(tf:::same_basis(res, b))
+  # combining is now warning-free since both share the same basis
+  expect_warning(res + b, NA)
+})
 
 test_that("#240 default tfb_spline/tfb_fpc methods return length-0 prototypes", {
   proto_s <- suppressWarnings(tfb_spline())

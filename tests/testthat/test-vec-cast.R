@@ -46,10 +46,13 @@ expect_cast_result <- function(
   # for some reason names get shifted around in attributes list so check separately:
   expect_equal(names(cast), names(x))
 
-  expect_identical(
-    attributes(unname(cast))[-ignore],
-    attributes(unname(to))[-ignore]
-  )
+  cast_attrs <- attributes(unname(cast))
+  to_attrs <- attributes(unname(to))
+  if (length(ignore)) {
+    cast_attrs <- cast_attrs[-ignore]
+    to_attrs <- to_attrs[-ignore]
+  }
+  expect_identical(cast_attrs, to_attrs)
 }
 
 test_that("vec_cast for tfd to tfd works/fails as expected", {
@@ -84,9 +87,10 @@ test_that("vec_cast for tfd to tfd works/fails as expected", {
 })
 
 test_that("vec_cast for tfb to tfb works/fails as expected", {
-  # tfb -> tfb  should always fail unless bases are identical
-  expect_cast_result(l$b, l$b)
-  expect_cast_result(l$fp_low, l$fp_low)
+  # tfb -> tfb  should always fail unless bases are identical;
+  # when it succeeds, all attributes (including `arg`) must match `to` exactly.
+  expect_cast_result(l$b, l$b, ignore = integer(0))
+  expect_cast_result(l$fp_low, l$fp_low, ignore = integer(0))
   expect_error(vec_cast(l$b, l$b2), "precision")
   expect_error(vec_cast(l$b, l$fp), "precision")
   expect_error(vec_cast(l$fp, l$fp_low), "precision")

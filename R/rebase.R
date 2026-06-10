@@ -85,8 +85,10 @@ tf_rebase.tfd.tfb_spline <- function(
   ...
 ) {
   assert_same_domains(object, basis_from)
-  # extract evals from object
-  data <- as.data.frame(object, unnest = TRUE)
+  # interpolate onto the target grid first, then fit the spline basis
+  # (mirrors the fpc path; new_tfb_spline does not honor `arg`)
+  data <- tf_interpolate(object, arg = arg) |>
+    as.data.frame(unnest = TRUE)
   dots <- list(...)
   dots$penalized <- dots$penalized %||%
     !(is.na(attr(basis_from, "basis_args")$sp))
@@ -98,7 +100,6 @@ tf_rebase.tfd.tfb_spline <- function(
       list(
         data = data,
         domain = tf_domain(basis_from),
-        arg = arg,
         sp = attr(basis_from, "basis_args")$sp,
         family = attr(basis_from, "family")
       ),
