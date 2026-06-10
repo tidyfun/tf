@@ -59,7 +59,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
     svd(data_wc, nu = 0, nv = min(dim(data)))
   } else {
     cli::cli_inform(
-      "Using softImpute SVD on {round(mean(nas) * 100, 1)}% missing data."
+      "Using soft-impute SVD on {round(mean(nas) * 100, 1)}% missing data."
     )
     if (pve + mean(nas) > 1) {
       cli::cli_inform(c(

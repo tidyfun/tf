@@ -52,7 +52,7 @@ bibentries <- c(
     pages = "2287--2322",
     year = "2010"
   ),
-swihart2010lasagna = bibentry(
+  swihart2010lasagna = bibentry(
     "article",
     title = "Lasagna plots: a saucy alternative to spaghetti plots",
     author = "Swihart, Bruce J and Caffo, Brian and James, Bryan D and Strand, Matthew and Schwartz, Brian S and Punjabi, Naresh M",
