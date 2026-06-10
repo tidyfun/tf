@@ -103,7 +103,7 @@ plot.tf <- function(
           points = TRUE,
           interpolate = FALSE,
           pch = 19,
-          ol = rgb(0, 0, 0, alpha)
+          col = rgb(0, 0, 0, alpha)
         ),
         list(...)
       )
