@@ -14,15 +14,37 @@
   observed arg range (i.e., the range of its `tf_arg()` values). Pass explicit
   `lower` / `upper` (or an extrapolating evaluator) to override (#253).
 
-## New features
+## Vector-valued functional data
 
+This release introduces first-class support for vector-valued (multivariate)
+functional data -- functions whose codomain is `R^d` -- alongside the existing
+univariate `tfd`/`tfb` classes.
+
+* `tfd_mv()` and `tfb_mv()`: new `vctrs`-based S3 classes for vector-valued
+  functional data, holding several component functions per observation on a
+  shared domain. Constructors accept named lists of `tfd`/`tfb` vectors or
+  list-columns of matrices.
 * `tfb_mfpc()` implements multivariate functional principal component analysis
-  (Happ & Greven, 2018) for vector-valued (`tf_mv`) data: a single set of scalar
-  scores per curve shared across all components, with vector-valued
-  eigenfunctions. Component weighting is configurable (`"inverse_variance"`
-  default, `"snr"`, `"equal"`, or user-supplied). New data can be projected onto
-  a fitted basis via `tf_rebase()` / `vec_cast()`. Accessors `tf_mfpc_scores()`,
+  (Happ & Greven, 2018) for `tf_mv` data: a single set of scalar scores per
+  curve shared across all components, with vector-valued eigenfunctions.
+  Component weighting is configurable (`"inverse_variance"` default, `"snr"`,
+  `"equal"`, or user-supplied). New data can be projected onto a fitted basis
+  via `tf_rebase()` / `vec_cast()`. Accessors `tf_mfpc_scores()`,
   `tf_mfpc_efunctions()` and the predicate `is_tfb_mfpc()`.
+* Multivariate registration: `tf_register()` gains `method = "srvf_mv"` for
+  jointly aligning the components of `tf_mv` curves via the multivariate SRVF
+  framework, and `tf_register_shape()` provides elastic shape registration
+  (rotation/translation/scale-invariant) via `fdasrvf`.
+* New geometry verbs for `tf_mv` (and where meaningful for univariate `tf`):
+  `tf_norm()`, `tf_inner()`, `tf_tangent()`, `tf_arclength()`.
+* `tf_mv_*` accessors, `tf_split()` / `tf_combine()` extensions and `[`/`[[`
+  methods for extracting, replacing and recombining components.
+
+### Contract change
+
+* `is_tf()` now returns `TRUE` for `tf_mv` as well as univariate `tfd`/`tfb`.
+  Code that branched on `is_tf()` to mean "univariate `tf`" should switch to
+  the new predicate `is_tf_1d()`.
 
 # tf 0.4.1
 
