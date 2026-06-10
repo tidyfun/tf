@@ -241,6 +241,5 @@ tfb_fpc.default <- function(
     )
   }
 
-  data <- data_frame0()
-  new_tfb_spline(data = data, arg = arg, method = method, domain = domain, ...)
+  new_tfb_fpc(data = numeric(0), method = method, domain = domain, ...)
 }

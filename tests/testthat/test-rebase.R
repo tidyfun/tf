@@ -125,3 +125,15 @@ for (i in seq_along(l)) {
     )
   })
 }
+
+#-------------------------------------------------------------------------------
+# regression tests for #240
+
+test_that("#240 default tfb_spline/tfb_fpc methods return length-0 prototypes", {
+  proto_s <- suppressWarnings(tfb_spline())
+  expect_s3_class(proto_s, "tfb_spline")
+  expect_length(proto_s, 0)
+  proto_f <- suppressMessages(tfb_fpc())
+  expect_s3_class(proto_f, "tfb_fpc")
+  expect_length(proto_f, 0)
+})

@@ -584,9 +584,8 @@ tfb_spline.default <- function(
     "Input {.arg data} not from a recognized class; returning prototype of length 0."
   )
 
-  data <- data_frame0()
   new_tfb_spline(
-    data,
+    numeric(0),
     domain = domain,
     penalized = penalized,
     global = global,
