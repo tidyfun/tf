@@ -76,6 +76,16 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   comps <- tf_components(x)
   comp_names <- attr(x, "comp_names")
 
+  # If any component is basis-represented, the per-component `[.tf` would emit
+  # the "interpolate ignored" inform once per component; emit it once here
+  # and suppress the per-component calls below (#252).
+  if (!interpolate && any(map_lgl(comps, is_tfb))) {
+    cli::cli_inform(
+      "{.arg interpolate} ignored for data in basis representation."
+    )
+    interpolate <- TRUE
+  }
+
   # matrix-index i: (function, arg) pairs -> (nrow(i) x d) matrix
   if (!missing(i) && is.matrix(i)) {
     cols <- map(comps, \(comp) comp[i, interpolate = interpolate])
@@ -84,7 +94,19 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     return(ret)
   }
 
-  if (missing(i)) i <- seq_along(x)
+  # Validate `i` the same way univariate `[.tf` does (no NA, no missing names,
+  # no out-of-bounds). TODO(#252): factor this and `j`-normalisation out of
+  # `[.tf` into a shared helper to remove the bracket-code duplication.
+  if (missing(i)) {
+    i <- seq_along(x)
+  } else {
+    i <- vec_as_location(
+      i,
+      n = vec_size(x),
+      names = names(x),
+      missing = "error"
+    )
+  }
   xi <- vec_slice(x, i)
 
   if (missing(j) && missing(matrix)) {

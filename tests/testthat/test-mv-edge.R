@@ -557,3 +557,22 @@ test_that("var.tf and var.tf_mv error on a non-NULL y (#245)", {
   expect_s3_class(var(f), "tf")
   expect_s3_class(var(fm), "tf_mv")
 })
+
+test_that("[.tf_mv rejects NA indices and out-of-bounds (#252)", {
+  set.seed(252)
+  f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  expect_error(f[c(1, NA)], "[Mm]issing|NA")
+  expect_error(f[c(1L, NA_integer_)], "[Mm]issing|NA")
+  # out-of-bounds also errors (was already implicit via vec_slice, kept for
+  # parity with univariate `[.tf`)
+  expect_error(f[10])
+})
+
+test_that("[.tf_mv emits the basis 'interpolate ignored' inform once (#252)", {
+  set.seed(2521)
+  fb <- tfb(tf_rgp(3), verbose = FALSE)
+  fbm <- tfb_mv(list(x = fb, y = fb))
+  msgs <- capture_messages(out <- fbm[1:2, , interpolate = FALSE])
+  # exactly one inform, not one per component
+  expect_length(grep("interpolate", msgs), 1L)
+})
