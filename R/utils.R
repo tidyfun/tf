@@ -35,6 +35,13 @@ find_arg <- function(data, arg) {
   list(arg)
 }
 
+# A length-1 NA-valued tf with the same attributes / domain / arg as `x[i]`.
+# Uses the `1 * NA * <tf>` arithmetic dispatch so attributes propagate correctly
+# for both tfd and tfb.
+tf_na_like <- function(x, i = 1L) {
+  1 * NA * x[i]
+}
+
 domains_overlap <- function(x, y) {
   dom_x <- tf_domain(x)
   dom_y <- tf_domain(y)

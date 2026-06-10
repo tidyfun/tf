@@ -92,7 +92,7 @@ mean.tf <- function(x, ...) {
 #' @rdname tfsummaries
 median.tf <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   if (!na.rm && anyNA(x)) {
-    return(1 * NA * x[1])
+    return(tf_na_like(x))
   }
   x <- x[!is.na(x)]
   if (is.character(depth) && length(depth) == 1 && depth == "pointwise") {
@@ -206,7 +206,7 @@ fivenum.default <- function(x, na.rm = FALSE, ...) {
 #' @rdname fivenum
 fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
   if (!na.rm && anyNA(x)) {
-    return(1 * NA * x[1])
+    return(tf_na_like(x))
   }
   prepared <- depth_data(x, depth, na.rm = na.rm, ...)
   if (is.null(prepared$d)) {
