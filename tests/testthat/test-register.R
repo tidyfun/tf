@@ -833,6 +833,17 @@ test_that("register_landmark handles NA landmarks correctly", {
   }
 })
 
+test_that("landmark registration errors clearly on NA-induced non-monotone template (#243)", {
+  # NA pattern arranged so that default colMeans(landmarks, na.rm=TRUE) crosses:
+  # col 1 mean = mean(0.1, 0.9) = 0.5, col 2 mean = 0.3 -> not strictly increasing.
+  lm <- matrix(c(0.1, NA, NA, 0.3, 0.9, NA), nrow = 3, byrow = TRUE)
+  x <- tf_rgp(3)
+  expect_error(
+    tf_estimate_warps(x, landmarks = lm, method = "landmark"),
+    "monoton|landmark"
+  )
+})
+
 test_that("tf_estimate_warps landmark method validates input", {
   t <- seq(0, 1, length.out = 51)
   x <- tfd(t(cbind(sin(t * pi), sin(t * pi + 0.1))), arg = t)

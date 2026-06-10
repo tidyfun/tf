@@ -791,6 +791,23 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
     valid <- !is.na(landmark_row)
     t_arg <- c(domain[1], template_landmarks[valid], domain[2])
     w_vals <- c(domain[1], landmark_row[valid], domain[2])
+    # `approx()` silently sorts a non-monotone `t_arg` (and the corresponding
+    # `w_vals` go along for the ride), producing a non-monotone warp that
+    # would later trip `assert_monotonic()` with no useful message (#243).
+    if (any(diff(t_arg) <= 0)) {
+      cli::cli_abort(c(
+        "Template landmark grid (with boundary anchors) is not strictly increasing.",
+        "i" = "Got: {paste(round(t_arg, 4), collapse = ', ')}.",
+        "i" = "Check that {.arg template_landmarks} lie strictly inside the domain and are strictly increasing."
+      ))
+    }
+    if (any(diff(w_vals) <= 0)) {
+      cli::cli_abort(c(
+        "Curve landmark sequence (with boundary anchors) is not strictly increasing.",
+        "i" = "Got: {paste(round(w_vals, 4), collapse = ', ')}.",
+        "i" = "Check the corresponding row of {.arg landmarks}."
+      ))
+    }
     approx(t_arg, w_vals, xout = x_arg, rule = 2)$y
   }
 
