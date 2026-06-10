@@ -120,14 +120,17 @@ tf_rgp <- function(
 
   ret <- map(arg, \(.arg) {
     cov <- outer(.arg, .arg, f_cov) + diag(0 * .arg + nugget)
-    # zero-mean multivariate normal draw via Cholesky factor of the covariance;
-    # add a small jitter on the diagonal if needed to handle near-singular GP
-    # kernels (e.g. squared-exp with zero or very small nugget).
-    chol_cov <- tryCatch(
-      chol(cov),
-      error = function(e) chol(cov + diag(max(diag(cov), 1) * 1e-8, nrow(cov)))
-    )
-    sample <- as.numeric(rnorm(nrow(chol_cov)) %*% chol_cov)
+    # zero-mean multivariate normal draw via eigen-decomposition of the
+    # covariance. Matches `mvtnorm::rmvnorm(method = "eigen")` semantics
+    # exactly: rank-deficient kernels (e.g. squared-exp with zero nugget) are
+    # sampled in their effective subspace; tiny negative eigenvalues from
+    # numerical noise are clamped to zero. We use the symmetric square root
+    # `V D^{1/2} V^T` so draws match the previous `mvtnorm` implementation
+    # under `set.seed()`.
+    e <- eigen(cov, symmetric = TRUE)
+    d <- pmax(e$values, 0)
+    R <- e$vectors %*% (sqrt(d) * t(e$vectors))
+    sample <- as.numeric(R %*% rnorm(nrow(cov)))
     cbind(.arg, sample)
   }) |>
     tfd()
