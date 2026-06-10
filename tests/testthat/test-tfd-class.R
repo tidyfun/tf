@@ -120,3 +120,24 @@ test_that("NA creation warning uses singular/plural wording and lists indices", 
     "Affected indices: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, \\.{3}"
   )
 })
+
+test_that("tfd.list errors on mismatched per-entry lengths (#235)", {
+  # different lengths with shared arg -> must not silently return tfd_reg
+  expect_error(
+    tfd(list(1:3, 1:5), arg = 1:5),
+    "arg"
+  )
+  # different lengths and arg list -> irregular path catches it
+  expect_error(
+    tfd(list(1:3, 1:5), arg = list(1:3, 1:4)),
+    "do not match"
+  )
+})
+
+test_that("tfd.list infers irregular when lengths differ but arg list matches (#235)", {
+  f <- tfd(list(1:3, 1:5), arg = list(1:3, 1:5))
+  expect_s3_class(f, "tfd_irreg")
+  expect_length(f, 2)
+  expect_equal(tf_evaluations(f)[[1]], 1:3)
+  expect_equal(tf_evaluations(f)[[2]], 1:5)
+})
