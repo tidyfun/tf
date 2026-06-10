@@ -528,3 +528,19 @@ test_that("tf_inner.tf_mv rejects a non-tf_mv second argument informatively", {
   expect_error(tf_inner(f, tf_rgp(2)), "tf_mv")
   expect_error(tf_inner(f, 1:2), "tf_mv")
 })
+
+# ---- bracket seams: NA index, broadcast, and var() y handling ----------------
+
+test_that("[<-.tf_mv rejects a univariate tf and other non-NA scalars (#244)", {
+  set.seed(244)
+  g <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # broadcasting a univariate tf would silently corrupt every component:
+  expect_error(g[1] <- tf_rgp(1), "univariate tf")
+  # bare numeric scalars are not a valid "all components NA" sentinel either
+  expect_error(g[1] <- 0, "univariate tf")
+  # NA still works (the documented broadcast use-case)
+  g_na <- g
+  g_na[1] <- NA
+  expect_true(is.na(g_na$x[1]))
+  expect_true(is.na(g_na$y[1]))
+})

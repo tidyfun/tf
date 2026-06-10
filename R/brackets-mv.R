@@ -148,7 +148,16 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     check_compatible_mv(x, value)
     tf_components(value)
   } else {
-    # a scalar (typically NA) is broadcast to every component
+    # only NA (scalar logical/numeric, or all-NA atomic) is broadcast across
+    # every component. Anything else -- including a univariate tf -- is a
+    # type error: it would silently make every component identical.
+    is_atomic_all_na <- is.atomic(value) && length(value) &&
+      all(is.na(value))
+    if (!is_atomic_all_na) {
+      cli::cli_abort(
+        "univariate tf cannot be combined with vector-valued tf_mv"
+      )
+    }
     rep(list(value), length(comps))
   }
   new_comps <- map2(comps, value_comps, function(comp, v) {
