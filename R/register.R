@@ -726,8 +726,6 @@ tf_register_srvf <- function(x, template, ...) {
 
   arg <- tf_arg(x)
   domain <- tf_domain(x)
-  lwr <- domain[1]
-  upr <- domain[2]
 
   # Karcher mean
   x_mat <- as.matrix(x)
@@ -754,11 +752,17 @@ tf_register_srvf <- function(x, template, ...) {
     }
     tmpl <- template
   }
+  # fdasrvf returns `gamma` normalized to the observed time grid, so rescale
+  # by `range(arg)` -- NOT `domain`, which may be wider. Pinning endpoints to
+  # arg[1]/arg[k] after a domain-based rescale would yield non-monotone warps
+  # whenever `domain != range(arg)` (#242).
+  lwr <- arg[1]
+  upr <- arg[length(arg)]
   warp <- lwr + (upr - lwr) * warp
   # avoid numerical over/underflow issue:
   warp[, 1] <- arg[1]
   warp[, length(arg)] <- arg[length(arg)]
-  result <- tfd(warp, arg = arg)
+  result <- tfd(warp, arg = arg, domain = domain)
   attr(result, "template") <- tmpl
   result
 }

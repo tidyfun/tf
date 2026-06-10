@@ -330,6 +330,25 @@ test_that("tf_estimate_warps works for SRVF and CC methods", {
   )
 })
 
+test_that("SRVF warps are monotone when domain is wider than arg range (#242)", {
+  skip_if_not_installed("fdasrvf")
+  set.seed(1)
+  x <- tfd(
+    matrix(rnorm(5 * 9), 5),
+    arg = seq(0.1, 0.9, length.out = 9),
+    domain = c(0, 1)
+  )
+  w <- tf_estimate_warps(x, method = "srvf")
+  arg_x <- as.numeric(tf_arg(x))
+  for (i in seq_along(w)) {
+    v <- tf_evaluations(w)[[i]]
+    expect_true(all(diff(v) > 0))
+    expect_equal(v[1], min(arg_x))
+    expect_equal(v[length(v)], max(arg_x))
+  }
+  expect_no_error(tf_register(x, method = "srvf"))
+})
+
 test_that("tf_estimate_warps returns tfd (not tf_registration)", {
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
