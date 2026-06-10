@@ -95,6 +95,19 @@ tf_invert.tfb <- function(x, ...) {
 }
 
 
+# Trapezoidal quadrature weights for a possibly-irregular grid.
+#
+# Contract: given a sorted numeric grid `arg` of length n, returns a length-n
+# weight vector `w` such that for a function sampled on `arg` with values `v`,
+# `sum(w * v)` is the trapezoidal-rule approximation of the integral over
+# `[arg[1], arg[n]]`. Interior weights are the average of the two adjacent
+# `diff(arg)` spacings; boundary weights are half of the single adjacent
+# spacing. The result is invariant to a constant shift of `arg`.
+trapezoid_weights <- function(arg) {
+  delta <- c(0, diff(arg))
+  0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+}
+
 # Reinsert NULL entries for previously missing functions while preserving tf attrs.
 #
 # Contract: `tf_non_na` is a (possibly zero-length) `tf` carrying the desired
