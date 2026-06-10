@@ -169,3 +169,28 @@ test_that("tf_shape_registration subsetting keeps shape outputs aligned", {
   expect_equal(dim(tf_rotations(sub_named)), c(2, 2, 2))
   expect_equal(names(tf_scales(sub_named)), c("a", "c"))
 })
+
+test_that("summary.tf_registration reports a numeric amplitude-variance reduction for mv (#249)", {
+  skip_if_not_installed("fdasrvf")
+  set.seed(123)
+  fm <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  reg <- tf_register(fm, method = "srvf_mv")
+  expect_no_warning(s <- summary(reg))
+  expect_true(is.numeric(s$amp_var_reduction))
+  expect_true(is.finite(s$amp_var_reduction))
+  out <- capture.output(print(s))
+  expect_false(any(grepl("not computable", out)))
+})
+
+test_that("summary.tf_shape_registration reports rotation angles and scale deciles", {
+  skip_if_not_installed("fdasrvf")
+  f <- make_shape_mv()
+  reg <- tf_register_shape(f, max_iter = 1)
+  expect_no_warning(s <- summary(reg))
+  expect_s3_class(s, "summary.tf_shape_registration")
+  expect_true(is.numeric(s$rotation_angles_deg))
+  expect_true(is.numeric(s$scale_quantiles))
+  out <- capture.output(print(s))
+  expect_true(any(grepl("Rotation angles", out)))
+  expect_true(any(grepl("Scale factors", out)))
+})
