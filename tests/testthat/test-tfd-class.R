@@ -20,25 +20,26 @@ test_that("tfd.numeric works", {
   expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
-  # empty data
+  # empty data: length-0 prototype with NA sentinel domain
   f <- tfd(numeric())
   expect_s3_class(f, "tfd_reg")
   expect_length(f, 0)
   expect_identical(attr(f, "arg"), list(integer()))
-  expect_identical(attr(f, "domain"), c(0, 0))
+  expect_identical(attr(f, "domain"), c(NA_real_, NA_real_))
   expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
-  # single NA
+  # single NA -> length-1 vector of NA functions (#241)
   for (x in list(NA_real_, NA_integer_)) {
-    f <- tfd(x)
+    f <- suppressWarnings(tfd(x))
     expect_s3_class(f, "tfd_reg")
-    expect_length(f, 0)
-    expect_identical(attr(f, "arg"), list(1L))
-    expect_identical(attr(f, "domain"), c(0, 0))
+    expect_length(f, 1)
+    expect_true(is.na(f))
     expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
     expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
   }
+  # warn on NA-only input
+  expect_warning(tfd(NA_real_), "NA")
 
   # evaluations must be inside the domain
   x <- 1:10
@@ -132,6 +133,27 @@ test_that("tfd.list errors on mismatched per-entry lengths (#235)", {
     tfd(list(1:3, 1:5), arg = list(1:3, 1:4)),
     "do not match"
   )
+})
+
+test_that("all-NA input yields length-n NA functions, not length-0 (#241)", {
+  # vector of NAs
+  x <- rep(NA_real_, 3)
+  expect_warning(f <- tfd(x), "NA")
+  expect_s3_class(f, "tfd")
+  expect_length(f, 1) # one curve, all NA evaluations
+  expect_true(is.na(f))
+
+  # matrix with all-NA rows -> one NA function per row
+  m <- matrix(NA_real_, nrow = 3, ncol = 5)
+  expect_warning(f <- tfd(m, arg = 1:5), "NA")
+  expect_length(f, 3)
+  expect_true(all(is.na(f)))
+})
+
+test_that("tfd() length-0 prototype uses NA sentinel domain (#241)", {
+  f <- tfd(numeric())
+  expect_identical(attr(f, "domain"), c(NA_real_, NA_real_))
+  expect_length(f, 0)
 })
 
 test_that("tfd.list infers irregular when lengths differ but arg list matches (#235)", {

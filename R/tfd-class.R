@@ -36,17 +36,53 @@ new_tfd <- function(
     evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
   }
 
-  if (
-    vec_size(datalist) == 0 || allMissing(unlist(datalist, use.names = FALSE))
-  ) {
+  # Truly empty input -> length-0 prototype. The sentinel domain
+  # `c(NA_real_, NA_real_)` matches the S4 prototype in R/tf-s4.R and avoids
+  # the `unique = TRUE` violation that `numeric(2)` (= c(0, 0)) would cause
+  # if a downstream caller ran `assert_arg` against it. "Truly empty" means
+  # either size 0 or every entry is a length-0 *numeric* vector (no NULLs --
+  # NULL is the in-vector representation of an NA function and must survive).
+  truly_empty <- vec_size(datalist) == 0 || (
+    !any(map_lgl(datalist, is.null)) && all(lengths(datalist) == 0L)
+  )
+  if (truly_empty) {
     arg <- arg %||% list(numeric())
-    domain <- domain %||% numeric(2)
+    domain <- domain %||% c(NA_real_, NA_real_)
     subclass <- if (regular) "tfd_reg" else "tfd_irreg"
     datalist <- list()
-    # message("empty or missing input `data`; returning prototype of length 0")
     ret <- new_vctr(
       datalist,
       arg = arg,
+      domain = domain,
+      evaluator = evaluator_f,
+      evaluator_name = evaluator,
+      class = c(subclass, "tfd", "tf")
+    )
+    return(ret)
+  }
+
+  # All-NA input with size > 0: produce a length-n vector of NA functions
+  # rather than silently collapsing to length 0.
+  if (allMissing(unlist(datalist, use.names = FALSE))) {
+    n <- vec_size(datalist)
+    arg_list <- if (is.null(arg)) {
+      list(seq_len(max(lengths(datalist), 1L)))
+    } else {
+      ensure_list(arg)
+    }
+    domain <- domain %||% range(unlist(arg_list, use.names = FALSE))
+    if (!is.finite(domain[1]) || !is.finite(domain[2]) || domain[1] == domain[2]) {
+      domain <- c(NA_real_, NA_real_)
+    }
+    subclass <- if (regular) "tfd_reg" else "tfd_irreg"
+    # All entries are NA, so each becomes a NULL placeholder (tf's NA representation)
+    null_data <- vector("list", n)
+    names(null_data) <- names(datalist)
+    warn_na_entries_created(seq_len(n))
+    arg_attr <- if (regular) list(arg_list[[1]]) else numeric(0)
+    ret <- new_vctr(
+      null_data,
+      arg = arg_attr,
       domain = domain,
       evaluator = evaluator_f,
       evaluator_name = evaluator,
