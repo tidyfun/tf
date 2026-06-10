@@ -37,8 +37,9 @@ univariate `tfd`/`tfb` classes.
   (rotation/translation/scale-invariant) via `fdasrvf`.
 * New geometry verbs for `tf_mv` (and where meaningful for univariate `tf`):
   `tf_norm()`, `tf_inner()`, `tf_tangent()`, `tf_arclength()`.
-* `tf_mv_*` accessors, `tf_split()` / `tf_combine()` extensions and `[`/`[[`
-  methods for extracting, replacing and recombining components.
+* Component accessors (`tf_ncomp()`, `tf_components()`, `tf_component()`),
+  `tf_split()` / `tf_combine()` extensions and `[`/`[[` methods for extracting,
+  replacing and recombining components.
 
 ### Contract change
 
