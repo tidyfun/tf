@@ -39,32 +39,18 @@ Math.tfb <- function(x, ...) {
   eval <- fun_math(tfd(x), .Generic)
   na_entries <- is.na(eval)
   if (all(na_entries)) {
-    # all entries became NA -- return tfb with NULL entries
-    result <- vector("list", length(eval))
-    result[] <- list(NULL)
-    result_names <- names(eval)
-    attributes(result) <- attributes(x)
-    names(result) <- result_names
-    return(result)
+    return(restore_na_entries(
+      eval[!na_entries],
+      na_entries,
+      names(eval),
+      ref_tfb = x
+    ))
   }
-  if (any(na_entries)) {
-    # refit only non-NA entries, then insert NULLs at NA positions
-    non_na <- do.call(
-      "tfb",
-      c(list(eval[!na_entries]), basis_args, penalized = FALSE, verbose = FALSE)
-    )
-    result <- vector("list", length(eval))
-    result[!na_entries] <- unclass(non_na)
-    result[na_entries] <- list(NULL)
-    result_names <- names(eval)
-    attributes(result) <- attributes(non_na)
-    names(result) <- result_names
-    return(result)
-  }
-  do.call(
+  non_na <- do.call(
     "tfb",
-    c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+    c(list(eval[!na_entries]), basis_args, penalized = FALSE, verbose = FALSE)
   )
+  restore_na_entries(non_na, na_entries, names(eval))
 }
 
 #-------------------------------------------------------------------------------
