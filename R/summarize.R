@@ -140,6 +140,12 @@ var.default <- stats::var
 #' @export
 #' @rdname tfsummaries
 var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
+  if (!is.null(y)) {
+    cli::cli_abort(c(
+      "{.fn var} on {.cls tf} does not support a second argument {.arg y}.",
+      "i" = "Use {.fn tf_crosscov} or {.fn tf_crosscor} for cross-(co)variance."
+    ))
+  }
   summarize_tf(x, na.rm = na.rm, op = "var", eval = is_tfd(x))
 }
 

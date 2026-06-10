@@ -544,3 +544,16 @@ test_that("[<-.tf_mv rejects a univariate tf and other non-NA scalars (#244)", {
   expect_true(is.na(g_na$x[1]))
   expect_true(is.na(g_na$y[1]))
 })
+
+test_that("var.tf and var.tf_mv error on a non-NULL y (#245)", {
+  set.seed(245)
+  f <- tf_rgp(5)
+  g <- tf_rgp(5)
+  expect_error(var(f, g), "tf_crosscov|tf_crosscor")
+  fm <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  gm <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  expect_error(var(fm, gm), "tf_crosscov|tf_crosscor")
+  # var(x) without y still works
+  expect_s3_class(var(f), "tf")
+  expect_s3_class(var(fm), "tf_mv")
+})
