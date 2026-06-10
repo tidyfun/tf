@@ -204,3 +204,15 @@ test_that("tf_integrate antiderivative for irregular tfd does not crash (#237)",
     ignore_attr = TRUE
   )
 })
+test_that("tf_integrate definite for irregular tfd is non-NA under defaults (#253)", {
+  set.seed(11)
+  f <- tf_sparsify(tf_rgp(3))
+  res <- expect_no_warning(tf_integrate(f))
+  expect_true(all(!is.na(res)))
+  # compare to explicit per-curve limits: should agree exactly
+  ranges <- lapply(tf_arg(f), range)
+  lo <- vapply(ranges, `[`, numeric(1), 1)
+  up <- vapply(ranges, `[`, numeric(1), 2)
+  res_explicit <- tf_integrate(f, lower = lo, upper = up)
+  expect_equal(unname(res), unname(res_explicit))
+})

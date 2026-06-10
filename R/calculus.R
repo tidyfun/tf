@@ -307,6 +307,14 @@ tf_derive.tfb_fpc <- function(f, arg = tf_arg(f), order = 1, ...) {
 #' @returns For `definite = TRUE`, the definite integrals of the functions in
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives
+#' @details
+#' For irregular `tfd` inputs, the default `lower`/`upper` are the per-curve
+#' `range(tf_arg)` rather than the (shared) domain endpoints. Otherwise, when
+#' curves do not span the full domain, the default linear evaluator (which does
+#' not extrapolate) would return `NA` at the boundaries and silently
+#' NA-poison the trapezoidal sum. Pass explicit `lower` / `upper` to integrate
+#' over a fixed sub-interval, or switch to an extrapolating evaluator
+#' (e.g. [tf_approx_fill_extend()]) to integrate over the full domain.
 #' @examples
 #' arg <- seq(0, 1, length.out = 11)
 #' x <- tfd(rbind(arg, arg^2), arg = arg)
@@ -335,12 +343,26 @@ tf_integrate.tfd <- function(
 ) {
   assert_arg(arg, f)
   arg <- ensure_list(arg)
-  # TODO: integrate is NA whenever arg does not cover entire domain!
+  default_lower <- missing(lower)
+  default_upper <- missing(upper)
   assert_limit(lower, f)
   assert_limit(upper, f)
+  if (is_irreg(f) && (default_lower || default_upper)) {
+    # For irregular data, the default linear evaluator does not extrapolate.
+    # Using global domain endpoints when curves don't reach them yields NA
+    # for the boundary evaluations and NA-poisoned integrals. Fall back to
+    # each curve's own arg range for any defaulted limit.
+    per_curve_range <- map(ensure_list(tf_arg(f)), range)
+    if (default_lower) {
+      lower <- map_dbl(per_curve_range, 1)
+    }
+    if (default_upper) {
+      upper <- map_dbl(per_curve_range, 2)
+    }
+  }
   limits <- cbind(lower, upper)
   if (nrow(limits) > 1) {
-    if (!definite) .NotYetImplemented() # needs vd-data
+    if (!definite && !is_irreg(f)) .NotYetImplemented() # needs vd-data
     limits <- limits |> split(seq_len(nrow(limits)))
   }
   arg <- map2(
@@ -401,10 +423,18 @@ tf_integrate.tfd <- function(
     # for irregular `f`, `arg` holds per-curve grids and must stay a list;
     # flattening would yield an unsorted vector and fail `tfd.list`'s checks.
     arg_out <- if (length(arg) == 1) arg[[1]] else arg
+    # with per-curve limits (irregular f, default args) `limits` is a list of
+    # 2-vectors; collapse to a single [min(lower), max(upper)] domain.
+    domain_out <- if (is.list(limits)) {
+      lims <- do.call(rbind, limits)
+      c(min(lims[, 1]), max(lims[, 2]))
+    } else {
+      as.numeric(limits)
+    }
     tfd(
       data = data_list,
       arg = arg_out,
-      domain = as.numeric(limits),
+      domain = domain_out,
       evaluator = !!attr(f, "evaluator_name")
     )
   }
