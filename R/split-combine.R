@@ -77,7 +77,7 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
 #'   tfs2_sparse <- tf_sparsify(tfs[[2]])
 #'   tfs3_spline <- tfb(tfs[[3]])
 #'   tf_combine(tfs[[1]], tfs2_sparse, tfs3_spline)
-#'   # combine(.., strict = F) can be used to coalesce different measurements
+#'   # combine(.., strict = FALSE) can be used to coalesce different measurements
 #'   # of the same process over different grids:
 #'   x1 <- tfd(x, arg = tf_arg(x)[seq(1, 51, by = 2)])
 #'   x2 <- tfd(x, arg = tf_arg(x)[seq(2, 50, by = 2)])
