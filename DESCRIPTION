@@ -81,7 +81,7 @@ Collate:
     'evaluate.R'
     'fda-connectors.R'
     'fwise.R'
-    'geom-mv.R'
+    'geometry-mv.R'
     'globals.R'
     'graphics.R'
     'interpolate.R'
