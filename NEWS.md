@@ -11,8 +11,8 @@
   extra arguments instead of silently dropping them (#246).
 * `tf_integrate()` on irregular `tfd` no longer silently returns `NA` under
   default limits; for irregular input the defaults are now each curve's own
-  `range(tf_arg)`. Pass explicit `lower` / `upper` (or an extrapolating
-  evaluator) to override (#253).
+  observed arg range (i.e., the range of its `tf_arg()` values). Pass explicit
+  `lower` / `upper` (or an extrapolating evaluator) to override (#253).
 
 ## New features
 
