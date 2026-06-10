@@ -112,7 +112,7 @@ vec_cast_tfb_tfb <- function(x, to, ...) {
   ))
   if (same_basis) return(x)
   maybe_lossy_cast(
-    tf_rebase(x, to, arg = tf_arg(x)),
+    tf_rebase(x, to, arg = tf_arg(to)),
     x,
     to,
     lossy = TRUE,
