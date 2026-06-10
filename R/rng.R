@@ -8,7 +8,7 @@
 #' \delta_{t}(t')}.
 #' - *Wiener* process: \eqn{Cov(x(t), x(t')) =
 #' \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition):
+#' -  [*Matérn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition):
 #' \eqn{Cov(x(t), x(t')) =
 #' \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
 #' + \sigma^2 \delta_{t}(t')}
@@ -29,7 +29,7 @@
 #'   effect* for pairs of inputs t and t'.
 #' @param nugget nugget effect for additional white noise / unstructured
 #'   variability. Defaults to `scale/200` (so: very little white noise).
-#' @param order order of the Matèrn covariance (if used, must be >0), defaults
+#' @param order order of the Matérn covariance (if used, must be >0), defaults
 #'   to 1.5. The higher, the smoother the process. Evaluation of the covariance
 #'   function becomes numerically unstable for large (>20) `order`, use
 #'   "squareexp".
