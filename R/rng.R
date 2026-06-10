@@ -36,7 +36,7 @@
 #' @param domain of the generated functions. If not provided, the range of the
 #'   supplied `arg` values.
 #' @returns an `tfd`-vector of length `n`.
-#' @importFrom mvtnorm rmvnorm
+#' @importFrom stats rnorm
 #' @export
 #' @family tidyfun RNG functions
 #' @examples
@@ -120,7 +120,15 @@ tf_rgp <- function(
 
   ret <- map(arg, \(.arg) {
     cov <- outer(.arg, .arg, f_cov) + diag(0 * .arg + nugget)
-    cbind(.arg, t(rmvnorm(1, mean = 0 * .arg, sigma = cov)))
+    # zero-mean multivariate normal draw via Cholesky factor of the covariance;
+    # add a small jitter on the diagonal if needed to handle near-singular GP
+    # kernels (e.g. squared-exp with zero or very small nugget).
+    chol_cov <- tryCatch(
+      chol(cov),
+      error = function(e) chol(cov + diag(max(diag(cov), 1) * 1e-8, nrow(cov)))
+    )
+    sample <- as.numeric(rnorm(nrow(chol_cov)) %*% chol_cov)
+    cbind(.arg, sample)
   }) |>
     tfd()
   names(ret) <- 1:n
