@@ -101,7 +101,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       evals <- evaluate_tfb_once(
         x = arg,
         arg = tf_arg(object),
-        coefs = do.call(cbind, coef(object[!na_entries])),
+        coefs = do.call(cbind, unname(coef(object[!na_entries]))),
         basis = attr(object, "basis"),
         X = attr(object, "basis_matrix")
       )
@@ -118,7 +118,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
     }
   } else {
     ret <- pmap(
-      list(arg, ensure_list(tf_arg(object)), coef(object)),
+      list(arg, ensure_list(tf_arg(object)), unname(coef(object))),
       function(x, y, z) {
         if (!length(z) || anyNA(z)) {
           return(rep(NA_real_, length(x)))
