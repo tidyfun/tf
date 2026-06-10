@@ -63,14 +63,14 @@ NULL
 #' @export
 `!=.tfd` <- function(e1, e2) !(e1 == e2)
 
-# need to copy instead of defining tf-method s.t. dispatch in Ops works
+# Plain copy so S3 dispatch in Ops picks up a tfb-named method.
 #' @rdname tfgroupgenerics
 #' @export
-`==.tfb` <- eval(`==.tfd`)
+`==.tfb` <- `==.tfd`
 
 #' @rdname tfgroupgenerics
 #' @export
-`!=.tfb` <- eval(`!=.tfd`)
+`!=.tfb` <- `!=.tfd`
 
 #' @rdname tfgroupgenerics
 #' @export
