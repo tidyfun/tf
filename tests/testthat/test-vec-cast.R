@@ -50,6 +50,7 @@ expect_cast_result <- function(
     attributes(unname(cast))[-ignore],
     attributes(unname(to))[-ignore]
   )
+  expect_valid_tf(cast)
 }
 
 test_that("vec_cast for tfd to tfd works/fails as expected", {

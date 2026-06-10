@@ -51,6 +51,9 @@ test_that("basic derivatives work", {
     tolerance = 0.1,
     ignore_attr = TRUE
   )
+  expect_valid_tf(tf_derive(cubic))
+  expect_valid_tf(tf_derive(cubic_irreg))
+  expect_valid_tf(tf_derive(cubic_b))
 })
 
 test_that("basic definite integration works", {
@@ -81,6 +84,9 @@ test_that("basic antiderivatives work", {
     tolerance = 0.1,
     ignore_attr = TRUE
   )
+  expect_valid_tf(tf_integrate(square, definite = FALSE))
+  expect_valid_tf(tf_integrate(square_irreg, definite = FALSE))
+  expect_valid_tf(tf_integrate(square_b, definite = FALSE))
 })
 
 test_that("calculus works for tfb_spline with non-identity link", {

@@ -55,6 +55,12 @@ test_that("tfd.numeric works", {
     tfd(x, domain = c(2, 9)),
     "Evaluations must be inside the domain."
   )
+
+  # constructor invariants
+  expect_valid_tf(tfd(runif(100)))
+  x_na <- runif(100); x_na[c(2, 4, 6)] <- NA
+  expect_valid_tf(tfd(x_na))
+  expect_valid_tf(tfd(numeric()))
 })
 
 test_that("tfd works consistently for partially missing data", {
@@ -81,6 +87,9 @@ test_that("tfd works consistently for partially missing data", {
     tfd(x_df) |> suppressWarnings(),
     tfd(x_mat) |> suppressWarnings()
   )
+
+  expect_valid_tf(suppressWarnings(tfd(x_df)))
+  expect_valid_tf(suppressWarnings(tfd(x_mat)))
 })
 
 test_that("NA creation warning uses singular/plural wording and lists indices", {

@@ -30,6 +30,7 @@ for (i in seq_along(l)) {
       l[[i]] |> tf_arg()
     )
     expect_named(x_rebase, names(x))
+    expect_valid_tf(x_rebase)
     skip_on_cran() # to avoid non-reproducible BS-error on Fedora 36 - MKL
     expect_true(
       compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
@@ -77,6 +78,7 @@ for (i in seq_along(l)) {
         l[[i]] |> tf_arg()
       )
       expect_named(x_rebase, names(x))
+      expect_valid_tf(x_rebase)
       skip_on_cran() # to avoid non-reproducible BS-error on Fedora 36 - MKL
       expect_true(
         compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
@@ -119,6 +121,7 @@ for (i in seq_along(l)) {
       l[[i]] |> tf_arg()
     )
     expect_named(x_rebase, names(x))
+    expect_valid_tf(x_rebase)
     skip_on_cran() # to avoid non-reproducible BS-error on Fedora 36 - MKL
     expect_true(
       compare_tf_attribs(x_rebase, l[[i]], check_attrib = FALSE) |> all()
