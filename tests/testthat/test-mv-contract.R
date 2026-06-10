@@ -315,15 +315,9 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
   # Sanity: walker observed *some* generics with univariate methods (else the
   # NAMESPACE/test wiring is wrong).
   expect_true(any(has_univariate(unlist(by_gen))))
-  # If the walker filter set is empty today (every univariate-tf generic in the
-  # walkable list now has an explicit tf_mv method), that's the *desired* end
-  # state -- record it explicitly so the test_that block is never empty.
-  expect_true(
-    length(checked) >= 0,
-    info = sprintf(
-      "Walker covered %d generic(s): %s",
-      length(checked),
-      paste(checked, collapse = ", ")
-    )
-  )
+  # Sanity: the walkable list must actually overlap registered S3 generics --
+  # otherwise the walker silently iterates over nothing and the test rots into
+  # a no-op. (`checked` itself can legitimately be 0 once every univariate-tf
+  # generic has an explicit tf_mv method; that's the desired end state.)
+  expect_gt(length(intersect(walkable, names(by_gen))), 10)
 })

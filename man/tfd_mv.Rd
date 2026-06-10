@@ -85,7 +85,7 @@ methods: any generic without one aborts with a classed
 "right thing component-wise" dispatch via inheritance was incorrect --
 silent fall-through produced wrong-shape results or deep internal errors,
 so it has been replaced with fail-fast stubs. Implemented methods are
-listed in \code{\link[=tf_mv_methods]{?tf_mv_methods}}; design of real component-wise
+listed in \link{tf_mv_unimplemented}; design of real component-wise
 semantics is tracked at
 \url{https://github.com/tidyfun/tf/issues/255}. When you need to \emph{distinguish}
 univariate-only from any-\code{tf} inside a helper, use \code{\link[=is_tf_1d]{is_tf_1d()}}: it returns
