@@ -478,7 +478,9 @@ tf_register_shape_srvf_mv <- function(
     best <- ret
     best_template <- new_template
 
-    if (!is.null(template) || iter == iterations) {
+    # a supplied template fixes `iterations` to 1 (see above), so this also
+    # covers the "don't refine a user template" case.
+    if (iter == iterations) {
       break
     }
     delta <- mean((new_template - current_template)^2)

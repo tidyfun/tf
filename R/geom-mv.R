@@ -53,26 +53,33 @@ tf_norm.default <- function(f) {
 #' @export
 tf_norm.tf <- function(f) abs(f)
 
+# Reduce a tf_mv (or a pair of aligned tf_mvs) to a univariate `tfd` by applying
+# a pointwise `reduce` to each curve's component-value matrix. `evals` is the
+# per-curve list of `(arg, comp...)` data.frames from `tf_evaluate()`; the arg
+# grids are read back from those. For the two-operand form, `evals2` holds the
+# matching data.frames for the second object and `reduce(m1, m2)` is called.
+# This is the shared tail of the tfd-valued geometry reductions (norm, inner).
+mv_reduce_to_tfd <- function(evals, reduce, domain, nms, evals2 = NULL) {
+  vals <- if (is.null(evals2)) {
+    map(evals, \(cdf) if (nrow(cdf)) reduce(evals_to_matrix(cdf)) else numeric(0))
+  } else {
+    map2(evals, evals2, \(a, b) {
+      if (nrow(a)) reduce(evals_to_matrix(a), evals_to_matrix(b)) else numeric(0)
+    })
+  }
+  names(vals) <- nms
+  tfd(vals, arg = map(evals, `[[`, "arg"), domain = domain)
+}
+
 #' @rdname tf_geom
 #' @export
 tf_norm.tf_mv <- function(f) {
-  comps <- tf_components(f)
-  n <- vec_size(f)
-  if (!length(comps) || !n) return(tfd(numeric(0), domain = tf_domain(f)))
+  if (!tf_ncomp(f) || !vec_size(f)) return(tfd(numeric(0), domain = tf_domain(f)))
   # Components may live on different argument grids (the constructor allows
-  # this); the univariate `+` would error or misalign. Evaluate every component
-  # on each curve's union grid, compute sqrt(sum_k val_k^2) pointwise, then
-  # build a fresh tfd from the resulting (arg, value) pairs. Also dodges the
-  # tfb-squaring path that would otherwise rebase comp^2 lossily.
-  per_curve <- tf_evaluate(f)
-  vals <- map(per_curve, function(cdf) {
-    if (!nrow(cdf)) return(numeric(0))
-    sqrt(rowSums(evals_to_matrix(cdf)^2))
-  })
-  args <- map(per_curve, `[[`, "arg")
-  out <- tfd(vals, arg = args, domain = tf_domain(f))
-  names(out) <- names(f)
-  out
+  # this), so evaluate every component on each curve's union grid -- a plain
+  # `Reduce(`+`, comp^2)` would error or misalign, and on tfb would rebase
+  # `comp^2` lossily. `tf_evaluate()` does the union-grid + NA-fill.
+  mv_reduce_to_tfd(tf_evaluate(f), \(m) sqrt(rowSums(m^2)), tf_domain(f), names(f))
 }
 
 #' @rdname tf_geom
@@ -137,14 +144,13 @@ tf_inner.tf_mv <- function(f, g) {
     )
   }
   grids <- tf_mv_pair_grids(f, g, domain = dom)
-  f_evals <- tf_mv_evaluate_on_grids(f, grids)
-  g_evals <- tf_mv_evaluate_on_grids(g, grids)
-  vals <- map2(f_evals, g_evals, function(fdf, gdf) {
-    if (!nrow(fdf)) return(numeric(0))
-    rowSums(evals_to_matrix(fdf) * evals_to_matrix(gdf))
-  })
-  names(vals) <- if (vec_size(f) >= vec_size(g)) names(f) else names(g)
-  tfd(vals, arg = grids, domain = dom)
+  nms <- if (vec_size(f) >= vec_size(g)) names(f) else names(g)
+  mv_reduce_to_tfd(
+    tf_mv_evaluate_on_grids(f, grids),
+    \(mf, mg) rowSums(mf * mg),
+    dom, nms,
+    evals2 = tf_mv_evaluate_on_grids(g, grids)
+  )
 }
 
 #' @rdname tf_geom

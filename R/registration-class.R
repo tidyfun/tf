@@ -156,50 +156,52 @@ tf_scales <- function(x) {
   x$scales
 }
 
-#' @rdname tf_registration
-#' @export
-print.tf_registration <- function(x, ...) {
+# Shared body of the registration print methods: prints the class header, the
+# call, a "<n> curve(s)[ with <d> component(s)] on [a, b]" line, and the list of
+# present (non-NULL) slots. `count_line` is a cli/glue template evaluated here
+# (so it may reference `x` and the local `domain`); `slots` is a named logical.
+print_registration <- function(x, cls, count_line, slots) {
   domain <- tf_domain(x$registered)
-  cli::cli_text("{.cls tf_registration}")
+  cli::cli_text("{.cls {cls}}")
   cat("Call: ")
   print(x$call)
+  cli::cli_text(count_line, .envir = environment())
   cli::cli_text(
-    "{length(x$registered)} curve{?s} on [{domain[1]}, {domain[2]}]"
-  )
-  components <- c(
-    "aligned" = !is.null(x$registered),
-    "inv_warps" = !is.null(x$inv_warps),
-    "template" = !is.null(x$template),
-    "original data" = !is.null(x$x)
-  )
-  cli::cli_text(
-    "Components: {paste(names(components)[components], collapse = ', ')}"
+    "Components: {paste(names(slots)[slots], collapse = ', ')}"
   )
   invisible(x)
 }
 
 #' @rdname tf_registration
 #' @export
+print.tf_registration <- function(x, ...) {
+  print_registration(
+    x, "tf_registration",
+    "{length(x$registered)} curve{?s} on [{domain[1]}, {domain[2]}]",
+    c(
+      "aligned" = !is.null(x$registered),
+      "inv_warps" = !is.null(x$inv_warps),
+      "template" = !is.null(x$template),
+      "original data" = !is.null(x$x)
+    )
+  )
+}
+
+#' @rdname tf_registration
+#' @export
 print.tf_shape_registration <- function(x, ...) {
-  domain <- tf_domain(x$registered)
-  cli::cli_text("{.cls tf_shape_registration}")
-  cat("Call: ")
-  print(x$call)
-  cli::cli_text(
-    "{length(x$registered)} curve{?s} with {tf_ncomp(x$registered)} component{?s} on [{domain[1]}, {domain[2]}]"
+  print_registration(
+    x, "tf_shape_registration",
+    "{length(x$registered)} curve{?s} with {tf_ncomp(x$registered)} component{?s} on [{domain[1]}, {domain[2]}]",
+    c(
+      "aligned" = !is.null(x$registered),
+      "inv_warps" = !is.null(x$inv_warps),
+      "template" = !is.null(x$template),
+      "rotations" = !is.null(x$rotations),
+      "scales" = !is.null(x$scales),
+      "original data" = !is.null(x$x)
+    )
   )
-  components <- c(
-    "aligned" = !is.null(x$registered),
-    "inv_warps" = !is.null(x$inv_warps),
-    "template" = !is.null(x$template),
-    "rotations" = !is.null(x$rotations),
-    "scales" = !is.null(x$scales),
-    "original data" = !is.null(x$x)
-  )
-  cli::cli_text(
-    "Components: {paste(names(components)[components], collapse = ', ')}"
-  )
-  invisible(x)
 }
 
 #' @rdname tf_registration
