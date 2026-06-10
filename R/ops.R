@@ -307,45 +307,43 @@ tfd_op_tfd <- function(op, x, y) {
   )
 }
 
-tfd_op_numeric <- function(op, x, y, ...) {
+# Worker for {tfd, numeric} arithmetic that preserves operand order so
+# non-commutative ops (e.g. `/`, `-`, `^`) are correct on either side.
+# `tf_left` indicates which side carries the tfd.
+tfd_numeric_op <- function(op, x, y, tf_left) {
   assert_compatible_size(op, x, y)
-  ret <- map2(tf_evaluations(x), y, \(x, y) {
-    if (is.null(x)) return(NULL)
-    result <- do.call(op, list(x, y))
-    if (allMissing(result)) NULL else result
-  })
-  if (is_irreg(x)) {
-    ret <- map2(tf_arg(x), ret, \(.arg, .ret) {
+  tf_side <- if (tf_left) x else y
+  num_side <- if (tf_left) y else x
+  ret <- map2(
+    if (tf_left) tf_evaluations(tf_side) else num_side,
+    if (tf_left) num_side else tf_evaluations(tf_side),
+    \(a, b) {
+      if (is.null(a) || is.null(b)) return(NULL)
+      result <- do.call(op, list(a, b))
+      if (allMissing(result)) NULL else result
+    }
+  )
+  if (is_irreg(tf_side)) {
+    ret <- map2(tf_arg(tf_side), ret, \(.arg, .ret) {
       if (is.null(.ret)) return(NULL)
       list(arg = .arg, value = .ret)
     })
   }
-  attributes(ret) <- attributes(x)
-  if (vec_size(y) > 1) {
+  attributes(ret) <- attributes(tf_side)
+  if (vec_size(num_side) > 1) {
     names(ret) <- NULL
   }
   ret
 }
 
-# some code-duplication here, this makes non-commutative ops work for tfd and numeric
+tfd_op_numeric <- function(op, x, y, ...) {
+  tfd_numeric_op(op, x, y, tf_left = TRUE)
+}
+
+# Mirror of tfd_op_numeric so non-commutative ops work with the numeric on the
+# left.
 numeric_op_tfd <- function(op, x, y) {
-  assert_compatible_size(op, x, y)
-  ret <- map2(x, tf_evaluations(y), \(x, y) {
-    if (is.null(y)) return(NULL)
-    result <- do.call(op, list(x, y))
-    if (allMissing(result)) NULL else result
-  })
-  if (is_irreg(y)) {
-    ret <- map2(tf_arg(y), ret, \(.arg, .ret) {
-      if (is.null(.ret)) return(NULL)
-      list(arg = .arg, value = .ret)
-    })
-  }
-  attributes(ret) <- attributes(y)
-  if (vec_size(x) > 1) {
-    names(ret) <- NULL
-  }
-  ret
+  tfd_numeric_op(op, x, y, tf_left = FALSE)
 }
 
 #-------------------------------------------------------------------------------
@@ -366,75 +364,58 @@ tfb_multdiv_numeric <- function(op, x, y) {
   ret
 }
 
-tfb_op_numeric <- function(op, x, y) {
-  cli::cli_warn(
-    "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
-  )
-  eval <- tfd_op_numeric(op, tfd(x), y)
+# Shared body for tfb {+,-,*,/,^,%%, %/%} {tfb, numeric}: cast to tfd, run the
+# pre-computed numeric `eval`, then rebase to `rebase_target`. `ref_tfb`
+# supplies attributes for the all-NA branch when `rebase_target` is a length-0
+# ptype.
+#TODO: restore sp afterwards so all properties are preserved?
+tfb_lossy_rebase <- function(eval, rebase_target, ref_tfb = rebase_target) {
   na_entries <- is.na(eval)
   if (all(na_entries)) {
     return(restore_na_entries(
       eval[!na_entries],
       na_entries,
       names(eval),
-      ref_tfb = x
+      ref_tfb = ref_tfb
     ))
+  }
+  rebase_subset <- if (vec_size(rebase_target) > 1) {
+    rebase_target[!na_entries]
+  } else {
+    rebase_target
   }
   rebased <- tf_rebase(
     eval[!na_entries],
-    x[!na_entries],
+    rebase_subset,
     penalized = FALSE,
     verbose = FALSE
   )
   restore_na_entries(rebased, na_entries, names(eval))
-  #TODO: restore sp afterwards so all properties are preserved?
+}
+
+tfb_op_numeric <- function(op, x, y) {
+  cli::cli_warn(
+    "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
+  )
+  tfb_lossy_rebase(tfd_op_numeric(op, tfd(x), y), rebase_target = x)
 }
 
 numeric_op_tfb <- function(op, x, y) {
   cli::cli_warn(
     "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
-  eval <- numeric_op_tfd(op, x, tfd(y))
-  na_entries <- is.na(eval)
-  if (all(na_entries)) {
-    return(restore_na_entries(
-      eval[!na_entries],
-      na_entries,
-      names(eval),
-      ref_tfb = y
-    ))
-  }
-  rebased <- tf_rebase(
-    eval[!na_entries],
-    y[!na_entries],
-    penalized = FALSE,
-    verbose = FALSE
-  ) #TODO: see tfb_op_numeric
-  restore_na_entries(rebased, na_entries, names(eval))
+  tfb_lossy_rebase(numeric_op_tfd(op, x, tfd(y)), rebase_target = y)
 }
 
 tfb_op_tfb <- function(op, x, y) {
   cli::cli_warn(
     "Potentially lossy casts to {.cls tfd} and back for {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
   )
-  eval <- tfd_op_tfd(op, tfd(x), tfd(y))
   ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)
-  na_entries <- is.na(eval)
-  if (all(na_entries)) {
-    return(restore_na_entries(
-      eval[!na_entries],
-      na_entries,
-      names(eval),
-      ref_tfb = ret_ptype
-    ))
-  }
-  rebased <- tf_rebase(
-    eval[!na_entries],
-    ret_ptype,
-    penalized = FALSE,
-    verbose = FALSE
-  ) #TODO: see tfb_op_numeric
-  restore_na_entries(rebased, na_entries, names(eval))
+  tfb_lossy_rebase(
+    tfd_op_tfd(op, tfd(x), tfd(y)),
+    rebase_target = ret_ptype
+  )
 }
 
 tfb_plusminus_tfb <- function(op, x, y) {
