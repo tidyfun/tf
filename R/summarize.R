@@ -239,7 +239,7 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
 Summary.tf <- function(...) {
   not_defined <- switch(.Generic, all = , any = TRUE, FALSE)
   if (not_defined) {
-    cli::cli_abort("{.Generic} not defined for {.cls tf} objects.")
+    cli::cli_abort("{(.Generic)} not defined for {.cls tf} objects.")
   }
   # min, max, range have dedicated methods that accept a depth argument
   if (.Generic %in% c("min", "max", "range")) {
