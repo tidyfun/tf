@@ -190,3 +190,17 @@ test_that("derivative at extremum is near zero", {
   f_deriv <- tf_derive(f_quad)
   expect_equal(as.numeric(f_deriv[, 2]), 0, tolerance = 1e-4)
 })
+
+test_that("tf_integrate antiderivative for irregular tfd does not crash (#237)", {
+  set.seed(11)
+  f <- tf_sparsify(tf_rgp(3))
+  anti <- expect_no_error(tf_integrate(f, definite = FALSE))
+  expect_s3_class(anti, "tfd")
+  expect_length(anti, length(f))
+  # cumsum-based antiderivative starts at 0 at each curve's first arg
+  expect_equal(
+    vapply(tf_evaluations(anti), `[`, numeric(1), 1),
+    rep(0, length(anti)),
+    ignore_attr = TRUE
+  )
+})

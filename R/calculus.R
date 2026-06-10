@@ -398,9 +398,12 @@ tf_integrate.tfd <- function(
   } else {
     data_list <- map(quads, cumsum)
     names(data_list) <- names(f)
+    # for irregular `f`, `arg` holds per-curve grids and must stay a list;
+    # flattening would yield an unsorted vector and fail `tfd.list`'s checks.
+    arg_out <- if (length(arg) == 1) arg[[1]] else arg
     tfd(
       data = data_list,
-      arg = unlist(arg, use.names = FALSE),
+      arg = arg_out,
       domain = as.numeric(limits),
       evaluator = !!attr(f, "evaluator_name")
     )
