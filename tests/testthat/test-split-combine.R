@@ -28,6 +28,19 @@ test_that("tf_split works as expected", {
   expect_identical(map(tfs_r, tf_domain), list(c(0, 0.3), c(0.301, 1)))
 })
 
+test_that("tf_split handles splits at domain boundaries (#251)", {
+  x <- tf_rgp(3)
+  # splits only at domain boundaries -> no split
+  expect_identical(tf_split(x, splits = 0), list(x))
+  expect_identical(tf_split(x, splits = 1), list(x))
+  expect_identical(tf_split(x, splits = c(0, 1)), list(x))
+  # include = "left" with a single split should not error
+  expect_no_error(tf_split(x, splits = 0.5, include = "left"))
+  # single-split inputs with boundary-equal splits should not error
+  expect_no_error(tf_split(x, splits = 0, include = "left"))
+  expect_no_error(tf_split(x, splits = 1, include = "left"))
+})
+
 
 test_that("tf_combine works as expected", {
   x <- tf_rgp(3)
