@@ -450,13 +450,17 @@ new_tfb_fpc_demoted <- function(component, uni) {
 
 # Internal warning shown when an operation forces a `tfb_mfpc` back to a plain
 # per-component `tfb_fpc` (`tfb_mv`) representation. Centralised so the message
-# stays consistent across Math/Ops, `$<-` and `vec_c()`.
+# stays consistent across Math/Ops, `$<-` and `vec_c()`. Uses class
+# `tf_mfpc_demotion` so callers can intercept via `withCallingHandlers()`.
 warn_mfpc_demotion <- function(reason) {
-  cli::cli_warn(c(
-    "Demoting to per-component {.cls tfb_fpc} representation; the joint MFPC spec is dropped.",
-    i = reason,
-    i = "Re-score with {.fn tf_rebase} for joint MFPC arithmetic."
-  ))
+  cli::cli_warn(
+    c(
+      "Demoting to per-component {.cls tfb_fpc} representation; the joint MFPC spec is dropped.",
+      i = reason,
+      i = "Re-score with {.fn tf_rebase} for joint MFPC arithmetic."
+    ),
+    class = "tf_mfpc_demotion"
+  )
 }
 
 # Joint re-scoring of new data onto a fitted MFPC basis ------------------------
