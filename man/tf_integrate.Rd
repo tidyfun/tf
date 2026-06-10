@@ -61,7 +61,7 @@ alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 }
 \details{
 For irregular \code{tfd} inputs, the default \code{lower}/\code{upper} are the per-curve
-\code{range(tf_arg)} rather than the (shared) domain endpoints. Otherwise, when
+range of each curve's \code{tf_arg()} values rather than the (shared) domain endpoints. Otherwise, when
 curves do not span the full domain, the default linear evaluator (which does
 not extrapolate) would return \code{NA} at the boundaries and silently
 NA-poison the trapezoidal sum. Pass explicit \code{lower} / \code{upper} to integrate
