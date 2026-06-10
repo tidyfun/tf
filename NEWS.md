@@ -1,5 +1,19 @@
 # tf 0.4.2
 
+## Bug fixes
+
+* `tf_evaluate()` no longer returns values at the wrong positions when the
+  requested arg contains duplicates (#236).
+* `tf_integrate(f, definite = FALSE)` for irregular `tfd` with n > 1 no longer
+  crashes; the antiderivative's per-curve grids are kept as a list (#237).
+* `Math.tfd()` / `Math.tfb()` now forward `...` to the underlying op so
+  `round(x, digits)`, `log(x, base)`, `signif(x, digits)`, etc. honor their
+  extra arguments instead of silently dropping them (#246).
+* `tf_integrate()` on irregular `tfd` no longer silently returns `NA` under
+  default limits; for irregular input the defaults are now each curve's own
+  `range(tf_arg)`. Pass explicit `lower` / `upper` (or an extrapolating
+  evaluator) to override (#253).
+
 ## New features
 
 * `tfb_mfpc()` implements multivariate functional principal component analysis

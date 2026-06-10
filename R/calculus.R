@@ -308,11 +308,12 @@ tf_derive.tfb_fpc <- function(f, arg = tf_arg(f), order = 1, ...) {
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives
 #' @details
-#' For irregular `tfd` inputs, the default `lower`/`upper` are the per-curve
-#' `range(tf_arg)` rather than the (shared) domain endpoints. Otherwise, when
-#' curves do not span the full domain, the default linear evaluator (which does
-#' not extrapolate) would return `NA` at the boundaries and silently
-#' NA-poison the trapezoidal sum. Pass explicit `lower` / `upper` to integrate
+#' When `f` is irregular **and** `lower` / `upper` are not supplied explicitly,
+#' they default to each curve's own `range(tf_arg)` rather than the (shared)
+#' domain endpoints; for regular `tfd` the defaults remain the domain endpoints.
+#' Without this per-curve default, curves that do not span the full domain
+#' would silently NA-poison the trapezoidal sum, because the default linear
+#' evaluator does not extrapolate. Pass explicit `lower` / `upper` to integrate
 #' over a fixed sub-interval, or switch to an extrapolating evaluator
 #' (e.g. [tf_approx_fill_extend()]) to integrate over the full domain.
 #' @examples
