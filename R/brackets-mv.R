@@ -95,8 +95,8 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   }
 
   # Validate `i` the same way univariate `[.tf` does (no NA, no missing names,
-  # no out-of-bounds). TODO(#252): factor this and `j`-normalisation out of
-  # `[.tf` into a shared helper to remove the bracket-code duplication.
+  # no out-of-bounds). TODO(#263): replace with a shared helper that also
+  # handles `j`-normalisation, to remove the duplication with `[.tf`.
   if (missing(i)) {
     i <- seq_along(x)
   } else {
