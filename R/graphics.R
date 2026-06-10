@@ -30,9 +30,10 @@ prep_plotting_arg <- function(f, n_grid) {
 #' data for `tfd`-objects without inter-/extrapolation, use `n_grid < 1` or
 #' `n_grid = NA`.
 #'
-#' @param x an `tf` object.
-#' @param y (optional) numeric vector to be used as `arg`
-#'   (i.e., for the **x**-axis...!).
+#' @param x a `tf` object.
+#' @param y (optional) numeric vector of evaluation points to use as `arg`
+#'   for plotting (passed as the function's input grid, not the y-axis
+#'   values).
 #' @param n_grid minimal size of equidistant grid used for plotting,
 #'   defaults to `50`. See details.
 #' @param points should the original evaluation points be marked by points?
