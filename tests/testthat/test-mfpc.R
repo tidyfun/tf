@@ -198,6 +198,34 @@ test_that("post-demotion tfb_mv stays functional", {
   expect_no_error(tf_evaluate(mf2))
 })
 
+test_that("demoted tfb_mfpc supports chained Math/Ops", {
+  set.seed(1)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(20), y = tf_rgp(20))), pve = 0.95) |>
+    suppressWarnings()
+  expect_no_error(out1 <- suppressWarnings((mf + 1) - 1))
+  expect_no_error(out2 <- suppressWarnings(log(mf + 2)))
+  expect_no_error(out3 <- suppressWarnings(-mf))
+  expect_no_error(out4 <- suppressWarnings(mf * 2 / 2))
+  # reconstructed values are sane (finite) after a round-trip through ops
+  expect_true(all(is.finite(unlist(tf_evaluations(out1)))))
+})
+
+test_that("demotion warning has class 'tf_mfpc_demotion'", {
+  set.seed(8)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95) |>
+    suppressWarnings()
+  classes <- character()
+  withCallingHandlers(
+    mf + 1,
+    tf_mfpc_demotion = function(w) {
+      classes <<- c(classes, class(w))
+      invokeRestart("muffleWarning")
+    },
+    warning = function(w) invokeRestart("muffleWarning")
+  )
+  expect_true("tf_mfpc_demotion" %in% classes)
+})
+
 test_that("c() of MFPC fits with different specs demotes with a warning", {
   set.seed(1)
   mf1 <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95)
