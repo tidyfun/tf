@@ -75,7 +75,7 @@ test_that("rank.default still works for numeric", {
 # ---- order (via xtfrm) ------------------------------------------------------
 
 test_that("order works on tf via xtfrm", {
-  o <- order(parallel)
+  o <- suppressWarnings(order(parallel))
   expect_equal(o, 1:7)
   # Reversed:
   o_dec <- order(parallel, decreasing = TRUE)
@@ -83,11 +83,20 @@ test_that("order works on tf via xtfrm", {
 })
 
 test_that("xtfrm.tf returns MHI values", {
-  xt <- xtfrm(parallel)
+  xt <- suppressWarnings(xtfrm(parallel))
   expect_type(xt, "double")
   expect_length(xt, 7)
   # For parallel lines, xtfrm should increase
   expect_true(all(diff(xt) > 0))
+})
+
+test_that("xtfrm.tf warns once per session about depth-based semantics", {
+  rlang::reset_warning_verbosity("tf_xtfrm")
+  expect_warning(xtfrm(parallel), "depth-based total order")
+  # Subsequent invocations in the same session do not warn again.
+  expect_silent(xtfrm(parallel))
+  expect_silent(order(parallel))
+  expect_silent(sort(parallel))
 })
 
 # ---- sort --------------------------------------------------------------------
