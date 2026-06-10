@@ -415,6 +415,14 @@ validate_tfb_fpc <- function(x) {
   if (!is.numeric(sv)) {
     cli::cli_abort("{.cls tfb_fpc}: {.field score_variance} must be numeric.")
   }
+  expected_sv_len <- ncol(bmat) - 1L
+  if (length(sv) != expected_sv_len) {
+    cli::cli_abort(paste0(
+      "{.cls tfb_fpc}: {.field score_variance} has length ",
+      "{.val {length(sv)}}, expected ncol(basis_matrix) - 1 = ",
+      "{.val {expected_sv_len}}."
+    ))
+  }
   invisible(TRUE)
 }
 

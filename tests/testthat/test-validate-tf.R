@@ -98,6 +98,29 @@ test_that("validate_tf rejects tfb_spline with mismatched basis_matrix nrow", {
   expect_error(validate_tf(x), "nrow\\(basis_matrix\\)|length\\(arg\\)")
 })
 
+test_that("validate_tf rejects tfb_fpc with wrong score_variance length", {
+  set.seed(1)
+  suppressMessages(x <- tfb_fpc(tf_rgp(5)))
+  # score_variance must have length ncol(basis_matrix) - 1; truncate to break it
+  attr(x, "score_variance") <- attr(x, "score_variance")[-1]
+  expect_error(validate_tf(x), "score_variance")
+})
+
+test_that("validate_tf catches the #234 corruption pattern", {
+  # Manually construct an irregular tfd whose elements have list(arg=, data=)
+  # instead of the correct list(arg=, value=) -- i.e. the #234 bug shape.
+  # The base branch still has the #234 bug, so we build the corruption by hand
+  # rather than relying on tf_arg<-.
+  set.seed(1)
+  xi <- tf_sparsify(tf_rgp(2))
+  raw <- unclass(xi)
+  attrs <- attributes(xi)
+  raw[[1]] <- list(arg = raw[[1]]$arg, data = raw[[1]]$value)
+  bad <- raw
+  attributes(bad) <- attrs
+  expect_error(validate_tf(bad), "value|field|name")
+})
+
 test_that("validate_tf rejects tf_mv with mismatched payload/component length", {
   set.seed(1)
   x <- tfd_mv(list(a = tf_rgp(3), b = tf_rgp(3)))
