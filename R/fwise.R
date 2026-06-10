@@ -52,35 +52,32 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
   setNames(ret, names(x))
 }
 
+# Factory for the function-wise scalar reductions tf_fmax / tf_fmin /
+# tf_fmedian: reduce each function's values with `reduce_op`, unlist the
+# per-function scalars and reattach names.
+make_tf_freduce <- function(reduce_op) {
+  function(x, arg = tf_arg(x), na.rm = FALSE) {
+    x |>
+      tf_fwise(\(.x) reduce_op(.x$value, na.rm = na.rm), arg = arg) |>
+      unlist(use.names = FALSE) |>
+      setNames(names(x))
+  }
+}
+
 #' @export
 #' @describeIn functionwise maximal value of each function
 #' @inheritParams base::min
-tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  x |>
-    tf_fwise(\(.x) max(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
-    setNames(names(x))
-}
+tf_fmax <- make_tf_freduce(max)
 
 #' @export
 #' @describeIn functionwise minimal value of each function
 #' @inheritParams base::min
-tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  x |>
-    tf_fwise(\(.x) min(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
-    setNames(names(x))
-}
+tf_fmin <- make_tf_freduce(min)
 
 #' @export
 #' @describeIn functionwise median value of each function
 #' @inheritParams base::min
-tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  x |>
-    tf_fwise(\(.x) median(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
-    setNames(names(x))
-}
+tf_fmedian <- make_tf_freduce(stats::median)
 
 #' @export
 #' @describeIn functionwise range of values of each function
