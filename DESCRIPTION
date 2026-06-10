@@ -42,7 +42,7 @@ Suggests:
     covr,
     dplyr,
     fda,
-    fdasrvf,
+    fdasrvf (>= 2.4.0),
     pillar,
     refund,
     testthat (>= 3.0.0),

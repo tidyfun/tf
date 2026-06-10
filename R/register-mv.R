@@ -230,7 +230,11 @@ tf_register_srvf_mv <- function(
   lambda = 0,
   ...
 ) {
-  rlang::check_installed("fdasrvf")
+  rlang::check_installed(
+    "fdasrvf",
+    version = "2.4.0",
+    reason = "for multivariate SRVF registration"
+  )
   dots <- list(...)
   srvf_mv_check_dots(dots)
   srvf_mv_validate_regular(x)
@@ -374,7 +378,11 @@ tf_register_shape <- function(
   store_x = TRUE
 ) {
   cl <- match.call()
-  rlang::check_installed("fdasrvf")
+  rlang::check_installed(
+    "fdasrvf",
+    version = "2.4.0",
+    reason = "for multivariate SRVF shape registration"
+  )
   srvf_mv_validate_regular(x)
   if (!is.null(template)) {
     srvf_mv_validate_regular(template, arg = "template")
