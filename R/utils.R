@@ -190,22 +190,38 @@ get_args <- function(args, f) {
   args[names(args) %in% formalArgs(f)]
 }
 
-#' Turns any object into a list
+#' Wrap a non-list object in a list
+#'
+#' Returns `x` unchanged if it is already a list, otherwise wraps it in
+#' a one-element list. Used internally to normalize `arg` inputs that may
+#' be either a single numeric vector or a list of per-curve vectors.
 #'
 #' @param x any input.
-#' @returns `x` turned into a list.
-#' @keywords internal
-#' @noRd
+#' @returns `x` if it is a list, otherwise `list(x)`.
+#' @examples
+#' ensure_list(1:3)
+#' ensure_list(list(1:3, 4:6))
+#' @family tidyfun utility functions
+#' @export
 ensure_list <- function(x) {
   if (is.list(x)) x else list(x)
 }
 
 #' Make syntactically valid unique names
 #'
-#' @param x any input.
-#' @returns `x` turned into a list.
-#' @keywords internal
-#' @noRd
+#' Coerces `x` to character and returns syntactically valid, unique
+#' identifiers. Empty strings are replaced with `"NA"` before
+#' deduplication. If `x` already has no duplicates it is returned
+#' unchanged.
+#'
+#' @param x any input that can be coerced to character.
+#' @returns A character vector of unique, syntactically valid names of
+#'   the same length as `x`.
+#' @examples
+#' unique_id(c("a", "a", "b"))
+#' unique_id(c(1, 1, 2))
+#' @family tidyfun utility functions
+#' @export
 unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)
