@@ -223,7 +223,8 @@ mfpc_fit <- function(
         efunctions = s$efunctions,
         mu = s$mu,
         arg = s$arg,
-        scoring_function = s$scoring_function
+        scoring_function = s$scoring_function,
+        evalues = s$evalues
       )
     })
   )
@@ -386,22 +387,65 @@ mfpc_component_scoring <- function(...) {
 # Demote a `tfb_mfpc` to a plain `tfb_mv` by stripping the joint spec. Used by
 # Math/Ops and `$<-` interceptors that warn the user the joint MFPC
 # representation is being dropped before continuing along the standard
-# `tfb_mv` path. The per-component `scoring_function`s on the underlying
-# `tfb_fpc` objects are also swapped from the abort-stub
-# (`mfpc_component_scoring`) to the standard univariate scorer
-# (`.fpc_wsvd_scores`) so that downstream `tf_rebase()` (called by Math/Ops on
-# `tfb_fpc`) can re-fit scores per component without exploding.
+# `tfb_mv` path. Each shared-score component carries a rank-deficient
+# multivariate eigenfunction basis (`Psi_j` lives in an M-dim space but only
+# spans `rank <= ncol(phi_j)` directions in the per-component grid), so simply
+# swapping the abort-stub `scoring_function` for `.fpc_wsvd_scores` is not
+# enough: downstream `tf_rebase()` would fit data via `qr.coef()` on a
+# rank-deficient `Psi_j` and return `NA` scores. Instead, rebuild each
+# component as a fresh `tfb_fpc` on the *univariate* basis (the full-rank
+# orthonormal `phi^(j)` from the univariate FPCA stored in `mfpc$uni`), with
+# the component's own univariate `scoring_function` (or `.fpc_wsvd_scores` as
+# fallback), so Math/Ops dispatched on `tfb_fpc` can re-fit scores without
+# exploding.
 tfb_mfpc_demote <- function(x) {
+  mfpc <- attr(x, "mfpc")
   attr(x, "mfpc") <- NULL
   comps <- attr(x, "components")
-  comps <- lapply(comps, function(comp) {
-    if (identical(attr(comp, "scoring_function"), mfpc_component_scoring)) {
-      attr(comp, "scoring_function") <- .fpc_wsvd_scores
-    }
-    comp
-  })
-  attr(x, "components") <- comps
+  if (is.null(mfpc) || is.null(mfpc$uni)) {
+    # nothing to rebuild against; leave components as-is.
+    return(x)
+  }
+  new_comps <- map2(comps, mfpc$uni, new_tfb_fpc_demoted)
+  names(new_comps) <- names(comps)
+  attr(x, "components") <- new_comps
   x
+}
+
+# Rebuild a single shared-score MFPC component as a plain, full-rank `tfb_fpc`
+# on the stored univariate eigenfunctions `phi^(j)`. The component's
+# evaluations are reconstructed from the joint basis (`mu_j + Psi_j s^T`) and
+# then re-scored onto `phi^(j)` using the univariate `scoring_function`.
+new_tfb_fpc_demoted <- function(component, uni) {
+  arg <- uni$arg
+  mu_j <- uni$mu
+  phi_j <- uni$efunctions
+  scoring_function <- uni$scoring_function %||% .fpc_wsvd_scores
+  # reconstruct evaluations on the univariate grid from the joint basis.
+  joint_bm <- attr(component, "basis_matrix") # n_arg x (1 + M)
+  coefs_old <- do.call(rbind, unclass(component)) # n x (1 + M)
+  data_matrix <- coefs_old %*% t(joint_bm) # n x n_arg
+  quad_w <- mfpc_quad_weights(arg)
+  scores <- as.matrix(scoring_function(data_matrix, phi_j, mu_j, quad_w))
+  basis_matrix <- unname(cbind(mu_j, phi_j))
+  domain <- attr(component, "domain")
+  fpc_basis <- suppressMessages(tfd(t(basis_matrix), arg = arg, domain = domain))
+  fpc_constructor <- fpc_wrapper(fpc_basis)
+  coefs <- cbind(1, scores)
+  coef_list <- split(coefs, row(coefs))
+  names(coef_list) <- names(component)
+  basis_label <- paste0(ncol(phi_j), " FPCs")
+  new_vctr(
+    coef_list,
+    domain = domain,
+    basis = fpc_constructor,
+    basis_label = basis_label,
+    basis_matrix = basis_matrix,
+    arg = arg,
+    score_variance = uni$evalues %||% rep(NA_real_, ncol(phi_j)),
+    scoring_function = scoring_function,
+    class = c("tfb_fpc", "tfb", "tf")
+  )
 }
 
 # Internal warning shown when an operation forces a `tfb_mfpc` back to a plain
