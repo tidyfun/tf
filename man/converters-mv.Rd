@@ -57,6 +57,14 @@ different from \code{\link{as.matrix.tf}} (2-d, \verb{[curve, arg]}); see \verb{
 (\code{unnest = FALSE}, for storing a \code{tf_mv} in a tibble column) or an
 evaluated long/wide data.frame (\code{unnest = TRUE}).
 }
+\examples{
+arg <- seq(0, 1, length.out = 11)
+xf <- tfd(t(sapply(1:3, function(i) sin(2 * pi * arg + i))), arg = arg)
+yf <- tfd(t(sapply(1:3, function(i) cos(2 * pi * arg + i))), arg = arg)
+mv <- tfd_mv(list(x = xf, y = yf))
+dim(as.matrix(mv))
+head(as.data.frame(mv, unnest = TRUE))
+}
 \seealso{
 \code{\link[=as.matrix.tf]{as.matrix.tf()}} (2-d sibling), \code{\link[=as.data.frame.tf]{as.data.frame.tf()}} (univariate
 contract), \code{\link[=tf_evaluate]{tf_evaluate()}}.

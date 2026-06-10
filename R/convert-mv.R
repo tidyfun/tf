@@ -32,6 +32,13 @@
 #'   contract), [tf_evaluate()].
 #' @family tidyfun converters
 #' @name converters-mv
+#' @examples
+#' arg <- seq(0, 1, length.out = 11)
+#' xf <- tfd(t(sapply(1:3, function(i) sin(2 * pi * arg + i))), arg = arg)
+#' yf <- tfd(t(sapply(1:3, function(i) cos(2 * pi * arg + i))), arg = arg)
+#' mv <- tfd_mv(list(x = xf, y = yf))
+#' dim(as.matrix(mv))
+#' head(as.data.frame(mv, unnest = TRUE))
 #' @export
 as.matrix.tf_mv <- function(x, arg, interpolate = FALSE, ...) {
   if (missing(arg) || is.null(arg)) {

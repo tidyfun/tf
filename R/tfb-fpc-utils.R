@@ -36,6 +36,12 @@
 #' `r format_bib("mazumder2010")`
 #' @family tfb-class
 #' @family tfb_fpc-class
+#' @examples
+#' arg <- seq(0, 1, length.out = 41)
+#' data <- t(sapply(seq(0, 2 * pi, length.out = 10),
+#'                  function(p) sin(2 * pi * arg + p)))
+#' fpc <- fpc_wsvd(data, arg = arg, pve = 0.99)
+#' fpc$npc
 fpc_wsvd <- function(data, arg, pve = 0.995) {
   UseMethod("fpc_wsvd")
 }
