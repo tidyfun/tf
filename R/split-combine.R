@@ -134,7 +134,7 @@ tf_combine <- function(..., strict = FALSE) {
         "Can't combine functions with multiple values at the same argument."
       )
     }
-    cli::cli_alert_warning(
+    cli::cli_warn(
       "removing {length(duplicates)} duplicated points from input data."
     )
     tfs_data <- tfs_data[-duplicates, ]

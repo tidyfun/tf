@@ -56,14 +56,21 @@ test_that("tf_combine works as expected", {
 
   #
   expect_identical(
-    do.call(tf_combine, tf_split(x, 0.3)) |> suppressMessages(),
-    do.call(tf_combine, rev(tf_split(x, 0.3))) |> suppressMessages()
+    do.call(tf_combine, tf_split(x, 0.3)) |> suppressWarnings(),
+    do.call(tf_combine, rev(tf_split(x, 0.3))) |> suppressWarnings()
   )
 
   expect_error(
     do.call(tf_combine, c(tf_split(x, 0.3), strict = TRUE)),
     "multiple values"
   )
+
+  # duplicate-point branch issues a real, suppressible warning
+  expect_warning(
+    tf_combine(x, x),
+    "duplicated points"
+  )
+  expect_silent(suppressWarnings(tf_combine(x, x)))
 
   expect_class(tf_combine(x, tf_jiggle(x)), "tfd_irreg")
 
