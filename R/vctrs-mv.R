@@ -25,10 +25,10 @@ vec_restore.tf_mv <- function(x, to, ...) {
   components <- as.list(x)
   # An MFPC fit carries a curve-independent joint spec. Slicing reuses the
   # original object as `to`, so the spec (and the ability to re-score) is
-  # preserved. Concatenation (`vec_c`/`c`) uses a bare prototype as `to` (built
-  # by `tf_mv_ptype2()` without a spec), so it intentionally drops the spec --
-  # stamping one fit's eigenbasis onto a concatenation of possibly different
-  # fits would be wrong.
+  # preserved. Concatenation (`vec_c`/`c`) builds `to` via `tf_mv_ptype2()`,
+  # which forwards an `identical()`-matching spec (same fit, e.g. `c(mf[1:4],
+  # mf[5:8])`) and otherwise demotes with a warning -- so reading the spec off
+  # `to` here is correct for both paths.
   mfpc <- attr(to, "mfpc")
   if (!length(components)) {
     return(new_tf_mv(
@@ -69,7 +69,31 @@ tf_mv_ptype2 <- function(x, y, ...) {
   check_compatible_mv(x, y)
   comps <- map2(tf_components(x), tf_components(y), \(a, b) vec_ptype2(a, b))
   names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  # Carry the joint MFPC spec through `vec_c()` when *all* inputs are the same
+  # fit, i.e. carry an `identical()` `mfpc` attribute. `vec_ptype2()` is called
+  # pairwise so an identical match here -- combined with the matching pairwise
+  # checks performed by `vec_c()` -- implies all inputs share the spec.
+  # The result of `vec_ptype2` becomes `to` in `vec_restore.tf_mv`, where the
+  # spec is then re-stamped onto the concatenation. When specs differ (or one
+  # side is a plain `tfb_mv` / `tfd_mv` with no spec) we warn and demote -- the
+  # downgrade matters because a `dplyr::bind_rows` round-trip otherwise
+  # silently strips the spec.
+  mfpc_x <- attr(x, "mfpc")
+  mfpc_y <- attr(y, "mfpc")
+  proto <- new_tf_mv(comps)
+  same_spec <- identical(mfpc_x, mfpc_y) && !is.null(mfpc_x)
+  if (same_spec && is_tfb_mv(proto)) {
+    attr(proto, "mfpc") <- mfpc_x
+  } else if (!is.null(mfpc_x) || !is.null(mfpc_y)) {
+    # warn only when at least one side actually had a spec to lose. The proto
+    # may have demoted further to `tfd_mv` (when component bases differ) -- the
+    # extra demote_warning is still useful: the per-component
+    # `vec_ptype2.tfb_fpc.tfb_fpc` cast-warning does not mention MFPC.
+    warn_mfpc_demotion(
+      "Combining MFPC fits with different (or missing) joint specs."
+    )
+  }
+  proto
 }
 
 tf_mv_cast <- function(x, to, ...) {

@@ -115,6 +115,14 @@ check_component_index <- function(which, comps, arg = "which") {
       "Replacement component has length {vec_size(value)}, expected {vec_size(f)}."
     )
   }
+  # Replacing a component invalidates the joint MFPC eigenbasis (the shared
+  # scores no longer correspond to the new component), so warn and demote
+  # before the value is swapped in.
+  if (is_tfb_mfpc(f)) {
+    warn_mfpc_demotion(
+      "Replacing a component invalidates the joint MFPC eigenbasis."
+    )
+  }
   comps <- tf_components(f)
   if (is.character(which)) {
     # validate the scalar name *before* the vectorized `%in%` below, which
@@ -132,7 +140,8 @@ check_component_index <- function(which, comps, arg = "which") {
     comps[[which]] <- value
   }
   # new_tf_mv() validates that `value` is the same kind (tfd/tfb) as the other
-  # components and that its domain is compatible.
+  # components and that its domain is compatible. The joint MFPC spec is
+  # intentionally not forwarded -- see warning above.
   new_tf_mv(comps, domain = tf_domain(f))
 }
 

@@ -383,6 +383,38 @@ mfpc_component_scoring <- function(...) {
   ))
 }
 
+# Demote a `tfb_mfpc` to a plain `tfb_mv` by stripping the joint spec. Used by
+# Math/Ops and `$<-` interceptors that warn the user the joint MFPC
+# representation is being dropped before continuing along the standard
+# `tfb_mv` path. The per-component `scoring_function`s on the underlying
+# `tfb_fpc` objects are also swapped from the abort-stub
+# (`mfpc_component_scoring`) to the standard univariate scorer
+# (`.fpc_wsvd_scores`) so that downstream `tf_rebase()` (called by Math/Ops on
+# `tfb_fpc`) can re-fit scores per component without exploding.
+tfb_mfpc_demote <- function(x) {
+  attr(x, "mfpc") <- NULL
+  comps <- attr(x, "components")
+  comps <- lapply(comps, function(comp) {
+    if (identical(attr(comp, "scoring_function"), mfpc_component_scoring)) {
+      attr(comp, "scoring_function") <- .fpc_wsvd_scores
+    }
+    comp
+  })
+  attr(x, "components") <- comps
+  x
+}
+
+# Internal warning shown when an operation forces a `tfb_mfpc` back to a plain
+# per-component `tfb_fpc` (`tfb_mv`) representation. Centralised so the message
+# stays consistent across Math/Ops, `$<-` and `vec_c()`.
+warn_mfpc_demotion <- function(reason) {
+  cli::cli_warn(c(
+    "Demoting to per-component {.cls tfb_fpc} representation; the joint MFPC spec is dropped.",
+    i = reason,
+    i = "Re-score with {.fn tf_rebase} for joint MFPC arithmetic."
+  ))
+}
+
 # Joint re-scoring of new data onto a fitted MFPC basis ------------------------
 
 # `newdata`: a tf_mv (tfd_mv/tfb_mv) compatible with `mfpc_obj`.

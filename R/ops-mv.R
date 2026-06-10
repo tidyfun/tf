@@ -1,5 +1,19 @@
 # Arithmetic, math, summaries (all component-wise) -----------------------------
 
+# Demote a `tfb_mfpc` operand before Math/Ops touch its `tfb_fpc` components.
+# Scoring a single MFPC component is ill-defined (see `mfpc_component_scoring`),
+# so any arithmetic / Math.Generic must drop the joint spec first. We warn once
+# per operation and continue along the standard component-wise path.
+mfpc_demote_for_op <- function(x, op) {
+  if (is_tfb_mfpc(x)) {
+    warn_mfpc_demotion(paste0(
+      "Operation {.code ", op, "} on a {.cls tfb_mfpc} forces per-component arithmetic."
+    ))
+    return(tfb_mfpc_demote(x))
+  }
+  x
+}
+
 #' @export
 #' @method vec_arith tf_mv
 vec_arith.tf_mv <- function(op, x, y, ...) {
@@ -15,30 +29,36 @@ vec_arith.tf_mv.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tf_mv tf_mv
 vec_arith.tf_mv.tf_mv <- function(op, x, y, ...) {
+  x <- mfpc_demote_for_op(x, op)
+  y <- mfpc_demote_for_op(y, op)
   map2_components(x, y, \(a, b) vec_arith(op, a, b))
 }
 
 #' @export
 #' @method vec_arith.tf_mv numeric
 vec_arith.tf_mv.numeric <- function(op, x, y, ...) {
+  x <- mfpc_demote_for_op(x, op)
   map_components(x, \(a) vec_arith(op, a, y))
 }
 
 #' @export
 #' @method vec_arith.numeric tf_mv
 vec_arith.numeric.tf_mv <- function(op, x, y, ...) {
+  y <- mfpc_demote_for_op(y, op)
   map_components(y, \(b) vec_arith(op, x, b))
 }
 
 #' @export
 #' @method vec_arith.tf_mv MISSING
 vec_arith.tf_mv.MISSING <- function(op, x, y, ...) {
+  x <- mfpc_demote_for_op(x, op)
   map_components(x, \(a) vec_arith(op, a, MISSING()))
 }
 
 #' @export
 Math.tf_mv <- function(x, ...) {
   generic <- .Generic
+  x <- mfpc_demote_for_op(x, generic)
   map_components(x, \(a) do.call(generic, list(a, ...)))
 }
 
