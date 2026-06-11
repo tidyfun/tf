@@ -78,5 +78,8 @@ test_that("tfb_fpc defaults work for all kinds of regular input", {
       tolerance = 1e-1,
       ignore_attr = TRUE
     )
+    expect_valid_tf(smoo_)
   }
+  expect_valid_tf(tfb_fpc(smoo))
+  expect_valid_tf(tfb_fpc(smoo, pve = 0.9999))
 })

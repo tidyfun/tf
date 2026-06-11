@@ -10,6 +10,7 @@ test_that("tfb_mv fits a basis per component", {
   expect_true(all(map_lgl(tf_components(tb), is_tfb)))
   expect_equal(tb$x, tfb(f$x, k = 8, verbose = FALSE))
   expect_equal(tb$y, tfb(f$y, k = 8, verbose = FALSE))
+  expect_valid_tf(tb)
 })
 
 test_that("tfb_mv round-trips tfd_mv -> tfb_mv -> tfd_mv approximately", {
@@ -27,6 +28,8 @@ test_that("tfb_mv round-trips tfd_mv -> tfb_mv -> tfd_mv approximately", {
   ))
   expect_lt(diff_x, 0.1)
   expect_lt(diff_y, 0.1)
+  expect_valid_tf(tb)
+  expect_valid_tf(back)
 })
 
 test_that("tfb_mv supports fpc basis", {
@@ -37,6 +40,7 @@ test_that("tfb_mv supports fpc basis", {
   expect_true(all(map_lgl(tf_components(tb), is_tfb_fpc)))
   expect_equal(tb$x, tfb(f$x, basis = "fpc", verbose = FALSE))
   expect_equal(tb$y, tfb(f$y, basis = "fpc", verbose = FALSE))
+  expect_valid_tf(tb)
 })
 
 test_that("per-component basis is reachable via tf_components()", {

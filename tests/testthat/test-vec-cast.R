@@ -46,13 +46,11 @@ expect_cast_result <- function(
   # for some reason names get shifted around in attributes list so check separately:
   expect_equal(names(cast), names(x))
 
-  cast_attrs <- attributes(unname(cast))
-  to_attrs <- attributes(unname(to))
-  if (length(ignore)) {
-    cast_attrs <- cast_attrs[-ignore]
-    to_attrs <- to_attrs[-ignore]
-  }
-  expect_identical(cast_attrs, to_attrs)
+  expect_identical(
+    attributes(unname(cast))[-ignore],
+    attributes(unname(to))[-ignore]
+  )
+  expect_valid_tf(cast)
 }
 
 test_that("vec_cast for tfd to tfd works/fails as expected", {

@@ -11,6 +11,7 @@ test_that("tfd_mv construction from a list of tf vectors works", {
   expect_identical(names(tf_components(f)), c("x", "y"))
   expect_equal(tf_component(f, "x"), fx, ignore_attr = TRUE)
   expect_equal(f$y, fy, ignore_attr = TRUE)
+  expect_valid_tf(f)
 })
 
 test_that("tfd_mv is not a univariate tfd", {
@@ -32,6 +33,7 @@ test_that("tfd_mv construction from a list of matrices works", {
   expect_equal(tf_arg(f), arg)
   expect_equal(f$x, tfd(mx, arg = arg))
   expect_equal(f$y, tfd(my, arg = arg))
+  expect_valid_tf(f)
 })
 
 test_that("tfd_mv construction from a 3-d array works", {
@@ -46,6 +48,7 @@ test_that("tfd_mv construction from a 3-d array works", {
   expect_identical(names(tf_components(f)), c("x", "y"))
   expect_equal(f$x, tfd(arr[,, "x"], arg = seq(0, 1, length.out = 11)))
   expect_equal(f$y, tfd(arr[,, "y"], arg = seq(0, 1, length.out = 11)))
+  expect_valid_tf(f)
 })
 
 test_that("tfd_mv construction from a long data.frame works", {
@@ -66,6 +69,7 @@ test_that("tfd_mv construction from a long data.frame works", {
     f$y,
     tfd(df[, c("id", "t", "y")], id = "id", arg = "t", value = "y")
   )
+  expect_valid_tf(f)
 })
 
 test_that("tfd_mv supports regular and irregular components", {
@@ -78,6 +82,8 @@ test_that("tfd_mv supports regular and irregular components", {
   expect_type(tf_arg(irr), "list")
   expect_true(is.matrix(tf_count(irr)))
   expect_identical(dim(tf_count(irr)), c(3L, 2L))
+  expect_valid_tf(reg)
+  expect_valid_tf(irr)
 })
 
 test_that("tfd_mv accessors and replacement work", {
@@ -114,6 +120,7 @@ test_that("tfd_mv length-0 prototype works", {
   expect_s3_class(f0, "tfd_mv")
   expect_length(f0, 0)
   expect_identical(tf_ncomp(f0), 0L)
+  expect_valid_tf(f0)
 })
 
 test_that("tfd_mv errors on incompatible component lengths", {
@@ -128,6 +135,7 @@ test_that("tfd_mv unions differing component domains by default", {
   expect_equal(tf_domain(f), c(0, 2))
   # both components got widened to the union
   expect_true(all(sapply(tf_components(f), \(c) all(tf_domain(c) == c(0, 2)))))
+  expect_valid_tf(f)
 })
 
 test_that("tfd_mv accepts a user-supplied common domain", {
