@@ -196,6 +196,12 @@ test_that("post-demotion tfb_mv stays functional", {
   # evaluating the demoted object must not explode in the per-component
   # scoring stub
   expect_no_error(tf_evaluate(mf2))
+  # arithmetic re-scores via the components' scoring_function, so it must not
+  # hit the abort stub either -- this exercises the rebuilt standalone bases,
+  # including the assigned `value` (which came from the same MFPC fit).
+  expect_no_error(suppressWarnings(out <- mf2 + 1))
+  expect_true(all(is.finite(unlist(tf_evaluations(out)))))
+  expect_no_error(suppressWarnings(tf_rebase(mf2, mf2)))
 })
 
 test_that("demoted tfb_mfpc supports chained Math/Ops", {

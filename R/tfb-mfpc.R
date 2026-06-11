@@ -448,6 +448,29 @@ new_tfb_fpc_demoted <- function(component, uni) {
   )
 }
 
+# Rebuild a single shared-score MFPC component that is assigned as a
+# standalone vector (e.g. the `value` in `mf2$x <- mf$x`), so it does not
+# retain the abort-stub `scoring_function`. The matching univariate FPCA fit
+# is identified by the component's joint basis matrix among the parent fit's
+# original components `comps`; components from a foreign fit (no match) are
+# returned unchanged.
+mfpc_demote_component_value <- function(value, comps, uni) {
+  if (
+    !is_tfb_fpc(value) ||
+      !identical(attr(value, "scoring_function"), mfpc_component_scoring)
+  ) {
+    return(value)
+  }
+  match_k <- which(map_lgl(
+    comps,
+    \(co) identical(attr(co, "basis_matrix"), attr(value, "basis_matrix"))
+  ))
+  if (!length(match_k)) {
+    return(value)
+  }
+  new_tfb_fpc_demoted(value, uni[[match_k[1]]])
+}
+
 # Internal warning shown when an operation forces a `tfb_mfpc` back to a plain
 # per-component `tfb_fpc` (`tfb_mv`) representation. Centralised so the message
 # stays consistent across Math/Ops, `$<-` and `vec_c()`. Uses class

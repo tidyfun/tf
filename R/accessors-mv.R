@@ -117,11 +117,21 @@ check_component_index <- function(which, comps, arg = "which") {
   }
   # Replacing a component invalidates the joint MFPC eigenbasis (the shared
   # scores no longer correspond to the new component), so warn and demote
-  # before the value is swapped in.
+  # before the value is swapped in. `tfb_mfpc_demote()` rebuilds the retained
+  # components as standalone full-rank `tfb_fpc` -- merely dropping the `mfpc`
+  # attribute would leave them with the abort-stub `scoring_function`, breaking
+  # subsequent arithmetic / `tf_rebase()`. The same applies to a `value` taken
+  # from this very fit (e.g. `mf2$x <- mf$x`), which is rebuilt as well.
   if (is_tfb_mfpc(f)) {
     warn_mfpc_demotion(
       "Replacing a component invalidates the joint MFPC eigenbasis."
     )
+    value <- mfpc_demote_component_value(
+      value,
+      tf_components(f),
+      attr(f, "mfpc")$uni
+    )
+    f <- tfb_mfpc_demote(f)
   }
   comps <- tf_components(f)
   if (is.character(which)) {
@@ -140,8 +150,8 @@ check_component_index <- function(which, comps, arg = "which") {
     comps[[which]] <- value
   }
   # new_tf_mv() validates that `value` is the same kind (tfd/tfb) as the other
-  # components and that its domain is compatible. The joint MFPC spec is
-  # intentionally not forwarded -- see warning above.
+  # components and that its domain is compatible. The joint MFPC spec was
+  # dropped by tfb_mfpc_demote() above and is intentionally not forwarded.
   new_tf_mv(comps, domain = tf_domain(f))
 }
 
