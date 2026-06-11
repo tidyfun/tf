@@ -223,7 +223,8 @@ mfpc_fit <- function(
         efunctions = s$efunctions,
         mu = s$mu,
         arg = s$arg,
-        scoring_function = s$scoring_function
+        scoring_function = s$scoring_function,
+        evalues = s$evalues
       )
     })
   )
@@ -381,6 +382,108 @@ mfpc_component_scoring <- function(...) {
     "Can't score data onto a single component of a multivariate FPCA basis.",
     i = "Project the full {.cls tfd_mv} with {.fn tf_rebase} (or {.fn vec_cast}) onto the {.fn tfb_mfpc} object instead."
   ))
+}
+
+# Demote a `tfb_mfpc` to a plain `tfb_mv` by stripping the joint spec. Used by
+# Math/Ops and `$<-` interceptors that warn the user the joint MFPC
+# representation is being dropped before continuing along the standard
+# `tfb_mv` path. Each shared-score component carries a rank-deficient
+# multivariate eigenfunction basis (`Psi_j` lives in an M-dim space but only
+# spans `rank <= ncol(phi_j)` directions in the per-component grid), so simply
+# swapping the abort-stub `scoring_function` for `.fpc_wsvd_scores` is not
+# enough: downstream `tf_rebase()` would fit data via `qr.coef()` on a
+# rank-deficient `Psi_j` and return `NA` scores. Instead, rebuild each
+# component as a fresh `tfb_fpc` on the *univariate* basis (the full-rank
+# orthonormal `phi^(j)` from the univariate FPCA stored in `mfpc$uni`), with
+# the component's own univariate `scoring_function` (or `.fpc_wsvd_scores` as
+# fallback), so Math/Ops dispatched on `tfb_fpc` can re-fit scores without
+# exploding.
+tfb_mfpc_demote <- function(x) {
+  mfpc <- attr(x, "mfpc")
+  attr(x, "mfpc") <- NULL
+  comps <- attr(x, "components")
+  if (is.null(mfpc) || is.null(mfpc$uni)) {
+    # nothing to rebuild against; leave components as-is.
+    return(x)
+  }
+  new_comps <- map2(comps, mfpc$uni, new_tfb_fpc_demoted)
+  names(new_comps) <- names(comps)
+  attr(x, "components") <- new_comps
+  x
+}
+
+# Rebuild a single shared-score MFPC component as a plain, full-rank `tfb_fpc`
+# on the stored univariate eigenfunctions `phi^(j)`. The component's
+# evaluations are reconstructed from the joint basis (`mu_j + Psi_j s^T`) and
+# then re-scored onto `phi^(j)` using the univariate `scoring_function`.
+new_tfb_fpc_demoted <- function(component, uni) {
+  arg <- uni$arg
+  mu_j <- uni$mu
+  phi_j <- uni$efunctions
+  scoring_function <- uni$scoring_function %||% .fpc_wsvd_scores
+  # reconstruct evaluations on the univariate grid from the joint basis.
+  joint_bm <- attr(component, "basis_matrix") # n_arg x (1 + M)
+  coefs_old <- do.call(rbind, unclass(component)) # n x (1 + M)
+  data_matrix <- coefs_old %*% t(joint_bm) # n x n_arg
+  quad_w <- mfpc_quad_weights(arg)
+  scores <- as.matrix(scoring_function(data_matrix, phi_j, mu_j, quad_w))
+  basis_matrix <- unname(cbind(mu_j, phi_j))
+  domain <- attr(component, "domain")
+  fpc_basis <- suppressMessages(tfd(t(basis_matrix), arg = arg, domain = domain))
+  fpc_constructor <- fpc_wrapper(fpc_basis)
+  coefs <- cbind(1, scores)
+  coef_list <- split(coefs, row(coefs))
+  names(coef_list) <- names(component)
+  basis_label <- paste0(ncol(phi_j), " FPCs")
+  new_vctr(
+    coef_list,
+    domain = domain,
+    basis = fpc_constructor,
+    basis_label = basis_label,
+    basis_matrix = basis_matrix,
+    arg = arg,
+    score_variance = uni$evalues %||% rep(NA_real_, ncol(phi_j)),
+    scoring_function = scoring_function,
+    class = c("tfb_fpc", "tfb", "tf")
+  )
+}
+
+# Rebuild a single shared-score MFPC component that is assigned as a
+# standalone vector (e.g. the `value` in `mf2$x <- mf$x`), so it does not
+# retain the abort-stub `scoring_function`. The matching univariate FPCA fit
+# is identified by the component's joint basis matrix among the parent fit's
+# original components `comps`; components from a foreign fit (no match) are
+# returned unchanged.
+mfpc_demote_component_value <- function(value, comps, uni) {
+  if (
+    !is_tfb_fpc(value) ||
+      !identical(attr(value, "scoring_function"), mfpc_component_scoring)
+  ) {
+    return(value)
+  }
+  match_k <- which(map_lgl(
+    comps,
+    \(co) identical(attr(co, "basis_matrix"), attr(value, "basis_matrix"))
+  ))
+  if (!length(match_k)) {
+    return(value)
+  }
+  new_tfb_fpc_demoted(value, uni[[match_k[1]]])
+}
+
+# Internal warning shown when an operation forces a `tfb_mfpc` back to a plain
+# per-component `tfb_fpc` (`tfb_mv`) representation. Centralised so the message
+# stays consistent across Math/Ops, `$<-` and `vec_c()`. Uses class
+# `tf_mfpc_demotion` so callers can intercept via `withCallingHandlers()`.
+warn_mfpc_demotion <- function(reason) {
+  cli::cli_warn(
+    c(
+      "Demoting to per-component {.cls tfb_fpc} representation; the joint MFPC spec is dropped.",
+      i = reason,
+      i = "Re-score with {.fn tf_rebase} for joint MFPC arithmetic."
+    ),
+    class = "tf_mfpc_demotion"
+  )
 }
 
 # Joint re-scoring of new data onto a fitted MFPC basis ------------------------

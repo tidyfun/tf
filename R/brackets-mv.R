@@ -225,5 +225,8 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     comp
   })
   names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps, domain = tf_domain(x))
+  # Forward the joint MFPC spec, if any: setting curve names is a non-mutating
+  # rename and must not silently demote a `tfb_mfpc`. (`vec_c()` runs `names<-`
+  # post-restore, which would otherwise strip the spec set by `tf_mv_ptype2`.)
+  new_tf_mv(comps, domain = tf_domain(x), mfpc = attr(x, "mfpc"))
 }

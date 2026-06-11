@@ -143,15 +143,119 @@ test_that("scoring a single MFPC component directly is an error", {
   )
 })
 
-test_that("slicing preserves the MFPC spec; concatenation drops it", {
+test_that("slicing and same-fit concatenation preserve the MFPC spec", {
   set.seed(11)
   g <- tfd_mv(list(x = tf_rgp(12), y = tf_rgp(12)))
   m <- tfb_mfpc(g, npc = 3)
   # subsetting keeps the curve-independent eigenbasis -> still re-scorable
   expect_true(is_tfb_mfpc(m[1:5]))
   expect_equal(dim(tf_mfpc_scores(m[1:5])), c(5L, 3L))
-  # concatenation uses a bare prototype -> spec intentionally dropped
-  expect_false(is_tfb_mfpc(c(m[1:6], m[7:12])))
+  # concatenation of slices of the *same* fit keeps the spec
+  expect_true(is_tfb_mfpc(c(m[1:6], m[7:12])))
+  expect_true(is_tfb_mfpc(c(m, m)))
+})
+
+# Capture warning messages from an expression without aborting on them.
+collect_warnings <- function(expr) {
+  ws <- character()
+  val <- withCallingHandlers(
+    expr,
+    warning = function(w) {
+      ws <<- c(ws, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  list(value = val, warnings = ws)
+}
+
+test_that("tfb_mfpc protects its joint spec", {
+  set.seed(1)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(20), y = tf_rgp(20))), pve = 0.95)
+  # 1. Arithmetic demotes with a clear warning
+  cap <- collect_warnings(mf + 1)
+  expect_true(any(grepl("demot|mfpc|MFPC|joint", cap$warnings)))
+  expect_false(is_tfb_mfpc(cap$value))
+  # 2. $<- demotes with a clear warning
+  cap <- collect_warnings({
+    mf2 <- mf
+    mf2$x <- mf$x
+    mf2
+  })
+  expect_true(any(grepl("demot|mfpc|MFPC|joint", cap$warnings)))
+  expect_false(is_tfb_mfpc(cap$value))
+  # 3. c() of slices of the same fit preserves the spec
+  expect_true(is_tfb_mfpc(c(mf[1:4], mf[5:8])))
+})
+
+test_that("post-demotion tfb_mv stays functional", {
+  set.seed(42)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95)
+  mf2 <- mf
+  suppressWarnings(mf2$x <- mf$x)
+  expect_false(is_tfb_mfpc(mf2))
+  # evaluating the demoted object must not explode in the per-component
+  # scoring stub
+  expect_no_error(tf_evaluate(mf2))
+  # arithmetic re-scores via the components' scoring_function, so it must not
+  # hit the abort stub either -- this exercises the rebuilt standalone bases,
+  # including the assigned `value` (which came from the same MFPC fit).
+  expect_no_error(suppressWarnings(out <- mf2 + 1))
+  expect_true(all(is.finite(unlist(tf_evaluations(out)))))
+  expect_no_error(suppressWarnings(tf_rebase(mf2, mf2)))
+})
+
+test_that("both-mfpc arithmetic warns about demotion exactly once", {
+  set.seed(21)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95) |>
+    suppressWarnings()
+  n_demotion_warnings <- 0L
+  withCallingHandlers(
+    mf + mf,
+    tf_mfpc_demotion = function(w) {
+      n_demotion_warnings <<- n_demotion_warnings + 1L
+      invokeRestart("muffleWarning")
+    },
+    warning = function(w) invokeRestart("muffleWarning")
+  )
+  expect_identical(n_demotion_warnings, 1L)
+})
+
+test_that("demoted tfb_mfpc supports chained Math/Ops", {
+  set.seed(1)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(20), y = tf_rgp(20))), pve = 0.95) |>
+    suppressWarnings()
+  expect_no_error(out1 <- suppressWarnings((mf + 1) - 1))
+  expect_no_error(out2 <- suppressWarnings(log(mf + 2)))
+  expect_no_error(out3 <- suppressWarnings(-mf))
+  expect_no_error(out4 <- suppressWarnings(mf * 2 / 2))
+  # reconstructed values are sane (finite) after a round-trip through ops
+  expect_true(all(is.finite(unlist(tf_evaluations(out1)))))
+})
+
+test_that("demotion warning has class 'tf_mfpc_demotion'", {
+  set.seed(8)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95) |>
+    suppressWarnings()
+  classes <- character()
+  withCallingHandlers(
+    mf + 1,
+    tf_mfpc_demotion = function(w) {
+      classes <<- c(classes, class(w))
+      invokeRestart("muffleWarning")
+    },
+    warning = function(w) invokeRestart("muffleWarning")
+  )
+  expect_true("tf_mfpc_demotion" %in% classes)
+})
+
+test_that("c() of MFPC fits with different specs demotes with a warning", {
+  set.seed(1)
+  mf1 <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95)
+  set.seed(2)
+  mf2 <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95)
+  cap <- collect_warnings(c(mf1, mf2))
+  expect_true(any(grepl("demot|mfpc|MFPC|joint", cap$warnings)))
+  expect_false(is_tfb_mfpc(cap$value))
 })
 
 test_that("mixing a tfd_mv with an MFPC tfb_mv demotes (no spec carried)", {
