@@ -309,7 +309,7 @@ validate_depth <- function(depth) {
 depth_data <- function(x, depth, na.rm = FALSE, ...) {
   validate_depth(depth)
   if (!na.rm && anyNA(x))
-    return(list(x = 1 * NA * x[which(is.na(x))[1]], d = NULL))
+    return(list(x = tf_na_like(x, which(is.na(x))[1]), d = NULL))
 
   x <- x[!is.na(x)]
   if (length(x) == 0) return(list(x = x, d = NULL))

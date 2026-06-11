@@ -95,8 +95,34 @@ tf_invert.tfb <- function(x, ...) {
 }
 
 
-# reinsert NULL entries for previously missing functions while preserving tf attrs
-restore_na_entries <- function(tf_non_na, na_entries, names_out) {
+# Trapezoidal quadrature weights for a possibly-irregular grid.
+#
+# Contract: given a sorted numeric grid `arg` of length n, returns a length-n
+# weight vector `w` such that for a function sampled on `arg` with values `v`,
+# `sum(w * v)` is the trapezoidal-rule approximation of the integral over
+# `[arg[1], arg[n]]`. Interior weights are the average of the two adjacent
+# `diff(arg)` spacings; boundary weights are half of the single adjacent
+# spacing. The result is invariant to a constant shift of `arg`.
+trapezoid_weights <- function(arg) {
+  delta <- c(0, diff(arg))
+  0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+}
+
+# Reinsert NULL entries for previously missing functions while preserving tf attrs.
+#
+# Contract: `tf_non_na` is a (possibly zero-length) `tf` carrying the desired
+# output attributes (e.g. a freshly rebased `tfb`); `na_entries` is the logical
+# mask of the full-length result; `names_out` are the final names. When some
+# entries are non-NA, those slots are filled from `unclass(tf_non_na)` in order.
+# When every entry is NA, pass `ref_tfb` to supply the attributes (since
+# `tf_non_na` would itself be empty and carry no useful attributes); by default
+# `ref_tfb` falls back to `tf_non_na`.
+restore_na_entries <- function(
+  tf_non_na,
+  na_entries,
+  names_out,
+  ref_tfb = tf_non_na
+) {
   if (!any(na_entries)) {
     return(setNames(tf_non_na, names_out))
   }
@@ -105,7 +131,7 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
     ret[!na_entries] <- unclass(tf_non_na)
   }
   ret[na_entries] <- list(NULL)
-  attributes(ret) <- attributes(tf_non_na)
+  attributes(ret) <- attributes(ref_tfb)
   names(ret) <- names_out
   ret
 }

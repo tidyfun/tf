@@ -47,9 +47,8 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
   assert_numeric(arg, any.missing = FALSE, sorted = TRUE, len = ncol(data))
   assert_number(pve, lower = 0, upper = 1)
 
-  delta <- c(0, diff(arg))
   # trapezoid integration weights:
-  weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+  weights <- trapezoid_weights(arg)
   mean <- colMeans(data, na.rm = TRUE)
 
   data_wc <- t((t(data) - mean) * sqrt(weights))

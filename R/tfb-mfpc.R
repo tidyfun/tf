@@ -368,11 +368,6 @@ new_tfb_fpc_shared <- function(
   )
 }
 
-# trapezoidal quadrature weights for a (possibly non-equidistant) grid.
-mfpc_quad_weights <- function(arg) {
-  delta <- c(0, diff(arg))
-  0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
-}
 
 # per-component scoring stub: scoring a *single* MFPC component is ill-defined
 # (the eigenfunctions are orthonormal only in the joint weighted product), so
@@ -528,7 +523,7 @@ mfpc_rescore <- function(newdata, mfpc_obj, arg = NULL) {
       ))
     }
     mat <- mat[, idx, drop = FALSE]
-    quad_w <- mfpc_quad_weights(u$arg)
+    quad_w <- trapezoid_weights(u$arg)
     as.matrix(u$scoring_function(mat, u$efunctions, u$mu, quad_w))
   })
   xi_new <- do.call(cbind, xi_new)

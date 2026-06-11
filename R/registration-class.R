@@ -270,8 +270,7 @@ summary.tf_registration <- function(object, ...) {
     \(i) {
       a <- args_list[[i]]
       dev <- abs(inv_warp_evals[[i]] - a)
-      dt <- diff(a)
-      sum((dev[-length(dev)] + dev[-1]) / 2 * dt)
+      sum(trapezoid_weights(a) * dev)
     },
     numeric(1)
   ) /

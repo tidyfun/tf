@@ -47,8 +47,7 @@ new_tfb_fpc <- function(
     scoring_function <- attr(basis_from, "scoring_function")
 
     # trapezoid integration weights: #TODO generally appropriate or just for wsvd?
-    delta <- c(0, diff(arg))
-    weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+    weights <- trapezoid_weights(arg)
     scores <- scoring_function(
       df_2_mat(data),
       basis_matrix[, -1],
