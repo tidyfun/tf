@@ -68,7 +68,6 @@ reference:
   contents:
   - plot.tf
   - print.tf
-  - prep_plotting_arg
 - title: Querying functional data
   desc: Locating functional features like peaks or zero-crossings
   contents:
