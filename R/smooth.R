@@ -169,22 +169,36 @@ tf_smooth.default <- function(x, ...) .NotYetImplemented()
 #' (Savitzky & Golay 1964).
 #'
 #' @param T a numeric vector to smooth.
-#' @param fl filter window length (odd integer > 1).
-#' @param forder polynomial order of the local fit (default 4).
-#' @param dorder derivative order (default 0).
+#' @param fl filter window length (odd integer > 1, must be greater than
+#'   `forder`).
+#' @param forder polynomial order of the local fit (non-negative integer,
+#'   default 4).
+#' @param dorder derivative order (non-negative integer not greater than
+#'   `forder`, default 0).
 #' @returns a smoothed numeric vector of the same length as `T`.
 #' @keywords internal
 #' @export
 savgol <- function(T, fl, forder = 4, dorder = 0) {
-  stopifnot(is.numeric(T), is.numeric(fl))
-  if (fl <= 1 || fl %% 2 == 0) {
+  assert_numeric(T)
+  assert_int(fl, lower = 3)
+  assert_count(forder)
+  assert_count(dorder)
+  if (fl %% 2 == 0) {
     cli::cli_abort("Argument {.arg fl} must be an odd integer greater than 1.")
+  }
+  if (fl <= forder) {
+    cli::cli_abort("Argument {.arg fl} must be greater than {.arg forder}.")
+  }
+  if (dorder > forder) {
+    cli::cli_abort(
+      "Argument {.arg dorder} must not be greater than {.arg forder}."
+    )
   }
   fc <- (fl - 1) / 2
   coefs <- .savgol_coefs(fl, forder, dorder)
   # Match pracma's exact end-effect handling: open (linear) convolution, then
   # trim fc samples from each end to recover length(T).
-  T2 <- convolve(T, rev(coefs), type = "o")
+  T2 <- stats::convolve(T, rev(coefs), type = "o")
   T2 <- T2[(fc + 1):(length(T2) - fc)]
   (-1)^dorder * T2
 }

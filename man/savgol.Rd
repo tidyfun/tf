@@ -9,11 +9,14 @@ savgol(T, fl, forder = 4, dorder = 0)
 \arguments{
 \item{T}{a numeric vector to smooth.}
 
-\item{fl}{filter window length (odd integer > 1).}
+\item{fl}{filter window length (odd integer > 1, must be greater than
+\code{forder}).}
 
-\item{forder}{polynomial order of the local fit (default 4).}
+\item{forder}{polynomial order of the local fit (non-negative integer,
+default 4).}
 
-\item{dorder}{derivative order (default 0).}
+\item{dorder}{derivative order (non-negative integer not greater than
+\code{forder}, default 0).}
 }
 \value{
 a smoothed numeric vector of the same length as \code{T}.

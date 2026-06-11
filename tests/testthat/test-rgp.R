@@ -24,8 +24,8 @@ test_that("user defined covariance works", {
 
 test_that("tf_rgp reproducibility (regression test for base-R rmvnorm replacement)", {
   # Pin a digest of the output for a fixed seed. Guards against accidental
-  # changes to the GP sampling path (which now uses base R chol() instead of
-  # mvtnorm::rmvnorm).
+  # changes to the GP sampling path (which now uses a base-R eigen-decomposition
+  # sampler instead of mvtnorm::rmvnorm).
   set.seed(20260610)
   x_a <- tf_rgp(3, arg = 21L, cov = "squareexp", nugget = 0)
   set.seed(20260610)

@@ -82,7 +82,19 @@ test_that("savgol matches pracma::savgol numerically (regression)", {
 
 test_that("savgol input validation", {
   expect_error(savgol(1:10, fl = 4), "odd integer")
-  expect_error(savgol(1:10, fl = 1), "odd integer")
+  expect_error(savgol(1:10, fl = 1), "fl")
+  expect_error(savgol(1:10, fl = 2.5), "fl")
+  expect_error(savgol(1:10, fl = 5, forder = 1.5), "forder")
+  expect_error(savgol(1:10, fl = 5, forder = -1), "forder")
+  expect_error(savgol(1:10, fl = 5, forder = 2, dorder = 3), "dorder")
+  expect_error(savgol(1:10, fl = 3, forder = 4), "greater than")
+  expect_error(
+    suppressMessages(tf_smooth(
+      tf_rgp(2, arg = 51L),
+      method = "savgol",
+      fl = 2.5
+    ))
+  )
 })
 
 test_that("tf_smooth(savgol) still works after dropping pracma", {
