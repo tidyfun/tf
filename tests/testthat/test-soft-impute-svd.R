@@ -54,6 +54,36 @@ test_that("simpute_svd is a no-op when there are no NAs (rank-J slice)", {
   )
 })
 
+test_that("simpute_svd clamps J to the available rank and handles 1-row inputs", {
+  set.seed(5)
+  # skinny matrix, J larger than min(dim) must not cause out-of-bounds errors
+  x <- matrix(rnorm(6), 3, 2)
+  x[1, 2] <- NA
+  s <- simpute_svd(x, J = 10)
+  expect_lte(length(s$d), min(dim(x)))
+  expect_equal(dim(s$u), c(nrow(x), length(s$d)))
+  expect_equal(dim(s$v), c(ncol(x), length(s$d)))
+
+  # 1-row input: default J would be 0, must be clamped to 1
+  x1 <- matrix(rnorm(5), 1, 5)
+  x1[1, 3] <- NA
+  s1 <- simpute_svd(x1)
+  expect_equal(length(s1$d), 1L)
+  expect_equal(dim(s1$u), c(1L, 1L))
+  expect_equal(dim(s1$v), c(5L, 1L))
+
+  # complete-data branch with 1 row
+  s1c <- simpute_svd(matrix(rnorm(5), 1, 5))
+  expect_equal(length(s1c$d), 1L)
+})
+
+test_that("simpute_svd warns instead of erroring when maxit leaves no iterations", {
+  set.seed(8)
+  x <- matrix(rnorm(20), 5, 4)
+  x[2, 3] <- NA
+  expect_warning(simpute_svd(x, maxit = 0), "Convergence not achieved")
+})
+
 test_that("fpc_wsvd weighted SVD matches svd() on uniform-grid centered data", {
   set.seed(11)
   n <- 30

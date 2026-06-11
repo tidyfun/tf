@@ -30,7 +30,9 @@ simpute_svd <- function(x,
                         lambda = 0,
                         maxit = 100,
                         ...) {
-  J <- as.integer(J)
+  # clamp J to the available SVD rank; guards against J > min(dim(x)) and
+  # against the degenerate default J = 0 for single-row/column inputs
+  J <- max(min(as.integer(J), min(dim(x))), 1L)
   nas <- is.na(x)
   if (!any(nas)) {
     s <- svd(x)
@@ -48,6 +50,8 @@ simpute_svd <- function(x,
   s_prev <- svd(filled)
   idx <- seq_len(J)
 
+  # so the convergence check below is defined even if maxit < 1
+  ratio <- Inf
   for (iter in seq_len(maxit)) {
     d_thr <- pmax(s_prev$d - lambda, 0)
     # rank-J reconstruction; impute the missing cells with it
@@ -67,7 +71,9 @@ simpute_svd <- function(x,
     if (ratio < thresh) break
   }
 
-  if (iter == maxit && ratio >= thresh) {
+  # the loop above only breaks early once ratio < thresh, so this means
+  # the iteration budget was exhausted without convergence
+  if (ratio >= thresh) {
     cli::cli_warn(
       "Convergence not achieved in {maxit} iterations for incomplete-data SVD."
     )
