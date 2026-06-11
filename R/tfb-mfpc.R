@@ -420,7 +420,7 @@ new_tfb_fpc_demoted <- function(component, uni) {
   joint_bm <- attr(component, "basis_matrix") # n_arg x (1 + M)
   coefs_old <- do.call(rbind, unclass(component)) # n x (1 + M)
   data_matrix <- coefs_old %*% t(joint_bm) # n x n_arg
-  quad_w <- mfpc_quad_weights(arg)
+  quad_w <- trapezoid_weights(arg)
   scores <- as.matrix(scoring_function(data_matrix, phi_j, mu_j, quad_w))
   basis_matrix <- unname(cbind(mu_j, phi_j))
   domain <- attr(component, "domain")
