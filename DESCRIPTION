@@ -31,8 +31,6 @@ Imports:
     cli,
     methods,
     mgcv,
-    mvtnorm,
-    pracma,
     purrr (>= 1.0.0),
     rlang,
     stats,

@@ -36,7 +36,7 @@
 #' @param domain of the generated functions. If not provided, the range of the
 #'   supplied `arg` values.
 #' @returns an `tfd`-vector of length `n`.
-#' @importFrom mvtnorm rmvnorm
+#' @importFrom stats rnorm
 #' @export
 #' @family tidyfun RNG functions
 #' @examples
@@ -120,7 +120,18 @@ tf_rgp <- function(
 
   ret <- map(arg, \(.arg) {
     cov <- outer(.arg, .arg, f_cov) + diag(0 * .arg + nugget)
-    cbind(.arg, t(rmvnorm(1, mean = 0 * .arg, sigma = cov)))
+    # zero-mean multivariate normal draw via eigen-decomposition of the
+    # covariance. Matches `mvtnorm::rmvnorm(method = "eigen")` semantics
+    # exactly: rank-deficient kernels (e.g. squared-exp with zero nugget) are
+    # sampled in their effective subspace; tiny negative eigenvalues from
+    # numerical noise are clamped to zero. We use the symmetric square root
+    # `V D^{1/2} V^T` so draws match the previous `mvtnorm` implementation
+    # under `set.seed()`.
+    e <- eigen(cov, symmetric = TRUE)
+    d <- pmax(e$values, 0)
+    R <- e$vectors %*% (sqrt(d) * t(e$vectors))
+    sample <- as.numeric(R %*% rnorm(nrow(cov)))
+    cbind(.arg, sample)
   }) |>
     tfd()
   names(ret) <- 1:n
