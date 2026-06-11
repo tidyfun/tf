@@ -49,3 +49,20 @@ test_that("tf_evaluate.tfb keeps NA entries for shared arg", {
   expect_length(eval_grid, length(b_na))
   expect_equal(eval_grid[[2]], rep(NA_real_, 5))
 })
+
+test_that("tf_evaluate.tfd returns values at correct positions for duplicated args (#236)", {
+  arg <- seq(0, 1, length.out = 11)
+  x <- tfd(matrix(arg, nrow = 1), arg = arg)
+  # duplicated unseen args must all be placed correctly
+  expect_equal(
+    tf_evaluate(x, c(0.25, 0.25, 0.35))[[1]],
+    c(0.25, 0.25, 0.35)
+  )
+  # duplicated values, all unseen, more than one duplicate
+  expect_equal(
+    tf_evaluate(x, c(0.25, 0.25, 0.35, 0.35))[[1]],
+    c(0.25, 0.25, 0.35, 0.35)
+  )
+  # `[` operator path reaches the same code
+  expect_equal(as.numeric(x[1, c(0.25, 0.25, 0.35)]), c(0.25, 0.25, 0.35))
+})

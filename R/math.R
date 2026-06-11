@@ -1,10 +1,11 @@
 # utility function for linear operations that can be done on coefs or
 #   evaluations directly.
-fun_math <- function(x, op) {
+fun_math <- function(x, op, ...) {
   attr_ret <- attributes(x)
+  dots <- list(...)
   ret <- map(tf_evaluations(x), \(x) {
     if (is.null(x)) return(NULL)
-    result <- do.call(op, list(x = x))
+    result <- do.call(op, c(list(x = x), dots))
     if (allMissing(result)) NULL else result
   })
   if (is_irreg(x)) {
@@ -25,7 +26,7 @@ NULL
 #' @export
 #' @family tidyfun compute functions
 Math.tfd <- function(x, ...) {
-  fun_math(x, .Generic)
+  fun_math(x, .Generic, ...)
 }
 
 #' @rdname tfgroupgenerics
@@ -36,7 +37,7 @@ Math.tfb <- function(x, ...) {
     "Potentially lossy cast to {.cls tfd} and back in {.fn {genericname}}({.cls {vec_ptype_full(x)}})."
   )
   basis_args <- attr(x, "basis_args")
-  eval <- fun_math(tfd(x), .Generic)
+  eval <- fun_math(tfd(x), .Generic, ...)
   na_entries <- is.na(eval)
   if (all(na_entries)) {
     # all entries became NA -- return tfb with NULL entries
