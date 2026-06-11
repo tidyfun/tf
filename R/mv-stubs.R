@@ -112,7 +112,7 @@ tf_jiggle.tf_mv <- function(f, ...) mv_unimplemented("tf_jiggle")
 #' generic reuse continue to work. **Behaviour** on `tf_mv` objects, however,
 #' is supplied *only* by explicitly registered `.tf_mv` methods: any generic
 #' without one aborts with a classed `tf_mv_method_unimplemented` condition
-#' (see [tf_where.tf_mv()], [summary.tf_mv()], ...). This avoids silent
+#' (e.g. `tf_where(<tf_mv>)`, `summary(<tf_mv>)`). This avoids silent
 #' fall-through to the univariate method, which would otherwise produce
 #' wrong-shape results or deep internal errors.
 #'
