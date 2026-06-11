@@ -204,6 +204,22 @@ test_that("post-demotion tfb_mv stays functional", {
   expect_no_error(suppressWarnings(tf_rebase(mf2, mf2)))
 })
 
+test_that("both-mfpc arithmetic warns about demotion exactly once", {
+  set.seed(21)
+  mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))), pve = 0.95) |>
+    suppressWarnings()
+  n_demotion_warnings <- 0L
+  withCallingHandlers(
+    mf + mf,
+    tf_mfpc_demotion = function(w) {
+      n_demotion_warnings <<- n_demotion_warnings + 1L
+      invokeRestart("muffleWarning")
+    },
+    warning = function(w) invokeRestart("muffleWarning")
+  )
+  expect_identical(n_demotion_warnings, 1L)
+})
+
 test_that("demoted tfb_mfpc supports chained Math/Ops", {
   set.seed(1)
   mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(20), y = tf_rgp(20))), pve = 0.95) |>

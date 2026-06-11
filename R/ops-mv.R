@@ -4,11 +4,13 @@
 # Scoring a single MFPC component is ill-defined (see `mfpc_component_scoring`),
 # so any arithmetic / Math.Generic must drop the joint spec first. We warn once
 # per operation and continue along the standard component-wise path.
-mfpc_demote_for_op <- function(x, op) {
+mfpc_demote_for_op <- function(x, op, warn = TRUE) {
   if (is_tfb_mfpc(x)) {
-    warn_mfpc_demotion(paste0(
-      "Operation {.code ", op, "} on a {.cls tfb_mfpc} forces per-component arithmetic."
-    ))
+    if (warn) {
+      warn_mfpc_demotion(paste0(
+        "Operation {.code ", op, "} on a {.cls tfb_mfpc} forces per-component arithmetic."
+      ))
+    }
     return(tfb_mfpc_demote(x))
   }
   x
@@ -29,8 +31,11 @@ vec_arith.tf_mv.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tf_mv tf_mv
 vec_arith.tf_mv.tf_mv <- function(op, x, y, ...) {
+  # if both operands are tfb_mfpc, warn only once for the single user-facing
+  # operation: the warning for `y` is suppressed when `x` already triggered it.
+  x_warns <- is_tfb_mfpc(x)
   x <- mfpc_demote_for_op(x, op)
-  y <- mfpc_demote_for_op(y, op)
+  y <- mfpc_demote_for_op(y, op, warn = !x_warns)
   map2_components(x, y, \(a, b) vec_arith(op, a, b))
 }
 
