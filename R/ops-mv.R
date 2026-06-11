@@ -100,26 +100,19 @@ sd.tf_mv <- function(x, na.rm = FALSE) {
 
 #' @export
 var.tf_mv <- function(x, y = NULL, na.rm = FALSE, use) {
-  has_use <- !missing(use)
-  if (!is.null(y) && is_tf_mv(y)) {
-    check_compatible_mv(x, y)
-    missing <- mv_missing(x, y)
-    x <- mv_complete(x, missing = missing, na.rm = na.rm)
-    y <- mv_complete(y, missing = missing, na.rm = na.rm)
-    return(map2_components(x, y, function(a, b) {
-      if (has_use) {
-        var(a, y = b, na.rm = na.rm, use = use)
-      } else {
-        var(a, y = b, na.rm = na.rm)
-      }
-    }))
+  if (!is.null(y)) {
+    cli::cli_abort(c(
+      "{.fn var} on {.cls tf_mv} does not support a second argument {.arg y}.",
+      "i" = "Use {.fn tf_crosscov} or {.fn tf_crosscor} for cross-(co)variance."
+    ))
   }
+  has_use <- !missing(use)
   x <- mv_complete(x, na.rm = na.rm)
   map_components(x, function(a) {
     if (has_use) {
-      var(a, y = y, na.rm = na.rm, use = use)
+      var(a, na.rm = na.rm, use = use)
     } else {
-      var(a, y = y, na.rm = na.rm)
+      var(a, na.rm = na.rm)
     }
   })
 }
