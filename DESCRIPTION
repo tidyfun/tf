@@ -83,6 +83,7 @@ Collate:
     'ops.R'
     'math.R'
     'methods.R'
+    'mv-stubs.R'
     'ops-mv.R'
     'plot-mv.R'
     'print-format-mv.R'

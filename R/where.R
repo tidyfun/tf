@@ -65,6 +65,16 @@ tf_where <- function(
   return = c("all", "first", "last", "range", "any"),
   arg = tf_arg(f)
 ) {
+  UseMethod("tf_where")
+}
+
+#' @export
+tf_where.default <- function(
+  f,
+  cond,
+  return = c("all", "first", "last", "range", "any"),
+  arg = tf_arg(f)
+) {
   assert_arg(arg, f)
   return <- match.arg(return)
   cond_quo <- enquo(cond)
@@ -98,5 +108,10 @@ tf_where <- function(
 #' @rdname tf_where
 #' @export
 tf_anywhere <- function(f, cond, arg = tf_arg(f)) {
+  UseMethod("tf_anywhere")
+}
+
+#' @export
+tf_anywhere.default <- function(f, cond, arg = tf_arg(f)) {
   tf_where(f = f, cond = {{ cond }}, return = "any", arg = arg)
 }

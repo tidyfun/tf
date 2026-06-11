@@ -77,15 +77,19 @@ different argument grids. Use \code{\link[=tfb_mv]{tfb_mv()}} for a basis repres
 }
 \section{Inheritance contract}{
 
-\code{tf_mv} classes inherit from \code{"tf"}, so any S3 generic registered on \code{"tf"}
-without an explicit \code{.tf_mv} method is dispatched to the univariate
-implementation -- the right thing component-wise for almost every verb in
-the package (the \code{Math} / \code{Ops} / \code{Summary} group generics, \code{[}, \code{format},
-\code{print}, \code{plot}, \code{lines}, \code{tf_evaluate}, \code{tf_evaluations}, \code{tf_arg},
-\code{tf_domain}, \code{as.matrix}, \code{as.data.frame}, ... all have explicit \code{.tf_mv}
-methods). When you need to \emph{distinguish} univariate-only from any-\code{tf}
-inside a helper, use \code{\link[=is_tf_1d]{is_tf_1d()}}: it returns \code{TRUE} for \code{tfd} / \code{tfb} and
-\code{FALSE} for \code{tfd_mv} / \code{tfb_mv}.
+\code{tf_mv} classes inherit from \code{"tf"} \emph{only} for the purpose of \code{tf_domain()},
+type predicates (\code{is_tf()}, \code{is_tf_mv()}, ...) and S4 generic reuse.
+\strong{Behaviour} on \code{tf_mv} comes \emph{only} from explicitly registered \code{.tf_mv}
+methods: any generic without one aborts with a classed
+\code{tf_mv_method_unimplemented} condition. The earlier promise of automatic
+"right thing component-wise" dispatch via inheritance was incorrect --
+silent fall-through produced wrong-shape results or deep internal errors,
+so it has been replaced with fail-fast stubs. The stubbed (i.e., \emph{not}
+implemented) verbs are listed in \link{tf_mv_unimplemented}; design of real
+component-wise semantics is tracked at
+\url{https://github.com/tidyfun/tf/issues/255}. When you need to \emph{distinguish}
+univariate-only from any-\code{tf} inside a helper, use \code{\link[=is_tf_1d]{is_tf_1d()}}: it returns
+\code{TRUE} for \code{tfd} / \code{tfb} and \code{FALSE} for \code{tfd_mv} / \code{tfb_mv}.
 }
 
 \examples{

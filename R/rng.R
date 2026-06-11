@@ -153,6 +153,11 @@ tf_rgp <- function(
 #' (x_sp <- tf_sparsify(x, dropout = 0.3))
 #' c(is_irreg(x_jig), is_irreg(x_sp))
 tf_jiggle <- function(f, amount = 0.4, ...) {
+  UseMethod("tf_jiggle")
+}
+
+#' @export
+tf_jiggle.default <- function(f, amount = 0.4, ...) {
   assert_tfd(f)
   assert_number(amount, lower = 0, upper = 0.5)
   f <- as.tfd_irreg(f)
@@ -188,6 +193,11 @@ tf_jiggle_args <- function(arg, amount) {
 #' @param dropout what proportion of values of `f` to drop, on average. Defaults to half.
 #' @export
 tf_sparsify <- function(f, dropout = 0.5) {
+  UseMethod("tf_sparsify")
+}
+
+#' @export
+tf_sparsify.default <- function(f, dropout = 0.5) {
   assert_tf(f)
   nas <- map(tf_evaluations(f), \(x) runif(length(x)) < dropout)
   tf_evals <- map2(tf_evaluations(f), nas, \(x, y) x[!y])

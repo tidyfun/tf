@@ -178,3 +178,144 @@ test_that("tf_integrate on a zero-component tf_mv returns an empty result", {
   expect_true(is.matrix(out))
   expect_identical(dim(out), c(0L, 0L))
 })
+
+# --- Fail-fast contract for un-stubbed generics ------------------------------
+# For each S3 generic in NAMESPACE that has a univariate-tf method (tf / tfd /
+# tfb / tfd_reg / tfd_irreg / tfb_spline / tfb_fpc), calling it on a `tf_mv`
+# must either succeed (an explicit tf_mv method exists) or abort with the
+# classed `tf_mv_method_unimplemented` condition -- never an obscure deep
+# internal error, never NA garbage. See tidyfun/tf#255.
+
+# small probe set with explicit invocation recipes for verbs whose signatures
+# need a second argument or otherwise resist a generic walker call.
+mv_probe_calls <- function(fm) {
+  list(
+    summary       = function() summary(fm),
+    fivenum       = function() fivenum(fm),
+    quantile      = function() quantile(fm),
+    tf_depth      = function() tf_depth(fm),
+    tf_where      = function() tf_where(fm, value > 0),
+    tf_anywhere   = function() tf_anywhere(fm, value > 0),
+    tf_fmean      = function() tf_fmean(fm),
+    tf_crosscov   = function() tf_crosscov(fm, fm),
+    tf_crosscor   = function() tf_crosscor(fm, fm),
+    tf_interpolate = function() tf_interpolate(fm),
+    tf_sparsify   = function() tf_sparsify(fm),
+    tf_jiggle     = function() tf_jiggle(fm),
+    tf_fwise      = function() tf_fwise(fm, function(.x) max(.x$value)),
+    tf_invert     = function() tf_invert(fm),
+    rev           = function() rev(fm),
+    sort          = function() sort(fm),
+    rank          = function() rank(fm),
+    xtfrm         = function() xtfrm(fm)
+  )
+}
+
+test_that("explicitly probed unimplemented verbs abort with classed condition", {
+  set.seed(255)
+  fm <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  probes <- mv_probe_calls(fm)
+  for (nm in names(probes)) {
+    expect_error(
+      probes[[nm]](),
+      class = "tf_mv_method_unimplemented",
+      info = sprintf("%s() on tf_mv should signal tf_mv_method_unimplemented", nm)
+    )
+  }
+})
+
+test_that("every univariate-tf generic either has a tf_mv method or aborts cleanly", {
+  set.seed(2550)
+  fm <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+
+  # parse NAMESPACE: for each generic, collect the set of classes it's
+  # registered for. For an installed package (R CMD check, test_dir() on a
+  # library install) NAMESPACE sits at the package root; under
+  # devtools::load_all() the pkgload shim resolves the same call to the
+  # source-tree NAMESPACE.
+  ns_path <- system.file("NAMESPACE", package = "tf")
+  if (!nzchar(ns_path)) {
+    # not installed at all: fall back to the source-tree NAMESPACE.
+    ns_path <- testthat::test_path("..", "..", "NAMESPACE")
+  }
+  ns_lines <- readLines(ns_path)
+  expect_true(any(grepl("^S3method\\(", ns_lines)))
+  s3 <- grep("^S3method\\(", ns_lines, value = TRUE)
+  m <- regmatches(s3, regexec("^S3method\\(([^,]+),(.+)\\)$", s3))
+  pairs <- do.call(rbind.data.frame, lapply(m, function(x) {
+    if (length(x) == 3) {
+      data.frame(
+        generic = gsub('"', "", trimws(x[2])),
+        class = gsub('"', "", trimws(x[3])),
+        stringsAsFactors = FALSE
+      )
+    }
+  }))
+  by_gen <- split(pairs$class, pairs$generic)
+
+  univariate_classes <- c(
+    "tf", "tfd", "tfb",
+    "tfd_reg", "tfd_irreg",
+    "tfb_spline", "tfb_fpc"
+  )
+
+  has_univariate <- function(classes) any(classes %in% univariate_classes)
+  has_tf_mv <- function(classes) "tf_mv" %in% classes
+
+  # restrict to single-arg generics we can blindly call; everything else is
+  # already covered by the explicit probe table above.
+  walkable <- c(
+    "format", "print", "plot", "lines",
+    "tf_arg", "tf_domain", "tf_evaluations", "tf_count",
+    "as.data.frame", "as.matrix", "mean", "median", "sd", "var",
+    "is.na", "tf_derive", "tf_integrate", "tf_inner", "tf_norm",
+    "tf_tangent", "tf_smooth", "tf_evaluate", "tf_arclength",
+    "tf_rebase", "tf_zoom", "tf_warp", "tf_align",
+    "rev", "sort", "rank", "xtfrm", "summary", "fivenum", "quantile",
+    "tf_depth", "tf_interpolate", "tf_invert"
+  )
+
+  # The contract: a walked single-argument generic must either *succeed*
+  # (a real tf_mv method exists, just not registered under that name -- e.g.
+  # group generics) or abort with the classed `tf_mv_method_unimplemented`
+  # condition. Any other error -- classed or not -- means a stub is missing
+  # and the call fell through to a univariate method.
+  fails_cleanly <- function(call_expr) {
+    tryCatch(
+      {
+        eval(call_expr)
+        TRUE
+      },
+      tf_mv_method_unimplemented = function(e) TRUE,
+      error = function(e) {
+        structure(FALSE, message = conditionMessage(e))
+      }
+    )
+  }
+
+  checked <- character()
+  for (gen in names(by_gen)) {
+    classes <- by_gen[[gen]]
+    if (!has_univariate(classes)) next
+    if (has_tf_mv(classes)) next
+    if (!(gen %in% walkable)) next
+    # try a one-arg call; skip anything that genuinely needs >1 argument
+    call_expr <- str2lang(sprintf("%s(fm)", gen))
+    expect_true(
+      fails_cleanly(call_expr),
+      info = sprintf(
+        "Generic %s(): tf_mv path must either succeed or abort with tf_mv_method_unimplemented; any other error means a fail-fast stub is missing.",
+        gen
+      )
+    )
+    checked <- c(checked, gen)
+  }
+  # Sanity: walker observed *some* generics with univariate methods (else the
+  # NAMESPACE/test wiring is wrong).
+  expect_true(any(has_univariate(unlist(by_gen))))
+  # Sanity: the walkable list must actually overlap registered S3 generics --
+  # otherwise the walker silently iterates over nothing and the test rots into
+  # a no-op. (`checked` itself can legitimately be 0 once every univariate-tf
+  # generic has an explicit tf_mv method; that's the desired end state.)
+  expect_gt(length(intersect(walkable, names(by_gen))), 10)
+})
