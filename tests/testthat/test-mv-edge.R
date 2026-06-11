@@ -528,3 +528,123 @@ test_that("tf_inner.tf_mv rejects a non-tf_mv second argument informatively", {
   expect_error(tf_inner(f, tf_rgp(2)), "tf_mv")
   expect_error(tf_inner(f, 1:2), "tf_mv")
 })
+
+# ---- bracket seams: NA index, broadcast, and var() y handling ----------------
+
+test_that("[<-.tf_mv rejects a univariate tf and other non-NA scalars (#244)", {
+  set.seed(244)
+  g <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # broadcasting a univariate tf would silently corrupt every component:
+  expect_error(g[1] <- tf_rgp(1), "logical.*NA|tf_mv")
+  # bare numeric scalars are not a valid "all components NA" sentinel either
+  expect_error(g[1] <- 0, "logical.*NA|tf_mv")
+  # NA still works (the documented broadcast use-case)
+  g_na <- g
+  g_na[1] <- NA
+  expect_true(is.na(g_na$x[1]))
+  expect_true(is.na(g_na$y[1]))
+})
+
+test_that("[<-.tf_mv rejects typed NAs and validates length upfront (#244)", {
+  set.seed(2441)
+  g <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # Typed NAs are rejected with the new message rather than the downstream
+  # "Can't combine <double> and <tfd_reg>" complaint.
+  expect_error(g[1] <- NA_real_, "logical.*NA|tf_mv")
+  expect_error(g[1] <- NA_integer_, "logical.*NA|tf_mv")
+  # Length-mismatched all-NA value is rejected upfront with a clean message
+  # rather than the downstream vec_slice<- "Can't recycle" error.
+  expect_error(g[1] <- c(NA, NA), "length")
+  # logical(0) was already rejected; pin the behaviour.
+  expect_error(g[1] <- logical(0), "logical.*NA|tf_mv")
+})
+
+test_that("var(<tf|tf_mv>, y = NULL) explicitly works (#245)", {
+  set.seed(2451)
+  f <- tf_rgp(5)
+  fm <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  # passing an explicit NULL is the deliberate use case and must not error
+  expect_s3_class(var(f, y = NULL), "tf")
+  expect_s3_class(var(fm, y = NULL), "tf_mv")
+  # direct method calls too
+  expect_s3_class(var.tf(f, y = NULL), "tf")
+  expect_s3_class(var.tf_mv(fm, y = NULL), "tf_mv")
+})
+
+test_that("var.tf and var.tf_mv error on a non-NULL y (#245)", {
+  set.seed(245)
+  f <- tf_rgp(5)
+  g <- tf_rgp(5)
+  expect_error(var(f, g), "tf_crosscov|tf_crosscor")
+  fm <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  gm <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  expect_error(var(fm, gm), "tf_crosscov|tf_crosscor")
+  # var(x) without y still works
+  expect_s3_class(var(f), "tf")
+  expect_s3_class(var(fm), "tf_mv")
+})
+
+test_that("[.tf_mv rejects NA indices and out-of-bounds (#252)", {
+  set.seed(252)
+  f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  expect_error(f[c(1, NA)], "[Mm]issing|NA")
+  expect_error(f[c(1L, NA_integer_)], "[Mm]issing|NA")
+  # out-of-bounds also errors (was already implicit via vec_slice, kept for
+  # parity with univariate `[.tf`)
+  expect_error(f[10])
+})
+
+test_that("[.tf_mv emits the basis 'interpolate ignored' inform once (#252)", {
+  set.seed(2521)
+  fb <- tfb(tf_rgp(3), verbose = FALSE)
+  fbm <- tfb_mv(list(x = fb, y = fb))
+  msgs <- capture_messages(out <- fbm[1:2, , interpolate = FALSE])
+  # exactly one inform, not one per component
+  expect_length(grep("interpolate", msgs), 1L)
+})
+
+test_that("[.tf_mv honours interpolate = FALSE for tfd components (#270)", {
+  # For all-tfd tf_mv, no tfb-driven override fires, the user's
+  # `interpolate = FALSE` is honoured per component and we get the standard
+  # univariate `[.tf` NA-warning on out-of-grid j. Pinned here so the
+  # per-component override logic stays per-component rather than reverting
+  # to the old all-or-nothing global override (which would silently force
+  # interpolate = TRUE for tfd components whenever any future mixed
+  # tf_mv contains a single tfb component).
+  x <- tfd(matrix(1:3, nrow = 2, ncol = 3, byrow = TRUE), arg = 1:3)
+  y <- tfd(matrix(4:6, nrow = 2, ncol = 3, byrow = TRUE), arg = 1:3)
+  f <- tfd_mv(list(x = x, y = y))
+  msgs <- capture_messages(
+    suppressWarnings(
+      arr <- f[, c(1, 2.5), interpolate = FALSE]
+    )
+  )
+  # no 'interpolate ignored' inform when no component is basis-represented
+  expect_length(grep("interpolate ignored", msgs), 0L)
+  # 2.5 is not on the native grid -> NA under interpolate = FALSE
+  expect_true(all(is.na(arr[, "2.5", ])))
+  # 1 is on the native grid -> value preserved (= 1 for both rows of x)
+  expect_equal(unname(arr[, "1", "x"]), c(1, 1))
+})
+
+test_that("[<-.tf_mv length validation handles logical indices (#270)", {
+  set.seed(2701)
+  g <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # logical i with 2 TRUEs == 2 locations; 2 NAs should be accepted
+  g2 <- g
+  expect_no_error(g2[c(TRUE, FALSE, TRUE)] <- c(NA, NA))
+  expect_true(is.na(g2$x[1]))
+  expect_false(is.na(g2$x[2]))
+  expect_true(is.na(g2$x[3]))
+  # 2 TRUEs but 3 NAs -> length mismatch, clean tf_mv-level error
+  expect_error(
+    g[c(TRUE, FALSE, TRUE)] <- c(NA, NA, NA),
+    "length|tf_mv"
+  )
+  # negative indices: -1 = 2 locations on length-3, 2 NAs ok
+  g3 <- g
+  expect_no_error(g3[-1] <- c(NA, NA))
+  expect_false(is.na(g3$x[1]))
+  expect_true(is.na(g3$x[2]))
+  expect_true(is.na(g3$x[3]))
+})

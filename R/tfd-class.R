@@ -36,14 +36,20 @@ new_tfd <- function(
     evaluator_f <- get(evaluator, mode = "function", envir = parent.frame())
   }
 
-  if (
-    vec_size(datalist) == 0 || allMissing(unlist(datalist, use.names = FALSE))
-  ) {
+  # Truly empty input -> length-0 prototype. The sentinel domain
+  # `c(NA_real_, NA_real_)` matches the S4 prototype in R/tf-s4.R and avoids
+  # the `unique = TRUE` violation that `numeric(2)` (= c(0, 0)) would cause
+  # if a downstream caller ran `assert_arg` against it. "Truly empty" means
+  # either size 0 or every entry is a length-0 *numeric* vector (no NULLs --
+  # NULL is the in-vector representation of an NA function and must survive).
+  truly_empty <- vec_size(datalist) == 0 || (
+    !any(map_lgl(datalist, is.null)) && all(lengths(datalist) == 0L)
+  )
+  if (truly_empty) {
     arg <- arg %||% list(numeric())
-    domain <- domain %||% numeric(2)
+    domain <- domain %||% c(NA_real_, NA_real_)
     subclass <- if (regular) "tfd_reg" else "tfd_irreg"
     datalist <- list()
-    # message("empty or missing input `data`; returning prototype of length 0")
     ret <- new_vctr(
       datalist,
       arg = arg,
@@ -55,8 +61,66 @@ new_tfd <- function(
     return(ret)
   }
 
+  # All-NA input with size > 0: produce a length-n vector of NA functions
+  # rather than silently collapsing to length 0.
+  if (allMissing(unlist(datalist, use.names = FALSE))) {
+    n <- vec_size(datalist)
+    arg_list <- if (is.null(arg)) {
+      list(seq_len(max(lengths(datalist), 1L)))
+    } else {
+      ensure_list(arg)
+    }
+    domain <- domain %||% range(unlist(arg_list, use.names = FALSE))
+    if (!is.finite(domain[1]) || !is.finite(domain[2]) || domain[1] == domain[2]) {
+      domain <- c(NA_real_, NA_real_)
+    }
+    subclass <- if (regular) "tfd_reg" else "tfd_irreg"
+    # All entries are NA, so each becomes a NULL placeholder (tf's NA representation)
+    null_data <- vector("list", n)
+    names(null_data) <- names(datalist)
+    warn_na_entries_created(seq_len(n))
+    arg_attr <- if (regular) list(arg_list[[1]]) else numeric(0)
+    ret <- new_vctr(
+      null_data,
+      arg = arg_attr,
+      domain = domain,
+      evaluator = evaluator_f,
+      evaluator_name = evaluator,
+      class = c(subclass, "tfd", "tf")
+    )
+    return(ret)
+  }
+
   assert_string(evaluator)
   assert_function(evaluator_f, args = c("x", "arg", "evaluations"), nargs = 3)
+
+  # arg/datalist length invariant: regular -> shared arg (list of length 1);
+  # irregular -> per-entry arg list (length 1 = shared, or length n).
+  # Every non-NA data entry must have length matching its arg vector.
+  arg_list <- ensure_list(arg)
+  if (
+    length(arg_list) != 1 && length(arg_list) != length(datalist)
+  ) {
+    cli::cli_abort(
+      "Length of {.arg arg} list ({length(arg_list)}) must be 1 or match length of {.arg data} ({length(datalist)})."
+    )
+  }
+  arg_lens <- lengths(arg_list)
+  data_lens <- lengths(datalist)
+  bad <- map_lgl(seq_along(datalist), \(i) {
+    x <- datalist[[i]]
+    if (is.null(x) || allMissing(x)) return(FALSE)
+    expected <- if (length(arg_list) == 1) arg_lens[1] else arg_lens[i]
+    length(x) != expected
+  })
+  if (any(bad)) {
+    bad_idx <- which(bad)
+    cli::cli_abort(c(
+      "Lengths of {.arg arg} do not match lengths of {.arg data} entries.",
+      i = "Mismatched entries at indices: {.val {bad_idx}}.",
+      i = "Data lengths there: {.val {data_lens[bad]}}."
+    ))
+  }
 
   # sort args and values by arg:
   arg_o <- map(arg, order)
@@ -282,20 +346,38 @@ tfd.list <- function(
     where_na <- map(data, is.na)
     data <- map2(data, where_na, \(x, y) x[!y])
     lens <- lengths(data)
-    empty <- lens != 0
-    regular <- all(lens[!empty] == lens[!empty][1]) &
-      (is.numeric(arg) || all(duplicated(arg)[-1]))
+    nonempty <- lens != 0
+    # arg-length probe: derive the shared arg-vector length (if any) we'd
+    # use in the regular path; if it doesn't match the (post-NA-strip) data
+    # entries, the data is in fact irregular and must take the per-entry path.
+    arg_shared_len <- if (is.numeric(arg)) {
+      length(arg)
+    } else if (is.list(arg) && length(arg) == 1) {
+      length(arg[[1]])
+    } else {
+      NA_integer_
+    }
+    arg_lens_ok <- is.na(arg_shared_len) ||
+      all(lens[nonempty] == arg_shared_len)
+    regular <- all(lens[nonempty] == lens[nonempty][1]) &
+      (is.numeric(arg) || all(duplicated(arg)[-1])) &
+      arg_lens_ok
     # duplicated(NULL) == TRUE!
     if (!regular) {
       if (is.null(arg)) {
         cli::cli_abort("{.arg arg} cannot be NULL")
+      }
+      # expand a shared arg-vector to a per-entry list before NA-stripping
+      if (is.numeric(arg) || (is.list(arg) && length(arg) == 1)) {
+        arg_vec <- if (is.numeric(arg)) arg else arg[[1]]
+        arg <- rep(list(arg_vec), length(data))
       }
       if (length(arg) != length(data)) {
         cli::cli_abort(
           "Length of {.arg arg} list does not match {.arg data} list."
         )
       }
-      if (any(lengths(arg)[!empty] != lengths(where_na)[!empty])) {
+      if (any(lengths(arg)[nonempty] != lengths(where_na)[nonempty])) {
         cli::cli_abort(
           "Lengths of {.arg arg} vectors do not match lengths of {.arg data} list entries."
         )

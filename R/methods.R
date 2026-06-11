@@ -189,7 +189,12 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @export
 `tf_arg<-.tfd_irreg` <- function(x, value) {
   assert_arg(value, x, check_unique = FALSE)
-  ret <- map2(tf_evaluations(x), value, \(x, y) list(arg = y, data = x))
+  value <- ensure_list(value)
+  if (length(value) == 1) value <- rep(value, length(x))
+  ret <- map2(tf_evaluations(x), value, \(v, y) {
+    if (is.null(v)) return(NULL)
+    list(arg = y, value = v)
+  })
   attributes(ret) <- attributes(x)
   ret
 }

@@ -10,13 +10,7 @@ Authors@R: c(
     person("Julia", "Wrobel", role = "ctb",
            comment = c(ORCID = "0000-0001-6783-1421")),
     person("Sebastian", "Fischer", role = "ctb",
-           comment = c(ORCID = "0000-0002-9609-3197")),
-    person("Trevor", "Hastie", role = "ctb",
-           comment = "softImpute author"),
-    person("Rahul", "Mazumder", role = "ctb",
-           comment = "softImpute author"),
-    person("Chen", "Meng", role = "ctb",
-           comment = "mogsa author")
+           comment = c(ORCID = "0000-0002-9609-3197"))
   )
 Description: Provides S3 vector types for functional data represented on
     grids, in spline bases, or via functional principal components.

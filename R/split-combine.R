@@ -31,17 +31,20 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
   include <- match.arg(include)
   resolution_x <- get_resolution(tf_arg(x))
   # if user supplied domain limit(s), remove
-  if (splits[1] == tf_domain(x)[1]) {
+  if (length(splits) && splits[1] == tf_domain(x)[1]) {
     splits <- splits[-1]
   }
-  if (splits[length(splits)] == tf_domain(x)[2]) {
+  if (length(splits) && splits[length(splits)] == tf_domain(x)[2]) {
     splits <- splits[-length(splits)]
+  }
+  if (length(splits) == 0) {
+    return(list(x))
   }
 
   start <- c(tf_domain(x)[1], splits)
   end <- c(splits, tf_domain(x)[2])
   if (include == "left") {
-    end[1:(length(end) - 1)] <- head(end, -1) - resolution_x
+    end[seq_len(length(end) - 1)] <- head(end, -1) - resolution_x
   }
   if (include == "right") {
     start[-1] <- start[-1] + resolution_x

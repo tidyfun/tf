@@ -76,15 +76,44 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   comps <- tf_components(x)
   comp_names <- attr(x, "comp_names")
 
+  # `interpolate = FALSE` is only meaningful for tfd components; tfb components
+  # are always evaluated from their basis representation. Build a per-component
+  # `interpolate` vector so we honour the user's choice for tfd components in
+  # any (potentially mixed) tf_mv, and emit the "interpolate ignored" inform
+  # at most once even when several components are basis-represented (#252).
+  comp_is_tfb <- map_lgl(comps, is_tfb)
+  if (!interpolate && any(comp_is_tfb)) {
+    cli::cli_inform(
+      "{.arg interpolate} ignored for data in basis representation."
+    )
+  }
+  interpolate_comp <- ifelse(comp_is_tfb, TRUE, interpolate)
+
   # matrix-index i: (function, arg) pairs -> (nrow(i) x d) matrix
   if (!missing(i) && is.matrix(i)) {
-    cols <- map(comps, \(comp) comp[i, interpolate = interpolate])
+    cols <- map2(
+      comps,
+      interpolate_comp,
+      \(comp, intp) comp[i, interpolate = intp]
+    )
     ret <- do.call(cbind, cols)
     colnames(ret) <- comp_names
     return(ret)
   }
 
-  if (missing(i)) i <- seq_along(x)
+  # Validate `i` the same way univariate `[.tf` does (no NA, no missing names,
+  # no out-of-bounds). TODO(#263): replace with a shared helper that also
+  # handles `j`-normalisation, to remove the duplication with `[.tf`.
+  if (missing(i)) {
+    i <- seq_along(x)
+  } else {
+    i <- vec_as_location(
+      i,
+      n = vec_size(x),
+      names = names(x),
+      missing = "error"
+    )
+  }
   xi <- vec_slice(x, i)
 
   if (missing(j) && missing(matrix)) {
@@ -105,9 +134,10 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
         dimnames = list(names(xi), as.character(j), comp_names)
       ))
     }
-    mats <- map(
+    mats <- map2(
       comps_i,
-      \(comp) comp[, j, interpolate = interpolate, matrix = TRUE]
+      interpolate_comp,
+      \(comp, intp) comp[, j, interpolate = intp, matrix = TRUE]
     )
     arr <- array(
       unlist(mats, use.names = FALSE),
@@ -120,9 +150,10 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   if (!length(comps_i) || n_i == 0L) {
     return(setNames(vector("list", n_i), names(xi)))
   }
-  dfs <- map(
+  dfs <- map2(
     comps_i,
-    \(comp) comp[, j, interpolate = interpolate, matrix = FALSE]
+    interpolate_comp,
+    \(comp, intp) comp[, j, interpolate = intp, matrix = FALSE]
   )
   map(seq_len(n_i), function(k) {
     base <- dfs[[1]][[k]]
@@ -148,7 +179,32 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     check_compatible_mv(x, value)
     tf_components(value)
   } else {
-    # a scalar (typically NA) is broadcast to every component
+    # Only logical NA is broadcast across every component. Typed NAs
+    # (NA_real_, NA_integer_) and any non-NA value -- including a univariate
+    # tf -- are rejected: they would silently make every component identical
+    # or trigger a confusing downstream "Can't combine" error.
+    is_logical_na <- is.logical(value) && length(value) && all(is.na(value))
+    if (!is_logical_na) {
+      cli::cli_abort(
+        "expected logical {.code NA} or another {.cls tf_mv} on the right-hand side."
+      )
+    }
+    # Validate length upfront so we emit a clean message rather than the
+    # downstream vec_slice<- "Can't recycle" complaint. Use vctrs subassignment
+    # semantics so logical / negative / named indices give the correct number
+    # of replacement locations rather than `length(i)`.
+    n_loc <- length(vec_as_location(
+      i,
+      n = vec_size(x),
+      names = names(x),
+      missing = "error"
+    ))
+    if (length(value) > 1L && length(value) != n_loc) {
+      cli::cli_abort(
+        "length of {.arg value} ({length(value)}) must be 1 or match \\
+        the number of locations in {.arg i} ({n_loc})."
+      )
+    }
     rep(list(value), length(comps))
   }
   new_comps <- map2(comps, value_comps, function(comp, v) {

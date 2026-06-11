@@ -178,7 +178,13 @@ srvf_mv_array_to_tfd_mv <- function(
 
 srvf_mv_gamma_to_warps <- function(gamma, arg, domain, curve_names = NULL) {
   gamma <- as.matrix(gamma)
-  warp <- domain[1] + diff(domain) * t(gamma)
+  # fdasrvf returns `gamma` normalized to the observed time grid; rescale by
+  # `range(arg)` -- NOT `domain`, which may be wider (#242). Endpoints get
+  # pinned to arg[1]/arg[k], so a domain-based rescale would yield
+  # non-monotone warps whenever `domain != range(arg)`.
+  lwr <- arg[1]
+  upr <- arg[length(arg)]
+  warp <- lwr + (upr - lwr) * t(gamma)
   warp[, 1] <- arg[1]
   warp[, ncol(warp)] <- arg[length(arg)]
   if (!is.null(curve_names)) {

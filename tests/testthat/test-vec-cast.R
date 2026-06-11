@@ -85,12 +85,75 @@ test_that("vec_cast for tfd to tfd works/fails as expected", {
 })
 
 test_that("vec_cast for tfb to tfb works/fails as expected", {
-  # tfb -> tfb  should always fail unless bases are identical
-  expect_cast_result(l$b, l$b)
-  expect_cast_result(l$fp_low, l$fp_low)
+  # tfb -> tfb  should always fail unless bases are identical;
+  # when it succeeds, all attributes (including `arg`) must match `to` exactly.
+  expect_cast_result(l$b, l$b, ignore = integer(0))
+  expect_cast_result(l$fp_low, l$fp_low, ignore = integer(0))
   expect_error(vec_cast(l$b, l$b2), "precision")
   expect_error(vec_cast(l$b, l$fp), "precision")
   expect_error(vec_cast(l$fp, l$fp_low), "precision")
+})
+
+test_that("tfb_spline -> tfb_spline cast actually exercises tf_rebase (#239)", {
+  # Two tfb_spline vectors with *different* arg grids and different `k` so
+  # `tf_basis(to)(tf_arg(x))` does not match x's basis matrix, the in-method
+  # same_basis check at R/vctrs-cast.R:108 is FALSE, and vec_cast_tfb_tfb
+  # actually runs tf_rebase (not the identity short-circuit at L113).
+  set.seed(239239)
+  x_src <- tf_rgp(3, arg = seq(0, 1, length.out = 21))
+  x_to <- tf_rgp(3, arg = seq(0, 1, length.out = 41))
+  b_src <- tfb(x_src, k = 7, verbose = FALSE)
+  b_to <- tfb(x_to, k = 11, verbose = FALSE)
+  expect_false(tf:::same_basis(b_src, b_to))
+
+  cast <- vctrs::allow_lossy_cast(vec_cast(b_src, b_to))
+  # invariant: result lives in to's basis (arg grid + basis_label + same_basis)
+  expect_identical(tf_arg(cast), tf_arg(b_to))
+  expect_identical(attr(cast, "basis_label"), attr(b_to, "basis_label"))
+  expect_identical(attr(cast, "basis_args"), attr(b_to, "basis_args"))
+  expect_true(tf:::same_basis(cast, b_to))
+  # vec_ptype of the cast equals vec_ptype(to) on all attributes except the
+  # `basis` closure (closure environments are not stable across constructors).
+  cast_ptype_attrs <- attributes(vec_ptype(cast))
+  to_ptype_attrs <- attributes(vec_ptype(b_to))
+  cast_ptype_attrs$basis <- NULL
+  to_ptype_attrs$basis <- NULL
+  expect_identical(cast_ptype_attrs, to_ptype_attrs)
+})
+
+test_that("#269 vec_cast_tfb_tfb honours arg in short-circuit", {
+  # Two tfb_spline vectors with the *same* basis spec but different stored arg
+  # grids -- the basis-matrix equality check is satisfied, but returning x as-is
+  # would violate the cast invariant that result attributes (including `arg`)
+  # match `to`.
+  set.seed(269269)
+  x_full <- tf_rgp(3, arg = seq(0, 1, length.out = 51)) |> suppressMessages()
+  b <- tfb(x_full, k = 9, verbose = FALSE)
+  # interpolate b onto a different arg grid; same basis spec is reused, but
+  # `arg` and `basis_matrix` change.
+  arg_new <- seq(0, 1, length.out = 31)
+  b_interp <- tf_interpolate(b, arg = arg_new) |> suppressMessages()
+  expect_false(identical(tf_arg(b), tf_arg(b_interp)))
+
+  cast <- vctrs::allow_lossy_cast(vec_cast(b_interp, b))
+  # cast invariant: result lives on to's arg grid, not x's
+  expect_identical(tf_arg(cast), tf_arg(b))
+  expect_identical(attr(cast, "basis_matrix"), attr(b, "basis_matrix"))
+})
+
+test_that("tfb_fpc -> tfb_fpc cast actually exercises tf_rebase (#239)", {
+  # Different arg grids -> same_basis is FALSE so the rebase path runs.
+  set.seed(2392392)
+  x_src <- suppressMessages(tf_smooth(tf_rgp(8, arg = seq(0, 1, length.out = 21))))
+  x_to <- suppressMessages(tf_smooth(tf_rgp(8, arg = seq(0, 1, length.out = 41))))
+  f_src <- tfb_fpc(x_src, pve = 0.9)
+  f_to <- tfb_fpc(x_to, pve = 0.9)
+  expect_false(tf:::same_basis(f_src, f_to))
+
+  cast <- vctrs::allow_lossy_cast(vec_cast(f_src, f_to))
+  expect_identical(tf_arg(cast), tf_arg(f_to))
+  expect_identical(attr(cast, "basis_label"), attr(f_to, "basis_label"))
+  expect_true(tf:::same_basis(cast, f_to))
 })
 
 test_that("vec_cast for tfd to tfb fails as expected", {

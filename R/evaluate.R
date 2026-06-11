@@ -73,8 +73,15 @@ evaluate_tfd_once <- function(
   seen <- !is.na(seen)
   ret <- rep(NA_real_, length(new_arg))
   ret[seen] <- evaluations[seen_index]
-  ret[!seen] <-
-    evaluator(new_arg[!seen], arg = arg, evaluations = evaluations)
+  if (any(!seen)) {
+    # evaluator may sort/uniquify its input (see zoo_wrapper); evaluate on
+    # the unique sorted unseen args, then map back so duplicated `new_arg`
+    # values land at the correct positions.
+    unseen <- new_arg[!seen]
+    u <- sort_unique(unseen)
+    vals <- evaluator(u, arg = arg, evaluations = evaluations)
+    ret[!seen] <- vals[match(unseen, u)]
+  }
   ret
 }
 
