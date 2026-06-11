@@ -85,27 +85,41 @@ tf_rebase.tfd.tfb_spline <- function(
   ...
 ) {
   assert_same_domains(object, basis_from)
-  # extract evals from object
-  data <- as.data.frame(object, unnest = TRUE)
   dots <- list(...)
-  dots$penalized <- dots$penalized %||%
-    !(is.na(attr(basis_from, "basis_args")$sp))
   basis_args <- attr(basis_from, "basis_args")
-  basis_args <- basis_args[names(basis_args) != "sp"]
-  do.call(
+  dots$penalized <- dots$penalized %||% !is.na(basis_args$sp)
+
+  # Fit on object's NATIVE arg values, reusing basis_from's mgcv spec — no
+  # pre-interpolation (that would compound interpolation error on top of basis
+  # approximation error). spec_override skips mgcv's unique-args-vs-k check
+  # so the under-determined case (n_obs <= k) succeeds via the penalty.
+  fit <- do.call(
     new_tfb_spline,
     c(
       list(
-        data = data,
+        data = as.data.frame(object, unnest = TRUE),
         domain = tf_domain(basis_from),
-        arg = arg,
-        sp = attr(basis_from, "basis_args")$sp,
-        family = attr(basis_from, "family")
+        sp = basis_args$sp,
+        family = attr(basis_from, "family"),
+        spec_override = environment(attr(basis_from, "basis"))$spec
       ),
-      basis_args,
       dots
     )
   )
+
+  # Re-home onto basis_from's arg / basis_matrix / closure / labels: the
+  # coefficients ARE the spline function in basis-coordinate space; the stored
+  # basis_matrix is just cached evaluation at the stored arg. Swapping the
+  # cache (and the label / basis_args attributes) makes
+  # `same_basis(result, basis_from)` TRUE so downstream arithmetic stays
+  # warning-free.
+  attr(fit, "arg") <- tf_arg(basis_from)
+  attr(fit, "basis") <- attr(basis_from, "basis")
+  attr(fit, "basis_matrix") <- attr(basis_from, "basis_matrix")
+  attr(fit, "basis_args") <- attr(basis_from, "basis_args")
+  attr(fit, "basis_label") <- attr(basis_from, "basis_label")
+  attr(fit, "family_label") <- attr(basis_from, "family_label")
+  fit
 }
 
 #' @export
@@ -148,7 +162,7 @@ tf_rebase.tfb.tfd <- function(
     evaluator = attr(basis_from, "evaluator_name")
   )
   tfd_args <- modifyList(tfd_args, list(...))
-  do.call(tfd, append(tfd_args, list(data = object, arg = arg, ...)))
+  do.call(tfd, append(tfd_args, list(data = object, arg = arg)))
 }
 
 #' @export
