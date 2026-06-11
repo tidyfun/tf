@@ -144,12 +144,13 @@ validate_tf <- function(x) {
   }
   # ---- domain (all tf subclasses) -----------------------------------------
   domain <- attr(x, "domain")
-  # length-0 prototypes legitimately carry a degenerate domain c(0, 0); only
-  # check non-degeneracy / sortedness for non-empty objects.
+  # length-0 prototypes legitimately carry a degenerate domain — numeric(2) (= c(0, 0))
+  # in the tfb constructors, or c(NA_real_, NA_real_) in the tfd constructors (matching
+  # the S4 prototype); only require the structural shape (length-2 numeric) for prototypes.
   is_proto <- length(unclass(x)) == 0L
   bad_domain <- !is.numeric(domain) || length(domain) != 2L ||
-    anyNA(domain) || any(!is.finite(domain)) || domain[1] > domain[2] ||
-    (!is_proto && length(unique(domain)) != 2L)
+    (!is_proto && (anyNA(domain) || any(!is.finite(domain)) ||
+       domain[1] > domain[2] || length(unique(domain)) != 2L))
   if (bad_domain) {
     cli::cli_abort(paste0(
       "Invalid {.field domain}: must be a finite, sorted length-2 numeric ",
