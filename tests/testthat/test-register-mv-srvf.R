@@ -194,3 +194,37 @@ test_that("summary.tf_shape_registration reports rotation angles and scale decil
   expect_true(any(grepl("Rotation angles", out)))
   expect_true(any(grepl("Scale factors", out)))
 })
+
+test_that("shape_rotation_angles handles 2D and 3D correctly (#271)", {
+  # 2D: rotation by pi/4
+  theta <- pi / 4
+  R2 <- matrix(c(cos(theta), sin(theta), -sin(theta), cos(theta)), 2, 2)
+  rot2 <- array(R2, dim = c(2, 2, 1))
+  expect_equal(tf:::shape_rotation_angles(rot2), theta)
+
+  # 2D: signed (negative) rotation
+  R2neg <- matrix(c(cos(-theta), sin(-theta), -sin(-theta), cos(-theta)), 2, 2)
+  rot2neg <- array(R2neg, dim = c(2, 2, 1))
+  expect_equal(tf:::shape_rotation_angles(rot2neg), -theta)
+
+  # 3D: rotation by pi/3 about x-axis -- acos((tr(R) - 1) / 2) == pi/3
+  phi <- pi / 3
+  R3 <- matrix(c(
+    1, 0, 0,
+    0, cos(phi), sin(phi),
+    0, -sin(phi), cos(phi)
+  ), 3, 3)
+  rot3 <- array(R3, dim = c(3, 3, 1))
+  expect_equal(tf:::shape_rotation_angles(rot3), phi)
+})
+
+test_that("shape_rotation_angles warns and returns NA for d > 3 (#271)", {
+  # 4x4 identity stacks - skip the random-rotation construction; the formula
+  # is not meaningful for d > 3 regardless of the matrix's content.
+  rot4 <- array(diag(4), dim = c(4, 4, 2))
+  expect_warning(
+    angles <- tf:::shape_rotation_angles(rot4),
+    "not implemented for"
+  )
+  expect_equal(angles, rep(NA_real_, 2))
+})

@@ -418,8 +418,13 @@ print.summary.tf_registration <- function(x, ...) {
 }
 
 # Extract rotation angle (radians) from each per-curve rotation matrix in the
-# shape registration. Supports 2D (signed angle in [-pi, pi]) and generic d-D
-# via the standard arccos((tr(R) - 1) / 2) for d > 2.
+# shape registration. Uses `atan2(R[2,1], R[1,1])` in 2D (signed angle in
+# [-pi, pi]) and `acos((tr(R) - 1) / 2)` in 3D (the standard SO(3) angle).
+# For d > 3 there is no single rotation angle -- a rotation is characterised by
+# `floor(d / 2)` independent angles (Jordan-block / SVD structure of R) -- so
+# we return NA with a warning. Follow-up: a dimension-agnostic scalar summary
+# could be `sqrt(sum(log_skew_matrix(R)^2) / 2)`, the Frobenius norm of the
+# matrix logarithm, which reduces to the angle in 2D/3D.
 shape_rotation_angles <- function(rotations) {
   if (is.null(rotations)) {
     return(numeric(0))
@@ -436,14 +441,23 @@ shape_rotation_angles <- function(rotations) {
       numeric(1)
     ))
   }
-  vapply(
-    seq_len(n),
-    \(i) {
-      tr <- sum(diag(rotations[,, i]))
-      acos(max(-1, min(1, (tr - 1) / 2)))
-    },
-    numeric(1)
-  )
+  if (d == 3L) {
+    return(vapply(
+      seq_len(n),
+      \(i) {
+        tr <- sum(diag(rotations[,, i]))
+        acos(max(-1, min(1, (tr - 1) / 2)))
+      },
+      numeric(1)
+    ))
+  }
+  cli::cli_warn(c(
+    "Rotation-angle summary is not implemented for {.code d = {d}} (d > 3).",
+    "i" = "Higher-dimensional rotations are characterised by {floor(d / 2)}
+           independent rotation-plane angles, not a single angle.",
+    "i" = "Consider reporting per-pair angles or the matrix-logarithm norm."
+  ))
+  rep(NA_real_, n)
 }
 
 #' @rdname tf_registration
@@ -453,8 +467,8 @@ summary.tf_shape_registration <- function(object, ...) {
   probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
   angles <- shape_rotation_angles(object$rotations)
   scales <- object$scales %||% numeric(0)
-  base$rotation_angles_deg <- if (length(angles)) {
-    stats::quantile(angles * 180 / pi, probs = probs)
+  base$rotation_angles_deg <- if (length(angles) && any(!is.na(angles))) {
+    stats::quantile(angles * 180 / pi, probs = probs, na.rm = TRUE)
   } else {
     NULL
   }
