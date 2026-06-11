@@ -1,73 +1,88 @@
-# copied from softImpute::Frob (v 1.4-1) under GPL-2
-# original authors: Trevor Hastie <hastie@stanford.edu> and Rahul Mazumder <rahul.mazumder@gmail.com>
-frob <- function(Uold, Dsqold, Vold, U, Dsq, V) {
-  denom <- sum(Dsqold^2)
-  utu <- Dsq * (t(U) %*% Uold)
-  vtv <- Dsqold * (t(Vold) %*% V)
-  uvprod <- sum(diag(utu %*% vtv))
-  num <- denom + sum(Dsq^2) - 2 * uvprod
-  num / max(denom, 1e-09)
+# Soft-impute SVD: iteratively SVD a matrix with NAs, replacing NAs by their
+# rank-J reconstruction (with optionally soft-thresholded singular values) until
+# the Frobenius-distance of consecutive rank-J factors converges. Used by
+# `fpc_wsvd()` to do FPCA on partially missing data on a common grid.
+
+# Squared Frobenius distance between two rank-J factorizations
+# (U1 diag(d1) V1') and (U2 diag(d2) V2'), normalized by ||U1 diag(d1) V1'||_F^2.
+# Computed via the inner-product identity to avoid forming the full products.
+.simpute_frob_ratio <- function(u1, d1, v1, u2, d2, v2) {
+  denom <- sum(d1^2)
+  # cross = tr( diag(d2) (u2' u1) diag(d1) (v1' v2) ), computed as sum(A * t(B))
+  cross <- sum((d2 * crossprod(u2, u1)) * t(d1 * crossprod(v1, v2)))
+  (denom + sum(d2^2) - 2 * cross) / max(denom, 1e-9)
 }
 
-# code slightly adapted and shortened from softImpute::simpute.svd.R (v 1.4-1) under GPL-2
-# original authors: Trevor Hastie <hastie@stanford.edu> and Rahul Mazumder <rahul.mazumder@gmail.com>
-# adaptations:
-#  - no warm starts, no returned call, no attributes
-# inputs: x matrix of weighted (w/ integration weights) & centered (!) function evaluations, with NAs
-# output: (regularized) SVD of x
-simpute_svd <- function(
-  x,
-  J = min(dim(x)) - 1,
-  thresh = 1e-05,
-  lambda = 0,
-  maxit = 100,
-  trace.it = FALSE,
-  ...
-) {
-  n <- dim(x)
-  m <- n[2]
-  n <- n[1]
-  xnas <- is.na(x)
-
-  nz <- m * n - sum(xnas)
-  xfill <- x
-  xfill[xnas] <- 0
-
-  svd.xfill <- svd(xfill)
-  ratio <- 1
-  iter <- 0
-  while ((ratio > thresh) && (iter < maxit)) {
-    iter <- iter + 1
-    svd.old <- svd.xfill
-    d <- svd.xfill$d
-    d <- pmax(d - lambda, 0)
-    xhat <- svd.xfill$u[, seq(J)] %*% (d[seq(J)] * t(svd.xfill$v[, seq(J)]))
-    xfill[xnas] <- xhat[xnas]
-    svd.xfill <- svd(xfill)
-    ratio <- frob(
-      svd.old$u[, seq(J)],
-      d[seq(J)],
-      svd.old$v[, seq(J)],
-      svd.xfill$u[, seq(J)],
-      pmax(svd.xfill$d - lambda, 0)[seq(J)],
-      svd.xfill$v[, seq(J)]
-    )
-    if (trace.it) {
-      obj <- (0.5 * sum((xfill - xhat)[!xnas]^2) + lambda * sum(d)) / nz
-      cat(iter, ":", "obj", format(round(obj, 5)), "ratio", ratio, "\n")
-    }
+# Soft-impute SVD as used in fpc_wsvd() for matrices with NAs.
+#
+# inputs:
+#   x       : numeric matrix of (weighted, centered) function evaluations,
+#             entries may be NA
+#   J       : truncation rank used for the imputation reconstruction
+#   thresh  : convergence threshold on the relative Frobenius change
+#   lambda  : soft-threshold applied to singular values (0 = hard rank-J)
+#   maxit   : iteration cap
+# output: list(u, d, v) with non-zero singular values (and a final +1 buffer),
+#         analogous to base::svd() but operating on an NA-filled matrix.
+simpute_svd <- function(x,
+                        J = min(dim(x)) - 1,
+                        thresh = 1e-5,
+                        lambda = 0,
+                        maxit = 100,
+                        ...) {
+  # clamp J to the available SVD rank; guards against J > min(dim(x)) and
+  # against the degenerate default J = 0 for single-row/column inputs
+  J <- max(min(as.integer(J), min(dim(x))), 1L)
+  nas <- is.na(x)
+  if (!any(nas)) {
+    s <- svd(x)
+    keep <- seq_len(min(J, length(s$d)))
+    return(list(u = s$u[, keep, drop = FALSE],
+                d = pmax(s$d[keep] - lambda, 0),
+                v = s$v[, keep, drop = FALSE]))
   }
-  d <- pmax(svd.xfill$d[seq(J)] - lambda, 0)
-  J <- min(sum(d > 0) + 1, J)
-  svd.xfill <- list(
-    u = svd.xfill$u[, seq(J)],
-    d = d[seq(J)],
-    v = svd.xfill$v[, seq(J)]
-  )
-  if (iter == maxit) {
+
+  # Initial fill: zeros. Callers pass column-centered data, so zero is the
+  # column mean. This is a standard warm start for soft-impute.
+  filled <- x
+  filled[nas] <- 0
+
+  s_prev <- svd(filled)
+  idx <- seq_len(J)
+
+  # so the convergence check below is defined even if maxit < 1
+  ratio <- Inf
+  for (iter in seq_len(maxit)) {
+    d_thr <- pmax(s_prev$d - lambda, 0)
+    # rank-J reconstruction; impute the missing cells with it
+    xhat <- s_prev$u[, idx, drop = FALSE] %*%
+      (d_thr[idx] * t(s_prev$v[, idx, drop = FALSE]))
+    filled[nas] <- xhat[nas]
+
+    s_new <- svd(filled)
+    d_new_thr <- pmax(s_new$d - lambda, 0)
+
+    ratio <- .simpute_frob_ratio(
+      s_prev$u[, idx, drop = FALSE], d_thr[idx], s_prev$v[, idx, drop = FALSE],
+      s_new$u[, idx, drop = FALSE], d_new_thr[idx], s_new$v[, idx, drop = FALSE]
+    )
+
+    s_prev <- s_new
+    if (ratio < thresh) break
+  }
+
+  # the loop above only breaks early once ratio < thresh, so this means
+  # the iteration budget was exhausted without convergence
+  if (ratio >= thresh) {
     cli::cli_warn(
       "Convergence not achieved in {maxit} iterations for incomplete-data SVD."
     )
   }
-  svd.xfill
+
+  d_final <- pmax(s_prev$d[idx] - lambda, 0)
+  keep <- min(sum(d_final > 0) + 1, J)
+  keep_idx <- seq_len(keep)
+  list(u = s_prev$u[, keep_idx, drop = FALSE],
+       d = d_final[keep_idx],
+       v = s_prev$v[, keep_idx, drop = FALSE])
 }

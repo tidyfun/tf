@@ -11,14 +11,13 @@
 #' given quadrature weights \eqn{\Delta_i}, not
 #' \eqn{\phi_j'\phi_j = \sum_i \phi_j(t_i)^2 = 1};\cr
 #' \eqn{\int_T \phi_j(t) \phi_k(t) dt = 0} not
-#' \eqn{\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0},
-#' c.f. `mogsa::wsvd()`.\cr
-#' For incomplete data, this uses an adaptation of `softImpute::softImpute()`,
-#' see references. Note that will not work well for data on a common grid if more
-#' than a few percent of data points are missing, and it breaks down completely
-#' for truly irregular data with no/few common timepoints, even if observed very
-#' densely. For such data, either re-evaluate on a common grid first or use more
-#' advanced FPCA approaches like `refund::fpca_sc()`,
+#' \eqn{\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0}.\cr
+#' For incomplete data, this uses a soft-impute iterative-SVD scheme
+#' (see references). Note that this will not work well for data on a common grid
+#' if more than a few percent of data points are missing, and it breaks down
+#' completely for truly irregular data with no/few common timepoints, even if
+#' observed very densely. For such data, either re-evaluate on a common grid
+#' first or use more advanced FPCA approaches like `refund::fpca_sc()`,
 #' see last example for [tfb_fpc()]
 #'
 #' @param data numeric matrix of function evaluations
@@ -32,10 +31,9 @@
 #' - `npc` how many FPCs were returned for the given `pve` (integer)
 #' - `scoring_function` a function that returns FPC scores for new data
 #'    and given eigenfunctions, see `tf:::.fpc_wsvd_scores` for an example.
-#' @author Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
-#' @references code adapted from / inspired by `mogsa::wsvd()` by Chen Meng
-#'   and `softImpute::softImpute()` by Trevor Hastie and Rahul Mazumder.\cr
-#' `r format_bib("meng2023mogsa", "mazumder2010", "softimpute")`
+#' @author Fabian Scheipl
+#' @references the soft-impute SVD algorithm for incomplete data is described in
+#' `r format_bib("mazumder2010")`
 #' @family tfb-class
 #' @family tfb_fpc-class
 fpc_wsvd <- function(data, arg, pve = 0.995) {
@@ -61,7 +59,7 @@ fpc_wsvd.matrix <- function(data, arg, pve = 0.995) {
     svd(data_wc, nu = 0, nv = min(dim(data)))
   } else {
     cli::cli_inform(
-      "Using softImpute SVD on {round(mean(nas) * 100, 1)}% missing data."
+      "Using soft-impute SVD on {round(mean(nas) * 100, 1)}% missing data."
     )
     if (pve + mean(nas) > 1) {
       cli::cli_inform(c(
