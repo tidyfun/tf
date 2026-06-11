@@ -18,8 +18,7 @@ version](https://tidyfun.r-universe.dev/tf/badges/version)](https://tidyfun.r-un
 The **`tf`** package provides necessary infrastructure for
 [**`tidyfun`**](https://tidyfun.github.io/tidyfun/) with minimal
 dependencies – `vctrs`/`rlang`/`cli`/`purrr` from the r-lib/tidyverse
-ecosystem, otherwise just `mgcv`, `zoo`, `mvtnorm`, `pracma`,
-`checkmate`.
+ecosystem, otherwise just `mgcv`, `zoo`, and `checkmate`.
 
 The goal of **`tidyfun`**, in turn, is to provide accessible and
 well-documented software that **makes functional data analysis in `R`
