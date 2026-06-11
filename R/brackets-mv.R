@@ -76,19 +76,26 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   comps <- tf_components(x)
   comp_names <- attr(x, "comp_names")
 
-  # If any component is basis-represented, the per-component `[.tf` would emit
-  # the "interpolate ignored" inform once per component; emit it once here
-  # and suppress the per-component calls below (#252).
-  if (!interpolate && any(map_lgl(comps, is_tfb))) {
+  # `interpolate = FALSE` is only meaningful for tfd components; tfb components
+  # are always evaluated from their basis representation. Build a per-component
+  # `interpolate` vector so we honour the user's choice for tfd components in
+  # any (potentially mixed) tf_mv, and emit the "interpolate ignored" inform
+  # at most once even when several components are basis-represented (#252).
+  comp_is_tfb <- map_lgl(comps, is_tfb)
+  if (!interpolate && any(comp_is_tfb)) {
     cli::cli_inform(
       "{.arg interpolate} ignored for data in basis representation."
     )
-    interpolate <- TRUE
   }
+  interpolate_comp <- ifelse(comp_is_tfb, TRUE, interpolate)
 
   # matrix-index i: (function, arg) pairs -> (nrow(i) x d) matrix
   if (!missing(i) && is.matrix(i)) {
-    cols <- map(comps, \(comp) comp[i, interpolate = interpolate])
+    cols <- map2(
+      comps,
+      interpolate_comp,
+      \(comp, intp) comp[i, interpolate = intp]
+    )
     ret <- do.call(cbind, cols)
     colnames(ret) <- comp_names
     return(ret)
@@ -127,9 +134,10 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
         dimnames = list(names(xi), as.character(j), comp_names)
       ))
     }
-    mats <- map(
+    mats <- map2(
       comps_i,
-      \(comp) comp[, j, interpolate = interpolate, matrix = TRUE]
+      interpolate_comp,
+      \(comp, intp) comp[, j, interpolate = intp, matrix = TRUE]
     )
     arr <- array(
       unlist(mats, use.names = FALSE),
@@ -142,9 +150,10 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   if (!length(comps_i) || n_i == 0L) {
     return(setNames(vector("list", n_i), names(xi)))
   }
-  dfs <- map(
+  dfs <- map2(
     comps_i,
-    \(comp) comp[, j, interpolate = interpolate, matrix = FALSE]
+    interpolate_comp,
+    \(comp, intp) comp[, j, interpolate = intp, matrix = FALSE]
   )
   map(seq_len(n_i), function(k) {
     base <- dfs[[1]][[k]]
@@ -181,11 +190,19 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
       )
     }
     # Validate length upfront so we emit a clean message rather than the
-    # downstream vec_slice<- "Can't recycle" complaint.
-    if (length(value) > 1L && length(value) != length(i)) {
+    # downstream vec_slice<- "Can't recycle" complaint. Use vctrs subassignment
+    # semantics so logical / negative / named indices give the correct number
+    # of replacement locations rather than `length(i)`.
+    n_loc <- length(vec_as_location(
+      i,
+      n = vec_size(x),
+      names = names(x),
+      missing = "error"
+    ))
+    if (length(value) > 1L && length(value) != n_loc) {
       cli::cli_abort(
         "length of {.arg value} ({length(value)}) must be 1 or match \\
-        {.arg i} ({length(i)})."
+        the number of locations in {.arg i} ({n_loc})."
       )
     }
     rep(list(value), length(comps))
