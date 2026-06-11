@@ -207,21 +207,31 @@ print.tf_shape_registration <- function(x, ...) {
 # Mean (over the domain) of the pointwise variance (across curves) of a
 # tf-vector. For tf_mv inputs the per-component scalars are averaged, giving a
 # single scalar comparable to the univariate case (#249). Returns NA_real_ on
-# unexpected failures rather than letting `mean.default` warn silently.
+# unexpected failures (e.g. degenerate inputs where `var()` or
+# `tf_evaluations()` error) rather than letting `summary()` itself error.
 mean_pointwise_variance <- function(x) {
   if (is.null(x)) {
     return(NA_real_)
   }
-  vx <- suppressWarnings(var(x))
-  if (is_tf_mv(vx)) {
-    per_comp <- vapply(
-      tf_components(vx),
-      \(comp) suppressWarnings(mean(tf_evaluations(comp)[[1]], na.rm = TRUE)),
-      numeric(1)
-    )
-    return(mean(per_comp, na.rm = TRUE))
+  vx <- tryCatch(
+    suppressWarnings(var(x)),
+    error = function(e) NULL
+  )
+  if (is.null(vx)) {
+    return(NA_real_)
   }
-  ev <- tf_evaluations(vx)
+  if (is_tf_mv(vx)) {
+    per_comp <- tryCatch(
+      vapply(
+        tf_components(vx),
+        \(comp) suppressWarnings(mean(tf_evaluations(comp)[[1]], na.rm = TRUE)),
+        numeric(1)
+      ),
+      error = function(e) NA_real_
+    )
+    return(suppressWarnings(mean(per_comp, na.rm = TRUE)))
+  }
+  ev <- tryCatch(tf_evaluations(vx), error = function(e) NULL)
   if (!length(ev)) {
     return(NA_real_)
   }

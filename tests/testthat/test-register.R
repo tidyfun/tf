@@ -240,6 +240,28 @@ test_that("tf_registration summary works", {
   expect_false(s2$has_original)
 })
 
+test_that("summary.tf_registration is robust to all-NA inputs (#271)", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  # Force mean_pointwise_variance() into the degenerate path by replacing
+  # stored data with an all-NA tfd. var() on this will not produce useful
+  # evaluations and may error / warn -- summary() must still return NA
+  # gracefully without erroring or emitting warnings.
+  reg_na <- reg
+  reg_na$x <- tfd(
+    matrix(NA_real_, nrow = length(x), ncol = length(t)),
+    arg = t
+  )
+  expect_no_warning(s_na <- summary(reg_na))
+  expect_true(is.na(s_na$amp_var_reduction))
+
+  # Directly exercise mean_pointwise_variance on a NULL-evaluations input
+  expect_identical(tf:::mean_pointwise_variance(NULL), NA_real_)
+})
+
 test_that("tf_registration plot works", {
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
