@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{ensure_list}
 \alias{ensure_list}
-\title{Turns any object into a list}
+\title{Wrap a non-list object in a list}
 \usage{
 ensure_list(x)
 }
@@ -10,18 +10,22 @@ ensure_list(x)
 \item{x}{any input.}
 }
 \value{
-\code{x} turned into a list.
+\code{x} if it is a list, otherwise \code{list(x)}.
 }
 \description{
-See above.
+Returns \code{x} unchanged if it is already a list, otherwise wraps it in
+a one-element list. Used internally to normalize \code{arg} inputs that may
+be either a single numeric vector or a list of per-curve vectors.
 }
 \examples{
 ensure_list(1:3)
-ensure_list(list(1, 2))
+ensure_list(list(1:3, 4:6))
 }
 \seealso{
-Other tidyfun developer tools:
-\code{\link[=prep_plotting_arg]{prep_plotting_arg()}},
-\code{\link[=unique_id]{unique_id()}}
+Other tidyfun utility functions: 
+\code{\link{in_range}()},
+\code{\link{tf_arg}()},
+\code{\link{tf_zoom}()},
+\code{\link{unique_id}()}
 }
-\concept{tidyfun developer tools}
+\concept{tidyfun utility functions}

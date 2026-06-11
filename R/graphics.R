@@ -1,14 +1,10 @@
 #' Preprocess evaluation grid for plotting
 #'
-#' (internal function exported for re-use in upstream packages)
 #' @param f a `tf`-object.
 #' @param n_grid length of evaluation grid.
 #' @returns a semi-regular grid rounded down to appropriate resolution.
-#' @examples
-#' f <- tfd(sin(seq(0, 2 * pi, length.out = 21)), arg = seq(0, 1, length.out = 21))
-#' prep_plotting_arg(f, n_grid = 50)
-#' @export
-#' @family tidyfun developer tools
+#' @keywords internal
+#' @noRd
 prep_plotting_arg <- function(f, n_grid) {
   arg <- tf_arg(f)
   if (!isTRUE(n_grid > 1)) {

@@ -78,7 +78,6 @@ tf_smooth.tfd <- function(
   dots <- list(...)
   nas <- is.na(x)
   x_evals <- tf_evaluations(x)[!nas]
-  # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose && !is_equidist(x)) {
       cli::cli_inform(c(
@@ -114,7 +113,6 @@ tf_smooth.tfd <- function(
       \(x) do.call(smoother, append(list(x), dots))
     )
   }
-  # nocov end
   if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- 0.15

@@ -417,6 +417,17 @@ rank.tf <- function(
 #' @rdname tf_order
 #' @export
 xtfrm.tf <- function(x) {
+  cli::cli_warn(
+    c(
+      "Ordering {.cls tf} vectors via {.fn sort}/{.fn order}/{.fn rank} \\
+       uses a depth-based total order ({.val MHI} by default), not a \\
+       pointwise comparison.",
+      i = "See {.fn tf_order} for the underlying semantics and how to \\
+           pick a different depth."
+    ),
+    .frequency = "once",
+    .frequency_id = "tf_xtfrm"
+  )
   compute_depth(x, "MHI", na.rm = FALSE)
 }
 
