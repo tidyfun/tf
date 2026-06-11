@@ -37,6 +37,14 @@ union of their argument grids with \code{interpolate = TRUE} (values outside a
 component's observed range become \code{NA} and are skipped). For components that
 already share a grid this is a no-op.
 }
+\examples{
+arg <- seq(0, 1, length.out = 31)
+xf <- tfd(t(sapply(1:5, function(i) sin(2 * pi * arg + i / 5))), arg = arg)
+yf <- tfd(t(sapply(1:5, function(i) cos(2 * pi * arg + i / 5))), arg = arg)
+mv <- tfd_mv(list(x = xf, y = yf))
+plot(mv, type = "trajectory")
+plot(mv, type = "facet")
+}
 \seealso{
 Other tf_mv-class:
 \code{\link[=tf_arclength]{tf_arclength()}},

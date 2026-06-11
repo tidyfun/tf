@@ -4,10 +4,12 @@
 #' recorded every 2 milliseconds over 300 milliseconds. The data captures the
 #' dynamics of finger pinch force applied during controlled motor tasks.
 #'
-#' Data is also include in the \CRANpkg{fda} package in another format.
+#' Data is also included in the \CRANpkg{fda} package in another format.
 #'
 #' @references
 #' `r format_bib("ramsay2009functional", "ramsay2005functional", "ramsay2002applied")`
+#'
+#' @format A `tfd` vector of length 20 containing the pinch-force curves.
 #'
 #' @examples
 #' pinch
@@ -19,15 +21,15 @@
 #' of the Berkeley Growth Study. The data tracks physical development over
 #' time with measurements at 31 different ages that are not equally spaced.
 #'
-#' Data is also include in the \CRANpkg{fda} package in another format.
+#' Data is also included in the \CRANpkg{fda} package in another format.
 #'
 #' @references
 #' `r format_bib("ramsay2009functional", "ramsay2005functional", "ramsay2002applied", "tuddenham1954physical")`
 #'
 #' @format A data frame with 93 rows and 2 variables:
 #' \describe{
-#'   \item{gender}{sex of the subject (boy/girl)}
-#'   \item{height}{height in centimeters}
+#'   \item{gender}{sex of the subject, a factor with levels `female`/`male`}
+#'   \item{height}{a `tfd` column of height-over-age curves (cm)}
 #' }
 #' @examples
 #' head(growth)
@@ -36,20 +38,20 @@
 #' Hip and knee angle while walking data
 #'
 #' Hip and knee angle measurements in degrees through a 20-point movement cycle
-#' for 39 boys. The data represents the angular positions of hip and knee
+#' for 39 children. The data represents the angular positions of hip and knee
 #' joints during normal walking gait, captured at evenly spaced time points
 #' throughout the gait cycle.
+#'
+#' Data is also included in the \CRANpkg{fda} package in another format.
 #'
 #' @references
 #' `r format_bib("olshen1989gait")`
 #'
-#' Data is also include in the `datasets` package in another format.
-#'
 #' @format A data frame with 39 rows and 3 variables:
 #' \describe{
 #'   \item{subject_id}{subject identifier}
-#'   \item{knee_angle}{knee joint angles in degrees}
-#'   \item{hip_angle}{hip joint angle in degrees}
+#'   \item{knee_angle}{a `tfd` column of knee-joint angles (degrees)}
+#'   \item{hip_angle}{a `tfd` column of hip-joint angles (degrees)}
 #' }
 #' @examples
 #' head(gait)

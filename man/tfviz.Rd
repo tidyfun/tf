@@ -28,10 +28,11 @@
 )
 }
 \arguments{
-\item{x}{an \code{tf} object.}
+\item{x}{a \code{tf} object.}
 
-\item{y}{(optional) numeric vector to be used as \code{arg}
-(i.e., for the \strong{x}-axis...!).}
+\item{y}{(optional) numeric vector of evaluation points to use as \code{arg}
+for plotting (passed as the function's input grid, not the y-axis
+values).}
 
 \item{n_grid}{minimal size of equidistant grid used for plotting,
 defaults to \code{50}. See details.}

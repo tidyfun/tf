@@ -63,6 +63,13 @@ mv_plot_type <- function(type, comps) {
 #'   parameters (`col`, `lty`, `lwd`, ...) are recycled across curves.
 #' @returns `x`, invisibly.
 #' @family tf_mv-class
+#' @examples
+#' arg <- seq(0, 1, length.out = 31)
+#' xf <- tfd(t(sapply(1:5, function(i) sin(2 * pi * arg + i / 5))), arg = arg)
+#' yf <- tfd(t(sapply(1:5, function(i) cos(2 * pi * arg + i / 5))), arg = arg)
+#' mv <- tfd_mv(list(x = xf, y = yf))
+#' plot(mv, type = "trajectory")
+#' plot(mv, type = "facet")
 #' @export
 plot.tf_mv <- function(x, y, ..., type = NULL) {
   comps <- tf_components(x)

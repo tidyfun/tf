@@ -53,6 +53,13 @@ observed very densely. For such data, either re-evaluate on a common grid
 first or use more advanced FPCA approaches like \code{refund::fpca_sc()},
 see last example for \code{\link[=tfb_fpc]{tfb_fpc()}}
 }
+\examples{
+arg <- seq(0, 1, length.out = 41)
+data <- t(sapply(seq(0, 2 * pi, length.out = 10),
+                 function(p) sin(2 * pi * arg + p)))
+fpc <- fpc_wsvd(data, arg = arg, pve = 0.99)
+fpc$npc
+}
 \references{
 the soft-impute SVD algorithm for incomplete data is described in
 Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).

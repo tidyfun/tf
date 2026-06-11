@@ -107,9 +107,9 @@ the domain. \cr}
 \code{tf_arg(f)}? Defaults to \code{FALSE}, which returns the matrix of basis functions
 (columns) evaluated on \code{tf_arg(f)} (rows).}
 
-\item{object}{as usual}
+\item{object}{a \code{tfb} object.}
 
-\item{...}{dots}
+\item{...}{not used.}
 }
 \value{
 either the respective attribute or, for setters (assignment functions),

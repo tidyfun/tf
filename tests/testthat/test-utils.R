@@ -53,3 +53,9 @@ test_that("trapezoid_weights matches the trapezoidal rule", {
   by_hand <- sum((v[-length(v)] + v[-1]) / 2 * dt)
   expect_equal(sum(w * v), by_hand)
 })
+
+test_that("unique_id replaces empty strings after coercion", {
+  ids <- unique_id(factor(c("", "a", "")))
+  expect_true(all(nzchar(ids)))
+  expect_false(anyDuplicated(ids) > 0)
+})

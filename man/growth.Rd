@@ -7,8 +7,8 @@
 \format{
 A data frame with 93 rows and 2 variables:
 \describe{
-\item{gender}{sex of the subject (boy/girl)}
-\item{height}{height in centimeters}
+\item{gender}{sex of the subject, a factor with levels \code{female}/\code{male}}
+\item{height}{a \code{tfd} column of height-over-age curves (cm)}
 }
 }
 \usage{
@@ -20,7 +20,7 @@ of the Berkeley Growth Study. The data tracks physical development over
 time with measurements at 31 different ages that are not equally spaced.
 }
 \details{
-Data is also include in the \CRANpkg{fda} package in another format.
+Data is also included in the \CRANpkg{fda} package in another format.
 }
 \examples{
 head(growth)

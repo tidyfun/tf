@@ -110,6 +110,7 @@ tf_mv_cast <- function(x, to, ...) {
 }
 
 #' @rdname vctrs
+#' @name vctrs
 #' @export
 vec_ptype2.tfd_mv.tfd_mv <- function(x, y, ...) tf_mv_ptype2(x, y)
 #' @rdname vctrs
