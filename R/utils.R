@@ -233,10 +233,8 @@ unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)
   }
-  if (is.character(x)) {
-    x <- sub("^$", "NA", x)
-  }
-  x <- make.names(as.character(x), unique = TRUE)
+  x <- sub("^$", "NA", as.character(x))
+  x <- make.names(x, unique = TRUE)
   x
 }
 
