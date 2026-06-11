@@ -175,11 +175,14 @@ test_that("tfb arithmetic operations with other tfb", {
 
 test_that("==.tfb dispatches like ==.tfd (PR C target 7)", {
   xb <- suppressWarnings(tfb(tf_rgp(3)))
-  # `xb == xb` should be a length-3 logical TRUE (per-curve, with NA where either side is NA)
-  expect_equal(xb == xb, !is.na(xb))
-  # Inequality:
-  expect_equal(xb != xb, is.na(xb))   # only TRUE where one side is NA
-  # Mixed:
   yb <- xb
-  expect_equal(xb == yb, !is.na(xb))
+  yb[2] <- NA
+  # Comparison is per-curve via isTRUE(all.equal()) and never returns NA:
+  # an NA entry compares equal to itself and unequal to any non-NA entry.
+  expect_equal(unname(xb == xb), rep(TRUE, 3))
+  expect_equal(unname(xb != xb), rep(FALSE, 3))
+  expect_equal(unname(yb == yb), rep(TRUE, 3))
+  expect_equal(unname(yb != yb), rep(FALSE, 3))
+  expect_equal(unname(xb == yb), c(TRUE, FALSE, TRUE))
+  expect_equal(unname(xb != yb), c(FALSE, TRUE, FALSE))
 })

@@ -44,7 +44,7 @@ test_that("multivariate eigenfunctions are weighted-orthonormal", {
   for (j in seq_len(tf_ncomp(ef))) {
     mat <- as.matrix(tf_component(ef, j))
     arg <- as.numeric(attr(mat, "arg"))
-    qw <- tf:::trapezoid_weights(arg)
+    qw <- trapezoid_weights(arg)
     gram <- gram + w[j] * (mat %*% (qw * t(mat)))
   }
   expect_equal(unname(gram), diag(M), tolerance = 1e-6)
