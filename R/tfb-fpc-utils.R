@@ -42,6 +42,7 @@
 #'                  function(p) sin(2 * pi * arg + p)))
 #' fpc <- fpc_wsvd(data, arg = arg, pve = 0.99)
 #' fpc$npc
+#' @export
 fpc_wsvd <- function(data, arg, pve = 0.995) {
   UseMethod("fpc_wsvd")
 }
