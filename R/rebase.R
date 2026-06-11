@@ -85,28 +85,93 @@ tf_rebase.tfd.tfb_spline <- function(
   ...
 ) {
   assert_same_domains(object, basis_from)
-  # interpolate onto the target grid first, then fit the spline basis
-  # (mirrors the fpc path; new_tfb_spline does not honor `arg`)
-  data <- tf_interpolate(object, arg = arg) |>
-    as.data.frame(unnest = TRUE)
+  # Project object's native evaluations directly onto basis_from's basis,
+  # reusing basis_from's spec/penalty/sp. No separate interpolation step,
+  # which would compound interpolation error on top of basis approximation
+  # error (see #269).
   dots <- list(...)
-  dots$penalized <- dots$penalized %||%
-    !(is.na(attr(basis_from, "basis_args")$sp))
+  verbose <- dots$verbose %||% FALSE
+  global <- dots$global %||% FALSE
+
+  data <- as.data.frame(object, unnest = TRUE)
+  data$id <- factor(data$id, unique(as.character(data$id)))
+  names_data <- levels(data$id)
+
   basis_args <- attr(basis_from, "basis_args")
-  basis_args <- basis_args[names(basis_args) != "sp"]
-  do.call(
-    new_tfb_spline,
-    c(
-      list(
-        data = data,
-        domain = tf_domain(basis_from),
-        sp = attr(basis_from, "basis_args")$sp,
-        family = attr(basis_from, "family")
-      ),
-      basis_args,
-      dots
+  sp <- basis_args$sp
+  family <- attr(basis_from, "family")
+
+  # Build a spec object whose design matrix lives on object's native arg grid,
+  # but whose penalty matrix S and basis dimension come from basis_from.
+  basis_closure <- attr(basis_from, "basis")
+  spec_from <- environment(basis_closure)$spec
+  arg_u <- uniquecombs(data$arg, ordered = TRUE)
+  spec_object <- spec_from
+  # Predict.matrix from basis_from's spec evaluated at object's unique args:
+  spec_object$X <- basis_closure(arg_u$x)
+
+  arg_list <- split(data$arg, data$id)
+  regular <- length(arg_list) > 1 && all(duplicated(arg_list)[-1])
+
+  gam_args <- dots[names(dots) %in% c(formalArgs(gam), formalArgs(bam))]
+  gam_args$family <- family
+  gam_args$sp <- if (is.na(sp)) -1 else sp
+
+  ls_fit <- family$family == "gaussian" && family$link == "identity"
+
+  penalized <- !is.na(sp)
+  n_evaluations <- table(data$id)
+  underdetermined <- n_evaluations <= spec_object$bs.dim
+  if (!penalized) {
+    if (any(underdetermined)) {
+      cli::cli_abort(
+        c(
+          "Can't compute spline coefficients for too sparse data: At least as many basis functions as evaluations for {sum(underdetermined)} of {vec_size(underdetermined)} entries.",
+          ">" = "Rebase onto a penalized {.cls tfb_spline} or reduce {.arg k}.",
+          "i" = "Affected entries: {names(n_evaluations[underdetermined])}"
+        )
+      )
+    }
+    fit <- fit_unpenalized(
+      data = data,
+      spec_object = spec_object,
+      arg_u = arg_u,
+      gam_args = gam_args,
+      regular = regular,
+      ls_fit = ls_fit
     )
+  } else {
+    fit <- fit_penalized(
+      data = data,
+      spec_object = spec_object,
+      arg_u = arg_u,
+      gam_args = gam_args,
+      regular = regular,
+      global = global,
+      ls_fit = ls_fit
+    )
+  }
+
+  if (verbose && isTRUE(min(fit$pve) < 0.5)) {
+    cli::cli_warn(c(
+      x = "Smooth fit captures less than half of input data variability for {sum(fit$pve < .5)} entries.",
+      i = "Consider increasing basis dimension {.arg k} (or decreasing penalization {.arg sp}) of {.arg basis_from}."
+    ))
+  }
+
+  ret <- new_vctr(
+    fit[["coef"]],
+    domain = tf_domain(basis_from),
+    basis = basis_closure,
+    basis_label = attr(basis_from, "basis_label"),
+    basis_args = basis_args,
+    basis_matrix = attr(basis_from, "basis_matrix"),
+    arg = tf_arg(basis_from),
+    family = family,
+    family_label = attr(basis_from, "family_label"),
+    class = c("tfb_spline", "tfb", "tf")
   )
+  setNames(ret, names_data)
 }
 
 #' @export
