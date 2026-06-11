@@ -147,9 +147,9 @@ build_components <- function(data, constructor, arg, domain, dots, extra) {
 #' `tf_mv_method_unimplemented` condition. The earlier promise of automatic
 #' "right thing component-wise" dispatch via inheritance was incorrect --
 #' silent fall-through produced wrong-shape results or deep internal errors,
-#' so it has been replaced with fail-fast stubs. Implemented methods are
-#' listed in [tf_mv_unimplemented]; design of real component-wise
-#' semantics is tracked at
+#' so it has been replaced with fail-fast stubs. The stubbed (i.e., *not*
+#' implemented) verbs are listed in [tf_mv_unimplemented]; design of real
+#' component-wise semantics is tracked at
 #' <https://github.com/tidyfun/tf/issues/255>. When you need to *distinguish*
 #' univariate-only from any-`tf` inside a helper, use [is_tf_1d()]: it returns
 #' `TRUE` for `tfd` / `tfb` and `FALSE` for `tfd_mv` / `tfb_mv`.

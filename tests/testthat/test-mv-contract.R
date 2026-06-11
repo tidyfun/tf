@@ -229,16 +229,17 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
   fm <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
 
   # parse NAMESPACE: for each generic, collect the set of classes it's
-  # registered for.
-  ns_lines <- readLines(
-    system.file("..", "NAMESPACE", package = "tf", mustWork = FALSE)
-  )
-  # `system.file("..")` is empty in some install layouts; fall back to the
-  # source-tree NAMESPACE found by testthat::test_path().
-  if (!length(ns_lines) || !any(grepl("^S3method", ns_lines))) {
+  # registered for. For an installed package (R CMD check, test_dir() on a
+  # library install) NAMESPACE sits at the package root; under
+  # devtools::load_all() the pkgload shim resolves the same call to the
+  # source-tree NAMESPACE.
+  ns_path <- system.file("NAMESPACE", package = "tf")
+  if (!nzchar(ns_path)) {
+    # not installed at all: fall back to the source-tree NAMESPACE.
     ns_path <- testthat::test_path("..", "..", "NAMESPACE")
-    ns_lines <- readLines(ns_path)
   }
+  ns_lines <- readLines(ns_path)
+  expect_true(any(grepl("^S3method\\(", ns_lines)))
   s3 <- grep("^S3method\\(", ns_lines, value = TRUE)
   m <- regmatches(s3, regexec("^S3method\\(([^,]+),(.+)\\)$", s3))
   pairs <- do.call(rbind.data.frame, lapply(m, function(x) {
@@ -274,25 +275,22 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
     "tf_depth", "tf_interpolate", "tf_invert"
   )
 
+  # The contract: a walked single-argument generic must either *succeed*
+  # (a real tf_mv method exists, just not registered under that name -- e.g.
+  # group generics) or abort with the classed `tf_mv_method_unimplemented`
+  # condition. Any other error -- classed or not -- means a stub is missing
+  # and the call fell through to a univariate method.
   fails_cleanly <- function(call_expr) {
-    res <- tryCatch(
-      eval(call_expr),
-      tf_mv_method_unimplemented = function(e) "unimplemented",
+    tryCatch(
+      {
+        eval(call_expr)
+        TRUE
+      },
+      tf_mv_method_unimplemented = function(e) TRUE,
       error = function(e) {
-        # any other error is a "deep internal error" -- the contract failure.
-        msg <- conditionMessage(e)
-        if (grepl(
-          "no applicable method|subscript out of bounds|must be uniquely named|cannot be formatted into dimension|Must inherit from class|data.+must be of a vector type",
-          msg
-        )) {
-          structure("deep-internal", message = msg)
-        } else {
-          # a clear, message-level abort is acceptable; treat as success too.
-          "ok-error"
-        }
+        structure(FALSE, message = conditionMessage(e))
       }
     )
-    !identical(unname(res[1]), "deep-internal")
   }
 
   checked <- character()
@@ -306,7 +304,7 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
     expect_true(
       fails_cleanly(call_expr),
       info = sprintf(
-        "Generic %s(): tf_mv path should be either a working method or a tf_mv_method_unimplemented abort, not a deep internal error.",
+        "Generic %s(): tf_mv path must either succeed or abort with tf_mv_method_unimplemented; any other error means a fail-fast stub is missing.",
         gen
       )
     )
