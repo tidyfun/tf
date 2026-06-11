@@ -204,6 +204,40 @@ print.tf_shape_registration <- function(x, ...) {
   )
 }
 
+# Mean (over the domain) of the pointwise variance (across curves) of a
+# tf-vector. For tf_mv inputs the per-component scalars are averaged, giving a
+# single scalar comparable to the univariate case (#249). Returns NA_real_ on
+# unexpected failures (e.g. degenerate inputs where `var()` or
+# `tf_evaluations()` error) rather than letting `summary()` itself error.
+mean_pointwise_variance <- function(x) {
+  if (is.null(x)) {
+    return(NA_real_)
+  }
+  vx <- tryCatch(
+    suppressWarnings(var(x)),
+    error = function(e) NULL
+  )
+  if (is.null(vx)) {
+    return(NA_real_)
+  }
+  if (is_tf_mv(vx)) {
+    per_comp <- tryCatch(
+      vapply(
+        tf_components(vx),
+        \(comp) suppressWarnings(mean(tf_evaluations(comp)[[1]], na.rm = TRUE)),
+        numeric(1)
+      ),
+      error = function(e) NA_real_
+    )
+    return(suppressWarnings(mean(per_comp, na.rm = TRUE)))
+  }
+  ev <- tryCatch(tf_evaluations(vx), error = function(e) NULL)
+  if (!length(ev)) {
+    return(NA_real_)
+  }
+  suppressWarnings(mean(ev[[1]], na.rm = TRUE))
+}
+
 #' @rdname tf_registration
 #' @export
 summary.tf_registration <- function(object, ...) {
@@ -213,19 +247,12 @@ summary.tf_registration <- function(object, ...) {
   probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
 
   # Amplitude variance reduction: 1 - mean(pointwise_var(reg)) / mean(pointwise_var(orig))
+  # `var(tf_mv)` is component-wise (returns a tf_mv), so handle multivariate
+  # input by averaging per-component scalar mean variances (#249).
   amp_var_reduction <- NA_real_
   if (!is.null(object$x)) {
-    var_orig <- tryCatch(
-      mean(tf_evaluations(var(object$x))[[1]], na.rm = TRUE),
-      error = function(e) NA_real_
-    )
-    var_reg <- tryCatch(
-      suppressWarnings(mean(
-        tf_evaluations(var(object$registered))[[1]],
-        na.rm = TRUE
-      )),
-      error = function(e) NA_real_
-    )
+    var_orig <- mean_pointwise_variance(object$x)
+    var_reg <- mean_pointwise_variance(object$registered)
     if (is.finite(var_orig) && var_orig > 0 && is.finite(var_reg)) {
       amp_var_reduction <- 1 - var_reg / var_orig
     }
@@ -387,6 +414,85 @@ print.summary.tf_registration <- function(x, ...) {
     print(round(x$domain_loss_quantiles, 4))
   }
 
+  invisible(x)
+}
+
+# Extract rotation angle (radians) from each per-curve rotation matrix in the
+# shape registration. Uses `atan2(R[2,1], R[1,1])` in 2D (signed angle in
+# [-pi, pi]) and `acos((tr(R) - 1) / 2)` in 3D (the standard SO(3) angle).
+# For d > 3 there is no single rotation angle -- a rotation is characterised by
+# `floor(d / 2)` independent angles (Jordan-block / SVD structure of R) -- so
+# we return NA with a warning. Follow-up: a dimension-agnostic scalar summary
+# could be `sqrt(sum(log_skew_matrix(R)^2) / 2)`, the Frobenius norm of the
+# matrix logarithm, which reduces to the angle in 2D/3D.
+shape_rotation_angles <- function(rotations) {
+  if (is.null(rotations)) {
+    return(numeric(0))
+  }
+  d <- dim(rotations)[1L]
+  n <- dim(rotations)[3L]
+  if (!length(n) || n == 0L) {
+    return(numeric(0))
+  }
+  if (d == 2L) {
+    return(vapply(
+      seq_len(n),
+      \(i) atan2(rotations[2, 1, i], rotations[1, 1, i]),
+      numeric(1)
+    ))
+  }
+  if (d == 3L) {
+    return(vapply(
+      seq_len(n),
+      \(i) {
+        tr <- sum(diag(rotations[,, i]))
+        acos(max(-1, min(1, (tr - 1) / 2)))
+      },
+      numeric(1)
+    ))
+  }
+  cli::cli_warn(c(
+    "Rotation-angle summary is not implemented for {.code d = {d}} (d > 3).",
+    "i" = "Higher-dimensional rotations are characterised by {floor(d / 2)}
+           independent rotation-plane angles, not a single angle.",
+    "i" = "Consider reporting per-pair angles or the matrix-logarithm norm."
+  ))
+  rep(NA_real_, n)
+}
+
+#' @rdname tf_registration
+#' @export
+summary.tf_shape_registration <- function(object, ...) {
+  base <- NextMethod()
+  probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
+  angles <- shape_rotation_angles(object$rotations)
+  scales <- object$scales %||% numeric(0)
+  base$rotation_angles_deg <- if (length(angles) && any(!is.na(angles))) {
+    stats::quantile(angles * 180 / pi, probs = probs, na.rm = TRUE)
+  } else {
+    NULL
+  }
+  base$scale_quantiles <- if (length(scales)) {
+    stats::quantile(scales, probs = probs)
+  } else {
+    NULL
+  }
+  class(base) <- c("summary.tf_shape_registration", class(base))
+  base
+}
+
+#' @rdname tf_registration
+#' @export
+print.summary.tf_shape_registration <- function(x, ...) {
+  NextMethod()
+  if (!is.null(x$rotation_angles_deg)) {
+    cat("\nRotation angles (degrees), per-curve deciles:\n")
+    print(round(x$rotation_angles_deg, 2))
+  }
+  if (!is.null(x$scale_quantiles)) {
+    cat("\nScale factors (template / curve SRVF norm), per-curve deciles:\n")
+    print(round(x$scale_quantiles, 4))
+  }
   invisible(x)
 }
 

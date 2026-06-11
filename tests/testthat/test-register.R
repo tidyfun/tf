@@ -240,6 +240,28 @@ test_that("tf_registration summary works", {
   expect_false(s2$has_original)
 })
 
+test_that("summary.tf_registration is robust to all-NA inputs (#271)", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  # Force mean_pointwise_variance() into the degenerate path by replacing
+  # stored data with an all-NA tfd. var() on this will not produce useful
+  # evaluations and may error / warn -- summary() must still return NA
+  # gracefully without erroring or emitting warnings.
+  reg_na <- reg
+  reg_na$x <- tfd(
+    matrix(NA_real_, nrow = length(x), ncol = length(t)),
+    arg = t
+  )
+  expect_no_warning(s_na <- summary(reg_na))
+  expect_true(is.na(s_na$amp_var_reduction))
+
+  # Directly exercise mean_pointwise_variance on a NULL-evaluations input
+  expect_identical(tf:::mean_pointwise_variance(NULL), NA_real_)
+})
+
 test_that("tf_registration plot works", {
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
@@ -328,6 +350,25 @@ test_that("tf_estimate_warps works for SRVF and CC methods", {
     tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "cc"),
     "only `affine` and `landmark` registration are currently supported"
   )
+})
+
+test_that("SRVF warps are monotone when domain is wider than arg range (#242)", {
+  skip_if_not_installed("fdasrvf")
+  set.seed(1)
+  x <- tfd(
+    matrix(rnorm(5 * 9), 5),
+    arg = seq(0.1, 0.9, length.out = 9),
+    domain = c(0, 1)
+  )
+  w <- tf_estimate_warps(x, method = "srvf")
+  arg_x <- as.numeric(tf_arg(x))
+  for (i in seq_along(w)) {
+    v <- tf_evaluations(w)[[i]]
+    expect_true(all(diff(v) > 0))
+    expect_equal(v[1], min(arg_x))
+    expect_equal(v[length(v)], max(arg_x))
+  }
+  expect_no_error(tf_register(x, method = "srvf"))
 })
 
 test_that("tf_estimate_warps returns tfd (not tf_registration)", {
@@ -812,6 +853,17 @@ test_that("register_landmark handles NA landmarks correctly", {
     expect_equal(vals[1], domain[1])
     expect_equal(vals[length(vals)], domain[2])
   }
+})
+
+test_that("landmark registration errors clearly on NA-induced non-monotone template (#243)", {
+  # NA pattern arranged so that default colMeans(landmarks, na.rm=TRUE) crosses:
+  # col 1 mean = mean(0.1, 0.9) = 0.5, col 2 mean = 0.3 -> not strictly increasing.
+  lm <- matrix(c(0.1, NA, NA, 0.3, 0.9, NA), nrow = 3, byrow = TRUE)
+  x <- tf_rgp(3)
+  expect_error(
+    tf_estimate_warps(x, landmarks = lm, method = "landmark"),
+    "monoton|landmark"
+  )
 })
 
 test_that("tf_estimate_warps landmark method validates input", {

@@ -11,6 +11,8 @@
 \alias{print.tf_shape_registration}
 \alias{summary.tf_registration}
 \alias{print.summary.tf_registration}
+\alias{summary.tf_shape_registration}
+\alias{print.summary.tf_shape_registration}
 \alias{plot.tf_registration}
 \alias{[.tf_registration}
 \alias{length.tf_registration}
@@ -34,6 +36,10 @@ tf_scales(x)
 \method{summary}{tf_registration}(object, ...)
 
 \method{print}{summary.tf_registration}(x, ...)
+
+\method{summary}{tf_shape_registration}(object, ...)
+
+\method{print}{summary.tf_shape_registration}(x, ...)
 
 \method{plot}{tf_registration}(x, ...)
 
@@ -135,13 +141,13 @@ summary(reg)
 plot(reg)
 }
 \seealso{
-Other registration functions:
-\code{\link[=tf_align]{tf_align()}},
-\code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
-\code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
-\code{\link[=tf_register]{tf_register()}},
-\code{\link[=tf_register_shape]{tf_register_shape()}},
-\code{\link[=tf_warp]{tf_warp()}}
+Other registration functions: 
+\code{\link{tf_align}()},
+\code{\link{tf_estimate_warps}()},
+\code{\link{tf_landmarks_extrema}()},
+\code{\link{tf_register}()},
+\code{\link{tf_register_shape}()},
+\code{\link{tf_warp}()}
 }
 \author{
 Fabian Scheipl, Claude Opus 4.6

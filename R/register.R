@@ -726,8 +726,6 @@ tf_register_srvf <- function(x, template, ...) {
 
   arg <- tf_arg(x)
   domain <- tf_domain(x)
-  lwr <- domain[1]
-  upr <- domain[2]
 
   # Karcher mean
   x_mat <- as.matrix(x)
@@ -754,11 +752,17 @@ tf_register_srvf <- function(x, template, ...) {
     }
     tmpl <- template
   }
+  # fdasrvf returns `gamma` normalized to the observed time grid, so rescale
+  # by `range(arg)` -- NOT `domain`, which may be wider. Pinning endpoints to
+  # arg[1]/arg[k] after a domain-based rescale would yield non-monotone warps
+  # whenever `domain != range(arg)` (#242).
+  lwr <- arg[1]
+  upr <- arg[length(arg)]
   warp <- lwr + (upr - lwr) * warp
   # avoid numerical over/underflow issue:
   warp[, 1] <- arg[1]
   warp[, length(arg)] <- arg[length(arg)]
-  result <- tfd(warp, arg = arg)
+  result <- tfd(warp, arg = arg, domain = domain)
   attr(result, "template") <- tmpl
   result
 }
@@ -787,6 +791,23 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
     valid <- !is.na(landmark_row)
     t_arg <- c(domain[1], template_landmarks[valid], domain[2])
     w_vals <- c(domain[1], landmark_row[valid], domain[2])
+    # `approx()` silently sorts a non-monotone `t_arg` (and the corresponding
+    # `w_vals` go along for the ride), producing a non-monotone warp that
+    # would later trip `assert_monotonic()` with no useful message (#243).
+    if (any(diff(t_arg) <= 0)) {
+      cli::cli_abort(c(
+        "Template landmark grid (with boundary anchors) is not strictly increasing.",
+        "i" = "Got: {paste(round(t_arg, 4), collapse = ', ')}.",
+        "i" = "Check that {.arg template_landmarks} lie strictly inside the domain and are strictly increasing."
+      ))
+    }
+    if (any(diff(w_vals) <= 0)) {
+      cli::cli_abort(c(
+        "Curve landmark sequence (with boundary anchors) is not strictly increasing.",
+        "i" = "Got: {paste(round(w_vals, 4), collapse = ', ')}.",
+        "i" = "Check the corresponding row of {.arg landmarks}."
+      ))
+    }
     approx(t_arg, w_vals, xout = x_arg, rule = 2)$y
   }
 
