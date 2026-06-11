@@ -42,6 +42,32 @@ test_that("validate_tf accepts valid tfb_mv", {
   expect_valid_tf(x)
 })
 
+test_that("validate_tf accepts length-0 prototypes of all subclasses", {
+  set.seed(1)
+  x_reg <- tf_rgp(3)
+  x_irreg <- tf_sparsify(x_reg, 0.5)
+  suppressMessages(x_spline <- tfb(x_reg))
+  suppressMessages(x_fpc <- tfb_fpc(x_reg))
+  x_tfd_mv <- tfd_mv(list(a = x_reg, b = x_irreg))
+  suppressMessages(x_tfb_mv <- tfb_mv(list(a = x_reg, b = x_reg)))
+  expect_valid_tf(vctrs::vec_ptype(x_reg))
+  expect_valid_tf(vctrs::vec_ptype(x_irreg))
+  expect_valid_tf(vctrs::vec_ptype(x_spline))
+  expect_valid_tf(vctrs::vec_ptype(x_fpc))
+  expect_valid_tf(vctrs::vec_ptype(x_tfd_mv))
+  expect_valid_tf(vctrs::vec_ptype(x_tfb_mv))
+  # constructor-made empties carry only minimal attributes (no basis etc.)
+  expect_valid_tf(tfd(numeric(0)))
+  expect_valid_tf(tfb(numeric(0)))
+})
+
+test_that("validate_tf rejects tfd_irreg with non-character evaluator_name", {
+  set.seed(1)
+  x <- tf_rgp(3) |> tf_sparsify(0.5)
+  attr(x, "evaluator_name") <- 1L
+  expect_error(validate_tf(x), "evaluator_name")
+})
+
 test_that("validate_tf rejects non-tf input", {
   expect_error(validate_tf(1:10), "not a .* object")
 })

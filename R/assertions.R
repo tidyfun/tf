@@ -267,6 +267,11 @@ validate_tfd_irreg <- function(x) {
   if (!is.function(attr(x, "evaluator"))) {
     cli::cli_abort("{.cls tfd_irreg}: {.field evaluator} must be a function.")
   }
+  if (!is.character(attr(x, "evaluator_name"))) {
+    cli::cli_abort(
+      "{.cls tfd_irreg}: {.field evaluator_name} must be character."
+    )
+  }
   domain <- attr(x, "domain")
   data <- unclass(x)
   for (i in seq_along(data)) {
@@ -301,6 +306,12 @@ validate_tfd_irreg <- function(x) {
 }
 
 validate_tfb_spline <- function(x) {
+  # length-0 prototypes from new_tfb_spline(numeric(0)) legitimately carry
+  # only domain/arg/family, so basis attributes can't be required for them
+  # (the universal domain/names checks in validate_tf() still apply).
+  if (length(unclass(x)) == 0L) {
+    return(invisible(TRUE))
+  }
   required <- c(
     "basis", "basis_matrix", "basis_label", "basis_args",
     "arg", "family", "family_label", "domain"
@@ -356,6 +367,12 @@ validate_tfb_spline <- function(x) {
 }
 
 validate_tfb_fpc <- function(x) {
+  # length-0 prototypes from new_tfb_fpc(numeric(0)) legitimately carry only
+  # domain/arg/score_variance, so basis attributes can't be required for them
+  # (the universal domain/names checks in validate_tf() still apply).
+  if (length(unclass(x)) == 0L) {
+    return(invisible(TRUE))
+  }
   required <- c(
     "basis", "basis_matrix", "basis_label",
     "arg", "score_variance", "scoring_function", "domain"
