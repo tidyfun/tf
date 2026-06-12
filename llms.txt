@@ -32,12 +32,14 @@ You can install the released version of **tf** from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
+
 install.packages("tf")
 ```
 
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("tidyfun/tf")
 ```
