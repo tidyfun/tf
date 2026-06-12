@@ -22,10 +22,10 @@ ensure_list(1:3)
 ensure_list(list(1:3, 4:6))
 }
 \seealso{
-Other tidyfun utility functions: 
-\code{\link{in_range}()},
-\code{\link{tf_arg}()},
-\code{\link{tf_zoom}()},
-\code{\link{unique_id}()}
+Other tidyfun utility functions:
+\code{\link[=in_range]{in_range()}},
+\code{\link[=tf_arg]{tf_arg()}},
+\code{\link[=tf_zoom]{tf_zoom()}},
+\code{\link[=unique_id]{unique_id()}}
 }
 \concept{tidyfun utility functions}

@@ -44,7 +44,9 @@ tf_zoom(x, seq(0, 0.5, length.out = 10), seq(0.5, 1, length.out = 10)) |>
 }
 \seealso{
 Other tidyfun utility functions:
+\code{\link[=ensure_list]{ensure_list()}},
 \code{\link[=in_range]{in_range()}},
-\code{\link[=tf_arg]{tf_arg()}}
+\code{\link[=tf_arg]{tf_arg()}},
+\code{\link[=unique_id]{unique_id()}}
 }
 \concept{tidyfun utility functions}

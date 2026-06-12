@@ -24,10 +24,10 @@ unique_id(c("a", "a", "b"))
 unique_id(c(1, 1, 2))
 }
 \seealso{
-Other tidyfun utility functions: 
-\code{\link{ensure_list}()},
-\code{\link{in_range}()},
-\code{\link{tf_arg}()},
-\code{\link{tf_zoom}()}
+Other tidyfun utility functions:
+\code{\link[=ensure_list]{ensure_list()}},
+\code{\link[=in_range]{in_range()}},
+\code{\link[=tf_arg]{tf_arg()}},
+\code{\link[=tf_zoom]{tf_zoom()}}
 }
 \concept{tidyfun utility functions}

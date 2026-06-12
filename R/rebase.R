@@ -85,6 +85,17 @@ tf_rebase.tfd.tfb_spline <- function(
   ...
 ) {
   assert_same_domains(object, basis_from)
+  assert_arg(arg, basis_from)
+  arg <- if (is.list(arg)) {
+    if (length(arg) != 1L) {
+      cli::cli_abort(
+        "{.arg arg} must be a single evaluation grid for {.cls tfb_spline}."
+      )
+    }
+    arg[[1L]]
+  } else {
+    arg
+  }
   dots <- list(...)
   basis_args <- attr(basis_from, "basis_args")
   dots$penalized <- dots$penalized %||% !is.na(basis_args$sp)
@@ -107,15 +118,14 @@ tf_rebase.tfd.tfb_spline <- function(
     )
   )
 
-  # Re-home onto basis_from's arg / basis_matrix / closure / labels: the
+  # Re-home onto the requested arg plus basis_from's closure / labels: the
   # coefficients ARE the spline function in basis-coordinate space; the stored
-  # basis_matrix is just cached evaluation at the stored arg. Swapping the
-  # cache (and the label / basis_args attributes) makes
-  # `same_basis(result, basis_from)` TRUE so downstream arithmetic stays
-  # warning-free.
-  attr(fit, "arg") <- tf_arg(basis_from)
+  # basis_matrix is just cached evaluation at the stored arg. With default arg,
+  # this still makes `same_basis(result, basis_from)` TRUE so downstream
+  # arithmetic stays warning-free; custom arg gets a correctly matched cache.
+  attr(fit, "arg") <- arg
   attr(fit, "basis") <- attr(basis_from, "basis")
-  attr(fit, "basis_matrix") <- attr(basis_from, "basis_matrix")
+  attr(fit, "basis_matrix") <- attr(basis_from, "basis")(arg)
   attr(fit, "basis_args") <- attr(basis_from, "basis_args")
   attr(fit, "basis_label") <- attr(basis_from, "basis_label")
   attr(fit, "family_label") <- attr(basis_from, "family_label")

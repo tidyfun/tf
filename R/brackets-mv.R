@@ -42,21 +42,7 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   # components, then fall through to the rest of the bracket logic with
   # `component = NULL` (which now operates on the smaller tf_mv).
   if (!is.null(component) && length(component) > 1L) {
-    comp_names <- attr(x, "comp_names")
-    if (is.character(component)) {
-      bad <- setdiff(component, comp_names)
-      if (length(bad)) {
-        cli::cli_abort("Unknown component{?s}: {.val {bad}}.")
-      }
-    } else {
-      assert_integerish(
-        component,
-        any.missing = FALSE,
-        lower = 1L,
-        upper = length(comp_names)
-      )
-    }
-    x <- new_tf_mv(tf_components(x)[component], domain = tf_domain(x))
+    x <- tf_mv_subset_components(x, component)
     component <- NULL
   }
   if (!is.null(component)) {
@@ -229,4 +215,50 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   # rename and must not silently demote a `tfb_mfpc`. (`vec_c()` runs `names<-`
   # post-restore, which would otherwise strip the spec set by `tf_mv_ptype2`.)
   new_tf_mv(comps, domain = tf_domain(x), mfpc = attr(x, "mfpc"))
+}
+
+tf_mv_subset_components <- function(x, component) {
+  comp_names <- attr(x, "comp_names")
+  loc <- tf_mv_component_locations(component, comp_names)
+  components <- tf_components(x)[loc]
+
+  if (!is_tfb_mfpc(x)) {
+    return(new_tf_mv(components, domain = tf_domain(x)))
+  }
+
+  selected_names <- comp_names[loc]
+  preserves_full_spec <- length(loc) == length(comp_names) &&
+    !anyDuplicated(selected_names) &&
+    setequal(selected_names, comp_names)
+
+  if (preserves_full_spec) {
+    return(new_tf_mv(
+      components,
+      domain = tf_domain(x),
+      mfpc = mfpc_reorder_spec(attr(x, "mfpc"), selected_names)
+    ))
+  }
+
+  warn_mfpc_demotion(
+    "Selecting a strict subset or repeated set of components invalidates the joint MFPC eigenbasis."
+  )
+  x <- tfb_mfpc_demote(x)
+  new_tf_mv(tf_components(x)[loc], domain = tf_domain(x))
+}
+
+tf_mv_component_locations <- function(component, comp_names) {
+  if (is.character(component)) {
+    bad <- setdiff(component, comp_names)
+    if (length(bad)) {
+      cli::cli_abort("Unknown component{?s}: {.val {bad}}.")
+    }
+    return(match(component, comp_names))
+  }
+  assert_integerish(
+    component,
+    any.missing = FALSE,
+    lower = 1L,
+    upper = length(comp_names)
+  )
+  as.integer(component)
 }

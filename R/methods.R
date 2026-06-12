@@ -244,6 +244,12 @@ rev.tf <- function(x) {
   x[rev(seq_along(x))]
 }
 
+#' @export
+#' @rdname tfmethods
+rev.tf_mv <- function(x) {
+  x[rev(seq_along(x))]
+}
+
 #-------------------------------------------------------------------------------
 
 #' @rdname tfmethods

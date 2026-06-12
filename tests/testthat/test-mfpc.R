@@ -167,6 +167,52 @@ collect_warnings <- function(expr) {
   list(value = val, warnings = ws)
 }
 
+test_that("multi-component subsetting preserves MFPC specs when possible", {
+  set.seed(111)
+  mf <- tfb_mfpc(
+    tfd_mv(list(x = tf_rgp(12), y = tf_rgp(12), z = tf_rgp(12))),
+    npc = 3
+  )
+
+  full <- mf[, component = c("x", "y", "z")]
+  expect_true(is_tfb_mfpc(full))
+  expect_identical(attr(full, "mfpc")$comp_names, c("x", "y", "z"))
+  expect_no_error(tf_rebase(as.tfd_mv(full), full))
+
+  reordered <- mf[, component = c("z", "x", "y")]
+  expect_true(is_tfb_mfpc(reordered))
+  expect_identical(attr(reordered, "mfpc")$comp_names, c("z", "x", "y"))
+  expect_no_error(tf_rebase(as.tfd_mv(reordered), reordered))
+  expect_equal(tf_mfpc_scores(reordered), tf_mfpc_scores(mf))
+
+  rescored <- tf_rebase(as.tfd_mv(mf), mf)
+  rescored_reordered <- tf_rebase(
+    as.tfd_mv(mf)[, component = c("z", "x", "y")],
+    reordered
+  )
+  expect_equal(tf_mfpc_scores(rescored_reordered), tf_mfpc_scores(rescored))
+
+  cap <- collect_warnings(mf[, component = c("x", "z")])
+  expect_true(any(grepl("demot|mfpc|MFPC|joint", cap$warnings)))
+  expect_false(is_tfb_mfpc(cap$value))
+  expect_no_error(suppressWarnings(cap$value + 1))
+})
+
+test_that("tf_interpolate preserves usable MFPC specs", {
+  set.seed(112)
+  mf <- tfb_mfpc(
+    tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10))),
+    npc = 2
+  )
+
+  out <- tf_interpolate(mf, arg = seq(0, 1, length.out = 31))
+
+  expect_true(is_tfb_mfpc(out))
+  expect_identical(attr(out, "mfpc")$comp_names, attr(mf, "mfpc")$comp_names)
+  expect_identical(tf_arg(out$x), seq(0, 1, length.out = 31))
+  expect_no_error(tf_rebase(as.tfd_mv(out), out))
+})
+
 test_that("tfb_mfpc protects its joint spec", {
   set.seed(1)
   mf <- tfb_mfpc(tfd_mv(list(x = tf_rgp(20), y = tf_rgp(20))), pve = 0.95)

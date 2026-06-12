@@ -407,6 +407,32 @@ tfb_mfpc_demote <- function(x) {
   x
 }
 
+mfpc_reorder_spec <- function(spec, comp_names) {
+  if (is.null(spec) || identical(spec$comp_names, comp_names)) {
+    return(spec)
+  }
+  loc <- match(comp_names, spec$comp_names)
+  if (anyNA(loc)) {
+    cli::cli_abort("Cannot preserve MFPC spec for unknown component names.")
+  }
+
+  block_sizes <- spec$block_sizes
+  block_end <- cumsum(block_sizes)
+  block_start <- block_end - block_sizes + 1L
+  row_idx <- unlist(
+    map(loc, \(i) seq.int(block_start[i], block_end[i])),
+    use.names = FALSE
+  )
+
+  spec$weights <- spec$weights[loc]
+  spec$block_sizes <- spec$block_sizes[loc]
+  spec$loadings <- spec$loadings[row_idx, , drop = FALSE]
+  spec$comp_names <- comp_names
+  spec$uni <- spec$uni[loc]
+  names(spec$uni) <- comp_names
+  spec
+}
+
 # Rebuild a single shared-score MFPC component as a plain, full-rank `tfb_fpc`
 # on the stored univariate eigenfunctions `phi^(j)`. The component's
 # evaluations are reconstructed from the joint basis (`mu_j + Psi_j s^T`) and
@@ -424,7 +450,11 @@ new_tfb_fpc_demoted <- function(component, uni) {
   scores <- as.matrix(scoring_function(data_matrix, phi_j, mu_j, quad_w))
   basis_matrix <- unname(cbind(mu_j, phi_j))
   domain <- attr(component, "domain")
-  fpc_basis <- suppressMessages(tfd(t(basis_matrix), arg = arg, domain = domain))
+  fpc_basis <- suppressMessages(tfd(
+    t(basis_matrix),
+    arg = arg,
+    domain = domain
+  ))
   fpc_constructor <- fpc_wrapper(fpc_basis)
   coefs <- cbind(1, scores)
   coef_list <- split(coefs, row(coefs))

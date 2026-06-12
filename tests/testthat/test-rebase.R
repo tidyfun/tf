@@ -160,6 +160,18 @@ test_that("#239 tf_rebase(tfd, tfb_spline) fits on the target spline grid", {
   expect_warning(res + b, NA)
 })
 
+test_that("tf_rebase(tfd, tfb_spline) honors custom arg", {
+  set.seed(2391)
+  x <- tf_rgp(3, arg = seq(0, 1, length.out = 11))
+  b <- tfb(tf_rgp(3, arg = seq(0, 1, length.out = 51)), k = 15, verbose = FALSE)
+  custom_arg <- seq(0, 1, length.out = 21)
+
+  res <- suppressWarnings(tf_rebase(x, b, arg = custom_arg))
+
+  expect_identical(tf_arg(res), custom_arg)
+  expect_equal(attr(res, "basis_matrix"), attr(b, "basis")(custom_arg))
+})
+
 test_that("#269 tf_rebase(tfd, tfb_spline) projects directly w/o interpolation step", {
   # Per Fabian's review: rebase should project object's native evaluations onto
   # basis_from's basis, *not* interpolate first (which would compound errors).
@@ -169,7 +181,8 @@ test_that("#269 tf_rebase(tfd, tfb_spline) projects directly w/o interpolation s
     tf_smooth() |>
     suppressMessages()
   b <- tfb(
-    tf_rgp(5, arg = seq(0, 1, length.out = 101)) |> tf_smooth() |>
+    tf_rgp(5, arg = seq(0, 1, length.out = 101)) |>
+      tf_smooth() |>
       suppressMessages(),
     k = 25,
     verbose = FALSE

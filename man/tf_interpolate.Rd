@@ -4,6 +4,7 @@
 \alias{tf_interpolate}
 \alias{tf_interpolate.tfb}
 \alias{tf_interpolate.tfd}
+\alias{tf_interpolate.tf_mv}
 \title{Re-evaluate \code{tf}-objects on a new grid of argument values.}
 \usage{
 tf_interpolate(object, arg, ...)
@@ -11,6 +12,8 @@ tf_interpolate(object, arg, ...)
 \method{tf_interpolate}{tfb}(object, arg, ...)
 
 \method{tf_interpolate}{tfd}(object, arg, ...)
+
+\method{tf_interpolate}{tf_mv}(object, arg, ...)
 }
 \arguments{
 \item{object}{an object inheriting from \code{tf}.}

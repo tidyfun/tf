@@ -8,8 +8,11 @@
 \alias{tf_fmedian}
 \alias{tf_frange}
 \alias{tf_fmean}
+\alias{tf_fmean.tf_mv}
 \alias{tf_fvar}
+\alias{tf_fvar.tf_mv}
 \alias{tf_fsd}
+\alias{tf_fsd.tf_mv}
 \alias{tf_crosscov}
 \alias{tf_crosscor}
 \title{Summarize each \code{tf} in a vector (function-wise)}
@@ -26,9 +29,15 @@ tf_frange(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE)
 
 tf_fmean(x, arg = tf_arg(x))
 
+\method{tf_fmean}{tf_mv}(x, arg = tf_arg(x))
+
 tf_fvar(x, arg = tf_arg(x))
 
+\method{tf_fvar}{tf_mv}(x, arg = tf_arg(x))
+
 tf_fsd(x, arg = tf_arg(x))
+
+\method{tf_fsd}{tf_mv}(x, arg = tf_arg(x))
 
 tf_crosscov(x, y, arg = tf_arg(x))
 
@@ -84,11 +93,17 @@ and \code{values} internally, so the function/formula in \code{.f} gets a data.f
 \item \code{tf_fmean()}: mean of each function:
 \eqn{\tfrac{1}{|T|}\int_T x_i(t) dt}
 
+\item \code{tf_fmean(tf_mv)}: component-wise means of each vector-valued function
+
 \item \code{tf_fvar()}: variance of each function:
 \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}
 
+\item \code{tf_fvar(tf_mv)}: component-wise variances of each vector-valued function
+
 \item \code{tf_fsd()}: standard deviation of each function:
 \eqn{\sqrt{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}}
+
+\item \code{tf_fsd(tf_mv)}: component-wise standard deviations of each vector-valued function
 
 \item \code{tf_crosscov()}: cross-covariances between two functional vectors:
 \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}

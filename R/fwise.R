@@ -57,6 +57,20 @@ tf_fwise.default <- function(x, .f, arg = tf_arg(x), ...) {
   setNames(ret, names(x))
 }
 
+#' @export
+tf_fwise.tf_mv <- function(x, .f, arg = tf_arg(x), ...) {
+  comp_names <- attr(x, "comp_names")
+  comp_results <- imap(tf_components(x), function(comp, nm) {
+    tf_fwise(comp, .f, arg = tf_mv_component_arg(arg, nm, comp_names), ...)
+  })
+  ret <- map(seq_along(x), function(i) {
+    vals <- map(comp_results, \(res) res[[i]])
+    names(vals) <- comp_names
+    vals
+  })
+  setNames(ret, names(x))
+}
+
 # Factory for the function-wise scalar reductions tf_fmax / tf_fmin /
 # tf_fmedian: reduce each function's values with `reduce_op`, unlist the
 # per-function scalars and reattach names.
@@ -109,9 +123,20 @@ tf_fmean.default <- function(x, arg = tf_arg(x)) {
 }
 
 #' @export
+#' @describeIn functionwise component-wise means of each vector-valued function
+tf_fmean.tf_mv <- function(x, arg = tf_arg(x)) {
+  tf_mv_fsummary_matrix(x, tf_fmean, arg = arg)
+}
+
+#' @export
 #' @describeIn functionwise variance of each function:
 #'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}
 tf_fvar <- function(x, arg = tf_arg(x)) {
+  UseMethod("tf_fvar")
+}
+
+#' @export
+tf_fvar.default <- function(x, arg = tf_arg(x)) {
   assert_tf(x)
   assert_arg(arg = arg, x = x)
   arg <- ensure_list(arg)
@@ -123,10 +148,60 @@ tf_fvar <- function(x, arg = tf_arg(x)) {
 }
 
 #' @export
+#' @describeIn functionwise component-wise variances of each vector-valued function
+tf_fvar.tf_mv <- function(x, arg = tf_arg(x)) {
+  tf_mv_fsummary_matrix(x, tf_fvar, arg = arg)
+}
+
+#' @export
 #' @describeIn functionwise standard deviation of each function:
 #'   \eqn{\sqrt{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}}
 tf_fsd <- function(x, arg = tf_arg(x)) {
+  UseMethod("tf_fsd")
+}
+
+#' @export
+tf_fsd.default <- function(x, arg = tf_arg(x)) {
   tf_fvar(x, arg) |> sqrt()
+}
+
+#' @export
+#' @describeIn functionwise component-wise standard deviations of each vector-valued function
+tf_fsd.tf_mv <- function(x, arg = tf_arg(x)) {
+  tf_mv_fsummary_matrix(x, tf_fsd, arg = arg)
+}
+
+tf_mv_fsummary_matrix <- function(x, .f, arg = tf_arg(x)) {
+  comps <- tf_components(x)
+  comp_names <- attr(x, "comp_names")
+  if (!length(comps)) {
+    return(matrix(
+      numeric(0),
+      nrow = vec_size(x),
+      ncol = 0L,
+      dimnames = list(names(x), comp_names)
+    ))
+  }
+  vals <- imap(comps, function(comp, nm) {
+    .f(comp, arg = tf_mv_component_arg(arg, nm, comp_names))
+  })
+  ret <- do.call(cbind, vals)
+  dimnames(ret) <- list(names(x), comp_names)
+  ret
+}
+
+tf_mv_component_arg <- function(arg, nm, comp_names) {
+  if (
+    is.list(arg) &&
+      length(arg) == length(comp_names) &&
+      !is.null(names(arg)) &&
+      !anyDuplicated(names(arg)) &&
+      setequal(names(arg), comp_names)
+  ) {
+    arg[[nm]]
+  } else {
+    arg
+  }
 }
 
 #' @export

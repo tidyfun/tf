@@ -2,12 +2,18 @@
 % Please edit documentation in R/rng.R
 \name{tf_jiggle}
 \alias{tf_jiggle}
+\alias{tf_jiggle.tf_mv}
 \alias{tf_sparsify}
+\alias{tf_sparsify.tf_mv}
 \title{Make a \code{tf} (more) irregular}
 \usage{
 tf_jiggle(f, amount = 0.4, ...)
 
-tf_sparsify(f, dropout = 0.5)
+\method{tf_jiggle}{tf_mv}(f, amount = 0.4, same_arg = TRUE, ...)
+
+tf_sparsify(f, dropout = 0.5, ...)
+
+\method{tf_sparsify}{tf_mv}(f, dropout = 0.5, same_arg = TRUE, ...)
 }
 \arguments{
 \item{f}{a \code{tfd} object.}
@@ -18,6 +24,10 @@ Defaults to at most 40\% (0.4) of the original grid distances. Must be lower
 than 0.5.}
 
 \item{...}{additional args for the returned \code{tfd} in \code{tf_jiggle}.}
+
+\item{same_arg}{for \code{tf_mv} objects, should all components receive the same
+random argument-grid changes? Defaults to \code{TRUE}; use \code{FALSE} to jitter or
+sparsify each component independently.}
 
 \item{dropout}{what proportion of values of \code{f} to drop, on average. Defaults to half.}
 }

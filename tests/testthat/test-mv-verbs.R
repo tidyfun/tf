@@ -17,6 +17,95 @@ test_that("tf_rebase works component-wise for tf_mv", {
   expect_equal(g$y, tf_rebase(f$y, tfd_basis, arg = seq(0, 1, length.out = 21)))
 })
 
+test_that("tf_interpolate works component-wise for tf_mv", {
+  set.seed(11)
+  f <- tfd_mv(list(x = tf_rgp(3, arg = 11L), y = tf_rgp(3, arg = 11L)))
+  arg <- seq(0, 1, length.out = 7)
+
+  out <- tf_interpolate(f, arg = arg)
+
+  expect_s3_class(out, "tfd_mv")
+  expect_identical(tf_arg(out), arg)
+  expect_equal(out$x, tf_interpolate(f$x, arg = arg))
+  expect_equal(out$y, tf_interpolate(f$y, arg = arg))
+})
+
+test_that("tf_sparsify and tf_jiggle delegate to univariate methods for tf_mv", {
+  set.seed(12)
+  f <- tfd_mv(list(x = tf_rgp(3, arg = 21L), y = tf_rgp(3, arg = 21L)))
+
+  set.seed(121)
+  sp <- tf_sparsify(f, dropout = 0.3)
+  set.seed(121)
+  sp_x <- tf_sparsify(f$x, dropout = 0.3)
+  set.seed(121)
+  sp_y <- tf_sparsify(f$y, dropout = 0.3)
+  expect_equal(sp$x, sp_x)
+  expect_equal(sp$y, sp_y)
+  expect_equal(tf_arg(sp$x), tf_arg(sp$y))
+
+  set.seed(122)
+  jig <- tf_jiggle(f, amount = 0.2)
+  set.seed(122)
+  jig_x <- tf_jiggle(f$x, amount = 0.2)
+  set.seed(122)
+  jig_y <- tf_jiggle(f$y, amount = 0.2)
+  expect_equal(jig$x, jig_x)
+  expect_equal(jig$y, jig_y)
+  expect_equal(tf_arg(jig$x), tf_arg(jig$y))
+})
+
+test_that("tf_sparsify and tf_jiggle can operate independently per component", {
+  set.seed(13)
+  f <- tfd_mv(list(
+    x = tf_rgp(3, arg = seq(0, 1, length.out = 21)),
+    y = tf_rgp(3, arg = seq(0, 1, length.out = 31))
+  ))
+
+  expect_error(tf_sparsify(f), "same_arg = TRUE")
+  expect_error(tf_jiggle(f), "same_arg = TRUE")
+  expect_no_error(sp <- tf_sparsify(f, dropout = 0.3, same_arg = FALSE))
+  expect_no_error(jig <- tf_jiggle(f, amount = 0.2, same_arg = FALSE))
+  expect_s3_class(sp, "tfd_mv")
+  expect_s3_class(jig, "tfd_mv")
+})
+
+test_that("tf_sparsify and tf_jiggle reuse random changes on shared irregular grids", {
+  set.seed(131)
+  x <- tf_sparsify(tf_rgp(3, arg = 21L), dropout = 0.2)
+  y <- x + 1
+  f <- tfd_mv(list(x = x, y = y))
+
+  set.seed(132)
+  sp <- tf_sparsify(f, dropout = 0.3)
+  expect_equal(tf_arg(sp$x), tf_arg(sp$y))
+
+  set.seed(133)
+  jig <- tf_jiggle(f, amount = 0.2)
+  expect_equal(tf_arg(jig$x), tf_arg(jig$y))
+})
+
+test_that("tf_sparsify and tf_jiggle handle zero-length inputs", {
+  set.seed(14)
+  x <- tf_rgp(3, arg = 11L)
+  empty_x <- x[integer()]
+  empty_mv <- tfd_mv(list(x = x, y = x))[integer()]
+
+  expect_s3_class(tf_sparsify(empty_x), "tfd_irreg")
+  expect_length(tf_sparsify(empty_x), 0L)
+  expect_s3_class(tf_jiggle(empty_x), "tfd_irreg")
+  expect_length(tf_jiggle(empty_x), 0L)
+
+  sp <- tf_sparsify(empty_mv)
+  jig <- tf_jiggle(empty_mv)
+  expect_s3_class(sp, "tfd_mv")
+  expect_s3_class(jig, "tfd_mv")
+  expect_identical(vec_size(sp), 0L)
+  expect_identical(vec_size(jig), 0L)
+  expect_identical(tf_ncomp(sp), 2L)
+  expect_identical(tf_ncomp(jig), 2L)
+})
+
 test_that("tf_derive is component-wise", {
   set.seed(2)
   f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))

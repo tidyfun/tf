@@ -15,6 +15,7 @@
 \alias{tf_arg<-.tfb}
 \alias{coef.tfb}
 \alias{rev.tf}
+\alias{rev.tf_mv}
 \alias{is.na.tf}
 \alias{is.na.tfd_irreg}
 \alias{is_tf}
@@ -59,6 +60,8 @@ tf_arg(x) <- value
 \method{coef}{tfb}(object, ...)
 
 \method{rev}{tf}(x)
+
+\method{rev}{tf_mv}(x)
 
 \method{is.na}{tf}(x)
 
@@ -143,7 +146,9 @@ c(is_tfb(xb), is_tfb_spline(xb), is_tfb_fpc(xb))
 }
 \seealso{
 Other tidyfun utility functions:
+\code{\link[=ensure_list]{ensure_list()}},
 \code{\link[=in_range]{in_range()}},
-\code{\link[=tf_zoom]{tf_zoom()}}
+\code{\link[=tf_zoom]{tf_zoom()}},
+\code{\link[=unique_id]{unique_id()}}
 }
 \concept{tidyfun utility functions}

@@ -28,7 +28,9 @@ in_range(1:10, c(3, 7))
 }
 \seealso{
 Other tidyfun utility functions:
+\code{\link[=ensure_list]{ensure_list()}},
 \code{\link[=tf_arg]{tf_arg()}},
-\code{\link[=tf_zoom]{tf_zoom()}}
+\code{\link[=tf_zoom]{tf_zoom()}},
+\code{\link[=unique_id]{unique_id()}}
 }
 \concept{tidyfun utility functions}

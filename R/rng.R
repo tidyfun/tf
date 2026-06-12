@@ -151,6 +151,9 @@ tf_rgp <- function(
 #'   lie, at most (relative to original distance to neighboring grid points).
 #'   Defaults to at most 40% (0.4) of the original grid distances. Must be lower
 #'   than 0.5.
+#' @param same_arg for `tf_mv` objects, should all components receive the same
+#'   random argument-grid changes? Defaults to `TRUE`; use `FALSE` to jitter or
+#'   sparsify each component independently.
 #' @param ... additional args for the returned `tfd` in `tf_jiggle`.
 #' @returns an (irregular) `tfd` object.
 #' @importFrom stats runif
@@ -171,6 +174,9 @@ tf_jiggle <- function(f, amount = 0.4, ...) {
 tf_jiggle.default <- function(f, amount = 0.4, ...) {
   assert_tfd(f)
   assert_number(amount, lower = 0, upper = 0.5)
+  if (!vec_size(f)) {
+    return(as.tfd_irreg(f))
+  }
   f <- as.tfd_irreg(f)
   new_args <- map(tf_arg(f), tf_jiggle_args, amount = amount)
   evaluator <- attr(f, "evaluator_name")
@@ -181,6 +187,17 @@ tf_jiggle.default <- function(f, amount = 0.4, ...) {
   )
   tf_evaluator(ret) <- evaluator
   ret
+}
+
+#' @export
+#' @rdname tf_jiggle
+tf_jiggle.tf_mv <- function(f, amount = 0.4, same_arg = TRUE, ...) {
+  assert_flag(same_arg)
+  if (!same_arg) {
+    return(map_components(f, \(comp) tf_jiggle(comp, amount = amount, ...)))
+  }
+  tf_mv_assert_shared_arg(f, op = "tf_jiggle")
+  tf_mv_map_same_rng(f, \(comp) tf_jiggle(comp, amount = amount, ...))
 }
 
 tf_jiggle_args <- function(arg, amount) {
@@ -203,13 +220,17 @@ tf_jiggle_args <- function(arg, amount) {
 #' @rdname tf_jiggle
 #' @param dropout what proportion of values of `f` to drop, on average. Defaults to half.
 #' @export
-tf_sparsify <- function(f, dropout = 0.5) {
+tf_sparsify <- function(f, dropout = 0.5, ...) {
   UseMethod("tf_sparsify")
 }
 
 #' @export
-tf_sparsify.default <- function(f, dropout = 0.5) {
+tf_sparsify.default <- function(f, dropout = 0.5, ...) {
+  rlang::check_dots_empty()
   assert_tf(f)
+  if (!vec_size(f)) {
+    return(as.tfd_irreg(f))
+  }
   nas <- map(tf_evaluations(f), \(x) runif(length(x)) < dropout)
   tf_evals <- map2(tf_evaluations(f), nas, \(x, y) x[!y])
   tf_args <- ensure_list(tf_arg(f))
@@ -220,4 +241,60 @@ tf_sparsify.default <- function(f, dropout = 0.5) {
     tf_evaluator(ret) <- evaluator
   }
   ret
+}
+
+#' @export
+#' @rdname tf_jiggle
+tf_sparsify.tf_mv <- function(f, dropout = 0.5, same_arg = TRUE, ...) {
+  assert_flag(same_arg)
+  if (!same_arg) {
+    return(map_components(f, \(comp) tf_sparsify(comp, dropout = dropout, ...)))
+  }
+  tf_mv_assert_shared_arg(f, op = "tf_sparsify")
+  tf_mv_map_same_rng(f, \(comp) tf_sparsify(comp, dropout = dropout, ...))
+}
+
+tf_component_arg_list <- function(comp, n = vec_size(comp)) {
+  args <- ensure_list(tf_arg(comp))
+  if (length(args) == 1L && n != 1L) {
+    rep(args, n)
+  } else {
+    args
+  }
+}
+
+tf_mv_assert_shared_arg <- function(f, op) {
+  comps <- tf_components(f)
+  n <- vec_size(f)
+  if (!length(comps)) {
+    return(invisible(TRUE))
+  }
+  comp_args <- map(comps, tf_component_arg_list, n = n)
+  shared <- comp_args[[1]]
+  compatible <- map_lgl(comp_args[-1], function(args) {
+    length(args) == length(shared) &&
+      all(map2_lgl(args, shared, \(x, y) isTRUE(all.equal(x, y))))
+  })
+  if (any(!compatible)) {
+    cli::cli_abort(c(
+      "{.fn {op}} with {.code same_arg = TRUE} requires all components to share argument values.",
+      i = "Use {.code same_arg = FALSE} to change argument grids independently per component."
+    ))
+  }
+  invisible(TRUE)
+}
+
+tf_mv_map_same_rng <- function(f, .f) {
+  comps <- tf_components(f)
+  if (!length(comps)) return(f)
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+    runif(1)
+  }
+  seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  comps <- map(comps, function(comp) {
+    assign(".Random.seed", seed, envir = .GlobalEnv)
+    .f(comp)
+  })
+  names(comps) <- attr(f, "comp_names")
+  new_tf_mv(comps, domain = tf_domain(f))
 }
