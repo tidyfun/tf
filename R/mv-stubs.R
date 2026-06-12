@@ -50,60 +50,24 @@ xtfrm.tf_mv <- function(x) mv_unimplemented("xtfrm")
 #' @export
 sort.tf_mv <- function(x, decreasing = FALSE, ...) mv_unimplemented("sort")
 
-# ---- methods.R: rev ----------------------------------------------------------
-
-#' @export
-rev.tf_mv <- function(x) mv_unimplemented("rev")
-
 # ---- graphics.R: points ------------------------------------------------------
 
 #' @export
 points.tf_mv <- function(x, ...) mv_unimplemented("points")
-
-# ---- interpolate.R: tf_interpolate -------------------------------------------
-
-#' @export
-tf_interpolate.tf_mv <- function(object, arg, ...) mv_unimplemented("tf_interpolate")
 
 # ---- approx.R: tf_invert -----------------------------------------------------
 
 #' @export
 tf_invert.tf_mv <- function(x, ...) mv_unimplemented("tf_invert")
 
-# ---- where.R: tf_where / tf_anywhere -----------------------------------------
-# tf_where / tf_anywhere are converted to S3 generics in where.R; tf_anywhere
-# delegates to tf_where so a single stub catches both, but we also provide an
-# explicit stub for symmetry/clarity.
-
-#' @export
-tf_where.tf_mv <- function(f, cond, ...) mv_unimplemented("tf_where")
-
-#' @export
-tf_anywhere.tf_mv <- function(f, cond, ...) mv_unimplemented("tf_anywhere")
-
-# ---- fwise.R: tf_fwise / tf_fmean / tf_crosscov / tf_crosscor ----------------
+# ---- fwise.R: tf_crosscov / tf_crosscor --------------------------------------
 # Converted to generics in fwise.R (default method retains the univariate body).
-
-#' @export
-tf_fwise.tf_mv <- function(x, .f, ...) mv_unimplemented("tf_fwise")
-
-#' @export
-tf_fmean.tf_mv <- function(x, ...) mv_unimplemented("tf_fmean")
 
 #' @export
 tf_crosscov.tf_mv <- function(x, y, ...) mv_unimplemented("tf_crosscov")
 
 #' @export
 tf_crosscor.tf_mv <- function(x, y, ...) mv_unimplemented("tf_crosscor")
-
-# ---- rng.R: tf_sparsify / tf_jiggle ------------------------------------------
-
-#' @export
-tf_sparsify.tf_mv <- function(f, ...) mv_unimplemented("tf_sparsify")
-
-#' @export
-tf_jiggle.tf_mv <- function(f, ...) mv_unimplemented("tf_jiggle")
-
 
 #' Methods registered on vector-valued (`tf_mv`) classes
 #'
@@ -112,7 +76,7 @@ tf_jiggle.tf_mv <- function(f, ...) mv_unimplemented("tf_jiggle")
 #' generic reuse continue to work. **Behaviour** on `tf_mv` objects, however,
 #' is supplied *only* by explicitly registered `.tf_mv` methods: any generic
 #' without one aborts with a classed `tf_mv_method_unimplemented` condition
-#' (e.g. `tf_where(<tf_mv>, <cond>)`, `summary(<tf_mv>)`). This avoids silent
+#' (e.g. `tf_depth(<tf_mv>)`, `summary(<tf_mv>)`). This avoids silent
 #' fall-through to the univariate method, which would otherwise produce
 #' wrong-shape results or deep internal errors.
 #'

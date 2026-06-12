@@ -50,6 +50,15 @@ univariate `tfd`/`tfb` classes.
 * Component accessors (`tf_ncomp()`, `tf_components()`, `tf_component()`),
   `tf_split()` / `tf_combine()` extensions and `[`/`[[` methods for extracting,
   replacing and recombining components.
+* Function-wise scalar summaries `tf_fmean()`, `tf_fvar()` and `tf_fsd()`
+  return component-wise matrices for `tf_mv` objects.
+* `tf_interpolate()`, `tf_fwise()`, `tf_sparsify()` and `tf_jiggle()` now have
+  component-wise `tf_mv` methods; `tf_sparsify()` and `tf_jiggle()` keep shared
+  component grids by default via `same_arg = TRUE`.
+* `tf_where()` / `tf_anywhere()` work on `tf_mv` objects with *joint*
+  conditions across components, referenced by name (e.g.
+  `tf_where(f, x > 0 & y < 1)`); there is no `value` column for `tf_mv` input.
+  Components must share a common grid, or `arg` must be supplied explicitly.
 
 ### Contract change
 

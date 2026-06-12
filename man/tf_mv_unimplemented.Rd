@@ -9,7 +9,7 @@
 generic reuse continue to work. \strong{Behaviour} on \code{tf_mv} objects, however,
 is supplied \emph{only} by explicitly registered \code{.tf_mv} methods: any generic
 without one aborts with a classed \code{tf_mv_method_unimplemented} condition
-(e.g. \code{tf_where(<tf_mv>, <cond>)}, \code{summary(<tf_mv>)}). This avoids silent
+(e.g. \verb{tf_depth(<tf_mv>)}, \verb{summary(<tf_mv>)}). This avoids silent
 fall-through to the univariate method, which would otherwise produce
 wrong-shape results or deep internal errors.
 }

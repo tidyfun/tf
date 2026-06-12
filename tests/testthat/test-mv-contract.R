@@ -190,24 +190,16 @@ test_that("tf_integrate on a zero-component tf_mv returns an empty result", {
 # need a second argument or otherwise resist a generic walker call.
 mv_probe_calls <- function(fm) {
   list(
-    summary       = function() summary(fm),
-    fivenum       = function() fivenum(fm),
-    quantile      = function() quantile(fm),
-    tf_depth      = function() tf_depth(fm),
-    tf_where      = function() tf_where(fm, value > 0),
-    tf_anywhere   = function() tf_anywhere(fm, value > 0),
-    tf_fmean      = function() tf_fmean(fm),
-    tf_crosscov   = function() tf_crosscov(fm, fm),
-    tf_crosscor   = function() tf_crosscor(fm, fm),
-    tf_interpolate = function() tf_interpolate(fm),
-    tf_sparsify   = function() tf_sparsify(fm),
-    tf_jiggle     = function() tf_jiggle(fm),
-    tf_fwise      = function() tf_fwise(fm, function(.x) max(.x$value)),
-    tf_invert     = function() tf_invert(fm),
-    rev           = function() rev(fm),
-    sort          = function() sort(fm),
-    rank          = function() rank(fm),
-    xtfrm         = function() xtfrm(fm)
+    summary = function() summary(fm),
+    fivenum = function() fivenum(fm),
+    quantile = function() quantile(fm),
+    tf_depth = function() tf_depth(fm),
+    tf_crosscov = function() tf_crosscov(fm, fm),
+    tf_crosscor = function() tf_crosscor(fm, fm),
+    tf_invert = function() tf_invert(fm),
+    sort = function() sort(fm),
+    rank = function() rank(fm),
+    xtfrm = function() xtfrm(fm)
   )
 }
 
@@ -219,7 +211,10 @@ test_that("explicitly probed unimplemented verbs abort with classed condition", 
     expect_error(
       probes[[nm]](),
       class = "tf_mv_method_unimplemented",
-      info = sprintf("%s() on tf_mv should signal tf_mv_method_unimplemented", nm)
+      info = sprintf(
+        "%s() on tf_mv should signal tf_mv_method_unimplemented",
+        nm
+      )
     )
   }
 })
@@ -242,21 +237,28 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
   expect_true(any(grepl("^S3method\\(", ns_lines)))
   s3 <- grep("^S3method\\(", ns_lines, value = TRUE)
   m <- regmatches(s3, regexec("^S3method\\(([^,]+),(.+)\\)$", s3))
-  pairs <- do.call(rbind.data.frame, lapply(m, function(x) {
-    if (length(x) == 3) {
-      data.frame(
-        generic = gsub('"', "", trimws(x[2])),
-        class = gsub('"', "", trimws(x[3])),
-        stringsAsFactors = FALSE
-      )
-    }
-  }))
+  pairs <- do.call(
+    rbind.data.frame,
+    lapply(m, function(x) {
+      if (length(x) == 3) {
+        data.frame(
+          generic = gsub('"', "", trimws(x[2])),
+          class = gsub('"', "", trimws(x[3])),
+          stringsAsFactors = FALSE
+        )
+      }
+    })
+  )
   by_gen <- split(pairs$class, pairs$generic)
 
   univariate_classes <- c(
-    "tf", "tfd", "tfb",
-    "tfd_reg", "tfd_irreg",
-    "tfb_spline", "tfb_fpc"
+    "tf",
+    "tfd",
+    "tfb",
+    "tfd_reg",
+    "tfd_irreg",
+    "tfb_spline",
+    "tfb_fpc"
   )
 
   has_univariate <- function(classes) any(classes %in% univariate_classes)
@@ -265,14 +267,43 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
   # restrict to single-arg generics we can blindly call; everything else is
   # already covered by the explicit probe table above.
   walkable <- c(
-    "format", "print", "plot", "lines",
-    "tf_arg", "tf_domain", "tf_evaluations", "tf_count",
-    "as.data.frame", "as.matrix", "mean", "median", "sd", "var",
-    "is.na", "tf_derive", "tf_integrate", "tf_inner", "tf_norm",
-    "tf_tangent", "tf_smooth", "tf_evaluate", "tf_arclength",
-    "tf_rebase", "tf_zoom", "tf_warp", "tf_align",
-    "rev", "sort", "rank", "xtfrm", "summary", "fivenum", "quantile",
-    "tf_depth", "tf_interpolate", "tf_invert"
+    "format",
+    "print",
+    "plot",
+    "lines",
+    "tf_arg",
+    "tf_domain",
+    "tf_evaluations",
+    "tf_count",
+    "as.data.frame",
+    "as.matrix",
+    "mean",
+    "median",
+    "sd",
+    "var",
+    "is.na",
+    "tf_derive",
+    "tf_integrate",
+    "tf_inner",
+    "tf_norm",
+    "tf_tangent",
+    "tf_smooth",
+    "tf_evaluate",
+    "tf_arclength",
+    "tf_rebase",
+    "tf_zoom",
+    "tf_warp",
+    "tf_align",
+    "rev",
+    "sort",
+    "rank",
+    "xtfrm",
+    "summary",
+    "fivenum",
+    "quantile",
+    "tf_depth",
+    "tf_interpolate",
+    "tf_invert"
   )
 
   # The contract: a walked single-argument generic must either *succeed*

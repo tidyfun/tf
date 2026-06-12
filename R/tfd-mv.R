@@ -92,6 +92,14 @@ new_tf_mv <- function(
       names(components) <- paste0("v", seq_along(components))
     }
     names(components) <- vec_as_names(names(components), repair = "unique")
+    # "arg" is the grid column in evaluation data.frames (`[.tf_mv` with
+    # matrix = FALSE, tf_evaluations(), tf_where()); a component of that name
+    # would silently overwrite it there.
+    if ("arg" %in% names(components)) {
+      cli::cli_abort(
+        "{.val arg} is reserved and cannot be used as a component name."
+      )
+    }
   } else {
     domain <- domain %||% numeric(2)
     subclass <- class %||% "tfd_mv"

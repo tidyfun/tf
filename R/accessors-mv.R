@@ -165,13 +165,19 @@ check_component_index <- function(which, comps, arg = "which") {
 
 #-------------------------------------------------------------------------------
 
+# do all components share (numerically) identical arg grids?
+mv_args_shared <- function(f) {
+  args <- map(tf_components(f), tf_arg)
+  length(args) <= 1L ||
+    all(map_lgl(args[-1], \(a) isTRUE(all.equal(a, args[[1]]))))
+}
+
 #' @export
 tf_arg.tf_mv <- function(f) {
   comps <- tf_components(f)
   if (!length(comps)) return(numeric(0))
   args <- map(comps, tf_arg)
-  all_agree <- length(args) == 1L ||
-    all(map_lgl(args[-1], \(a) isTRUE(all.equal(a, args[[1]]))))
+  all_agree <- mv_args_shared(f)
   if (any(map_lgl(comps, is_irreg))) {
     # all-irregular + per-curve args shared across components (the typical
     # movement-data case): collapse to a single per-curve list.
