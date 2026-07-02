@@ -141,10 +141,16 @@ test_that("mean / median return a length-1 tf_mv", {
   expect_s3_class(m, "tfd_mv")
   expect_length(m, 1)
   expect_equal(tf_evaluations(m$x)[[1]], tf_evaluations(mean(f$x))[[1]])
-  med <- median(f)
+  # median.tf_mv is now a *joint* depth-median: one observed curve across all
+  # components (not the old component-wise chimera). See #273.
+  med <- suppressMessages(median(f))
   expect_length(med, 1)
-  expect_equal(med$x, median(f$x))
-  expect_equal(med$y, median(f$y))
+  expect_identical(unname(med), unname(f[which.max(tf_depth(f))]))
+  expect_true(any(vapply(
+    seq_along(f),
+    function(i) identical(unname(med), unname(f[i])),
+    logical(1)
+  )))
 })
 
 test_that("sd.tf_mv and var.tf_mv accept na.rm", {

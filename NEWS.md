@@ -67,6 +67,22 @@ univariate `tfd`/`tfb` classes.
   `"trajectory"` mode (`d == 2`) it overlays the paired `(x(t), y(t))` points
   with per-curve graphical-parameter recycling; in `"facet"` mode it overlays
   each component onto the current device.
+* `tf_depth()` gains a `tf_mv` method: a weighted componentwise aggregation of
+  the (centrality) univariate depths, with a `weights` argument mirroring
+  `tfb_mfpc()` (`"equal"` default, `"inverse_variance"`, or a numeric vector).
+  The up-down ordering index `"MHI"` has no canonical vector-valued analogue and
+  aborts with a pointer to `tf_order()` (#273).
+* `median()`, `summary()` and `fivenum()` on `tf_mv` now select *observed*
+  vector-valued curves via a single joint-depth index (one curve across all
+  components), fixing the previous component-wise "chimera" where each component
+  could come from a different observation. Pointwise entries (mean, min/max, the
+  central-half range) remain component-wise (#273).
+* New generic `tf_order()` with a `tf_mv` method: `tf_order(f, by = "norm")`
+  (or `by = <component name>`) orders vector-valued curves by an explicit
+  scalar reduction. `sort()`, `rank()` and `xtfrm()` remain permanently
+  undefined for `tf_mv` -- there is no canonical total order on `R^d` -- so
+  base `sort()`/`order()`/`rank()` fail fast rather than fabricate an order
+  (#273).
 
 ### Contract change
 
