@@ -52,10 +52,26 @@ sort.tf_mv <- function(x, decreasing = FALSE, ...) mv_unimplemented("sort")
 
 # `points.tf_mv` is implemented in R/plot-mv.R (mirroring `lines.tf_mv`).
 
-# ---- approx.R: tf_invert -----------------------------------------------------
+# ---- calculus.R: tf_invert (permanently undefined) ---------------------------
+# Function inversion is only defined for monotone *scalar* functions. A
+# vector-valued f: R -> R^d has no inverse in this sense, so this is not a
+# "not yet" stub but a permanent one -- we keep the `tf_mv_method_unimplemented`
+# class (the walker contract test relies on it) but give a definitive message.
 
 #' @export
-tf_invert.tf_mv <- function(x, ...) mv_unimplemented("tf_invert")
+tf_invert.tf_mv <- function(x, ...) {
+  cli::cli_abort(
+    c(
+      "{.fn tf_invert} is not defined for vector-valued {.cls tf_mv}.",
+      i = "Inversion requires a monotone scalar function; a vector-valued
+           {.cls tf_mv} has no such inverse.",
+      i = "If a single component is monotone, invert it per component, e.g.
+           {.code tf_invert(f$x)}."
+    ),
+    class = "tf_mv_method_unimplemented",
+    call = NULL
+  )
+}
 
 # ---- fwise.R: tf_crosscov / tf_crosscor --------------------------------------
 # Converted to generics in fwise.R (default method retains the univariate body).
@@ -79,6 +95,13 @@ tf_crosscor.tf_mv <- function(x, y, ...) mv_unimplemented("tf_crosscor")
 #'
 #' Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 #' being designed verb-by-verb in <https://github.com/tidyfun/tf/issues/255>.
+#' `summary()`, `fivenum()`, `rank()`, `xtfrm()`, `sort()` and `tf_depth()`
+#' await the multivariate-depth design in
+#' <https://github.com/tidyfun/tf/issues/273>, and `tf_crosscov()` /
+#' `tf_crosscor()` await <https://github.com/tidyfun/tf/issues/274>.
+#' `tf_invert()` is *permanently* undefined for `tf_mv`: function inversion
+#' requires a monotone scalar function, which a vector-valued `f: R -> R^d`
+#' is not (invert a monotone component instead, e.g. `tf_invert(f$x)`).
 #'
 #' @name tf_mv_unimplemented
 #' @keywords internal

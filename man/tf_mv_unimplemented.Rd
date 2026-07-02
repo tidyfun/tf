@@ -16,5 +16,12 @@ wrong-shape results or deep internal errors.
 \details{
 Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 being designed verb-by-verb in \url{https://github.com/tidyfun/tf/issues/255}.
+\code{summary()}, \code{fivenum()}, \code{rank()}, \code{xtfrm()}, \code{sort()} and \code{tf_depth()}
+await the multivariate-depth design in
+\url{https://github.com/tidyfun/tf/issues/273}, and \code{tf_crosscov()} /
+\code{tf_crosscor()} await \url{https://github.com/tidyfun/tf/issues/274}.
+\code{tf_invert()} is \emph{permanently} undefined for \code{tf_mv}: function inversion
+requires a monotone scalar function, which a vector-valued \verb{f: R -> R^d}
+is not (invert a monotone component instead, e.g. \code{tf_invert(f$x)}).
 }
 \keyword{internal}

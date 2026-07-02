@@ -59,6 +59,14 @@ univariate `tfd`/`tfb` classes.
   conditions across components, referenced by name (e.g.
   `tf_where(f, x > 0 & y < 1)`); there is no `value` column for `tf_mv` input.
   Components must share a common grid, or `arg` must be supplied explicitly.
+* `quantile()` works on `tf_mv` objects, returning the *component-wise*
+  pointwise quantiles: a `tf_mv` with one curve per requested probability in
+  `probs`, exactly as `quantile.tf()` does per component (`na.rm` / `probs` /
+  `type` are forwarded).
+* `points()` works on `tf_mv` objects, mirroring `lines.tf_mv()`: in
+  `"trajectory"` mode (`d == 2`) it overlays the paired `(x(t), y(t))` points
+  with per-curve graphical-parameter recycling; in `"facet"` mode it overlays
+  each component onto the current device.
 
 ### Contract change
 
