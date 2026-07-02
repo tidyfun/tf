@@ -136,7 +136,9 @@ median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   }
   x <- x[!is.na(x)]
   if (!vec_size(x)) {
-    return(x)
+    # documented contract: length-1 result; vec_init, not `[NA]` (rejected
+    # by [.tf_mv) -- consistent with the summary/fivenum empty handling.
+    return(vctrs::vec_init(x, 1))
   }
   d <- tf_depth(x, depth = depth, na.rm = FALSE, ...)
   unname(x[depth_median_index(d)])

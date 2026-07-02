@@ -205,3 +205,19 @@ test_that("tf_depth / median / summary work on tfb_mv too", {
   expect_true(is_tf_mv(med))
   expect_length(med, 1L)
 })
+
+test_that("empty and NA-depth edge cases are handled (#297 review)", {
+  fm <- make_fm(n = 3)
+  # tf_depth on a zero-length tf_mv returns a named numeric(0), no error
+  expect_identical(tf_depth(fm[0]), setNames(numeric(0), character(0)))
+  # median of an empty (post-filter) tf_mv keeps the length-1 contract
+  m0 <- median(fm[0], na.rm = TRUE)
+  expect_length(m0, 1L)
+  expect_true(all(is.na(m0)))
+  # NA depths never poison the tie count; all-non-finite aborts cleanly
+  expect_identical(tf:::depth_median_index(c(1, NA)), 1L)
+  expect_error(
+    tf:::depth_median_index(c(NA_real_, NA_real_)),
+    "no finite depth"
+  )
+})

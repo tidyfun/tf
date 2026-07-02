@@ -129,9 +129,12 @@ tf_depth.tf_mv <- function(
   # Mirror the univariate na.rm default: drop curves that are missing in *any*
   # component (the union, per `is.na.tf_mv`) so every component then aligns.
   if (na.rm) x <- x[!is.na(x)]
+  n <- vec_size(x)
+  if (n == 0) {
+    return(setNames(numeric(0), names(x)))
+  }
   comps <- tf_components(x)
   w <- resolve_mv_depth_weights(weights, comps)
-  n <- vec_size(x)
   depth_args <- c(
     if (!missing(arg)) list(arg = arg),
     list(depth = depth, na.rm = na.rm),
@@ -153,6 +156,14 @@ tf_depth.tf_mv <- function(
 # an inform on ties. tf_mv medians must return an *observed* curve, so ties
 # cannot be averaged like `median.tf` does.
 depth_median_index <- function(d) {
+  if (!any(is.finite(d))) {
+    cli::cli_abort(
+      "Can't determine a depth median: no finite depth values."
+    )
+  }
+  # non-finite depths (partially-NA curves under some depths) never win and
+  # must not poison the tie count.
+  d[!is.finite(d)] <- -Inf
   idx <- which.max(d)
   n_max <- sum(d == d[idx])
   if (n_max > 1) {
