@@ -147,7 +147,7 @@ test_that("tf_scales rescales aligned curves back to input arc lengths (#264)", 
   # curves: scaling each aligned curve by its factor recovers the input curve's
   # arc length. Equalization now happens inside the refinement loop (#264).
   expect_equal(
-    aligned_arclen * scales,
+    unname(aligned_arclen * scales),
     unname(input_arclen),
     tolerance = 1e-6
   )
