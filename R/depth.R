@@ -132,23 +132,35 @@ tf_depth.tf_mv <- function(
   comps <- tf_components(x)
   w <- resolve_mv_depth_weights(weights, comps)
   n <- vec_size(x)
-  have_arg <- !missing(arg)
+  depth_args <- c(
+    if (!missing(arg)) list(arg = arg),
+    list(depth = depth, na.rm = na.rm),
+    list(...)
+  )
   per_comp <- vapply(
     comps,
-    function(comp) {
-      if (have_arg) {
-        tf_depth(comp, arg = arg, depth = depth, na.rm = na.rm, ...)
-      } else {
-        tf_depth(comp, depth = depth, na.rm = na.rm, ...)
-      }
-    },
+    function(comp) do.call(tf_depth, c(list(comp), depth_args)),
     numeric(n)
   )
-  # per_comp is n x d; weighted average across components.
+  # vapply returns a bare vector for n == 1; the n x d shape is needed below.
   per_comp <- matrix(per_comp, nrow = n)
   result <- as.numeric(per_comp %*% w)
   names(result) <- names(x)
   result
+}
+
+# Index of the (joint-)depth median: the first maximal-depth observation, with
+# an inform on ties. tf_mv medians must return an *observed* curve, so ties
+# cannot be averaged like `median.tf` does.
+depth_median_index <- function(d) {
+  idx <- which.max(d)
+  n_max <- sum(d == d[idx])
+  if (n_max > 1) {
+    cli::cli_inform(c(
+      x = "{n_max} observations with maximal depth; returning the first."
+    ))
+  }
+  idx
 }
 
 # resolve the `tf_mv` depth weighting scheme to a length-d numeric vector that
@@ -170,10 +182,8 @@ resolve_mv_depth_weights <- function(weights, comps) {
       weights,
       equal = rep(1, d),
       inverse_variance = {
-        mean_pw_var <- map_dbl(comps, function(comp) {
-          m <- suppressWarnings(as.matrix(comp))
-          mean(apply(m, 2, var, na.rm = TRUE), na.rm = TRUE)
-        })
+        # canonical mean-pointwise-variance helper (registration-class.R, #249)
+        mean_pw_var <- map_dbl(comps, mean_pointwise_variance)
         if (any(!is.finite(mean_pw_var) | mean_pw_var <= 0)) {
           cli::cli_abort(
             "Can't use {.val inverse_variance} weights: a component has zero \\
@@ -559,7 +569,7 @@ tf_order.tf <- function(f, depth = "MHI", ...) {
 #' @export
 tf_order.tf_mv <- function(f, by = "norm", ...) {
   comp_names <- attr(f, "comp_names")
-  reduction <- if (is.character(by) && length(by) == 1L && identical(by, "norm")) {
+  reduction <- if (identical(by, "norm")) {
     tf_norm(f)
   } else if (is.character(by) && length(by) == 1L && by %in% comp_names) {
     tf_component(f, by)

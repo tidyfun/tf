@@ -15,9 +15,9 @@ otherwise produce wrong-shape results or deep internal errors.
 \details{
 Some verbs are \emph{permanently} stubbed because they have no well-defined
 vector-valued semantics: \code{sort()}, \code{rank()} and \code{xtfrm()} (no canonical
-total order on \eqn{R^d} -- use \code{\link[=tf_order]{tf_order()}} with \code{by =} instead), and
-\code{tf_invert()}. \code{tf_crosscov()} / \code{tf_crosscor()} remain blocked pending
-their joint design (\url{https://github.com/tidyfun/tf/issues/274}).
+total order on \eqn{R^d} -- use \code{\link[=tf_order]{tf_order()}} with \code{by =} instead).
+\code{tf_crosscov()} / \code{tf_crosscor()} remain blocked pending their joint design
+(\url{https://github.com/tidyfun/tf/issues/274}).
 
 Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 being designed verb-by-verb in \url{https://github.com/tidyfun/tf/issues/255}.

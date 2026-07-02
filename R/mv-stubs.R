@@ -12,15 +12,13 @@ NULL
 # callers can catch them uniformly while we design real semantics
 # component-by-component -- see tidyfun/tf#255.
 
-mv_unimplemented <- function(fn) {
-  cli::cli_abort(
+mv_unimplemented <- function(fn, bullets = NULL) {
+  bullets <- bullets %||%
     c(
       "{.fn {fn}} is not (yet) defined for vector-valued {.cls tf_mv}.",
       i = "See {.url https://github.com/tidyfun/tf/issues/255} for design discussion."
-    ),
-    class = "tf_mv_method_unimplemented",
-    call = NULL
-  )
+    )
+  cli::cli_abort(bullets, class = "tf_mv_method_unimplemented", call = NULL)
 }
 
 # ---- summarize.R: quantile ---------------------------------------------------
@@ -42,15 +40,14 @@ mv_unimplemented <- function(fn) {
 # order. See tidyfun/tf#273.
 
 mv_no_total_order <- function(fn) {
-  cli::cli_abort(
+  mv_unimplemented(
+    fn,
     c(
       "{.fn {fn}} is undefined for vector-valued {.cls tf_mv}: there is no \\
        canonical total order on {.field R^d}.",
       i = "Reduce to a scalar first, e.g. {.code tf_order(f, by = \"norm\")}, \\
            {.code f[order(tf_norm(f))]}, or order by a single component."
-    ),
-    class = "tf_mv_method_unimplemented",
-    call = NULL
+    )
   )
 }
 
@@ -107,9 +104,9 @@ tf_crosscor.tf_mv <- function(x, y, ...) mv_unimplemented("tf_crosscor")
 #'
 #' Some verbs are *permanently* stubbed because they have no well-defined
 #' vector-valued semantics: `sort()`, `rank()` and `xtfrm()` (no canonical
-#' total order on \eqn{R^d} -- use [tf_order()] with `by =` instead), and
-#' `tf_invert()`. `tf_crosscov()` / `tf_crosscor()` remain blocked pending
-#' their joint design (<https://github.com/tidyfun/tf/issues/274>).
+#' total order on \eqn{R^d} -- use [tf_order()] with `by =` instead).
+#' `tf_crosscov()` / `tf_crosscor()` remain blocked pending their joint design
+#' (<https://github.com/tidyfun/tf/issues/274>).
 #'
 #' Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 #' being designed verb-by-verb in <https://github.com/tidyfun/tf/issues/255>.

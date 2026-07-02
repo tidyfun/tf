@@ -9,6 +9,15 @@ make_fm <- function(n = 7, seed = 273) {
   tfd_mv(list(x = tf_rgp(n), y = tf_rgp(n), z = tf_rgp(n)))
 }
 
+# is `g` (length-1) one of the observed curves in `fm`? -- the no-chimera oracle
+is_observed <- function(g, fm) {
+  any(vapply(
+    seq_along(fm),
+    function(i) identical(unname(g), unname(fm[i])),
+    logical(1)
+  ))
+}
+
 test_that("tf_depth.tf_mv equals the weighted componentwise average", {
   fm <- make_fm()
   per_comp <- vapply(
@@ -73,11 +82,7 @@ test_that("median.tf_mv returns an OBSERVED curve (no chimera)", {
   expect_length(med, 1L)
   expect_true(is_tf_mv(med))
   # the regression assertion from #273: the joint median is one of the inputs
-  expect_true(any(vapply(
-    seq_along(fm),
-    function(i) identical(unname(med), unname(fm[i])),
-    logical(1)
-  )))
+  expect_true(is_observed(med, fm))
 })
 
 test_that("median.tf_mv index == which.max(tf_depth)", {
@@ -96,11 +101,7 @@ test_that("median.tf_mv NA handling mirrors univariate", {
   # na.rm = TRUE -> observed curve among the complete ones
   med <- suppressMessages(median(fm, na.rm = TRUE))
   complete <- fm[!is.na(fm)]
-  expect_true(any(vapply(
-    seq_along(complete),
-    function(i) identical(unname(med), unname(complete[i])),
-    logical(1)
-  )))
+  expect_true(is_observed(med, complete))
 })
 
 test_that("summary.tf_mv runs clean and satisfies its oracles", {
@@ -117,11 +118,7 @@ test_that("summary.tf_mv runs clean and satisfies its oracles", {
   expect_equal(unname(s["max"]$y), unname(max(fm)$y))
   # the depth-based median entry is an observed curve
   me <- s["median"]
-  expect_true(any(vapply(
-    seq_along(fm),
-    function(i) identical(unname(me), unname(fm[i])),
-    logical(1)
-  )))
+  expect_true(is_observed(me, fm))
 })
 
 test_that("fivenum.tf_mv runs clean and returns observed curves", {
@@ -134,14 +131,34 @@ test_that("fivenum.tf_mv runs clean and returns observed curves", {
     c("min", "lower_hinge", "median", "upper_hinge", "max")
   )
   # every five-number curve is one of the observed input curves
-  observed <- function(g) {
-    any(vapply(
-      seq_along(fm),
-      function(i) identical(unname(g), unname(fm[i])),
-      logical(1)
-    ))
-  }
-  expect_true(all(vapply(seq_len(5), function(k) observed(fv[k]), logical(1))))
+  expect_true(all(vapply(
+    seq_len(5),
+    function(k) is_observed(fv[k], fm),
+    logical(1)
+  )))
+})
+
+test_that("summary / fivenum handle zero-length and all-NA tf_mv input", {
+  fm <- make_fm(n = 3)
+  empty <- fm[0]
+  s <- summary(empty)
+  expect_s3_class(s, "tf_mv")
+  expect_length(s, 6L)
+  expect_true(all(is.na(s)))
+  expect_named(s, c("min", "lower_mid", "median", "mean", "upper_mid", "max"))
+  fv <- fivenum(empty, na.rm = TRUE)
+  expect_s3_class(fv, "tf_mv")
+  expect_length(fv, 5L)
+  expect_true(all(is.na(fv)))
+  # all-NA input
+  fna <- fm
+  fna[seq_along(fna)] <- NA
+  sna <- summary(fna)
+  expect_length(sna, 6L)
+  expect_true(all(is.na(sna)))
+  fvna <- fivenum(fna, na.rm = TRUE)
+  expect_length(fvna, 5L)
+  expect_true(all(is.na(fvna)))
 })
 
 test_that("tf_order.tf_mv reduces via norm or a named component", {

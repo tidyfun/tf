@@ -111,12 +111,26 @@ mean.tf_mv <- function(x, ..., na.rm = FALSE) {
   map_components(x, \(a) mean(a, ..., na.rm = na.rm))
 }
 
+#' Joint depth-median for vector-valued functional data
+#'
+#' The median of a `tf_mv` vector is the single *observed* curve with maximal
+#' joint depth (see [tf_depth()]): one `which.max` index selects the same
+#' observation across every component, so the result is never a "chimera"
+#' stitched together from different curves. Note the deliberate divergence from
+#' [median.tf()] on ties: the univariate median *averages* tied maximal-depth
+#' curves, but averaging components would break the observed-curve guarantee,
+#' so `median.tf_mv` returns the first tied curve (with a message). On tied
+#' data, `median(f)$x` and `median(f$x)` can therefore differ.
+#'
+#' @param x a `tf_mv` vector.
+#' @param na.rm if `FALSE` (default), any `NA` observation makes the result
+#'   `NA`; if `TRUE`, `NA` observations are dropped first.
+#' @param depth the joint depth method, see [tf_depth()].
+#' @param ... passed to [tf_depth()].
+#' @returns a length-1 `tf_mv`: the observed curve with maximal joint depth.
 #' @export
+#' @family tidyfun summary functions
 median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
-  # Joint depth-median: a single `which.max` over the joint depth selects the
-  # same observed curve across every component (an observed vector-valued
-  # curve), fixing the component-wise "chimera" where each component could come
-  # from a different observation. See tidyfun/tf#273.
   if (!na.rm && any(is.na(x))) {
     return(tf_na_like(x))
   }
@@ -125,14 +139,7 @@ median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
     return(x)
   }
   d <- tf_depth(x, depth = depth, na.rm = FALSE, ...)
-  idx <- which.max(d)
-  n_max <- sum(d == d[idx])
-  if (n_max > 1) {
-    cli::cli_inform(c(
-      x = "{n_max} observations with maximal depth; returning the first."
-    ))
-  }
-  unname(x[idx])
+  unname(x[depth_median_index(d)])
 }
 
 #' @export

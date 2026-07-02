@@ -221,22 +221,18 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
     return(ret[seq_len(min(length(ret), 5))])
   }
   o <- order(prepared$d)
-  # For small samples, reuse the nearest available order statistic.
-  n <- length(prepared$x)
-  idx <- pmax(
-    1L,
-    c(
-      1L,
-      floor((n + 1) / 4),
-      floor((n + 1) / 2),
-      floor(3 * (n + 1) / 4),
-      n
-    )
-  )
-  idx <- o[idx]
-  ret <- prepared$x[idx]
+  ret <- prepared$x[o[fivenum_positions(length(prepared$x))]]
   names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
   ret
+}
+
+# Order-statistic positions for a depth-based five-number summary; for small
+# samples the nearest available order statistic is reused.
+fivenum_positions <- function(n) {
+  pmax(
+    1L,
+    c(1L, floor((n + 1) / 4), floor((n + 1) / 2), floor(3 * (n + 1) / 4), n)
+  )
 }
 
 #-------------------------------------------------------------------------------
@@ -252,12 +248,12 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
 summary.tf_mv <- function(object, ..., depth = "MBD") {
   nms <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
   if (vec_size(object) == 0 || all(is.na(object))) {
+    # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
     ret <- if (vec_size(object) == 0) {
-      vctrs::vec_c(object, object[rep(NA_integer_, 6)])
+      vctrs::vec_init(object, 6)
     } else {
       object[rep(1L, 6)]
     }
-    ret <- ret[seq_len(6)]
     names(ret) <- nms
     return(ret)
   }
@@ -267,7 +263,7 @@ summary.tf_mv <- function(object, ..., depth = "MBD") {
   ret <- vctrs::vec_c(
     min(object, na.rm = TRUE),
     min(central, na.rm = TRUE),
-    median(object, na.rm = TRUE, depth = depth, ...),
+    unname(complete[depth_median_index(d)]),
     mean(object, na.rm = TRUE),
     max(central, na.rm = TRUE),
     max(object, na.rm = TRUE)
@@ -287,19 +283,14 @@ fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   }
   complete <- x[!is.na(x)]
   if (vec_size(complete) == 0) {
-    ret <- complete[rep(NA_integer_, 5)]
+    # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
+    ret <- vctrs::vec_init(complete, 5)
     names(ret) <- nms
     return(ret)
   }
   d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
   o <- base::order(d)
-  n <- vec_size(complete)
-  idx <- pmax(
-    1L,
-    c(1L, floor((n + 1) / 4), floor((n + 1) / 2), floor(3 * (n + 1) / 4), n)
-  )
-  idx <- o[idx]
-  ret <- complete[idx]
+  ret <- complete[o[fivenum_positions(vec_size(complete))]]
   names(ret) <- nms
   ret
 }
