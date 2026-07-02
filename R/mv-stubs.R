@@ -31,8 +31,8 @@ summary.tf_mv <- function(object, ...) mv_unimplemented("summary")
 #' @export
 fivenum.tf_mv <- function(x, na.rm = FALSE, ...) mv_unimplemented("fivenum")
 
-#' @export
-quantile.tf_mv <- function(x, ...) mv_unimplemented("quantile")
+# `quantile.tf_mv` is implemented component-wise in R/depth.R (next to
+# `quantile.tf`).
 
 # ---- depth.R: tf_depth, rank, xtfrm, sort -----------------------------------
 # (`min`/`max`/`range` are handled by the existing `Summary.tf_mv` group method;

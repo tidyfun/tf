@@ -227,6 +227,39 @@ test_that("trajectory plotting handles components on different / irregular grids
   expect_no_error(plot(irr))
 })
 
+test_that("quantile.tf_mv returns component-wise pointwise quantiles (oracle)", {
+  set.seed(89)
+  f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  q <- suppressMessages(quantile(f))
+  expect_s3_class(q, "tf_mv")
+  expect_identical(tf_ncomp(q), 2L)
+  # one curve per probability level; default probs has length 5
+  expect_length(q, 5L)
+  # the established oracle: mv result == univariate result per component
+  expect_equal(q$x, suppressMessages(quantile(f$x)))
+  expect_equal(q$y, suppressMessages(quantile(f$y)))
+})
+
+test_that("quantile.tf_mv honours a probs vector of length > 1", {
+  set.seed(90)
+  f <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  probs <- c(0.1, 0.5, 0.9)
+  q <- suppressMessages(quantile(f, probs = probs))
+  expect_length(q, length(probs))
+  expect_equal(q$x, suppressMessages(quantile(f$x, probs = probs)))
+})
+
+test_that("quantile.tf_mv passes na.rm through per component", {
+  set.seed(91)
+  f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  f$x[2] <- NA
+  # with na.rm = TRUE the NA curve is dropped from the pointwise quantiles
+  q <- suppressMessages(quantile(f, na.rm = TRUE))
+  expect_s3_class(q, "tf_mv")
+  expect_equal(q$x, suppressMessages(quantile(f$x, na.rm = TRUE)))
+  expect_equal(q$y, suppressMessages(quantile(f$y, na.rm = TRUE)))
+})
+
 test_that("print reports per-component grid / interpolator / basis info", {
   set.seed(9)
   # shared grid -> collapsed single info line
