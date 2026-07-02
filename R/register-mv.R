@@ -206,14 +206,21 @@ srvf_mv_gamma_to_warps <- function(gamma, arg, domain, curve_names = NULL) {
 # convention, so we correct it on our side here.
 #
 # We renormalise every returned aligned curve to a shared (mean) arc length, so
-# congruent shapes overlay as they should. The per-curve scale factors that were
-# removed are reported separately and left untouched in `tf_scales()`.
+# congruent shapes overlay as they should. The per-curve scale factors that
+# relate the equalised aligned curves back to the input curves' sizes are
+# reported by `tf_scales()` (see `tf_register_shape_srvf_mv()`).
 # `beta` is `[component, arg, curve]`.
-srvf_mv_equalize_scale <- function(beta) {
-  arclen <- apply(beta, 3, function(m) {
+
+# Per-curve (polyline) arc lengths of a `[component, arg, curve]` array.
+srvf_mv_arclengths <- function(beta) {
+  apply(beta, 3, function(m) {
     d <- m[, -1, drop = FALSE] - m[, -ncol(m), drop = FALSE]
     sum(sqrt(colSums(d^2)))
   })
+}
+
+srvf_mv_equalize_scale <- function(beta) {
+  arclen <- srvf_mv_arclengths(beta)
   target <- mean(arclen)
   for (k in seq_len(dim(beta)[3])) {
     if (arclen[k] > 0) {
@@ -319,12 +326,15 @@ tf_register_srvf_mv <- function(
 #' and scale factors.
 #'
 #' @details
-#' The per-curve scale factors returned by [tf_scales()] are expressed
-#' *relative to the template*: each is the ratio of the template's SRVF norm to
-#' the curve's own SRVF norm, so a value `> 1` means the curve was scaled up to
-#' match the template and `< 1` means it was scaled down. With `template = NULL`
-#' the returned [tf_template()] is the empirical mean of the aligned shape-space
-#' curves rather than any single input curve.
+#' When `scale = TRUE` the aligned curves returned by [tf_aligned()] are
+#' renormalised to a common (mean) arc length so that congruent shapes overlay.
+#' The per-curve factors returned by [tf_scales()] are the sizes that were
+#' removed: multiplying an aligned curve by its scale factor rescales it back to
+#' the corresponding input curve's arc length, so a value `> 1` means the input
+#' curve was larger than the shared aligned size and `< 1` means it was smaller.
+#' With `scale = FALSE` warping and rotation preserve arc length, so all factors
+#' are `1`. With `template = NULL` the returned [tf_template()] is the empirical
+#' mean of the aligned shape-space curves rather than any single input curve.
 #'
 #' Only open curves (`mode = "O"`) are supported. Closed curves (`mode = "C"`)
 #' additionally optimise over a circular seed shift that the returned warping
@@ -463,6 +473,7 @@ tf_register_shape_srvf_mv <- function(
   comp_names <- attr(x, "comp_names")
   curve_names <- names(x)
   beta <- srvf_mv_to_array(x)
+  input_arclen <- srvf_mv_arclengths(beta)
   current_template <- if (is.null(template)) {
     beta[,, 1]
   } else {
@@ -488,6 +499,12 @@ tf_register_shape_srvf_mv <- function(
         dots
       )
     ))
+    if (scale) {
+      # fdasrvf returns scale-aligned curves at the wrong (inverted) size; see
+      # srvf_mv_equalize_scale() above. Renormalise BEFORE the template update
+      # so intermediate templates are built from correctly-scaled curves (#264).
+      ret$betan <- srvf_mv_equalize_scale(ret$betan)
+    }
     new_template <- rowMeans(ret$betan, dims = 2)
     best <- ret
     best_template <- new_template
@@ -505,15 +522,19 @@ tf_register_shape_srvf_mv <- function(
     current_template <- new_template
   }
 
-  if (scale) {
-    # fdasrvf returns scale-aligned curves at the wrong (inverted) size; see
-    # srvf_mv_equalize_scale() above. Renormalise, then refresh the template.
-    best$betan <- srvf_mv_equalize_scale(best$betan)
-    best_template <- rowMeans(best$betan, dims = 2)
-  }
-
   warps <- srvf_mv_gamma_to_warps(best$gamma, arg, domain, curve_names)
-  scales <- if (scale) best$qmean_norm / best$len_q else rep(1, length(x))
+  # Report the per-curve factors that actually reconstruct the input sizes:
+  # the equalised aligned curves share a common arc length, so multiplying an
+  # aligned curve by `input_arclen / aligned_arclen` recovers its input arc
+  # length. This keeps `tf_scales()` mutually consistent with `tf_aligned()`
+  # (#264). With `scale = FALSE` warping and rotation preserve arc length, so
+  # the factors are 1.
+  scales <- if (scale) {
+    aligned_arclen <- srvf_mv_arclengths(best$betan)
+    ifelse(aligned_arclen > 0, input_arclen / aligned_arclen, 1)
+  } else {
+    rep(1, length(x))
+  }
   names(scales) <- curve_names
   rotations <- best$R
   dimnames(rotations) <- list(comp_names, comp_names, curve_names)

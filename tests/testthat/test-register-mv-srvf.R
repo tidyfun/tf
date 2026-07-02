@@ -128,6 +128,36 @@ test_that("tf_register_shape aligns translated, rotated, and scaled curves", {
   )
 })
 
+test_that("tf_scales rescales aligned curves back to input arc lengths (#264)", {
+  skip_if_not_installed("fdasrvf")
+
+  f <- make_shape_mv()
+  reg <- tf_register_shape(f, max_iter = 3)
+
+  arclen <- function(mv) {
+    beta <- tf:::srvf_mv_to_array(mv)
+    tf:::srvf_mv_arclengths(beta)
+  }
+
+  input_arclen <- arclen(f)
+  aligned_arclen <- arclen(tf_aligned(reg))
+  scales <- unname(tf_scales(reg))
+
+  # The reported per-curve scales must be mutually consistent with the aligned
+  # curves: scaling each aligned curve by its factor recovers the input curve's
+  # arc length. Equalization now happens inside the refinement loop (#264).
+  expect_equal(
+    aligned_arclen * scales,
+    unname(input_arclen),
+    tolerance = 1e-6
+  )
+  # Equalization makes the aligned curves share a common arc length.
+  expect_lt(
+    sd(aligned_arclen) / mean(aligned_arclen),
+    1e-6
+  )
+})
+
 test_that("tf_register_shape rejects closed-curve mode", {
   skip_if_not_installed("fdasrvf")
 

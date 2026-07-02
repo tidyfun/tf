@@ -81,7 +81,10 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   ret <- tfd(tf_evaluations(x), warp_evals, domain = domain, ...)
 
   if (!keep_new_arg) {
-    ret <- tfd(ret, arg = arg, ...)
+    # Carry the INPUT's domain so warped results keep `tf_domain(x)` (#266).
+    dots <- list(...)
+    dots$domain <- dots$domain %||% domain
+    ret <- do.call(tfd, c(list(ret, arg = arg), dots))
   }
   ret
 }
@@ -158,8 +161,11 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
     )
 
     if (!keep_new_arg) {
-      # Re-evaluate on regular grid (evaluator returns NA outside valid range)
-      ret <- tfd(ret, arg = arg, ...)
+      # Re-evaluate on regular grid (evaluator returns NA outside valid range).
+      # Carry the INPUT's domain so aligned results keep `tf_domain(x)` (#266).
+      dots <- list(...)
+      dots$domain <- dots$domain %||% domain
+      ret <- do.call(tfd, c(list(ret, arg = arg), dots))
     }
     return(ret)
   } else {
@@ -171,7 +177,10 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
       domain = domain
     )
     if (!keep_new_arg) {
-      ret <- tfd(ret, arg = arg, ...)
+      # Carry the INPUT's domain so aligned results keep `tf_domain(x)` (#266).
+      dots <- list(...)
+      dots$domain <- dots$domain %||% domain
+      ret <- do.call(tfd, c(list(ret, arg = arg), dots))
     }
     return(ret)
   }
@@ -284,9 +293,17 @@ tf_register <- function(
   tmpl <- attr(warps, "template") %||%
     (if (method != "landmark") template) %||%
     suppressWarnings(mean(registered))
+  # Represent inverse warps on the INPUT's domain (#266). For non-domain-
+  # preserving (affine) warps the inverse's natural argument (observed time)
+  # extends beyond the data domain; restrict it to `tf_domain(x)` so the
+  # returned warps are h^{-1}: T -> T, consistent with `registered`.
+  inv_warps <- tf_invert(warps)
+  inv_warps <- suppressWarnings(
+    tfd(inv_warps, arg = tf_arg(x), domain = tf_domain(x))
+  )
   new_tf_registration(
     registered = registered,
-    inv_warps = tf_invert(warps),
+    inv_warps = inv_warps,
     template = tmpl,
     x = if (store_x) x else NULL,
     call = cl
@@ -295,33 +312,51 @@ tf_register <- function(
 
 #-------------------------------------------------------------------------------
 
-registration_objective_cc <- function(aligned, template, crit = 2L) {
+# Per-curve CC registration criterion (one value per aligned curve).
+registration_objective_cc_percurve <- function(aligned, template, crit = 2L) {
   aligned_mat <- as.matrix(aligned)
   template_mat <- as.matrix(template)
   if (nrow(template_mat) == 1L && nrow(aligned_mat) > 1L) {
     template_mat <- template_mat[rep(1L, nrow(aligned_mat)), , drop = FALSE]
   }
 
-  total <- 0
-  for (i in seq_len(nrow(aligned_mat))) {
-    y0 <- template_mat[i, ]
-    y1 <- aligned_mat[i, ]
-    aa <- mean(y0^2)
-    bb <- mean(y0 * y1)
-    cc <- mean(y1^2)
-    total <- total +
+  vapply(
+    seq_len(nrow(aligned_mat)),
+    \(i) {
+      y0 <- template_mat[i, ]
+      y1 <- aligned_mat[i, ]
+      aa <- mean(y0^2)
+      bb <- mean(y0 * y1)
+      cc <- mean(y1^2)
       if (crit == 1L) {
         aa - 2 * bb + cc
       } else {
         aa + cc - sqrt((aa - cc)^2 + 4 * bb^2)
       }
-  }
-  total
+    },
+    numeric(1)
+  )
 }
 
+registration_objective_cc <- function(aligned, template, crit = 2L) {
+  sum(registration_objective_cc_percurve(aligned, template, crit = crit))
+}
+
+# Per-curve outer objective used to monitor Procrustes template refinement.
+# Returns one value per curve (NA where a curve's objective is undefined) so
+# the caller can hold the averaged-over curve subset FIXED across iterations
+# (#265) and compare objectives measured against the *same* template.
+#
+# For `method = "srvf"` this is a plain L2 amplitude distance while the inner
+# fdasrvf step minimises the Fisher-Rao metric -- a mismatch. In practice the
+# srvf branch never reaches the multi-iteration outer loop: with `template =
+# NULL` the Karcher-mean path returns early, and a user-supplied template forces
+# `max_iter <- 1L`, so this objective is never used to accept/reject an srvf
+# iterate. The L2 fallback is therefore harmless here; if the outer loop is ever
+# enabled for srvf, switch to an amplitude (Fisher-Rao) distance instead (#265).
 outer_registration_objective <- function(method, aligned, template, arg, dots) {
   if (method == "cc") {
-    return(registration_objective_cc(
+    return(registration_objective_cc_percurve(
       aligned = aligned,
       template = template,
       crit = dots$crit %||% 2L
@@ -329,9 +364,8 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
   }
 
   domain_length <- diff(tf_domain(aligned))
-  suppressWarnings(mean(
-    tf_integrate((aligned - template)^2, arg = arg) / domain_length,
-    na.rm = TRUE
+  suppressWarnings(as.numeric(
+    tf_integrate((aligned - template)^2, arg = arg) / domain_length
   ))
 }
 
@@ -536,6 +570,8 @@ tf_estimate_warps.tfd_reg <- function(
   best_template <- current_template
   best_obj <- Inf
   prev_obj <- NA_real_
+  prev_aligned <- NULL # previous iterate's aligned curves (on `arg`) (#265)
+  keep <- NULL # fixed subset of curves with a finite objective (#265)
   cc_min_iter <- 3L
   for (iter in seq_len(max_iter)) {
     warps <- switch(
@@ -559,22 +595,55 @@ tf_estimate_warps.tfd_reg <- function(
     template_on_arg <- suppressWarnings(tfd(current_template, arg = arg))
     template_vec <- tf_evaluate(template_on_arg, arg = arg)[[1]]
 
-    obj <- outer_registration_objective(
+    # Per-curve objective of the CURRENT iterate vs the CURRENT template.
+    obj_vec <- outer_registration_objective(
       method = method,
       aligned = aligned_on_arg,
       template = template_on_arg,
       arg = arg,
       dots = dots
     )
+    # Fix the averaged-over curve subset ONCE (first finite iteration) so the
+    # mean objective is comparable across iterations rather than averaging over
+    # a curve set that changes with each iteration's NA pattern (#265). A kept
+    # curve may still turn non-finite in a *later* iteration, so restrict to
+    # the currently finite kept curves -- otherwise a single such curve NAs the
+    # mean and silently disables objective tracking for the rest of the run.
+    if (is.null(keep) && any(is.finite(obj_vec))) {
+      keep <- is.finite(obj_vec)
+    }
+    subset <- (keep %||% TRUE) & is.finite(obj_vec)
+    obj <- if (any(subset)) mean(obj_vec[subset]) else NA_real_
+
     if (is.finite(obj)) {
-      if (
-        is.finite(best_obj) &&
-          obj > best_obj * (1 + sqrt(.Machine$double.eps))
-      ) {
-        cli::cli_inform(
-          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj, 4)} > {round(best_obj, 4)})."
+      # Same-template comparison (#265): score BOTH the current and the previous
+      # iterate against the CURRENT (refined) template. Comparing against an
+      # objective measured against an OLDER template is meaningless because
+      # objectives across different templates are not comparable. Within the
+      # comparison, both means must cover the SAME curves, so restrict to the
+      # pairwise-finite kept subset rather than na.rm-ing each side separately.
+      prev_obj_ct <- obj_ct <- NA_real_
+      if (!is.null(prev_aligned)) {
+        prev_obj_vec <- outer_registration_objective(
+          method = method,
+          aligned = prev_aligned,
+          template = template_on_arg,
+          arg = arg,
+          dots = dots
         )
-        warps <- best_warps
+        pair <- subset & is.finite(prev_obj_vec)
+        if (any(pair)) {
+          obj_ct <- mean(obj_vec[pair])
+          prev_obj_ct <- mean(prev_obj_vec[pair])
+        }
+      }
+      worsened <- is.finite(prev_obj_ct) &&
+        obj_ct > prev_obj_ct * (1 + sqrt(.Machine$double.eps))
+      if (worsened) {
+        cli::cli_inform(
+          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj_ct, 4)} > {round(prev_obj_ct, 4)} against the current template)."
+        )
+        warps <- best_warps %||% warps
         break
       }
       best_warps <- warps
@@ -597,6 +666,7 @@ tf_estimate_warps.tfd_reg <- function(
       }
     }
     prev_obj <- obj
+    prev_aligned <- aligned_on_arg
 
     if (iter == max_iter) {
       if (max_iter > 1L) {
@@ -615,7 +685,11 @@ tf_estimate_warps.tfd_reg <- function(
     if (any(missing_tmpl)) {
       new_tmpl_vec[missing_tmpl] <- old_vec[missing_tmpl]
     }
-    new_template <- tfd(matrix(new_tmpl_vec, nrow = 1), arg = arg)
+    new_template <- tfd(
+      matrix(new_tmpl_vec, nrow = 1),
+      arg = arg,
+      domain = tf_domain(x)
+    )
     if (method != "cc") {
       domain_length <- diff(tf_domain(x))
       delta <- suppressWarnings(
@@ -820,7 +894,7 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
     # Fast path: all landmarks present, vectorized construction
     template_arg <- c(domain[1], template_landmarks, domain[2])
     warp_values <- cbind(domain[1], landmarks, domain[2])
-    return(tfd(warp_values, arg = template_arg))
+    return(tfd(warp_values, arg = template_arg, domain = domain))
   }
 
   # NA-aware path: build per-curve warps using only available landmarks
@@ -828,7 +902,8 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   warp_list <- lapply(seq_len(n), \(i) {
     warp_on_arg(landmarks[i, ], arg)
   })
-  tfd(do.call(rbind, warp_list), arg = arg)
+  # Warps must carry the INPUT's domain, not `range(arg)` (#266).
+  tfd(do.call(rbind, warp_list), arg = arg, domain = domain)
 }
 
 #-------------------------------------------------------------------------------
@@ -883,7 +958,9 @@ tf_register_affine <- function(
   ) |>
     do.call(what = rbind)
 
-  result <- tfd(warp_mat, arg = arg)
+  # Warps must carry the INPUT's domain, not `range(arg)`, so that
+  # downstream `tf_align()` / `assert_warp()` see a matching domain (#266).
+  result <- tfd(warp_mat, arg = arg, domain = domain)
   attr(result, "template") <- template
   result
 }
