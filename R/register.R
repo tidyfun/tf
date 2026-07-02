@@ -605,19 +605,24 @@ tf_estimate_warps.tfd_reg <- function(
     )
     # Fix the averaged-over curve subset ONCE (first finite iteration) so the
     # mean objective is comparable across iterations rather than averaging over
-    # a curve set that changes with each iteration's NA pattern (#265).
+    # a curve set that changes with each iteration's NA pattern (#265). A kept
+    # curve may still turn non-finite in a *later* iteration, so restrict to
+    # the currently finite kept curves -- otherwise a single such curve NAs the
+    # mean and silently disables objective tracking for the rest of the run.
     if (is.null(keep) && any(is.finite(obj_vec))) {
       keep <- is.finite(obj_vec)
     }
-    subset <- keep %||% is.finite(obj_vec)
+    subset <- (keep %||% TRUE) & is.finite(obj_vec)
     obj <- if (any(subset)) mean(obj_vec[subset]) else NA_real_
 
     if (is.finite(obj)) {
       # Same-template comparison (#265): score BOTH the current and the previous
       # iterate against the CURRENT (refined) template. Comparing against an
       # objective measured against an OLDER template is meaningless because
-      # objectives across different templates are not comparable.
-      prev_obj_ct <- NA_real_
+      # objectives across different templates are not comparable. Within the
+      # comparison, both means must cover the SAME curves, so restrict to the
+      # pairwise-finite kept subset rather than na.rm-ing each side separately.
+      prev_obj_ct <- obj_ct <- NA_real_
       if (!is.null(prev_aligned)) {
         prev_obj_vec <- outer_registration_objective(
           method = method,
@@ -626,17 +631,17 @@ tf_estimate_warps.tfd_reg <- function(
           arg = arg,
           dots = dots
         )
-        prev_obj_ct <- if (any(subset)) {
-          mean(prev_obj_vec[subset])
-        } else {
-          NA_real_
+        pair <- subset & is.finite(prev_obj_vec)
+        if (any(pair)) {
+          obj_ct <- mean(obj_vec[pair])
+          prev_obj_ct <- mean(prev_obj_vec[pair])
         }
       }
       worsened <- is.finite(prev_obj_ct) &&
-        obj > prev_obj_ct * (1 + sqrt(.Machine$double.eps))
+        obj_ct > prev_obj_ct * (1 + sqrt(.Machine$double.eps))
       if (worsened) {
         cli::cli_inform(
-          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj, 4)} > {round(prev_obj_ct, 4)} against the current template)."
+          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj_ct, 4)} > {round(prev_obj_ct, 4)} against the current template)."
         )
         warps <- best_warps %||% warps
         break
