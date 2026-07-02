@@ -58,12 +58,15 @@ aligned curves live in centered shape space and the result stores rotations
 and scale factors.
 }
 \details{
-The per-curve scale factors returned by \code{\link[=tf_scales]{tf_scales()}} are expressed
-\emph{relative to the template}: each is the ratio of the template's SRVF norm to
-the curve's own SRVF norm, so a value \verb{> 1} means the curve was scaled up to
-match the template and \verb{< 1} means it was scaled down. With \code{template = NULL}
-the returned \code{\link[=tf_template]{tf_template()}} is the empirical mean of the aligned shape-space
-curves rather than any single input curve.
+When \code{scale = TRUE} the aligned curves returned by \code{\link[=tf_aligned]{tf_aligned()}} are
+renormalised to a common (mean) arc length so that congruent shapes overlay.
+The per-curve factors returned by \code{\link[=tf_scales]{tf_scales()}} are the sizes that were
+removed: multiplying an aligned curve by its scale factor rescales it back to
+the corresponding input curve's arc length, so a value \verb{> 1} means the input
+curve was larger than the shared aligned size and \verb{< 1} means it was smaller.
+With \code{scale = FALSE} warping and rotation preserve arc length, so all factors
+are \code{1}. With \code{template = NULL} the returned \code{\link[=tf_template]{tf_template()}} is the empirical
+mean of the aligned shape-space curves rather than any single input curve.
 
 Only open curves (\code{mode = "O"}) are supported. Closed curves (\code{mode = "C"})
 additionally optimise over a circular seed shift that the returned warping
