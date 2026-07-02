@@ -21,7 +21,7 @@ await the multivariate-depth design in
 \url{https://github.com/tidyfun/tf/issues/273}, and \code{tf_crosscov()} /
 \code{tf_crosscor()} await \url{https://github.com/tidyfun/tf/issues/274}.
 \code{tf_invert()} is \emph{permanently} undefined for \code{tf_mv}: function inversion
-requires a monotone scalar function, which a vector-valued \verb{f: R -> R^d}
+requires a monotone scalar function, which a vector-valued \code{f: R -> R^d}
 is not (invert a monotone component instead, e.g. \code{tf_invert(f$x)}).
 }
 \keyword{internal}
