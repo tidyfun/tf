@@ -227,6 +227,26 @@ test_that("trajectory plotting handles components on different / irregular grids
   expect_no_error(plot(irr))
 })
 
+test_that("points.tf_mv overlays without error in trajectory and facet modes", {
+  set.seed(88)
+  f2 <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  f3 <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3), z = tf_rgp(3)))
+  pf <- withr::local_tempfile(fileext = ".pdf")
+  grDevices::pdf(pf)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  # trajectory (default for d == 2), incl. per-curve col recycling
+  plot(f2)
+  expect_no_error(points(f2, col = 1:3))
+  # facet default for d > 2; points overlay onto current device
+  plot(f3)
+  expect_no_error(points(f3))
+  # mirrors lines.tf_mv(): a trajectory request for d != 2 silently falls back
+  # to per-component overlay (only plot.tf_mv() errors on that), no error here
+  expect_no_error(points(f3, type = "trajectory"))
+  # returns its input invisibly
+  expect_identical(points(f2), f2)
+})
+
 test_that("quantile.tf_mv returns component-wise pointwise quantiles (oracle)", {
   set.seed(89)
   f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))

@@ -50,10 +50,7 @@ xtfrm.tf_mv <- function(x) mv_unimplemented("xtfrm")
 #' @export
 sort.tf_mv <- function(x, decreasing = FALSE, ...) mv_unimplemented("sort")
 
-# ---- graphics.R: points ------------------------------------------------------
-
-#' @export
-points.tf_mv <- function(x, ...) mv_unimplemented("points")
+# `points.tf_mv` is implemented in R/plot-mv.R (mirroring `lines.tf_mv`).
 
 # ---- approx.R: tf_invert -----------------------------------------------------
 
