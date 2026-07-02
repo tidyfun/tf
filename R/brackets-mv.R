@@ -87,32 +87,19 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     return(ret)
   }
 
-  # Validate `i` the same way univariate `[.tf` does (no NA, no missing names,
-  # no out-of-bounds). TODO(#263): replace with a shared helper that also
-  # handles `j`-normalisation, to remove the duplication with `[.tf`.
-  if (missing(i)) {
-    i <- seq_along(x)
-  } else {
-    i <- vec_as_location(
-      i,
-      n = vec_size(x),
-      names = names(x),
-      missing = "error"
-    )
-  }
+  i <- tf_bracket_i(x, i)
   xi <- vec_slice(x, i)
 
-  if (missing(j) && missing(matrix)) {
-    return(xi)
-  }
-  if (missing(j) && !missing(matrix) && isFALSE(matrix)) {
-    j <- tf_mv_curve_grids(xi)
+  if (missing(j)) {
+    if (missing(matrix)) {
+      return(xi)
+    }
+    j <- tf_bracket_j(tf_mv_curve_grids(xi), matrix)
   }
 
   comps_i <- tf_components(xi)
   n_i <- vec_size(xi)
   if (matrix) {
-    if (missing(j)) j <- sort_unique(tf_mv_curve_grids(xi), simplify = TRUE)
     if (!length(comps_i) || n_i == 0L) {
       return(array(
         numeric(0),
