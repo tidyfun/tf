@@ -42,6 +42,7 @@ reference:
   contents:
   - tfgroupgenerics
   - tfsummaries
+  - median.tf_mv
   - functionwise
   - tf_depth
   - tf_order
