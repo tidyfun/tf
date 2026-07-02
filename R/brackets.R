@@ -42,6 +42,52 @@
 #'   columns `arg` = `j` and `value` = evaluations at `j` for each observation
 #'   in `i`.
 #'
+# Shared bracket helpers -------------------------------------------------------
+# Extraction-only helpers used by both `[.tf` and `[.tf_mv`. They must not
+# collapse or simplify the intentional four-mode dispatch of `[.tf`; each caller
+# keeps its own matrix-`i` decomposition and result-shaping (see #263).
+
+# Contract: normalise a bracket row-index `i` to positive integer locations
+# against `x`, enforcing the package's strict bracket rules (no NA, no unknown
+# names, no out-of-bounds; `missing = "error"`). A missing `i` selects every
+# element. `matrix_i = TRUE` is the decomposed-matrix case (`i` is already the
+# integer function-index column of a 2-column matrix): it is nameless and must
+# be a plain positive integer position, so negatives/zeros/NA are rejected.
+tf_bracket_i <- function(x, i, matrix_i = FALSE) {
+  if (missing(i)) {
+    return(seq_along(x))
+  }
+  if (matrix_i) {
+    num_as_location(
+      i,
+      n = vec_size(x),
+      missing = "error",
+      negative = "error",
+      zero = "error"
+    )
+  } else {
+    vec_as_location(
+      i,
+      n = vec_size(x),
+      names = names(x),
+      missing = "error"
+    )
+  }
+}
+
+# Contract: compute the default `arg` grid `j` when the caller omits `j` but
+# still asks for evaluations (i.e. `matrix` was given). `grid` is the object's
+# native argument grid (`tf_arg()` for `tf`, per-curve grids for `tf_mv`).
+# `matrix = TRUE` requires a single shared vector, so a per-curve (list) grid is
+# collapsed to its sorted union; otherwise the per-curve grid is kept as-is.
+tf_bracket_j <- function(grid, matrix) {
+  if (isTRUE(matrix) && is.list(grid)) {
+    sort_unique(grid, simplify = TRUE)
+  } else {
+    grid
+  }
+}
+
 #' @rdname tfbrackets
 #' @name tfbrackets
 #' @export
@@ -91,40 +137,13 @@
     matrix <- FALSE
   }
   # handle i
-  if (missing(i)) {
-    i <- seq_along(x)
-  } else if (matrix_i) {
-    i <- num_as_location(
-      i,
-      n = vec_size(x),
-      missing = "error",
-      negative = "error",
-      zero = "error"
-    )
-  } else {
-    i <- vec_as_location(
-      i,
-      n = vec_size(x),
-      names = names(x),
-      missing = "error"
-    )
-  }
+  i <- tf_bracket_i(x, i, matrix_i)
   x <- vec_slice(x, i)
   if (missing(j)) {
-    if (!missing(matrix)) {
-      if (isTRUE(matrix)) {
-        arg_vals <- tf_arg(x)
-        if (is.list(arg_vals)) {
-          j <- sort_unique(arg_vals, simplify = TRUE)
-        } else {
-          j <- arg_vals
-        }
-      } else {
-        j <- tf_arg(x)
-      }
-    } else {
+    if (missing(matrix)) {
       return(x)
     }
+    j <- tf_bracket_j(tf_arg(x), matrix)
   }
 
   # handle j
