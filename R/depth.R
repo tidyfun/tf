@@ -107,8 +107,8 @@ tf_depth.tf_mv <- function(
   x,
   arg,
   depth = c("MBD", "MHI", "FM", "FSD", "RPD"),
-  weights = "equal",
   na.rm = TRUE,
+  weights = "equal",
   ...
 ) {
   depth <- match.arg(depth)

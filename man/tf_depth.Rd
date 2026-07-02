@@ -23,8 +23,8 @@ tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
   x,
   arg,
   depth = c("MBD", "MHI", "FM", "FSD", "RPD"),
-  weights = "equal",
   na.rm = TRUE,
+  weights = "equal",
   ...
 )
 }
