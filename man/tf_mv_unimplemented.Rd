@@ -8,12 +8,17 @@
 \code{tf_domain()}, the type predicates (\code{is_tf()}, \code{is_tf_mv()}, ...) and S4
 generic reuse continue to work. \strong{Behaviour} on \code{tf_mv} objects, however,
 is supplied \emph{only} by explicitly registered \code{.tf_mv} methods: any generic
-without one aborts with a classed \code{tf_mv_method_unimplemented} condition
-(e.g. \verb{tf_depth(<tf_mv>)}, \verb{summary(<tf_mv>)}). This avoids silent
-fall-through to the univariate method, which would otherwise produce
-wrong-shape results or deep internal errors.
+without one aborts with a classed \code{tf_mv_method_unimplemented} condition.
+This avoids silent fall-through to the univariate method, which would
+otherwise produce wrong-shape results or deep internal errors.
 }
 \details{
+Some verbs are \emph{permanently} stubbed because they have no well-defined
+vector-valued semantics: \code{sort()}, \code{rank()} and \code{xtfrm()} (no canonical
+total order on \eqn{R^d} -- use \code{\link[=tf_order]{tf_order()}} with \code{by =} instead), and
+\code{tf_invert()}. \code{tf_crosscov()} / \code{tf_crosscor()} remain blocked pending
+their joint design (\url{https://github.com/tidyfun/tf/issues/274}).
+
 Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 being designed verb-by-verb in \url{https://github.com/tidyfun/tf/issues/255}.
 \code{summary()}, \code{fivenum()}, \code{rank()}, \code{xtfrm()}, \code{sort()} and \code{tf_depth()}
