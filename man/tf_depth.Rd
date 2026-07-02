@@ -4,6 +4,7 @@
 \alias{tf_depth}
 \alias{tf_depth.matrix}
 \alias{tf_depth.tf}
+\alias{tf_depth.tf_mv}
 \title{Functional Data Depth}
 \usage{
 tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
@@ -17,6 +18,15 @@ tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
 )
 
 \method{tf_depth}{tf}(x, arg, depth = "MBD", na.rm = TRUE, ...)
+
+\method{tf_depth}{tf_mv}(
+  x,
+  arg,
+  depth = c("MBD", "MHI", "FM", "FSD", "RPD"),
+  weights = "equal",
+  na.rm = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{tf} (or a matrix of evaluations).}
@@ -26,6 +36,12 @@ tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
 \item{depth}{one of \code{"MBD"}, \code{"MHI"}, \code{"FM"}, \code{"FSD"}, or \code{"RPD"}.}
 
 \item{na.rm}{remove missing observations? Defaults to \code{TRUE}.}
+
+\item{weights}{(\code{tf_mv} only) component weighting scheme for the weighted
+componentwise aggregation. Either \code{"equal"} (default), \code{"inverse_variance"}
+(weights proportional to the inverse of each component's mean pointwise
+variance), or a numeric vector of \code{d} strictly positive weights. Weights
+are normalized to sum to 1.}
 
 \item{...}{for \code{"RPD"}: \code{u} (regularization quantile, default 0.01),
 \code{n_projections} (M, default 5000), \code{n_projections_beta} (L, default

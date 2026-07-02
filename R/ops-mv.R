@@ -111,10 +111,37 @@ mean.tf_mv <- function(x, ..., na.rm = FALSE) {
   map_components(x, \(a) mean(a, ..., na.rm = na.rm))
 }
 
+#' Joint depth-median for vector-valued functional data
+#'
+#' The median of a `tf_mv` vector is the single *observed* curve with maximal
+#' joint depth (see [tf_depth()]): one `which.max` index selects the same
+#' observation across every component, so the result is never a "chimera"
+#' stitched together from different curves. Note the deliberate divergence from
+#' [median.tf()] on ties: the univariate median *averages* tied maximal-depth
+#' curves, but averaging components would break the observed-curve guarantee,
+#' so `median.tf_mv` returns the first tied curve (with a message). On tied
+#' data, `median(f)$x` and `median(f$x)` can therefore differ.
+#'
+#' @param x a `tf_mv` vector.
+#' @param na.rm if `FALSE` (default), any `NA` observation makes the result
+#'   `NA`; if `TRUE`, `NA` observations are dropped first.
+#' @param depth the joint depth method, see [tf_depth()].
+#' @param ... passed to [tf_depth()].
+#' @returns a length-1 `tf_mv`: the observed curve with maximal joint depth.
 #' @export
-median.tf_mv <- function(x, na.rm = FALSE, ...) {
-  x <- mv_complete(x, na.rm = na.rm)
-  map_components(x, \(a) median(a, na.rm = na.rm, ...))
+#' @family tidyfun summary functions
+median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
+  if (!na.rm && any(is.na(x))) {
+    return(tf_na_like(x))
+  }
+  x <- x[!is.na(x)]
+  if (!vec_size(x)) {
+    # documented contract: length-1 result; vec_init, not `[NA]` (rejected
+    # by [.tf_mv) -- consistent with the summary/fivenum empty handling.
+    return(vctrs::vec_init(x, 1))
+  }
+  d <- tf_depth(x, depth = depth, na.rm = FALSE, ...)
+  unname(x[depth_median_index(d)])
 }
 
 #' @export

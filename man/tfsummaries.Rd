@@ -11,6 +11,7 @@
 \alias{var.default}
 \alias{var.tf}
 \alias{summary.tf}
+\alias{summary.tf_mv}
 \title{Functions that summarize \code{tf} objects across argument values}
 \usage{
 \method{mean}{tf}(x, ...)
@@ -30,6 +31,8 @@ var(x, y = NULL, na.rm = FALSE, use)
 \method{var}{tf}(x, y = NULL, na.rm = FALSE, use)
 
 \method{summary}{tf}(object, ..., depth = "MBD")
+
+\method{summary}{tf_mv}(object, ..., depth = "MBD")
 }
 \arguments{
 \item{x}{a \code{tf} object.}

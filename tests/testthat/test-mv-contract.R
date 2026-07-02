@@ -190,12 +190,11 @@ test_that("tf_integrate on a zero-component tf_mv returns an empty result", {
 # need a second argument or otherwise resist a generic walker call.
 mv_probe_calls <- function(fm) {
   list(
-    summary = function() summary(fm),
-    fivenum = function() fivenum(fm),
-    tf_depth = function() tf_depth(fm),
     tf_crosscov = function() tf_crosscov(fm, fm),
     tf_crosscor = function() tf_crosscor(fm, fm),
     tf_invert = function() tf_invert(fm),
+    # sort/rank/xtfrm are *permanently* undefined (no total order on R^d):
+    # they keep the classed condition so base sort()/order()/rank() fail fast.
     sort = function() sort(fm),
     rank = function() rank(fm),
     xtfrm = function() xtfrm(fm)
@@ -225,6 +224,14 @@ test_that("quantile() on a tf_mv now succeeds (implemented component-wise)", {
     suppressMessages(quantile(fm)),
     class = "tf_mv_method_unimplemented"
   )
+})
+
+test_that("tf_depth / summary / fivenum now succeed on tf_mv (#273)", {
+  set.seed(2731)
+  fm <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  expect_type(tf_depth(fm), "double")
+  expect_s3_class(summary(fm), "tf_mv")
+  expect_s3_class(suppressMessages(fivenum(fm)), "tf_mv")
 })
 
 test_that("every univariate-tf generic either has a tf_mv method or aborts cleanly", {

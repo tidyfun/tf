@@ -221,21 +221,77 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
     return(ret[seq_len(min(length(ret), 5))])
   }
   o <- order(prepared$d)
-  # For small samples, reuse the nearest available order statistic.
-  n <- length(prepared$x)
-  idx <- pmax(
-    1L,
-    c(
-      1L,
-      floor((n + 1) / 4),
-      floor((n + 1) / 2),
-      floor(3 * (n + 1) / 4),
-      n
-    )
-  )
-  idx <- o[idx]
-  ret <- prepared$x[idx]
+  ret <- prepared$x[o[fivenum_positions(length(prepared$x))]]
   names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  ret
+}
+
+# Order-statistic positions for a depth-based five-number summary; for small
+# samples the nearest available order statistic is reused.
+fivenum_positions <- function(n) {
+  pmax(
+    1L,
+    c(1L, floor((n + 1) / 4), floor((n + 1) / 2), floor(3 * (n + 1) / 4), n)
+  )
+}
+
+#-------------------------------------------------------------------------------
+# Vector-valued (tf_mv) summaries.
+# Pointwise entries (min / mean / max, and the min/max of the central half) are
+# computed component-wise via the existing tf_mv group generics; the depth-based
+# selections (median, central region, five-number order statistics) use the
+# *joint* depth (`tf_depth.tf_mv`), so one index selects the same observed curve
+# across all components (no chimera). See tidyfun/tf#273.
+
+#' @export
+#' @rdname tfsummaries
+summary.tf_mv <- function(object, ..., depth = "MBD") {
+  nms <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+  if (vec_size(object) == 0 || all(is.na(object))) {
+    # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
+    ret <- if (vec_size(object) == 0) {
+      vctrs::vec_init(object, 6)
+    } else {
+      object[rep(1L, 6)]
+    }
+    names(ret) <- nms
+    return(ret)
+  }
+  complete <- object[!is.na(object)]
+  d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
+  central <- complete[d >= stats::median(d)]
+  ret <- vctrs::vec_c(
+    min(object, na.rm = TRUE),
+    min(central, na.rm = TRUE),
+    unname(complete[depth_median_index(d)]),
+    mean(object, na.rm = TRUE),
+    max(central, na.rm = TRUE),
+    max(object, na.rm = TRUE)
+  )
+  names(ret) <- nms
+  ret
+}
+
+#' @export
+#' @rdname fivenum
+fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
+  nms <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  if (!na.rm && any(is.na(x))) {
+    ret <- tf_na_like(x)[rep(1L, 5)]
+    names(ret) <- nms
+    return(ret)
+  }
+  complete <- x[!is.na(x)]
+  if (vec_size(complete) == 0) {
+    # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
+    ret <- vctrs::vec_init(complete, 5)
+    names(ret) <- nms
+    return(ret)
+  }
+  d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
+  o <- base::order(d)
+  ret <- complete[o[fivenum_positions(vec_size(complete))]]
+  names(ret) <- nms
   ret
 }
 
