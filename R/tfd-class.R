@@ -344,7 +344,12 @@ tfd.list <- function(
   vectors <- map_lgl(data, \(x) is.null(x) || (is.numeric(x) & !is.array(x)))
   if (all(vectors)) {
     where_na <- map(data, is.na)
+    # non-empty all-NA entries become NULL markers (tf's NA representation) so
+    # new_tfd routes an all-NA input to the NA-functions branch instead of
+    # collapsing to a length-0 prototype (matches the matrix path, #262).
+    all_na <- map_lgl(where_na, \(y) length(y) > 0 && all(y))
     data <- map2(data, where_na, \(x, y) x[!y])
+    data[all_na] <- list(NULL)
     lens <- lengths(data)
     nonempty <- lens != 0
     # arg-length probe: derive the shared arg-vector length (if any) we'd

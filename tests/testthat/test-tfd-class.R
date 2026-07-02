@@ -159,6 +159,20 @@ test_that("all-NA input yields length-n NA functions, not length-0 (#241)", {
   expect_true(all(is.na(f)))
 })
 
+test_that("all-NA list input preserves vec_size (#262)", {
+  x <- suppressWarnings(tfd(list(NA_real_, NA_real_), arg = list(c(1, 2), c(1, 2))))
+  expect_length(x, 2)
+  expect_true(all(is.na(x)))
+  expect_warning(tfd(list(NA_real_, NA_real_), arg = list(c(1, 2), c(1, 2))), "NA")
+  # mixed NA and real entries keep working
+  y <- suppressWarnings(tfd(list(NA_real_, c(1, 2)), arg = list(c(1, 2), c(1, 2))))
+  expect_length(y, 2)
+  expect_equal(is.na(y), c(TRUE, FALSE))
+  # validate_tf() accepts the result
+  expect_valid_tf(x)
+  expect_valid_tf(y)
+})
+
 test_that("tfd() length-0 prototype uses NA sentinel domain (#241)", {
   f <- tfd(numeric())
   expect_identical(attr(f, "domain"), c(NA_real_, NA_real_))
