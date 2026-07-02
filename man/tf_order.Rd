@@ -7,6 +7,9 @@
 \alias{rank.tf}
 \alias{xtfrm.tf}
 \alias{sort.tf}
+\alias{tf_order.default}
+\alias{tf_order.tf}
+\alias{tf_order.tf_mv}
 \title{Rank, order and sort \code{tf} vectors}
 \usage{
 rank(
@@ -34,9 +37,22 @@ rank(
 \method{xtfrm}{tf}(x)
 
 \method{sort}{tf}(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...)
+
+tf_order(f, ...)
+
+\method{tf_order}{default}(f, ...)
+
+\method{tf_order}{tf}(f, depth = "MHI", ...)
+
+\method{tf_order}{tf_mv}(f, by = "norm", ...)
 }
 \arguments{
 \item{x}{a \code{tf} vector.}
+
+\item{f}{a \code{tf} or \code{tf_mv} vector (for \code{tf_order}).}
+
+\item{by}{(\code{tf_mv} only) the scalar reduction to order by: \code{"norm"} (the
+default, uses \code{tf_norm(f)}) or the name of a component.}
 
 \item{na.last}{for handling of \code{NA}s; see \code{\link[base:rank]{base::rank()}} and \code{\link[base:sort]{base::sort()}}.}
 
@@ -52,7 +68,7 @@ available via \code{\link[=tf_depth]{tf_depth()}} (default: \code{"MHI"}) or a f
 }
 \value{
 \code{rank}: a numeric vector of ranks.\cr
-\code{order}: an integer vector of indices.\cr
+\code{tf_order}: an integer vector of indices.\cr
 \code{sort.tf}: a sorted \code{tf} vector.\cr
 \code{xtfrm.tf}: a numeric vector of depth values.
 }
@@ -68,8 +84,11 @@ ranks. For \code{"MHI"} this gives an ordering from lowest to highest function.
 For centrality-based depths (\code{"MBD"}, \code{"FM"}, \code{"FSD"}, \code{"RPD"}), the most
 extreme function gets rank 1 and the most central gets the highest rank.
 
-\code{order} returns the permutation which rearranges \code{x} into ascending
-order according to depth.
+\code{tf_order} returns the permutation which rearranges \code{x} into ascending
+order according to depth. For vector-valued (\code{tf_mv}) data there is no
+canonical total order on \eqn{R^d}: \code{tf_order.tf_mv()} requires an explicit
+scalar reduction via \code{by} (either \code{"norm"} for \code{tf_norm(f)}, or a component
+name), and then applies the univariate depth order to that reduction.
 
 \code{sort.tf} returns the sorted \code{tf} vector.
 
