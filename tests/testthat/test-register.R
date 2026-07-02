@@ -1433,3 +1433,46 @@ test_that("registration keeps the input domain when wider than arg range (#266)"
   expect_identical(tf_domain(tf_aligned(reg_lm)), tf_domain(x))
   expect_identical(tf_domain(tf_inv_warps(reg_lm)), tf_domain(x))
 })
+
+test_that("affine Procrustes loop does not spuriously stop on iteration 1 (#265)", {
+  withr::local_seed(7)
+  t <- seq(0, 2 * pi, length.out = 101)
+  shifts <- c(-0.6, -0.3, 0, 0.3, 0.6)
+  x <- tfd(t(sapply(shifts, \(s) sin(t + s))), arg = t)
+
+  # Genuine improvement must be allowed to continue past the first iteration:
+  # no "alignment worsened" message on iteration 1.
+  msgs <- character(0)
+  withCallingHandlers(
+    quiet_expected_registration_warnings(
+      tf_estimate_warps(x, method = "affine", type = "shift", max_iter = 5L)
+    ),
+    message = function(m) {
+      msgs <<- c(msgs, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  expect_false(any(grepl("stopped after 1 of", msgs)))
+
+  # Objective evaluated against a FIXED final template is non-increasing across
+  # accepted iterations: objectives across templates are now comparable (#265).
+  reg_final <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift", max_iter = 8L)
+  )
+  tmpl <- tf_template(reg_final)
+  objs <- vapply(
+    1:5,
+    \(k) {
+      w <- quiet_expected_registration_warnings(
+        tf_estimate_warps(x, method = "affine", type = "shift", max_iter = k)
+      )
+      al <- suppressWarnings(tf_interpolate(tf_align(x, w), arg = t))
+      suppressWarnings(mean(
+        tf_integrate((al - tmpl)^2, arg = t),
+        na.rm = TRUE
+      ))
+    },
+    numeric(1)
+  )
+  expect_true(all(diff(objs) <= 1e-8))
+})

@@ -312,33 +312,51 @@ tf_register <- function(
 
 #-------------------------------------------------------------------------------
 
-registration_objective_cc <- function(aligned, template, crit = 2L) {
+# Per-curve CC registration criterion (one value per aligned curve).
+registration_objective_cc_percurve <- function(aligned, template, crit = 2L) {
   aligned_mat <- as.matrix(aligned)
   template_mat <- as.matrix(template)
   if (nrow(template_mat) == 1L && nrow(aligned_mat) > 1L) {
     template_mat <- template_mat[rep(1L, nrow(aligned_mat)), , drop = FALSE]
   }
 
-  total <- 0
-  for (i in seq_len(nrow(aligned_mat))) {
-    y0 <- template_mat[i, ]
-    y1 <- aligned_mat[i, ]
-    aa <- mean(y0^2)
-    bb <- mean(y0 * y1)
-    cc <- mean(y1^2)
-    total <- total +
+  vapply(
+    seq_len(nrow(aligned_mat)),
+    \(i) {
+      y0 <- template_mat[i, ]
+      y1 <- aligned_mat[i, ]
+      aa <- mean(y0^2)
+      bb <- mean(y0 * y1)
+      cc <- mean(y1^2)
       if (crit == 1L) {
         aa - 2 * bb + cc
       } else {
         aa + cc - sqrt((aa - cc)^2 + 4 * bb^2)
       }
-  }
-  total
+    },
+    numeric(1)
+  )
 }
 
+registration_objective_cc <- function(aligned, template, crit = 2L) {
+  sum(registration_objective_cc_percurve(aligned, template, crit = crit))
+}
+
+# Per-curve outer objective used to monitor Procrustes template refinement.
+# Returns one value per curve (NA where a curve's objective is undefined) so
+# the caller can hold the averaged-over curve subset FIXED across iterations
+# (#265) and compare objectives measured against the *same* template.
+#
+# For `method = "srvf"` this is a plain L2 amplitude distance while the inner
+# fdasrvf step minimises the Fisher-Rao metric -- a mismatch. In practice the
+# srvf branch never reaches the multi-iteration outer loop: with `template =
+# NULL` the Karcher-mean path returns early, and a user-supplied template forces
+# `max_iter <- 1L`, so this objective is never used to accept/reject an srvf
+# iterate. The L2 fallback is therefore harmless here; if the outer loop is ever
+# enabled for srvf, switch to an amplitude (Fisher-Rao) distance instead (#265).
 outer_registration_objective <- function(method, aligned, template, arg, dots) {
   if (method == "cc") {
-    return(registration_objective_cc(
+    return(registration_objective_cc_percurve(
       aligned = aligned,
       template = template,
       crit = dots$crit %||% 2L
@@ -346,9 +364,8 @@ outer_registration_objective <- function(method, aligned, template, arg, dots) {
   }
 
   domain_length <- diff(tf_domain(aligned))
-  suppressWarnings(mean(
-    tf_integrate((aligned - template)^2, arg = arg) / domain_length,
-    na.rm = TRUE
+  suppressWarnings(as.numeric(
+    tf_integrate((aligned - template)^2, arg = arg) / domain_length
   ))
 }
 
@@ -553,6 +570,8 @@ tf_estimate_warps.tfd_reg <- function(
   best_template <- current_template
   best_obj <- Inf
   prev_obj <- NA_real_
+  prev_aligned <- NULL # previous iterate's aligned curves (on `arg`) (#265)
+  keep <- NULL # fixed subset of curves with a finite objective (#265)
   cc_min_iter <- 3L
   for (iter in seq_len(max_iter)) {
     warps <- switch(
@@ -576,22 +595,50 @@ tf_estimate_warps.tfd_reg <- function(
     template_on_arg <- suppressWarnings(tfd(current_template, arg = arg))
     template_vec <- tf_evaluate(template_on_arg, arg = arg)[[1]]
 
-    obj <- outer_registration_objective(
+    # Per-curve objective of the CURRENT iterate vs the CURRENT template.
+    obj_vec <- outer_registration_objective(
       method = method,
       aligned = aligned_on_arg,
       template = template_on_arg,
       arg = arg,
       dots = dots
     )
+    # Fix the averaged-over curve subset ONCE (first finite iteration) so the
+    # mean objective is comparable across iterations rather than averaging over
+    # a curve set that changes with each iteration's NA pattern (#265).
+    if (is.null(keep) && any(is.finite(obj_vec))) {
+      keep <- is.finite(obj_vec)
+    }
+    subset <- keep %||% is.finite(obj_vec)
+    obj <- if (any(subset)) mean(obj_vec[subset]) else NA_real_
+
     if (is.finite(obj)) {
-      if (
-        is.finite(best_obj) &&
-          obj > best_obj * (1 + sqrt(.Machine$double.eps))
-      ) {
-        cli::cli_inform(
-          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj, 4)} > {round(best_obj, 4)})."
+      # Same-template comparison (#265): score BOTH the current and the previous
+      # iterate against the CURRENT (refined) template. Comparing against an
+      # objective measured against an OLDER template is meaningless because
+      # objectives across different templates are not comparable.
+      prev_obj_ct <- NA_real_
+      if (!is.null(prev_aligned)) {
+        prev_obj_vec <- outer_registration_objective(
+          method = method,
+          aligned = prev_aligned,
+          template = template_on_arg,
+          arg = arg,
+          dots = dots
         )
-        warps <- best_warps
+        prev_obj_ct <- if (any(subset)) {
+          mean(prev_obj_vec[subset])
+        } else {
+          NA_real_
+        }
+      }
+      worsened <- is.finite(prev_obj_ct) &&
+        obj > prev_obj_ct * (1 + sqrt(.Machine$double.eps))
+      if (worsened) {
+        cli::cli_inform(
+          "Iterative registration stopped after {iter - 1} of {max_iter} iteration{?s}: alignment worsened (objective {round(obj, 4)} > {round(prev_obj_ct, 4)} against the current template)."
+        )
+        warps <- best_warps %||% warps
         break
       }
       best_warps <- warps
@@ -614,6 +661,7 @@ tf_estimate_warps.tfd_reg <- function(
       }
     }
     prev_obj <- obj
+    prev_aligned <- aligned_on_arg
 
     if (iter == max_iter) {
       if (max_iter > 1L) {
