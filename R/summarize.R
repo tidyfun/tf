@@ -240,6 +240,71 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
 }
 
 #-------------------------------------------------------------------------------
+# Vector-valued (tf_mv) summaries.
+# Pointwise entries (min / mean / max, and the min/max of the central half) are
+# computed component-wise via the existing tf_mv group generics; the depth-based
+# selections (median, central region, five-number order statistics) use the
+# *joint* depth (`tf_depth.tf_mv`), so one index selects the same observed curve
+# across all components (no chimera). See tidyfun/tf#273.
+
+#' @export
+#' @rdname tfsummaries
+summary.tf_mv <- function(object, ..., depth = "MBD") {
+  nms <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+  if (vec_size(object) == 0 || all(is.na(object))) {
+    ret <- if (vec_size(object) == 0) {
+      vctrs::vec_c(object, object[rep(NA_integer_, 6)])
+    } else {
+      object[rep(1L, 6)]
+    }
+    ret <- ret[seq_len(6)]
+    names(ret) <- nms
+    return(ret)
+  }
+  complete <- object[!is.na(object)]
+  d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
+  central <- complete[d >= stats::median(d)]
+  ret <- vctrs::vec_c(
+    min(object, na.rm = TRUE),
+    min(central, na.rm = TRUE),
+    median(object, na.rm = TRUE, depth = depth, ...),
+    mean(object, na.rm = TRUE),
+    max(central, na.rm = TRUE),
+    max(object, na.rm = TRUE)
+  )
+  names(ret) <- nms
+  ret
+}
+
+#' @export
+#' @rdname fivenum
+fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
+  nms <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  if (!na.rm && any(is.na(x))) {
+    ret <- tf_na_like(x)[rep(1L, 5)]
+    names(ret) <- nms
+    return(ret)
+  }
+  complete <- x[!is.na(x)]
+  if (vec_size(complete) == 0) {
+    ret <- complete[rep(NA_integer_, 5)]
+    names(ret) <- nms
+    return(ret)
+  }
+  d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
+  o <- base::order(d)
+  n <- vec_size(complete)
+  idx <- pmax(
+    1L,
+    c(1L, floor((n + 1) / 4), floor((n + 1) / 2), floor(3 * (n + 1) / 4), n)
+  )
+  idx <- o[idx]
+  ret <- complete[idx]
+  names(ret) <- nms
+  ret
+}
+
+#-------------------------------------------------------------------------------
 #' @rdname tfgroupgenerics
 #' @export
 Summary.tf <- function(...) {

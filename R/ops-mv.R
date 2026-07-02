@@ -112,9 +112,27 @@ mean.tf_mv <- function(x, ..., na.rm = FALSE) {
 }
 
 #' @export
-median.tf_mv <- function(x, na.rm = FALSE, ...) {
-  x <- mv_complete(x, na.rm = na.rm)
-  map_components(x, \(a) median(a, na.rm = na.rm, ...))
+median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
+  # Joint depth-median: a single `which.max` over the joint depth selects the
+  # same observed curve across every component (an observed vector-valued
+  # curve), fixing the component-wise "chimera" where each component could come
+  # from a different observation. See tidyfun/tf#273.
+  if (!na.rm && any(is.na(x))) {
+    return(tf_na_like(x))
+  }
+  x <- x[!is.na(x)]
+  if (!vec_size(x)) {
+    return(x)
+  }
+  d <- tf_depth(x, depth = depth, na.rm = FALSE, ...)
+  idx <- which.max(d)
+  n_max <- sum(d == d[idx])
+  if (n_max > 1) {
+    cli::cli_inform(c(
+      x = "{n_max} observations with maximal depth; returning the first."
+    ))
+  }
+  unname(x[idx])
 }
 
 #' @export

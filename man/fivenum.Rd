@@ -4,6 +4,7 @@
 \alias{fivenum}
 \alias{fivenum.default}
 \alias{fivenum.tf}
+\alias{fivenum.tf_mv}
 \title{Tukey's Five Number Summary for \code{tf} vectors}
 \usage{
 fivenum(x, na.rm = FALSE, ...)
@@ -11,6 +12,8 @@ fivenum(x, na.rm = FALSE, ...)
 \method{fivenum}{default}(x, na.rm = FALSE, ...)
 
 \method{fivenum}{tf}(x, na.rm = FALSE, depth = "MHI", ...)
+
+\method{fivenum}{tf_mv}(x, na.rm = FALSE, depth = "MBD", ...)
 }
 \arguments{
 \item{x}{a \code{tf} vector (or numeric for the default method).}
