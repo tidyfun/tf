@@ -1391,3 +1391,45 @@ test_that("SRVF with template=NULL gives same result regardless of max_iter", {
   w5 <- tf_estimate_warps(x, method = "srvf", max_iter = 5L)
   expect_equal(as.matrix(w1), as.matrix(w5))
 })
+
+test_that("registration keeps the input domain when wider than arg range (#266)", {
+  withr::local_seed(1)
+  f <- tfd(
+    tf_rgp(3, arg = seq(0.1, 0.9, length.out = 9)),
+    domain = c(0, 1)
+  )
+
+  # The affine repro used to hard-error in assert_warp() because the estimated
+  # warps carried domain range(arg) instead of tf_domain(x).
+  reg <- quiet_expected_registration_warnings(
+    tf_register(f, method = "affine")
+  )
+  expect_identical(tf_domain(tf_aligned(reg)), c(0, 1))
+  expect_identical(tf_domain(tf_inv_warps(reg)), c(0, 1))
+
+  # Estimated warps carry the input domain; #242: their VALUES for affine may
+  # extend outside range(arg) but must stay monotone.
+  warps <- quiet_expected_registration_warnings(
+    tf_estimate_warps(f, method = "affine")
+  )
+  expect_identical(tf_domain(warps), c(0, 1))
+  expect_true(all(vapply(
+    tf_evaluations(warps),
+    \(v) all(diff(v) > 0),
+    logical(1)
+  )))
+
+  # Landmark method on a wide domain keeps the input domain too.
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(
+    t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))),
+    arg = t,
+    domain = c(-1, 2 * pi + 1)
+  )
+  peaks <- tf_landmarks_extrema(x, "max")
+  reg_lm <- quiet_expected_registration_warnings(
+    tf_register(x, method = "landmark", landmarks = peaks)
+  )
+  expect_identical(tf_domain(tf_aligned(reg_lm)), tf_domain(x))
+  expect_identical(tf_domain(tf_inv_warps(reg_lm)), tf_domain(x))
+})

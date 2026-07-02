@@ -81,7 +81,10 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   ret <- tfd(tf_evaluations(x), warp_evals, domain = domain, ...)
 
   if (!keep_new_arg) {
-    ret <- tfd(ret, arg = arg, ...)
+    # Carry the INPUT's domain so warped results keep `tf_domain(x)` (#266).
+    dots <- list(...)
+    dots$domain <- dots$domain %||% domain
+    ret <- do.call(tfd, c(list(ret, arg = arg), dots))
   }
   ret
 }
@@ -158,8 +161,11 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
     )
 
     if (!keep_new_arg) {
-      # Re-evaluate on regular grid (evaluator returns NA outside valid range)
-      ret <- tfd(ret, arg = arg, ...)
+      # Re-evaluate on regular grid (evaluator returns NA outside valid range).
+      # Carry the INPUT's domain so aligned results keep `tf_domain(x)` (#266).
+      dots <- list(...)
+      dots$domain <- dots$domain %||% domain
+      ret <- do.call(tfd, c(list(ret, arg = arg), dots))
     }
     return(ret)
   } else {
@@ -171,7 +177,10 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
       domain = domain
     )
     if (!keep_new_arg) {
-      ret <- tfd(ret, arg = arg, ...)
+      # Carry the INPUT's domain so aligned results keep `tf_domain(x)` (#266).
+      dots <- list(...)
+      dots$domain <- dots$domain %||% domain
+      ret <- do.call(tfd, c(list(ret, arg = arg), dots))
     }
     return(ret)
   }
@@ -284,9 +293,17 @@ tf_register <- function(
   tmpl <- attr(warps, "template") %||%
     (if (method != "landmark") template) %||%
     suppressWarnings(mean(registered))
+  # Represent inverse warps on the INPUT's domain (#266). For non-domain-
+  # preserving (affine) warps the inverse's natural argument (observed time)
+  # extends beyond the data domain; restrict it to `tf_domain(x)` so the
+  # returned warps are h^{-1}: T -> T, consistent with `registered`.
+  inv_warps <- tf_invert(warps)
+  inv_warps <- suppressWarnings(
+    tfd(inv_warps, arg = tf_arg(x), domain = tf_domain(x))
+  )
   new_tf_registration(
     registered = registered,
-    inv_warps = tf_invert(warps),
+    inv_warps = inv_warps,
     template = tmpl,
     x = if (store_x) x else NULL,
     call = cl
@@ -615,7 +632,11 @@ tf_estimate_warps.tfd_reg <- function(
     if (any(missing_tmpl)) {
       new_tmpl_vec[missing_tmpl] <- old_vec[missing_tmpl]
     }
-    new_template <- tfd(matrix(new_tmpl_vec, nrow = 1), arg = arg)
+    new_template <- tfd(
+      matrix(new_tmpl_vec, nrow = 1),
+      arg = arg,
+      domain = tf_domain(x)
+    )
     if (method != "cc") {
       domain_length <- diff(tf_domain(x))
       delta <- suppressWarnings(
@@ -820,7 +841,7 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
     # Fast path: all landmarks present, vectorized construction
     template_arg <- c(domain[1], template_landmarks, domain[2])
     warp_values <- cbind(domain[1], landmarks, domain[2])
-    return(tfd(warp_values, arg = template_arg))
+    return(tfd(warp_values, arg = template_arg, domain = domain))
   }
 
   # NA-aware path: build per-curve warps using only available landmarks
@@ -828,7 +849,8 @@ tf_register_landmark <- function(x, landmarks, template_landmarks = NULL) {
   warp_list <- lapply(seq_len(n), \(i) {
     warp_on_arg(landmarks[i, ], arg)
   })
-  tfd(do.call(rbind, warp_list), arg = arg)
+  # Warps must carry the INPUT's domain, not `range(arg)` (#266).
+  tfd(do.call(rbind, warp_list), arg = arg, domain = domain)
 }
 
 #-------------------------------------------------------------------------------
@@ -883,7 +905,9 @@ tf_register_affine <- function(
   ) |>
     do.call(what = rbind)
 
-  result <- tfd(warp_mat, arg = arg)
+  # Warps must carry the INPUT's domain, not `range(arg)`, so that
+  # downstream `tf_align()` / `assert_warp()` see a matching domain (#266).
+  result <- tfd(warp_mat, arg = arg, domain = domain)
   attr(result, "template") <- template
   result
 }
