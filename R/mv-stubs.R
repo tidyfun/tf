@@ -70,16 +70,15 @@ sort.tf_mv <- function(x, decreasing = FALSE, ...) mv_no_total_order("sort")
 
 #' @export
 tf_invert.tf_mv <- function(x, ...) {
-  cli::cli_abort(
+  mv_unimplemented(
+    "tf_invert",
     c(
       "{.fn tf_invert} is not defined for vector-valued {.cls tf_mv}.",
       i = "Inversion requires a monotone scalar function; a vector-valued
            {.cls tf_mv} has no such inverse.",
       i = "If a single component is monotone, invert it per component, e.g.
            {.code tf_invert(f$x)}."
-    ),
-    class = "tf_mv_method_unimplemented",
-    call = NULL
+    )
   )
 }
 
@@ -104,19 +103,15 @@ tf_crosscor.tf_mv <- function(x, y, ...) mv_unimplemented("tf_crosscor")
 #'
 #' Some verbs are *permanently* stubbed because they have no well-defined
 #' vector-valued semantics: `sort()`, `rank()` and `xtfrm()` (no canonical
-#' total order on \eqn{R^d} -- use [tf_order()] with `by =` instead).
-#' `tf_crosscov()` / `tf_crosscor()` remain blocked pending their joint design
-#' (<https://github.com/tidyfun/tf/issues/274>).
+#' total order on \eqn{R^d} -- use [tf_order()] with `by =` instead), and
+#' `tf_invert()` (function inversion requires a monotone scalar function,
+#' which a vector-valued `f: R -> R^d` is not -- invert a monotone component
+#' instead, e.g. `tf_invert(f$x)`).
 #'
 #' Real component-wise semantics (joint vs. per-component, norm-based, ...) are
-#' being designed verb-by-verb in <https://github.com/tidyfun/tf/issues/255>.
-#' `summary()`, `fivenum()`, `rank()`, `xtfrm()`, `sort()` and `tf_depth()`
-#' await the multivariate-depth design in
-#' <https://github.com/tidyfun/tf/issues/273>, and `tf_crosscov()` /
-#' `tf_crosscor()` await <https://github.com/tidyfun/tf/issues/274>.
-#' `tf_invert()` is *permanently* undefined for `tf_mv`: function inversion
-#' requires a monotone scalar function, which a vector-valued `f: R -> R^d`
-#' is not (invert a monotone component instead, e.g. `tf_invert(f$x)`).
+#' being designed verb-by-verb in <https://github.com/tidyfun/tf/issues/255>;
+#' `tf_crosscov()` / `tf_crosscor()` remain blocked pending their joint design
+#' (<https://github.com/tidyfun/tf/issues/274>).
 #'
 #' @name tf_mv_unimplemented
 #' @keywords internal
