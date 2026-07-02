@@ -535,3 +535,34 @@ quantile.tf <- function(
     ...
   )
 }
+
+# Component-wise pointwise quantiles for vector-valued functional data: returns
+# a `tf_mv` with one curve per requested probability in `probs`, exactly as
+# `quantile.tf()` produces per component. The per-component `cli_inform()` about
+# "only pointwise quantiles" is suppressed and emitted once here instead.
+#' @export
+quantile.tf_mv <- function(
+  x,
+  probs = seq(0, 1, 0.25),
+  na.rm = FALSE,
+  names = TRUE,
+  type = 7,
+  ...
+) {
+  cli::cli_inform(c(
+    i = "Only pointwise, non-functional quantiles implemented for {.cls tf}s;
+         returned component-wise for {.cls tf_mv}."
+  ))
+  comps <- map(tf_components(x), function(comp) {
+    suppressMessages(quantile(
+      comp,
+      probs = probs,
+      na.rm = na.rm,
+      names = names,
+      type = type,
+      ...
+    ))
+  })
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps, domain = tf_domain(x))
+}

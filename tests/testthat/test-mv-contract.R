@@ -192,7 +192,6 @@ mv_probe_calls <- function(fm) {
   list(
     summary = function() summary(fm),
     fivenum = function() fivenum(fm),
-    quantile = function() quantile(fm),
     tf_depth = function() tf_depth(fm),
     tf_crosscov = function() tf_crosscov(fm, fm),
     tf_crosscor = function() tf_crosscor(fm, fm),
@@ -217,6 +216,15 @@ test_that("explicitly probed unimplemented verbs abort with classed condition", 
       )
     )
   }
+})
+
+test_that("quantile() on a tf_mv now succeeds (implemented component-wise)", {
+  set.seed(2551)
+  fm <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  expect_no_condition(
+    suppressMessages(quantile(fm)),
+    class = "tf_mv_method_unimplemented"
+  )
 })
 
 test_that("every univariate-tf generic either has a tf_mv method or aborts cleanly", {

@@ -17,12 +17,15 @@ mv_paired_xy <- function(x) {
                   dimnames = dimnames(arr)[1:2]))
 }
 
-# Draw each curve (row of mx/my) as a column of a matrix so that matlines()
-# recycles col/lty/lwd/... across curves -- matching univariate plot.tf().
-# A single lines() call per curve would only honour the first element of e.g.
-# `col`, so passing `col = 1:n` would draw every curve in the same colour.
-# `alpha` (if given) tints the line colour(s) -- consistent with plot.tf().
-draw_trajectory <- function(mx, my, dots) {
+# Draw each curve (row of mx/my) as a column of a matrix so that matlines() /
+# matpoints() recycles col/lty/lwd/... across curves -- matching univariate
+# plot.tf(). A single lines()/points() call per curve would only honour the
+# first element of e.g. `col`, so passing `col = 1:n` would draw every curve in
+# the same colour. `alpha` (if given) tints the line/point colour(s) --
+# consistent with plot.tf(). `mat_fun` selects lines (default) vs. points; it
+# is the only thing that differs between lines.tf_mv() and points.tf_mv() in
+# trajectory mode.
+draw_trajectory <- function(mx, my, dots, mat_fun = graphics::matlines) {
   line_args <- modifyList(
     list(col = 1, lty = 1),
     dots[intersect(names(dots), traj_curve_par)]
@@ -30,7 +33,7 @@ draw_trajectory <- function(mx, my, dots) {
   if (!is.null(dots$alpha)) {
     line_args$col <- grDevices::adjustcolor(line_args$col, alpha.f = dots$alpha)
   }
-  do.call(graphics::matlines, c(list(t(mx), t(my)), line_args))
+  do.call(mat_fun, c(list(t(mx), t(my)), line_args))
 }
 
 # default display: "trajectory" for 2-d curves (the movement-data view),
@@ -128,5 +131,23 @@ lines.tf_mv <- function(x, ..., type = NULL) {
     return(invisible(x))
   }
   walk(comps, \(comp) graphics::lines(comp, ...))
+  invisible(x)
+}
+
+#' @rdname plot.tf_mv
+#' @importFrom graphics points matpoints
+#' @export
+points.tf_mv <- function(x, ..., type = NULL) {
+  comps <- tf_components(x)
+  type <- mv_plot_type(type, comps)
+  if (type == "trajectory" && length(comps) == 2) {
+    xy <- mv_paired_xy(x)
+    draw_trajectory(xy$x, xy$y, list(...), mat_fun = graphics::matpoints)
+    return(invisible(x))
+  }
+  # facet mode: like lines.tf_mv(), overlay each component onto the *current*
+  # device -- there is no way to re-enter plot.tf_mv()'s per-component facets
+  # after par(mfrow) was reset, so this layers all components onto one plot.
+  walk(comps, \(comp) graphics::points(comp, ...))
   invisible(x)
 }

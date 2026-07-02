@@ -227,6 +227,59 @@ test_that("trajectory plotting handles components on different / irregular grids
   expect_no_error(plot(irr))
 })
 
+test_that("points.tf_mv overlays without error in trajectory and facet modes", {
+  set.seed(88)
+  f2 <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  f3 <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3), z = tf_rgp(3)))
+  pf <- withr::local_tempfile(fileext = ".pdf")
+  grDevices::pdf(pf)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  # trajectory (default for d == 2), incl. per-curve col recycling
+  plot(f2)
+  expect_no_error(points(f2, col = 1:3))
+  # facet default for d > 2; points overlay onto current device
+  plot(f3)
+  expect_no_error(points(f3))
+  # mirrors lines.tf_mv(): a trajectory request for d != 2 silently falls back
+  # to per-component overlay (only plot.tf_mv() errors on that), no error here
+  expect_no_error(points(f3, type = "trajectory"))
+  # returns its input invisibly
+  expect_identical(points(f2), f2)
+})
+
+test_that("quantile.tf_mv returns component-wise pointwise quantiles (oracle)", {
+  set.seed(89)
+  f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  q <- suppressMessages(quantile(f))
+  expect_s3_class(q, "tf_mv")
+  expect_identical(tf_ncomp(q), 2L)
+  # one curve per probability level; default probs has length 5
+  expect_length(q, 5L)
+  # the established oracle: mv result == univariate result per component
+  expect_equal(q$x, suppressMessages(quantile(f$x)))
+  expect_equal(q$y, suppressMessages(quantile(f$y)))
+})
+
+test_that("quantile.tf_mv honours a probs vector of length > 1", {
+  set.seed(90)
+  f <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  probs <- c(0.1, 0.5, 0.9)
+  q <- suppressMessages(quantile(f, probs = probs))
+  expect_length(q, length(probs))
+  expect_equal(q$x, suppressMessages(quantile(f$x, probs = probs)))
+})
+
+test_that("quantile.tf_mv passes na.rm through per component", {
+  set.seed(91)
+  f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+  f$x[2] <- NA
+  # with na.rm = TRUE the NA curve is dropped from the pointwise quantiles
+  q <- suppressMessages(quantile(f, na.rm = TRUE))
+  expect_s3_class(q, "tf_mv")
+  expect_equal(q$x, suppressMessages(quantile(f$x, na.rm = TRUE)))
+  expect_equal(q$y, suppressMessages(quantile(f$y, na.rm = TRUE)))
+})
+
 test_that("print reports per-component grid / interpolator / basis info", {
   set.seed(9)
   # shared grid -> collapsed single info line
