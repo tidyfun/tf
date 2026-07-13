@@ -61,10 +61,14 @@ tf_norm.tf <- function(f) abs(f)
 # This is the shared tail of the tfd-valued geometry reductions (norm, inner).
 mv_reduce_to_tfd <- function(evals, reduce, domain, nms, evals2 = NULL) {
   vals <- if (is.null(evals2)) {
-    map(evals, \(cdf) if (nrow(cdf)) reduce(evals_to_matrix(cdf)) else numeric(0))
+    map(
+      evals,
+      \(cdf) if (nrow(cdf)) reduce(evals_to_matrix(cdf)) else numeric(0)
+    )
   } else {
     map2(evals, evals2, \(a, b) {
-      if (nrow(a)) reduce(evals_to_matrix(a), evals_to_matrix(b)) else numeric(0)
+      if (nrow(a)) reduce(evals_to_matrix(a), evals_to_matrix(b)) else
+        numeric(0)
     })
   }
   names(vals) <- nms
@@ -74,12 +78,18 @@ mv_reduce_to_tfd <- function(evals, reduce, domain, nms, evals2 = NULL) {
 #' @rdname tf_geom
 #' @export
 tf_norm.tf_mv <- function(f) {
-  if (!tf_ncomp(f) || !vec_size(f)) return(tfd(numeric(0), domain = tf_domain(f)))
+  if (!tf_ncomp(f) || !vec_size(f))
+    return(tfd(numeric(0), domain = tf_domain(f)))
   # Components may live on different argument grids (the constructor allows
   # this), so evaluate every component on each curve's union grid -- a plain
   # `Reduce(`+`, comp^2)` would error or misalign, and on tfb would rebase
   # `comp^2` lossily. `tf_evaluate()` does the union-grid + NA-fill.
-  mv_reduce_to_tfd(tf_evaluate(f), \(m) sqrt(rowSums(m^2)), tf_domain(f), names(f))
+  mv_reduce_to_tfd(
+    tf_evaluate(f),
+    \(m) sqrt(rowSums(m^2)),
+    tf_domain(f),
+    names(f)
+  )
 }
 
 #' @rdname tf_geom
@@ -148,7 +158,8 @@ tf_inner.tf_mv <- function(f, g) {
   mv_reduce_to_tfd(
     tf_mv_evaluate_on_grids(f, grids),
     \(mf, mg) rowSums(mf * mg),
-    dom, nms,
+    dom,
+    nms,
     evals2 = tf_mv_evaluate_on_grids(g, grids)
   )
 }
@@ -353,11 +364,15 @@ tf_arclength.tf_mv <- function(
     speed <- tf_speed(f)
     call_args <- list(
       speed,
-      lower = lower,
-      upper = upper,
       definite = definite,
       ...
     )
+    # only forward limits the user actually supplied: for irregular data,
+    # tf_integrate() defaults any missing limit to each curve's own arg range;
+    # explicitly passing the domain endpoints would defeat that rescue and
+    # NA-poison every curve that does not span the full domain.
+    if (!missing(lower)) call_args$lower <- lower
+    if (!missing(upper)) call_args$upper <- upper
     if (!is.null(arg)) call_args$arg <- arg
     return(do.call(tf_integrate, call_args))
   }
@@ -387,7 +402,14 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     lo_i <- max(lower, min(g))
     up_i <- min(upper, max(g))
     if (lo_i > up_i) return(numeric(0))
-    g <- g[g >= lo_i & g <= up_i]
+    # tolerance-aware endpoint insertion: reuse a grid point that (almost)
+    # coincides with an endpoint (float mismatch, e.g. 0.3 vs seq()'s
+    # 0.30000000000000004) instead of adding an (almost-)duplicate vertex,
+    # which would make downstream use of the cumulative arc length abort
+    # with "(Almost) non-unique `arg` values detected".
+    lo_i <- snap_to_grid(lo_i, g)
+    up_i <- snap_to_grid(up_i, g)
+    g <- g[g > lo_i & g < up_i]
     sort(unique(c(lo_i, g, up_i)))
   })
   empty <- vapply(grids, function(g) length(g) == 0L, logical(1))

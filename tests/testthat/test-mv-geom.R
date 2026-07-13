@@ -272,3 +272,53 @@ test_that("tf_arclength handles irregular curves with sub-domain support", {
   al <- tf_arclength(trk)
   expect_equal(unname(al), c(3 * sqrt(2), 5 * sqrt(2)), tolerance = 1e-8)
 })
+
+test_that("polyline arc length honors lower/upper without near-duplicate vertices", {
+  set.seed(25)
+  t_grid <- seq(0, 1, length.out = 11)
+  f <- tfd_mv(list(
+    x = tfd(matrix(t_grid, nrow = 1), arg = t_grid),
+    y = tfd(matrix(0 * t_grid, nrow = 1), arg = t_grid)
+  ))
+  # sub-range limits are honored and agree with method = "derive"
+  expect_equal(
+    unname(tf_arclength(f, lower = 0.25, upper = 0.75, method = "polyline")),
+    0.5,
+    tolerance = 1e-8
+  )
+  # 0.3 float-mismatches seq()'s interior grid point 0.30000000000000004:
+  # the limit must reuse that grid point, not add a near-duplicate vertex
+  expect_equal(
+    unname(tf_arclength(f, lower = 0.3, upper = 0.7, method = "polyline")),
+    0.4,
+    tolerance = 1e-8
+  )
+  cum <- tf_arclength(
+    f,
+    lower = 0.3,
+    upper = 0.7,
+    definite = FALSE,
+    method = "polyline"
+  )
+  args <- as.numeric(tf_arg(cum))
+  expect_true(all(diff(args) > 1e-8))
+  # used to abort with "(Almost) non-unique `arg` values detected"
+  expect_no_error(c(cum, cum))
+})
+
+test_that("tf_arclength derive method defaults limits per curve for irregular data", {
+  set.seed(26)
+  x <- tf_rgp(3, arg = seq(0, 1, length.out = 21))
+  xi <- tf_jiggle(tf_sparsify(x, dropout = 0.3))
+  f <- tfd_mv(list(a = xi, b = 0.5 * xi))
+  # used to return all NA: explicit domain endpoints were forwarded to
+  # tf_integrate(), defeating its per-curve default-limit rescue
+  res <- suppressWarnings(tf_arclength(f, method = "derive"))
+  expect_true(all(is.finite(res)))
+  # user-supplied limits are still forwarded and honored
+  sub <- suppressWarnings(
+    tf_arclength(f, lower = 0.3, upper = 0.6, method = "derive")
+  )
+  expect_true(all(is.finite(sub)))
+  expect_true(all(sub < res))
+})

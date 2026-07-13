@@ -355,6 +355,20 @@ tf_integrate <- function(f, arg, lower, upper, ...) {
   UseMethod("tf_integrate")
 }
 
+# reuse a grid point that (almost) coincides with `value`: returns the nearest
+# point of `grid` if it is closer than the grid's resolution, else `value`
+# itself. Guards against float mismatches between user-supplied limits and
+# grid values (e.g. 0.3 vs seq()'s 0.30000000000000004) that would otherwise
+# introduce (almost-)duplicate arg values.
+snap_to_grid <- function(value, grid) {
+  if (length(grid) < 2) {
+    return(value)
+  }
+  resolution <- get_resolution(grid)
+  nearest <- grid[which.min(abs(grid - value))]
+  if (abs(nearest - value) < resolution) nearest else value
+}
+
 #' @rdname tf_integrate
 #' @export
 tf_integrate.default <- function(f, arg, lower, upper, ...) .NotYetImplemented()
@@ -393,9 +407,19 @@ tf_integrate.tfd <- function(
     if (!definite && !is_irreg(f)) .NotYetImplemented() # needs vd-data
     limits <- limits |> split(seq_len(nrow(limits)))
   }
-  arg <- map2(
+  # a user-supplied limit may float-mismatch a grid point (e.g. 0.3 vs
+  # seq()'s 0.30000000000000004): reuse the (almost-)coinciding grid point as
+  # the limit instead of inserting an (almost-)duplicate arg value, which
+  # would construct an invalid tfd that later aborts with
+  # "(Almost) non-unique `arg` values detected".
+  limits <- map2(
     arg,
     ensure_list(limits),
+    \(x, y) map_dbl(as.numeric(y), snap_to_grid, grid = x)
+  )
+  arg <- map2(
+    arg,
+    limits,
     \(x, y) c(y[1], x[x > y[1] & x < y[2]], y[2])
   )
   na_entries <- is.na(f)
@@ -435,7 +459,8 @@ tf_integrate.tfd <- function(
     ret <- tfd(
       data = data_non_na,
       arg = arg_non_na[[1]],
-      domain = as.numeric(limits),
+      # `limits` is now always a list (possibly of one 2-vector)
+      domain = as.numeric(limits[[1]]),
       evaluator = !!attr(f, "evaluator_name")
     )
     return(restore_na_entries(ret, na_entries, names(f)))

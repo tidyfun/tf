@@ -295,7 +295,11 @@ tfd_mv.array <- function(
   # curve dimension entirely
   slices <- map(
     seq_len(d[3]),
-    \(k) matrix(data[,, k, drop = FALSE], nrow = d[1], ncol = d[2])
+    \(k) {
+      m <- matrix(data[,, k, drop = FALSE], nrow = d[1], ncol = d[2])
+      dimnames(m) <- dimnames(data)[1:2]
+      m
+    }
   ) |>
     setNames(comp_names)
   evaluator <- enexpr(evaluator)
