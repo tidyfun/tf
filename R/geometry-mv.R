@@ -192,13 +192,19 @@ tf_tangent.tf <- function(f) {
 #' @export
 tf_tangent.tf_mv <- function(f) {
   df <- tf_derive(f)
-  inv_speed <- 1 / tf_norm(df)
   grids <- tf_mv_curve_grids(df)
   df_evals <- tf_evaluate(df, arg = grids)
-  speed_evals <- tf_evaluate(inv_speed, arg = grids)
+  # inverse speed per curve, computed directly from the same evaluations that
+  # are scaled below (tf_norm() would evaluate `df` on these grids again)
+  inv_speed_evals <- map(
+    df_evals,
+    \(cdf) 1 / sqrt(rowSums(evals_to_matrix(cdf)^2))
+  )
   comp_names <- attr(df, "comp_names")
   comps <- map(comp_names, function(nm) {
-    vals <- map2(df_evals, speed_evals, \(cdf, speed) cdf[[nm]] * speed)
+    vals <- map2(df_evals, inv_speed_evals, \(cdf, inv_speed) {
+      cdf[[nm]] * inv_speed
+    })
     names(vals) <- names(df)
     tfd(vals, arg = grids, domain = tf_domain(df))
   })
@@ -242,14 +248,14 @@ tf_reparam_arclength <- function(f) {
   # length, so `s / L` would be 0/0 = NaN and produce an invalid (non-monotone)
   # warp. Reparametrize only the well-defined curves; leave the rest unchanged.
   degenerate <- !is.finite(L) | L == 0
+  if (any(degenerate)) {
+    cli::cli_warn(c(
+      "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
+      "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
+    ))
+  }
   good <- which(!degenerate)
   if (!length(good)) {
-    if (any(degenerate)) {
-      cli::cli_warn(c(
-        "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
-        "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
-      ))
-    }
     return(f)
   }
   # u(t) maps the domain monotonically onto itself. `tf_warp(f, w)` computes
@@ -263,17 +269,10 @@ tf_reparam_arclength <- function(f) {
   # `warped` may have a more general per-component type than `f` (e.g.
   # tfd_irreg from a tfd_reg input), so in-place `out[good] <- warped`
   # can fail with a vctrs ptype mismatch. Build the output by ptype-aware
-  # concatenation of warped + untouched, then reorder back to input index.
-  cli::cli_warn(c(
-    "!" = "{sum(degenerate)} curve{?s} with zero/undefined arc length left unchanged.",
-    "i" = "Arc-length reparametrization is undefined for curves that are constant in all components."
-  ))
+  # concatenation (`vec_c`) of warped + untouched, then reorder back to the
+  # input index.
   bad <- which(degenerate)
-  common <- vctrs::vec_ptype_common(warped, f[bad])
-  out <- vctrs::vec_c(
-    vctrs::vec_cast(warped, common),
-    vctrs::vec_cast(f[bad], common)
-  )
+  out <- vctrs::vec_c(warped, f[bad])
   out <- out[order(c(good, bad))]
   names(out) <- names(f)
   out
@@ -412,8 +411,8 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     g <- g[g > lo_i & g < up_i]
     sort(unique(c(lo_i, g, up_i)))
   })
-  empty <- vapply(grids, function(g) length(g) == 0L, logical(1))
-  needs_eval <- vapply(grids, function(g) length(g) >= 2L, logical(1))
+  empty <- lengths(grids) == 0L
+  needs_eval <- lengths(grids) >= 2L
   paired_dfs <- vector("list", n)
   if (any(needs_eval)) {
     paired_dfs[needs_eval] <- tf_evaluate(
@@ -437,11 +436,10 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   }
   per_curve_segs <- map(seq_len(n), function(i) {
     if (empty[i]) return(NA_real_)
-    if (length(grids[[i]]) < 2L) return(numeric(0))
-    df <- paired_dfs[[i]]
-    if (is.null(df) || !nrow(df)) return(NA_real_)
-    mat <- evals_to_matrix(df)
-    if (nrow(mat) < 2L) return(numeric(0))
+    # single-point grids have no segments; otherwise tf_evaluate() filled a
+    # data.frame with one row per grid point (>= 2) above
+    if (!needs_eval[i]) return(numeric(0))
+    mat <- evals_to_matrix(paired_dfs[[i]])
     sqrt(rowSums(diff(mat)^2))
   })
   if (definite) {
@@ -456,8 +454,7 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
       )
     }
     cum_evals <- map(per_curve_segs, function(s) c(0, cumsum(s)))
-    same_grid <- length(unique(lengths(grids))) == 1L &&
-      all(map_lgl(grids[-1], \(g) isTRUE(all.equal(g, grids[[1]]))))
+    same_grid <- all_equal_to_first(grids)
     if (same_grid) {
       tfd(do.call(rbind, cum_evals), arg = grids[[1]])
     } else {
