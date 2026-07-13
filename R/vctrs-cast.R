@@ -40,6 +40,11 @@ same_args <- function(x, to) {
 #'     note it's lossless only on the *original* `arg`-grid)
 #' - Any cast of a `tfd` into `tfb` is potentially *lossy* (because we don't know how expressive the chosen basis is)
 #' - Only `tfb` with identical bases and domains can be cast into one another *losslessly*
+#' - Casts deliberately **keep the source's `arg`-grid**: they *re-express*
+#'   functions in the target's representation rather than re-evaluate them on
+#'   the target's grid, so a cast result need not be identical to the target
+#'   prototype (a deliberate deviation from the strict `vctrs` cast invariant
+#'   that avoids silently coarsening data during type unification).
 #'
 #' @name vctrs
 #' @family tidyfun vctrs

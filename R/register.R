@@ -299,11 +299,7 @@ tf_register <- function(
   # returned warps are h^{-1}: T -> T, consistent with `registered`.
   inv_warps <- tf_invert(warps)
   inv_arg <- tf_arg(x)
-  if (
-    is_tf_mv(x) &&
-      is.list(inv_arg) &&
-      identical(names(inv_arg), attr(x, "comp_names"))
-  ) {
+  if (is_tf_mv(x) && !mv_args_shared(x)) {
     # tf_mv components on different grids: tf_arg() returns a per-component
     # list that tfd() cannot use as the grid of the (shared, univariate)
     # inverse warps. Represent them on the sorted union of all grids instead.

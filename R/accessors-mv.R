@@ -246,16 +246,22 @@ evals_to_matrix <- function(df) {
 
 tf_mv_curve_grids <- function(x) {
   n <- vec_size(x)
-  arg_vals <- tf_arg(x)
-  if (is.numeric(arg_vals)) {
-    rep(list(arg_vals), n)
-  } else if (
-    all(map_lgl(arg_vals, is.numeric)) &&
-      !identical(names(arg_vals), attr(x, "comp_names"))
-  ) {
-    arg_vals
+  comps <- tf_components(x)
+  if (!length(comps)) {
+    return(rep(list(numeric(0)), n))
+  }
+  # recompute the grid layout from the components instead of name-sniffing
+  # the polymorphic tf_arg() return value (whose per-curve and per-component
+  # list shapes are indistinguishable when n == d with colliding names)
+  shared <- mv_args_shared(x)
+  if (shared && !is_irreg(comps[[1]])) {
+    # one shared numeric grid for all curves and components
+    rep(list(tf_arg(comps[[1]])), n)
+  } else if (shared) {
+    # all irregular with per-curve grids shared across components
+    tf_arg(comps[[1]])
   } else {
-    comps <- tf_components(x)
+    # genuinely different grids per component: per-curve union grids
     lapply(seq_len(n), function(i) {
       sort(unique(unlist(
         lapply(comps, function(comp) {

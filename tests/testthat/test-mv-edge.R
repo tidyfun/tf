@@ -652,3 +652,21 @@ test_that("[<-.tf_mv length validation handles logical indices (#270)", {
   expect_true(is.na(g3$x[2]))
   expect_true(is.na(g3$x[3]))
 })
+
+test_that("per-curve grids survive curve names that collide with component names", {
+  # n == d with curve names equal to component names: shape discrimination in
+  # tf_mv_curve_grids() must not rely on name-sniffing the tf_arg() result
+  set.seed(28)
+  args <- list(sort(runif(5)), sort(runif(7)))
+  make_comp <- function() {
+    tfd(
+      setNames(lapply(args, \(a) rnorm(length(a))), c("x", "y")),
+      arg = args
+    )
+  }
+  f <- tfd_mv(list(x = make_comp(), y = make_comp()))
+  ev <- tf_evaluations(f)
+  expect_length(ev, 2L)
+  expect_equal(ev[[1]]$arg, args[[1]])
+  expect_equal(ev[[2]]$arg, args[[2]])
+})
