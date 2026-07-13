@@ -22,9 +22,9 @@ tfb_mfpc(data, ...)
   ...
 )
 
-\method{tfb_mfpc}{list}(data, ...)
+\method{tfb_mfpc}{list}(data, arg = NULL, domain = NULL, ...)
 
-\method{tfb_mfpc}{default}(data, ...)
+\method{tfb_mfpc}{default}(data, arg = NULL, domain = NULL, ...)
 
 is_tfb_mfpc(x)
 
@@ -59,6 +59,11 @@ each component (default \code{0.995}); forwarded as \code{pve} to the univariate
 
 \item{method}{univariate FPCA method, see \code{\link[=tfb_fpc]{tfb_fpc()}}. Defaults to
 \code{\link[=fpc_wsvd]{fpc_wsvd()}}.}
+
+\item{arg}{evaluation grid for raw (list/matrix/array) inputs, forwarded to
+\code{\link[=tfd_mv]{tfd_mv()}}.}
+
+\item{domain}{range of \code{arg}, forwarded to \code{\link[=tfd_mv]{tfd_mv()}}.}
 
 \item{x}{a \code{tfb_mv} object, ideally one returned by \code{\link[=tfb_mfpc]{tfb_mfpc()}}.}
 }

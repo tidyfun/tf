@@ -42,6 +42,7 @@ fivenum(f)
 \seealso{
 Other tidyfun summary functions:
 \code{\link{functionwise}},
+\code{\link[=median.tf_mv]{median.tf_mv()}},
 \code{\link{tfsummaries}}
 }
 \concept{tidyfun summary functions}

@@ -1,20 +1,24 @@
+# tf 0.5.0
+
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
 
 ## Changes in this version
 
-Patch update (v0.4.0 -> v0.4.1): no user-facing feature changes.
-
-This resubmission follows shortly after the previous release because R-devel
-now warns when packages import both `rlang` and `checkmate` wholesale:
-`rlang` newly exports `check_string()` and `check_data_frame()`, which conflict
-with `checkmate`. This update switches `tf` from `import(checkmate)` to
-selective `importFrom(checkmate, ...)` directives to remove that warning and
-keep the package clean on current R-devel / CRAN pretest infrastructure.
-It also corrects the `glimpse()` Rd cross-reference to `pillar::glimpse()`,
-avoiding an undeclared-package Rd xref note.
+Feature release (v0.4.1 -> v0.5.0): adds classes and methods for
+vector-valued functional data (`tfd_mv` / `tfb_mv`), multivariate functional
+principal component analysis (`tfb_mfpc`), multivariate/elastic-shape
+registration, and geometry verbs, plus assorted bug fixes. See NEWS.md.
 
 ## Reverse dependencies
 
-Checked all reverse dependencies. No issues found.
+Checked all CRAN reverse dependencies (ehymet, mlr3fda, tidyfun). One
+finding:
+
+* mlr3fda: one test asserted the previous (buggy) behavior that all-NA
+  functional input silently collapses to a length-0 vector; tf 0.5.0 instead
+  returns a length-n vector of NA functions with a warning (tidyfun/tf#241).
+  The mlr3fda maintainers were notified and have already adapted the test in
+  their development version (mlr-org/mlr3fda@5e6204d, 2026-07-09), ready to
+  submit once this version is on CRAN.

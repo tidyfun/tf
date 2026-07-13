@@ -13,9 +13,9 @@ tfb_mv(data, ...)
 
 \method{tfb_mv}{tf_mv}(data, basis = c("spline", "fpc"), ...)
 
-\method{tfb_mv}{list}(data, basis = c("spline", "fpc"), ...)
+\method{tfb_mv}{list}(data, basis = c("spline", "fpc"), arg = NULL, domain = NULL, ...)
 
-\method{tfb_mv}{default}(data, basis = c("spline", "fpc"), ...)
+\method{tfb_mv}{default}(data, basis = c("spline", "fpc"), arg = NULL, domain = NULL, ...)
 
 as.tfb_mv(data, ...)
 
@@ -29,6 +29,11 @@ first and then each component is expanded into a basis).}
 \item{...}{forwarded to the univariate \code{\link[=tfb]{tfb()}} constructor.}
 
 \item{basis}{spline (default) or fpc basis, see \code{\link[=tfb]{tfb()}}.}
+
+\item{arg}{evaluation grid for raw (list/matrix/array) inputs, forwarded to
+\code{\link[=tfd_mv]{tfd_mv()}}.}
+
+\item{domain}{range of \code{arg}, forwarded to \code{\link[=tfd_mv]{tfd_mv()}}.}
 }
 \value{
 a \code{tfb_mv} object.

@@ -47,6 +47,6 @@ max(x, depth = "MHI")
 
 Other tidyfun ordering and ranking functions:
 \code{\link[=tf_depth]{tf_depth()}},
-\code{\link{tf_order}}
+\code{\link[=tf_order]{tf_order()}}
 }
 \concept{tidyfun ordering and ranking functions}

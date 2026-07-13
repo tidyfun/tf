@@ -14,6 +14,9 @@ NULL
 #'   `tf` vectors, or anything [tfd_mv()] accepts (it is converted to `tfd_mv`
 #'   first and then each component is expanded into a basis).
 #' @param basis spline (default) or fpc basis, see [tfb()].
+#' @param arg evaluation grid for raw (list/matrix/array) inputs, forwarded to
+#'   [tfd_mv()].
+#' @param domain range of `arg`, forwarded to [tfd_mv()].
 #' @param ... forwarded to the univariate [tfb()] constructor.
 #' @returns a `tfb_mv` object.
 #' @family tf_mv-class

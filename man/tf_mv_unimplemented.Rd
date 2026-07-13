@@ -15,7 +15,7 @@ otherwise produce wrong-shape results or deep internal errors.
 \details{
 Some verbs are \emph{permanently} stubbed because they have no well-defined
 vector-valued semantics: \code{sort()}, \code{rank()} and \code{xtfrm()} (no canonical
-total order on \eqn{R^d} -- use \code{\link[=tf_order]{tf_order()}} with \code{by =} instead), and
+total order on \eqn{R^d} -- use \code{\link[=tf_order]{tf_order()}} with \verb{by =} instead), and
 \code{tf_invert()} (function inversion requires a monotone scalar function,
 which a vector-valued \code{f: R -> R^d} is not -- invert a monotone component
 instead, e.g. \code{tf_invert(f$x)}).

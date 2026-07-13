@@ -1,47 +1,3 @@
-#' Accessing, evaluating, subsetting and subassigning `tf` vectors
-#'
-#' These functions access, subset, replace and evaluate `tf` objects.
-#' For more information on creating `tf` objects and converting them to/from
-#' `list`, `data.frame` or `matrix`, see [tfd()] and [tfb()]. See details.\cr
-#'
-#' Note that these break certain (terrible) R conventions for vector-like objects:\cr
-#'
-#' - no argument recycling,
-#' - no indexing with `NA`,
-#' - no indexing with names not present in `x`,
-#' - no indexing with integers `> length(x)`
-#'
-#' All of the above will trigger errors.
-#'
-#' @param x an `tf`.
-#' @param i index of the observations (`integer`ish, `character` or `logical`,
-#'   usual R rules apply). Can also be a two-column `matrix` for extracting
-#'   specific (function, arg-value) pairs: the first column gives the function
-#'   indices, the second column gives the `arg` values at which to evaluate each
-#'   function. Returns a numeric vector in that case. `j` must not be provided
-#'   when `i` is a matrix.
-#' @param j The `arg` used to evaluate the functions. A (list of) `numeric`
-#'   vectors. *NOT* interpreted as a column number but as the argument value of
-#'   the respective functional datum. If `j` is missing but `matrix` is
-#'   explicitly given, `j` defaults to [tf_arg(x)][tf_arg].
-#' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
-#'   for values in `arg` for which no original data is available? Only relevant for
-#'   the raw data class `tfd`, for which it defaults to `TRUE`. Basis-represented
-#'   `tfb` are always "interpolated".
-#' @param matrix should the result be returned as a `matrix` or as a list of
-#'   `data.frame`s? If `TRUE`, `j` has to be a (list of a) single vector of
-#'   `arg`. See return value.
-#' @returns If `i` is a two-column matrix, a numeric vector of pointwise
-#'   evaluations (one per row of `i`).\cr
-#'   If `j` is missing (and `i` is not a matrix), a subset of the functions in
-#'   `x` as given by `i`.\cr If `j` is given and `matrix == TRUE`, a numeric
-#'   matrix of function evaluations in which each row represents one function
-#'   and each column represents one `argval` as given in argument `j`, with an
-#'   attribute `arg`=`j` and row- and column-names derived from `x[i]` and
-#'   `j`.\cr If `j` is given and `matrix == FALSE`, a list of `tbl_df`s with
-#'   columns `arg` = `j` and `value` = evaluations at `j` for each observation
-#'   in `i`.
-#'
 # Shared bracket helpers -------------------------------------------------------
 # Extraction-only helpers used by both `[.tf` and `[.tf_mv`. They must not
 # collapse or simplify the intentional four-mode dispatch of `[.tf`; each caller
@@ -90,6 +46,50 @@ tf_bracket_j <- function(grid, matrix) {
   }
 }
 
+#' Accessing, evaluating, subsetting and subassigning `tf` vectors
+#'
+#' These functions access, subset, replace and evaluate `tf` objects.
+#' For more information on creating `tf` objects and converting them to/from
+#' `list`, `data.frame` or `matrix`, see [tfd()] and [tfb()]. See details.\cr
+#'
+#' Note that these break certain (terrible) R conventions for vector-like objects:\cr
+#'
+#' - no argument recycling,
+#' - no indexing with `NA`,
+#' - no indexing with names not present in `x`,
+#' - no indexing with integers `> length(x)`
+#'
+#' All of the above will trigger errors.
+#'
+#' @param x an `tf`.
+#' @param i index of the observations (`integer`ish, `character` or `logical`,
+#'   usual R rules apply). Can also be a two-column `matrix` for extracting
+#'   specific (function, arg-value) pairs: the first column gives the function
+#'   indices, the second column gives the `arg` values at which to evaluate each
+#'   function. Returns a numeric vector in that case. `j` must not be provided
+#'   when `i` is a matrix.
+#' @param j The `arg` used to evaluate the functions. A (list of) `numeric`
+#'   vectors. *NOT* interpreted as a column number but as the argument value of
+#'   the respective functional datum. If `j` is missing but `matrix` is
+#'   explicitly given, `j` defaults to [tf_arg(x)][tf_arg].
+#' @param interpolate should functions be evaluated (i.e., inter-/extrapolated)
+#'   for values in `arg` for which no original data is available? Only relevant for
+#'   the raw data class `tfd`, for which it defaults to `TRUE`. Basis-represented
+#'   `tfb` are always "interpolated".
+#' @param matrix should the result be returned as a `matrix` or as a list of
+#'   `data.frame`s? If `TRUE`, `j` has to be a (list of a) single vector of
+#'   `arg`. See return value.
+#' @returns If `i` is a two-column matrix, a numeric vector of pointwise
+#'   evaluations (one per row of `i`).\cr
+#'   If `j` is missing (and `i` is not a matrix), a subset of the functions in
+#'   `x` as given by `i`.\cr If `j` is given and `matrix == TRUE`, a numeric
+#'   matrix of function evaluations in which each row represents one function
+#'   and each column represents one `argval` as given in argument `j`, with an
+#'   attribute `arg`=`j` and row- and column-names derived from `x[i]` and
+#'   `j`.\cr If `j` is given and `matrix == FALSE`, a list of `tbl_df`s with
+#'   columns `arg` = `j` and `value` = evaluations at `j` for each observation
+#'   in `i`.
+#'
 #' @rdname tfbrackets
 #' @name tfbrackets
 #' @export

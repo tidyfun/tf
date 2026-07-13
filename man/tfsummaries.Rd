@@ -84,6 +84,7 @@ summary(x)
 
 Other tidyfun summary functions:
 \code{\link[=fivenum]{fivenum()}},
-\code{\link{functionwise}}
+\code{\link{functionwise}},
+\code{\link[=median.tf_mv]{median.tf_mv()}}
 }
 \concept{tidyfun summary functions}

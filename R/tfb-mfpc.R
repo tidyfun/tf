@@ -58,6 +58,9 @@ NULL
 #' @param uni_pve proportion of variance explained for the *univariate* FPCA of
 #'   each component (default `0.995`); forwarded as `pve` to the univariate
 #'   `method`.
+#' @param arg evaluation grid for raw (list/matrix/array) inputs, forwarded to
+#'   [tfd_mv()].
+#' @param domain range of `arg`, forwarded to [tfd_mv()].
 #' @param method univariate FPCA method, see [tfb_fpc()]. Defaults to
 #'   [fpc_wsvd()].
 #' @param ... further arguments forwarded to the univariate `method`. As in

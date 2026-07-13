@@ -3,11 +3,14 @@
 \name{plot.tf_mv}
 \alias{plot.tf_mv}
 \alias{lines.tf_mv}
+\alias{points.tf_mv}
 \title{Plot vector-valued functional data}
 \usage{
 \method{plot}{tf_mv}(x, y, ..., type = NULL)
 
 \method{lines}{tf_mv}(x, ..., type = NULL)
+
+\method{points}{tf_mv}(x, ..., type = NULL)
 }
 \arguments{
 \item{x}{a \code{tf_mv} object.}

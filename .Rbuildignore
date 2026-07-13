@@ -24,6 +24,7 @@
 ^\.pre-commit-config\.yaml$
 ^\.vscode$
 ^\.claude$
+^\.codex$
 ^_pkgdown\.yml$
 ^attic$
 ^vignettes$

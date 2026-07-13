@@ -31,7 +31,8 @@ data, \code{median(f)$x} and \code{median(f$x)} can therefore differ.
 }
 \seealso{
 Other tidyfun summary functions:
-\code{\link{fivenum}()},
+\code{\link[=fivenum]{fivenum()}},
+\code{\link{functionwise}},
 \code{\link{tfsummaries}}
 }
 \concept{tidyfun summary functions}

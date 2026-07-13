@@ -49,11 +49,6 @@ tf_order(f, ...)
 \arguments{
 \item{x}{a \code{tf} vector.}
 
-\item{f}{a \code{tf} or \code{tf_mv} vector (for \code{tf_order}).}
-
-\item{by}{(\code{tf_mv} only) the scalar reduction to order by: \code{"norm"} (the
-default, uses \code{tf_norm(f)}) or the name of a component.}
-
 \item{na.last}{for handling of \code{NA}s; see \code{\link[base:rank]{base::rank()}} and \code{\link[base:sort]{base::sort()}}.}
 
 \item{ties.method}{a character string for handling ties; see \code{\link[base:rank]{base::rank()}}.}
@@ -65,6 +60,11 @@ available via \code{\link[=tf_depth]{tf_depth()}} (default: \code{"MHI"}) or a f
 \code{tf} vector and returns a numeric vector of depth values.}
 
 \item{decreasing}{logical. Should the sort be decreasing?}
+
+\item{f}{a \code{tf} or \code{tf_mv} vector (for \code{tf_order}).}
+
+\item{by}{(\code{tf_mv} only) the scalar reduction to order by: \code{"norm"} (the
+default, uses \code{tf_norm(f)}) or the name of a component.}
 }
 \value{
 \code{rank}: a numeric vector of ranks.\cr

@@ -1,4 +1,4 @@
-# tf 0.4.2
+# tf 0.5.0
 
 ## Internal
 
@@ -89,6 +89,53 @@ univariate `tfd`/`tfb` classes.
 * `is_tf()` now returns `TRUE` for `tf_mv` as well as univariate `tfd`/`tfb`.
   Code that branched on `is_tf()` to mean "univariate `tf`" should switch to
   the new predicate `is_tf_1d()`.
+* `"arg"` and `"id"` are reserved and cannot be used as component names --
+  they collide with the grid and curve-id columns of long-format conversions.
+* Constructing a `tf_mv` from components with differing domains now *warns*
+  when widening `tfd` components to the union domain (evaluations outside the
+  observed range are `NA`) and *aborts* for `tfb` components, where basis
+  evaluation outside the fitted range would extrapolate, i.e. fabricate
+  values.
+* Component-wise operations on a `tfb_mfpc` (`tf_smooth()`, `tf_derive()`,
+  `tf_zoom()`, `tf_integrate()`, `mean()`/`sd()`/`var()`, `Summary` group
+  generics) now consistently demote to valid per-component `tfb_fpc`
+  representations with a one-time warning, like arithmetic already did --
+  previously they silently produced objects that abort on later use.
+* `tf_fmax()`, `tf_fmin()` and `tf_fmedian()` on `tf_mv` return an `n x d`
+  curves-x-components matrix like `tf_fmean()`/`tf_fsd()` (previously: a
+  misnamed interleaved vector).
+* `tfb_fpc()` and `tfb_mfpc()` abort informatively when the input contains
+  completely missing curves (partially missing evaluations continue to be
+  handled by the soft-impute SVD); re-scoring new data with `NA` curves via
+  `tf_rebase()` / `vec_cast()` yields `NA` scores and `NA` entries.
+
+## More bug fixes (pre-release review)
+
+* Empty prototypes (`tfd()`, `tfb()`, `tfd_mv(list())` and friends) carry the
+  sentinel domain `c(NA, NA)` and now combine cleanly with populated vectors
+  in all `vctrs` paths (`vec_c()`, `vec_rbind()`, `c()`, casts) -- binding
+  rows onto an initially empty `tf` column works again.
+* `tfb_mv()` on an existing `tfb_mv` with an explicit `basis` argument re-fits
+  in the requested basis instead of silently returning the old one; changing
+  the basis kind converts through `tfd()`.
+* `tfb_mv()`/`tfb_mfpc()` on raw lists/arrays route constructor arguments
+  (`arg`, `domain`) and basis arguments to the right place instead of
+  forwarding everything everywhere.
+* `tfd_mv()` on 3-d arrays keeps length-1 curve/arg margins and curve names.
+* `tf_derive()` and `tf_integrate()` on `tf_mv` accept per-component `arg`
+  lists, consistent with `tf_interpolate()`.
+* `Summary` group generics on `tf_mv` no longer recycle `NA` masks across
+  operands of different lengths.
+* `tf_arclength()`: `method = "polyline"` honors `lower`/`upper` without
+  creating near-duplicate vertices, and `method = "derive"` no longer
+  NA-poisons irregular curves that do not span the full domain.
+* Indefinite `tf_integrate()` on irregular `tfd` snaps user-supplied limits
+  to (almost-)coinciding grid points instead of constructing invalid objects.
+* `tf_register()` works for `tf_mv` inputs whose components live on different
+  grids; `tf_register_shape()` returns a user-supplied `template` unchanged
+  from `tf_template()`; single-component `srvf_mv` delegates to univariate
+  elastic registration and template-free single-curve registration is
+  rejected with an explanation instead of crashing inside `fdasrvf`.
 
 # tf 0.4.1
 

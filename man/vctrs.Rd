@@ -167,6 +167,11 @@ note it's lossless only on the \emph{original} \code{arg}-grid)
 }
 \item Any cast of a \code{tfd} into \code{tfb} is potentially \emph{lossy} (because we don't know how expressive the chosen basis is)
 \item Only \code{tfb} with identical bases and domains can be cast into one another \emph{losslessly}
+\item Casts deliberately \strong{keep the source's \code{arg}-grid}: they \emph{re-express}
+functions in the target's representation rather than re-evaluate them on
+the target's grid, so a cast result need not be identical to the target
+prototype (a deliberate deviation from the strict \code{vctrs} cast invariant
+that avoids silently coarsening data during type unification).
 }
 }
 \seealso{
