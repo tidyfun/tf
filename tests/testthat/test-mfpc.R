@@ -320,3 +320,35 @@ test_that("npc beyond available components warns and is capped", {
 test_that("empty / degenerate inputs error informatively", {
   expect_error(tfb_mfpc(tfd_mv(list())), "no components")
 })
+
+test_that("tfb_mfpc aborts informatively on completely missing curves", {
+  set.seed(21)
+  g <- tfd_mv(list(x = tf_rgp(8), y = tf_rgp(8)))
+  suppressWarnings(g[3] <- NA)
+  expect_error(tfb_mfpc(g, npc = 2), "completely missing")
+})
+
+test_that("tfb_mfpc accepts raw list input with constructor arguments", {
+  set.seed(22)
+  t_grid <- seq(0, 1, length.out = 21)
+  mx <- matrix(rnorm(6 * 21), nrow = 6)
+  my <- matrix(rnorm(6 * 21), nrow = 6)
+  m <- tfb_mfpc(list(x = mx, y = my), arg = t_grid, npc = 2)
+  expect_true(is_tfb_mfpc(m))
+  expect_length(m, 6L)
+  expect_equal(tf_arg(m), t_grid)
+})
+
+test_that("re-scoring new data with NA curves yields NA scores, not zeros", {
+  set.seed(23)
+  g <- tfd_mv(list(x = tf_rgp(8), y = tf_rgp(8)))
+  m <- tfb_mfpc(g, npc = 2)
+  newdata <- g[1:3]
+  suppressWarnings(newdata[2] <- NA)
+  r <- tf_rebase(newdata, m)
+  expect_length(r, 3L)
+  expect_identical(unname(is.na(r)), c(FALSE, TRUE, FALSE))
+  s <- tf_mfpc_scores(r)
+  expect_true(all(is.na(s[2, ])))
+  expect_false(anyNA(s[c(1, 3), ]))
+})

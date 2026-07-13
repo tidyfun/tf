@@ -180,3 +180,27 @@ test_that("tf_arg collapses when all-irregular components share per-curve args",
   expect_true(is.list(a) && length(a) == 3L && all(map_lgl(a, is.numeric)))
   expect_equal(a, args, ignore_attr = TRUE)
 })
+
+test_that("tfd_mv.array keeps dimensions for length-1 margins", {
+  set.seed(26)
+  a <- array(rnorm(6), dim = c(3, 1, 2))
+  f <- suppressWarnings(tfd_mv(a, arg = 0.5, domain = c(0, 1)))
+  expect_length(f, 3L)
+  expect_identical(tf_ncomp(f), 2L)
+  a1 <- array(rnorm(10), dim = c(1, 5, 2))
+  f1 <- tfd_mv(a1, arg = seq(0, 1, length.out = 5))
+  expect_length(f1, 1L)
+  expect_identical(tf_ncomp(f1), 2L)
+})
+
+test_that("'id' and 'arg' are reserved component names", {
+  set.seed(27)
+  expect_error(
+    tfd_mv(list(id = tf_rgp(2), y = tf_rgp(2))),
+    "reserved"
+  )
+  expect_error(
+    tfd_mv(list(arg = tf_rgp(2), y = tf_rgp(2))),
+    "reserved"
+  )
+})

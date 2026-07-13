@@ -8,9 +8,13 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   # to the multivariate-aware as.data.frame.tf_mv() instead of running the
   # hard-coded scalar-column path on a multi-component object.
   if (!is_tf_1d(tf)) {
-    return(as.data.frame(tf, unnest = TRUE,
-                         arg = if (missing(arg)) NULL else arg,
-                         interpolate = interpolate, ...))
+    return(as.data.frame(
+      tf,
+      unnest = TRUE,
+      arg = if (missing(arg)) NULL else arg,
+      interpolate = interpolate,
+      ...
+    ))
   }
   if (missing(arg)) {
     arg <- tf_arg(tf)
@@ -37,8 +41,17 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
 # from refund
 df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]
-  nobs <- vec_unique_count(data$id)
-  newid <- as.numeric(as.factor(data$id))
+  # a factor id fixes the row layout: one row PER LEVEL, so curves whose
+  # rows were all dropped as incomplete (all-NA curves) stay row-aligned
+  # with the input (their row is all-NA). A non-factor id gets one row per
+  # id actually present.
+  if (is.factor(data$id)) {
+    nobs <- nlevels(data$id)
+    newid <- as.numeric(data$id)
+  } else {
+    nobs <- vec_unique_count(data$id)
+    newid <- as.numeric(as.factor(data$id))
+  }
   bins <- sort_unique(data$arg)
   if (binning && (length(bins) > maxbins)) {
     binvalues <- seq(

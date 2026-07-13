@@ -79,3 +79,24 @@ test_that("tf_count aborts with a clear message on basis-represented data", {
   tb <- tfb_mv(tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3))), verbose = FALSE)
   expect_error(tf_count(tb), "not defined for basis-represented")
 })
+
+test_that("tfb_mv with an explicit basis re-fits instead of returning the old basis", {
+  set.seed(24)
+  f <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  fp <- suppressMessages(tfb_mv(f, basis = "fpc"))
+  sp <- suppressWarnings(tfb_mv(fp, basis = "spline", verbose = FALSE))
+  expect_false(identical(fp, sp))
+  expect_true(all(map_lgl(tf_components(sp), inherits, "tfb_spline")))
+  # no-argument call still short-circuits
+  expect_identical(tfb_mv(fp), fp)
+})
+
+test_that("tfb_mv.list separates constructor from basis arguments", {
+  set.seed(25)
+  t_grid <- seq(0, 1, length.out = 21)
+  mx <- matrix(rnorm(4 * 21), nrow = 4)
+  my <- matrix(rnorm(4 * 21), nrow = 4)
+  tb <- tfb_mv(list(x = mx, y = my), arg = t_grid, k = 7, verbose = FALSE)
+  expect_s3_class(tb, "tfb_mv")
+  expect_length(tb, 4L)
+})

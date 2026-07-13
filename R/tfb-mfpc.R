@@ -101,6 +101,16 @@ tfb_mfpc.tf_mv <- function(
   if (!tf_ncomp(data)) {
     cli::cli_abort("Can't compute MFPCA: {.arg data} has no components.")
   }
+  na_curves <- which(is.na(data))
+  if (length(na_curves)) {
+    cli::cli_abort(c(
+      "Can't compute MFPCA: {.arg data} contains {length(na_curves)}
+       completely missing curve{?s}.",
+      x = "Affected indices: {.val {unname(na_curves)}}.",
+      i = "Drop them first, e.g. {.code data[!is.na(data)]}.
+       (Partially missing evaluations are handled by soft-impute SVD.)"
+    ))
+  }
   fit <- mfpc_fit(
     data,
     weights = weights,
@@ -119,17 +129,20 @@ tfb_mfpc.tf_mv <- function(
 
 #' @rdname tfb_mfpc
 #' @export
-tfb_mfpc.list <- function(data, ...) {
-  tfb_mfpc(tfd_mv(data), ...)
+tfb_mfpc.list <- function(data, arg = NULL, domain = NULL, ...) {
+  # forward constructor arguments to tfd_mv() explicitly -- leaving them in
+  # `...` would pass them on to the univariate FPCA method, where `arg` is
+  # already supplied ("matched by multiple actual arguments")
+  tfb_mfpc(tfd_mv(data, arg = arg, domain = domain), ...)
 }
 
 #' @rdname tfb_mfpc
 #' @export
-tfb_mfpc.default <- function(data, ...) {
+tfb_mfpc.default <- function(data, arg = NULL, domain = NULL, ...) {
   if (missing(data) || vec_size(data) == 0) {
     cli::cli_abort("Can't compute MFPCA on empty input.")
   }
-  tfb_mfpc(tfd_mv(data), ...)
+  tfb_mfpc(tfd_mv(data, arg = arg, domain = domain), ...)
 }
 
 # Core fitter ------------------------------------------------------------------
@@ -560,6 +573,12 @@ mfpc_rescore <- function(newdata, mfpc_obj, arg = NULL) {
   sqrt_w_cols <- rep(sqrt(spec$weights), spec$block_sizes)
   xi_w <- sweep(xi_new, 2, sqrt_w_cols, `*`)
   scores_new <- xi_w %*% spec$loadings # n_new x M
+  # completely missing curves must yield NA scores -- the scoring function
+  # zero-weights their (all-NA) rows, which would silently give 0-ish scores
+  na_curves <- which(is.na(newdata))
+  if (length(na_curves)) {
+    scores_new[na_curves, ] <- NA_real_
+  }
 
   # rebuild each component with the stored Psi basis + the new shared scores
   base_comps <- tf_components(mfpc_obj)
@@ -576,6 +595,14 @@ mfpc_rescore <- function(newdata, mfpc_obj, arg = NULL) {
       basis_label = attr(b, "basis_label")
     )
   })
+  if (length(na_curves)) {
+    # NA scores alone don't mark the entries as NA functions (the coef vector
+    # starts with a constant); set proper NA entries
+    out <- map(out, function(comp) {
+      suppressWarnings(comp[na_curves] <- NA)
+      comp
+    })
+  }
   names(out) <- spec$comp_names
   new_tf_mv(out, domain = tf_domain(mfpc_obj), mfpc = spec)
 }
@@ -599,8 +626,13 @@ tf_mfpc_scores <- function(x) {
     )
   }
   coefs <- unclass(tf_component(x, 1L))
-  scores <- do.call(rbind, lapply(coefs, function(co) co[-1L])) %||%
-    matrix(numeric(0), nrow = 0, ncol = attr(x, "mfpc")$npc)
+  npc <- attr(x, "mfpc")$npc
+  rows <- lapply(coefs, function(co) {
+    # NA entries (NULL coefs) get an NA score row so rows stay curve-aligned
+    if (is.null(co)) rep(NA_real_, npc) else co[-1L]
+  })
+  scores <- do.call(rbind, rows) %||%
+    matrix(numeric(0), nrow = 0, ncol = npc)
   rownames(scores) <- names(x)
   colnames(scores) <- paste0("mfpc", seq_len(ncol(scores)))
   scores

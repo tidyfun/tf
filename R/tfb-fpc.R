@@ -214,6 +214,16 @@ tfb_fpc.numeric <- function(
 tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
   # TODO: major computational shortcuts possible here for tfb-inputs:
   #   reduced rank, direct inner prods of basis functions etc...
+  na_curves <- which(is.na(data))
+  if (length(na_curves)) {
+    cli::cli_abort(c(
+      "Can't compute FPC representation: {.arg data} contains
+       {length(na_curves)} completely missing curve{?s}.",
+      x = "Affected indices: {.val {unname(na_curves)}}.",
+      i = "Drop them first, e.g. {.code data[!is.na(data)]}.
+       (Partially missing evaluations are handled by soft-impute SVD.)"
+    ))
+  }
   arg <- arg %||% tf_arg(data)
   names_data <- names(data)
   ret <- tfb_fpc(

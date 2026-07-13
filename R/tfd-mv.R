@@ -130,11 +130,14 @@ new_tf_mv <- function(
     }
     names(components) <- vec_as_names(names(components), repair = "unique")
     # "arg" is the grid column in evaluation data.frames (`[.tf_mv` with
-    # matrix = FALSE, tf_evaluations(), tf_where()); a component of that name
-    # would silently overwrite it there.
-    if ("arg" %in% names(components)) {
+    # matrix = FALSE, tf_evaluations(), tf_where()) and "id" the curve column
+    # in long-format conversions (as.data.frame(), tf_unnest()); components
+    # of those names would silently overwrite them there.
+    reserved <- intersect(c("arg", "id"), names(components))
+    if (length(reserved)) {
       cli::cli_abort(
-        "{.val arg} is reserved and cannot be used as a component name."
+        "{.val {reserved}} {?is/are} reserved and cannot be used as
+         {?a component name/component names}."
       )
     }
   } else {
@@ -287,7 +290,13 @@ tfd_mv.array <- function(
     )
   }
   comp_names <- dimnames(data)[[3]] %||% paste0("v", seq_len(d[3]))
-  slices <- map(seq_len(d[3]), \(k) data[,, k, drop = TRUE]) |>
+  # drop = FALSE: a length-1 curve or arg dimension must stay a matrix --
+  # drop = TRUE would collapse an n x 1 slice to a plain vector and lose the
+  # curve dimension entirely
+  slices <- map(
+    seq_len(d[3]),
+    \(k) matrix(data[,, k, drop = FALSE], nrow = d[1], ncol = d[2])
+  ) |>
     setNames(comp_names)
   evaluator <- enexpr(evaluator)
   components <- build_components(
