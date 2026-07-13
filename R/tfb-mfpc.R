@@ -418,7 +418,6 @@ tfb_mfpc_demote <- function(x) {
     return(x)
   }
   new_comps <- map2(comps, mfpc$uni, new_tfb_fpc_demoted)
-  names(new_comps) <- names(comps)
   attr(x, "components") <- new_comps
   x
 }
@@ -464,29 +463,16 @@ new_tfb_fpc_demoted <- function(component, uni) {
   data_matrix <- coefs_old %*% t(joint_bm) # n x n_arg
   quad_w <- trapezoid_weights(arg)
   scores <- as.matrix(scoring_function(data_matrix, phi_j, mu_j, quad_w))
-  basis_matrix <- unname(cbind(mu_j, phi_j))
-  domain <- attr(component, "domain")
-  fpc_basis <- suppressMessages(tfd(
-    t(basis_matrix),
+  suppressMessages(new_tfb_fpc_shared(
+    basis_matrix = unname(cbind(mu_j, phi_j)),
+    scores = scores,
     arg = arg,
-    domain = domain
-  ))
-  fpc_constructor <- fpc_wrapper(fpc_basis)
-  coefs <- cbind(1, scores)
-  coef_list <- split(coefs, row(coefs))
-  names(coef_list) <- names(component)
-  basis_label <- paste0(ncol(phi_j), " FPCs")
-  new_vctr(
-    coef_list,
-    domain = domain,
-    basis = fpc_constructor,
-    basis_label = basis_label,
-    basis_matrix = basis_matrix,
-    arg = arg,
-    score_variance = uni$evalues %||% rep(NA_real_, ncol(phi_j)),
+    domain = attr(component, "domain"),
+    evalues = uni$evalues %||% rep(NA_real_, ncol(phi_j)),
+    ids = names(component),
     scoring_function = scoring_function,
-    class = c("tfb_fpc", "tfb", "tf")
-  )
+    basis_label = paste0(ncol(phi_j), " FPCs")
+  ))
 }
 
 # Rebuild a single shared-score MFPC component that is assigned as a
