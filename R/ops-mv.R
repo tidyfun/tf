@@ -8,7 +8,9 @@ mfpc_demote_for_op <- function(x, op, warn = TRUE) {
   if (is_tfb_mfpc(x)) {
     if (warn) {
       warn_mfpc_demotion(paste0(
-        "Operation {.code ", op, "} on a {.cls tfb_mfpc} forces per-component arithmetic."
+        "Operation {.code ",
+        op,
+        "} on a {.cls tfb_mfpc} forces per-component computation."
       ))
     }
     return(tfb_mfpc_demote(x))
@@ -74,11 +76,22 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
   mv_args <- map_lgl(dots, is_tf_mv)
   x <- dots[[which(mv_args)[1]]]
   walk(dots[mv_args], \(arg) check_compatible_mv(x, arg))
-  missing <- do.call(mv_missing, dots[mv_args])
+  # demote tfb_mfpc operands (loudly, once) -- Summary works on the components
+  first_mfpc <- which(map_lgl(dots[mv_args], is_tfb_mfpc))[1]
+  if (!is.na(first_mfpc)) {
+    mv_list <- dots[mv_args]
+    dots[mv_args] <- map2(
+      mv_list,
+      seq_along(mv_list),
+      \(arg, i) mfpc_demote_for_op(arg, generic, warn = i == first_mfpc)
+    )
+  }
+  # a curve is NA iff any of its components is NA -- that is a per-argument
+  # property, so complete each operand with its own mask (a shared mask would
+  # recycle across operands of different lengths and drop the wrong curves)
   dots[mv_args] <- map(
     dots[mv_args],
     mv_complete,
-    missing = missing,
     na.rm = na.rm
   )
   x <- dots[[which(mv_args)[1]]]
@@ -108,7 +121,7 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
 #' @export
 mean.tf_mv <- function(x, ..., na.rm = FALSE) {
   x <- mv_complete(x, na.rm = na.rm)
-  map_components(x, \(a) mean(a, ..., na.rm = na.rm))
+  map_components(x, \(a) mean(a, ..., na.rm = na.rm), .op = "mean")
 }
 
 #' Joint depth-median for vector-valued functional data
@@ -147,7 +160,7 @@ median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
 #' @export
 sd.tf_mv <- function(x, na.rm = FALSE) {
   x <- mv_complete(x, na.rm = na.rm)
-  map_components(x, \(a) sd(a, na.rm = na.rm))
+  map_components(x, \(a) sd(a, na.rm = na.rm), .op = "sd")
 }
 
 #' @export
@@ -160,11 +173,15 @@ var.tf_mv <- function(x, y = NULL, na.rm = FALSE, use) {
   }
   has_use <- !missing(use)
   x <- mv_complete(x, na.rm = na.rm)
-  map_components(x, function(a) {
-    if (has_use) {
-      var(a, na.rm = na.rm, use = use)
-    } else {
-      var(a, na.rm = na.rm)
-    }
-  })
+  map_components(
+    x,
+    function(a) {
+      if (has_use) {
+        var(a, na.rm = na.rm, use = use)
+      } else {
+        var(a, na.rm = na.rm)
+      }
+    },
+    .op = "var"
+  )
 }

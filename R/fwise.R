@@ -73,14 +73,24 @@ tf_fwise.tf_mv <- function(x, .f, arg = tf_arg(x), ...) {
 
 # Factory for the function-wise scalar reductions tf_fmax / tf_fmin /
 # tf_fmedian: reduce each function's values with `reduce_op`, unlist the
-# per-function scalars and reattach names.
+# per-function scalars and reattach names. For tf_mv inputs, return an
+# n x d matrix (curves x components) like tf_fmean/tf_fvar/tf_fsd -- naive
+# unlisting would interleave components into a misnamed length-n*d vector.
 make_tf_freduce <- function(reduce_op) {
-  function(x, arg = tf_arg(x), na.rm = FALSE) {
+  freduce <- function(x, arg = tf_arg(x), na.rm = FALSE) {
+    if (is_tf_mv(x)) {
+      return(tf_mv_fsummary_matrix(
+        x,
+        \(comp, arg) freduce(comp, arg = arg, na.rm = na.rm),
+        arg = arg
+      ))
+    }
     x |>
       tf_fwise(\(.x) reduce_op(.x$value, na.rm = na.rm), arg = arg) |>
       unlist(use.names = FALSE) |>
       setNames(names(x))
   }
+  freduce
 }
 
 #' @export

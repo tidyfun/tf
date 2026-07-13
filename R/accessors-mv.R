@@ -48,14 +48,31 @@ tf_ncomp <- function(f) length(attr(f, "components"))
 #' @export
 tf_components <- function(f) attr(f, "components")
 
-map_components <- function(x, .f, ...) {
+# All component-mappers demote tfb_mfpc inputs first (loudly, see
+# mfpc_demote_for_op): mapping over the components of a joint MFPC fit
+# invalidates its shared scores, and reconstructing without demotion would
+# leave components with an unusable per-component scoring function.
+map_components <- function(x, .f, ..., .op = "component-wise operation") {
+  x <- mfpc_demote_for_op(x, .op)
   comps <- map(tf_components(x), .f, ...)
   names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps)
 }
 
-map2_components <- function(x, y, .f, ...) {
+# like map_components, but .f also receives the component name (for routing
+# per-component arguments via tf_mv_component_arg())
+imap_components <- function(x, .f, ..., .op = "component-wise operation") {
+  x <- mfpc_demote_for_op(x, .op)
+  comps <- imap(tf_components(x), .f, ...)
+  names(comps) <- attr(x, "comp_names")
+  new_tf_mv(comps)
+}
+
+map2_components <- function(x, y, .f, ..., .op = "component-wise operation") {
   check_compatible_mv(x, y)
+  x_warned <- is_tfb_mfpc(x)
+  x <- mfpc_demote_for_op(x, .op)
+  y <- mfpc_demote_for_op(y, .op, warn = !x_warned)
   comps <- map2(tf_components(x), tf_components(y), .f, ...)
   names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps)
@@ -310,12 +327,4 @@ mv_complete <- function(x, na.rm = FALSE, missing = is.na(x)) {
   })
   names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps, domain = tf_domain(x))
-}
-
-mv_missing <- function(...) {
-  mv_args <- list(...)
-  if (!length(mv_args)) {
-    return(logical(0))
-  }
-  Reduce(`|`, map(mv_args, is.na))
 }

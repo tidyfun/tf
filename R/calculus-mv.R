@@ -32,17 +32,28 @@ tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
 #' @export
 tf_derive.tf_mv <- function(f, arg, order = 1, ...) {
   has_arg <- !missing(arg)
-  map_components(f, function(comp) {
-    if (has_arg) {
-      tf_derive(comp, arg = arg, order = order, ...)
-    } else {
-      tf_derive(comp, order = order, ...)
-    }
-  })
+  cn <- attr(f, "comp_names")
+  imap_components(
+    f,
+    function(comp, nm) {
+      if (has_arg) {
+        tf_derive(
+          comp,
+          arg = tf_mv_component_arg(arg, nm, cn),
+          order = order,
+          ...
+        )
+      } else {
+        tf_derive(comp, order = order, ...)
+      }
+    },
+    .op = "tf_derive"
+  )
 }
 
 #' @export
 tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
+  f <- mfpc_demote_for_op(f, "tf_integrate")
   cn <- attr(f, "comp_names") %||% character(0)
   has_arg <- !missing(arg)
   has_lower <- !missing(lower)
@@ -61,9 +72,9 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
     }
     return(new_tf_mv(list(), domain = tf_domain(f), class = "tfd_mv"))
   }
-  results <- map(tf_components(f), function(comp) {
+  results <- imap(tf_components(f), function(comp, nm) {
     call_args <- list(comp, definite = definite, ...)
-    if (has_arg) call_args$arg <- arg
+    if (has_arg) call_args$arg <- tf_mv_component_arg(arg, nm, cn)
     if (has_lower) call_args$lower <- lower
     if (has_upper) call_args$upper <- upper
     do.call(tf_integrate, call_args)
@@ -79,7 +90,7 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
 
 #' @export
 tf_smooth.tf_mv <- function(x, ...) {
-  map_components(x, \(comp) tf_smooth(comp, ...))
+  map_components(x, \(comp) tf_smooth(comp, ...), .op = "tf_smooth")
 }
 
 #' @export
@@ -89,5 +100,9 @@ tf_zoom.tf_mv <- function(
   end = tf_domain(f)[2],
   ...
 ) {
-  map_components(f, \(comp) tf_zoom(comp, begin = begin, end = end, ...))
+  map_components(
+    f,
+    \(comp) tf_zoom(comp, begin = begin, end = end, ...),
+    .op = "tf_zoom"
+  )
 }
