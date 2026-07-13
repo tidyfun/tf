@@ -326,6 +326,53 @@ validate_tfd_irreg <- function(x) {
   invisible(TRUE)
 }
 
+# shared tail of the tfb validators: basis-function check, arg / basis_matrix
+# consistency, and per-element coefficient-length checks. `cls` parameterizes
+# the messages ("tfb_spline" / "tfb_fpc").
+validate_tfb_common <- function(x, cls) {
+  if (!is.function(attr(x, "basis"))) {
+    cli::cli_abort("{.cls {cls}}: {.field basis} must be a function.")
+  }
+  bmat <- attr(x, "basis_matrix")
+  arg <- attr(x, "arg")
+  domain <- attr(x, "domain")
+  # arg is a flat numeric vector for tfb classes
+  if (!is.numeric(arg)) {
+    cli::cli_abort("{.cls {cls}}: {.field arg} must be numeric.")
+  }
+  validate_arg_vector(arg, domain, where = cls)
+  if (!is.matrix(bmat) || !is.numeric(bmat)) {
+    cli::cli_abort(
+      "{.cls {cls}}: {.field basis_matrix} must be a numeric matrix."
+    )
+  }
+  if (nrow(bmat) != length(arg)) {
+    cli::cli_abort(paste0(
+      "{.cls {cls}}: nrow(basis_matrix) = {.val {nrow(bmat)}} != ",
+      "length(arg) = {.val {length(arg)}}."
+    ))
+  }
+  data <- unclass(x)
+  expected_len <- ncol(bmat)
+  for (i in seq_along(data)) {
+    el <- data[[i]]
+    if (is.null(el)) next
+    if (!is.numeric(el)) {
+      cli::cli_abort(
+        "{.cls {cls}}: coefficient {.val {i}} is not numeric."
+      )
+    }
+    if (length(el) != expected_len) {
+      cli::cli_abort(paste0(
+        "{.cls {cls}}: coefficient {.val {i}} has length ",
+        "{.val {length(el)}}, expected ncol(basis_matrix) = ",
+        "{.val {expected_len}}."
+      ))
+    }
+  }
+  invisible(TRUE)
+}
+
 validate_tfb_spline <- function(x) {
   # length-0 prototypes from new_tfb_spline(numeric(0)) legitimately carry
   # only domain/arg/family, so basis attributes can't be required for them
@@ -350,47 +397,7 @@ validate_tfb_spline <- function(x) {
       "{.val {missing_attrs}}."
     ))
   }
-  if (!is.function(attr(x, "basis"))) {
-    cli::cli_abort("{.cls tfb_spline}: {.field basis} must be a function.")
-  }
-  bmat <- attr(x, "basis_matrix")
-  arg <- attr(x, "arg")
-  domain <- attr(x, "domain")
-  # arg is a flat numeric vector for tfb_spline
-  if (!is.numeric(arg)) {
-    cli::cli_abort("{.cls tfb_spline}: {.field arg} must be numeric.")
-  }
-  validate_arg_vector(arg, domain, where = "tfb_spline")
-  if (!is.matrix(bmat) || !is.numeric(bmat)) {
-    cli::cli_abort(
-      "{.cls tfb_spline}: {.field basis_matrix} must be a numeric matrix."
-    )
-  }
-  if (nrow(bmat) != length(arg)) {
-    cli::cli_abort(paste0(
-      "{.cls tfb_spline}: nrow(basis_matrix) = {.val {nrow(bmat)}} != ",
-      "length(arg) = {.val {length(arg)}}."
-    ))
-  }
-  data <- unclass(x)
-  expected_len <- ncol(bmat)
-  for (i in seq_along(data)) {
-    el <- data[[i]]
-    if (is.null(el)) next
-    if (!is.numeric(el)) {
-      cli::cli_abort(
-        "{.cls tfb_spline}: coefficient {.val {i}} is not numeric."
-      )
-    }
-    if (length(el) != expected_len) {
-      cli::cli_abort(paste0(
-        "{.cls tfb_spline}: coefficient {.val {i}} has length ",
-        "{.val {length(el)}}, expected ncol(basis_matrix) = ",
-        "{.val {expected_len}}."
-      ))
-    }
-  }
-  invisible(TRUE)
+  validate_tfb_common(x, "tfb_spline")
 }
 
 validate_tfb_fpc <- function(x) {
@@ -415,51 +422,14 @@ validate_tfb_fpc <- function(x) {
       "{.cls tfb_fpc}: missing required attribute(s) {.val {missing_attrs}}."
     )
   }
-  if (!is.function(attr(x, "basis"))) {
-    cli::cli_abort("{.cls tfb_fpc}: {.field basis} must be a function.")
-  }
   if (!is.function(attr(x, "scoring_function"))) {
     cli::cli_abort(
       "{.cls tfb_fpc}: {.field scoring_function} must be a function."
     )
   }
-  bmat <- attr(x, "basis_matrix")
-  arg <- attr(x, "arg")
-  domain <- attr(x, "domain")
-  if (!is.numeric(arg)) {
-    cli::cli_abort("{.cls tfb_fpc}: {.field arg} must be numeric.")
-  }
-  validate_arg_vector(arg, domain, where = "tfb_fpc")
-  if (!is.matrix(bmat) || !is.numeric(bmat)) {
-    cli::cli_abort(
-      "{.cls tfb_fpc}: {.field basis_matrix} must be a numeric matrix."
-    )
-  }
-  if (nrow(bmat) != length(arg)) {
-    cli::cli_abort(paste0(
-      "{.cls tfb_fpc}: nrow(basis_matrix) = {.val {nrow(bmat)}} != ",
-      "length(arg) = {.val {length(arg)}}."
-    ))
-  }
-  data <- unclass(x)
-  expected_len <- ncol(bmat)
-  for (i in seq_along(data)) {
-    el <- data[[i]]
-    if (is.null(el)) next
-    if (!is.numeric(el)) {
-      cli::cli_abort(
-        "{.cls tfb_fpc}: coefficient {.val {i}} is not numeric."
-      )
-    }
-    if (length(el) != expected_len) {
-      cli::cli_abort(paste0(
-        "{.cls tfb_fpc}: coefficient {.val {i}} has length ",
-        "{.val {length(el)}}, expected ncol(basis_matrix) = ",
-        "{.val {expected_len}}."
-      ))
-    }
-  }
+  validate_tfb_common(x, "tfb_fpc")
   # score_variance should be ncol(basis_matrix) - 1 (one column is the mean)
+  bmat <- attr(x, "basis_matrix")
   sv <- attr(x, "score_variance")
   if (!is.numeric(sv)) {
     cli::cli_abort("{.cls tfb_fpc}: {.field score_variance} must be numeric.")
@@ -484,11 +454,6 @@ validate_tf_mv <- function(x) {
     cli::cli_abort("{.cls tf_mv}: {.field components} must be a list.")
   }
   n <- length(unclass(x))
-  # dummy payload length must match component count of curves (each component
-  # has length n; payload is also length n). Spec phrased this as
-  # "length(unclass(x)) == nrow(attr(x, 'components'))"; structurally the
-  # invariant is `length(unclass(x)) == vec_size(components[[i]])` for each i,
-  # which the constructor enforces.
   domain <- attr(x, "domain")
   is_proto <- length(unclass(x)) == 0L
   # empty prototypes may carry the sentinel domain c(NA, NA), matching the
