@@ -68,24 +68,13 @@ tfb_mv.tf_mv <- function(data, basis = c("spline", "fpc"), ...) {
   new_tf_mv(components, domain = tf_domain(data))
 }
 
-# Distribute a `...` collection across one component `nm`: a `...` argument that
-# is a list named by *all* component names is treated as per-component (return
-# its `nm` entry); any other argument is shared (returned as-is). Used by both
-# tfb_mv() and tfb_mfpc() to allow e.g. `k = list(x = 5, y = 12)`.
+# Distribute a `...` collection across one component `nm`: a `...` argument
+# that is a list named by *all* component names is treated as per-component
+# (return its `nm` entry); any other argument is shared (returned as-is) --
+# the same dispatch rule as tf_mv_component_arg() applied per argument. Used
+# by both tfb_mv() and tfb_mfpc() to allow e.g. `k = list(x = 5, y = 12)`.
 distribute_dots <- function(dots, nm, comp_names) {
-  map(dots, function(arg) {
-    if (
-      is.list(arg) &&
-        !is.null(names(arg)) &&
-        length(arg) == length(comp_names) &&
-        !anyDuplicated(names(arg)) &&
-        setequal(names(arg), comp_names)
-    ) {
-      arg[[nm]]
-    } else {
-      arg
-    }
-  })
+  map(dots, tf_mv_component_arg, nm = nm, comp_names = comp_names)
 }
 
 #' @rdname tfb_mv

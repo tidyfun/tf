@@ -71,8 +71,10 @@ new_tf_mv <- function(
           !anyNA(tf_domain(comp)) &&
             !isTRUE(all.equal(tf_domain(comp), domain))
       )
-      if (any(widened & map_lgl(components, is_tfb))) {
-        bad <- names(components)[widened & map_lgl(components, is_tfb)]
+      # components are all-tfd or all-tfb (checked above), so `all_tfb`
+      # decides whether any widening would extrapolate a basis
+      if (all_tfb && any(widened)) {
+        bad <- names(components)[widened]
         cli::cli_abort(c(
           "Cannot widen the domain of {cli::qty(bad)}{.cls tfb} component{?s}
            {.val {bad}} to the shared domain
@@ -330,22 +332,18 @@ tfd_mv.data.frame <- function(
   ...
 ) {
   evaluator <- enexpr(evaluator)
-  value_names <- if (is.character(value)) value else names(data)[value]
+  col_nm <- function(sel) if (is.character(sel)) sel else names(data)[sel]
   components <- map(value, function(v) {
     rlang::inject(
       tfd(
-        data[, c(
-          if (is.character(id)) id else names(data)[id],
-          if (is.character(arg)) arg else names(data)[arg],
-          if (is.character(v)) v else names(data)[v]
-        )],
+        data[, c(col_nm(id), col_nm(arg), col_nm(v))],
         domain = domain,
         evaluator = !!evaluator,
         ...
       )
     )
   }) |>
-    setNames(value_names)
+    setNames(col_nm(value))
   new_tf_mv(components, domain = domain)
 }
 
@@ -359,15 +357,14 @@ tfd_mv.tf_mv <- function(
   ...
 ) {
   evaluator <- enexpr(evaluator)
-  components <- map(tf_components(data), function(comp) {
-    rlang::inject(tfd(
-      comp,
-      arg = arg,
-      domain = domain,
-      evaluator = !!evaluator,
-      ...
-    ))
-  })
+  components <- build_components(
+    tf_components(data),
+    constructor = tfd,
+    arg = arg,
+    domain = domain,
+    dots = list(...),
+    extra = list(evaluator = evaluator)
+  )
   new_tf_mv(components, domain = domain)
 }
 

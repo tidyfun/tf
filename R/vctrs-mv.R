@@ -68,7 +68,6 @@ check_compatible_mv <- function(x, y) {
 tf_mv_ptype2 <- function(x, y, ...) {
   check_compatible_mv(x, y)
   comps <- map2(tf_components(x), tf_components(y), \(a, b) vec_ptype2(a, b))
-  names(comps) <- attr(x, "comp_names")
   # Carry the joint MFPC spec through `vec_c()` when *all* inputs are the same
   # fit, i.e. carry an `identical()` `mfpc` attribute. `vec_ptype2()` is called
   # pairwise so an identical match here -- combined with the matching pairwise
@@ -105,7 +104,6 @@ tf_mv_cast <- function(x, to, ...) {
   }
   check_compatible_mv(x, to)
   comps <- map2(tf_components(x), tf_components(to), \(a, b) vec_cast(a, b))
-  names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps)
 }
 
