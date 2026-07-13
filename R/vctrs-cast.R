@@ -71,6 +71,11 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 #' @family tidyfun vctrs
 #' @export
 vec_cast.tfd_reg.tfb_spline <- function(x, to, ...) {
+  # an empty tfb prototype carries no basis to evaluate; the cast result is
+  # simply an empty vector of the target type
+  if (is_empty_proto(x)) {
+    return(vec_slice(to, integer(0)))
+  }
   tf_rebase(x, to, arg = tf_arg(x))
 }
 
@@ -104,6 +109,11 @@ vec_cast.tfd_irreg.tfb_fpc <- vec_cast.tfd_irreg.tfd_reg
 #-------------------------------------------------------------------------------
 
 vec_cast_tfb_tfb <- function(x, to, ...) {
+  # empty prototypes carry no basis to compare/rebase; the cast result is
+  # simply an empty vector of the target type
+  if (is_empty_proto(x)) {
+    return(vec_slice(to, integer(0)))
+  }
   assert_same_domains(x, to)
   same_basis <- isTRUE(all.equal(
     tf_basis(to)(tf_arg(x)),
@@ -129,6 +139,10 @@ vec_cast_tfb_tfb <- function(x, to, ...) {
 }
 
 vec_cast_tfb_tfd <- function(x, to, ...) {
+  # empty tfd prototypes have no evaluations to refit in the target basis
+  if (is_empty_proto(x)) {
+    return(vec_slice(to, integer(0)))
+  }
   maybe_lossy_cast(
     tf_rebase(x, to, arg = tf_arg(x)),
     x,

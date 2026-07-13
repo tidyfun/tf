@@ -10,7 +10,8 @@ new_tfb_spline <- function(
   if (vec_size(data) == 0) {
     ret <- new_vctr(
       data,
-      domain = numeric(2),
+      # sentinel domain of empty prototypes, see new_tfd()
+      domain = c(NA_real_, NA_real_),
       arg = numeric(),
       family = character(),
       class = c("tfb_spline", "tfb", "tf")

@@ -163,7 +163,10 @@ test_that("tf_norm on components with different argument grids works", {
   # union grid and NA-fills outside each component's support.
   fx <- tfd(matrix(c(3, 3), nrow = 1), arg = c(0, 1))
   fy <- tfd(matrix(c(4, 4), nrow = 1), arg = c(0.5, 1.5))
-  f <- tfd_mv(list(x = fx, y = fy), domain = c(0, 1.5))
+  expect_warning(
+    f <- tfd_mv(list(x = fx, y = fy), domain = c(0, 1.5)),
+    "Widening domain"
+  )
   n <- tf_norm(f)
   expect_s3_class(n, "tfd")
   # at arg = 0.5, both components are well-defined (3, 4) -> norm = 5

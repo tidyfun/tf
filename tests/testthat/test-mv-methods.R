@@ -221,10 +221,13 @@ test_that("trajectory plotting handles components on different / irregular grids
     x = tfd(matrix(rnorm(2 * 10), 2), arg = seq(0, 1, length.out = 10)),
     y = tfd(matrix(rnorm(2 * 25), 2), arg = seq(0, 1, length.out = 25))
   ))
-  irr <- tfd_mv(list(
-    x = tfd(list(c(0, 0.5, 1)), list(c(1, 2, 3))),
-    y = tfd(list(c(0, 0.5, 1)), list(c(4, 5, 6)))
-  ))
+  expect_warning(
+    irr <- tfd_mv(list(
+      x = tfd(list(c(0, 0.5, 1)), list(c(1, 2, 3))),
+      y = tfd(list(c(0, 0.5, 1)), list(c(4, 5, 6)))
+    )),
+    "Widening domain"
+  )
   pf <- withr::local_tempfile(fileext = ".pdf")
   grDevices::pdf(pf)
   on.exit(grDevices::dev.off(), add = TRUE)

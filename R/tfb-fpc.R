@@ -8,7 +8,8 @@ new_tfb_fpc <- function(
   if (all(dim(data) == 0)) {
     ret <- new_vctr(
       data,
-      domain = domain %||% numeric(2),
+      # sentinel domain of empty prototypes, see new_tfd()
+      domain = domain %||% c(NA_real_, NA_real_),
       arg = numeric(),
       score_variance = numeric(),
       class = c("tfb_fpc", "tfb", "tf")

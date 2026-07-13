@@ -128,10 +128,13 @@ test_that("tfd_mv errors on incompatible component lengths", {
 })
 
 test_that("tfd_mv unions differing component domains by default", {
-  f <- tfd_mv(list(
-    x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
-    y = tf_rgp(2, arg = seq(0, 2, length.out = 5))
-  ))
+  expect_warning(
+    f <- tfd_mv(list(
+      x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+      y = tf_rgp(2, arg = seq(0, 2, length.out = 5))
+    )),
+    "Widening domain"
+  )
   expect_equal(tf_domain(f), c(0, 2))
   # both components got widened to the union
   expect_true(all(sapply(tf_components(f), \(c) all(tf_domain(c) == c(0, 2)))))
@@ -139,12 +142,15 @@ test_that("tfd_mv unions differing component domains by default", {
 })
 
 test_that("tfd_mv accepts a user-supplied common domain", {
-  f <- tfd_mv(
-    list(
-      x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
-      y = tf_rgp(2, arg = seq(0, 1, length.out = 5))
+  expect_warning(
+    f <- tfd_mv(
+      list(
+        x = tf_rgp(2, arg = seq(0, 1, length.out = 5)),
+        y = tf_rgp(2, arg = seq(0, 1, length.out = 5))
+      ),
+      domain = c(-1, 2)
     ),
-    domain = c(-1, 2)
+    "Widening domain"
   )
   expect_equal(tf_domain(f), c(-1, 2))
 })

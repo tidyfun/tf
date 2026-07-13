@@ -599,7 +599,8 @@ tf_mfpc_scores <- function(x) {
     )
   }
   coefs <- unclass(tf_component(x, 1L))
-  scores <- do.call(rbind, lapply(coefs, function(co) co[-1L]))
+  scores <- do.call(rbind, lapply(coefs, function(co) co[-1L])) %||%
+    matrix(numeric(0), nrow = 0, ncol = attr(x, "mfpc")$npc)
   rownames(scores) <- names(x)
   colnames(scores) <- paste0("mfpc", seq_len(ncol(scores)))
   scores

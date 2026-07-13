@@ -1,4 +1,11 @@
+# empty prototypes carry the sentinel domain c(NA, NA) ("not yet known"),
+# which is compatible with -- and imposes no constraints on -- any domain
+unknown_domain <- function(x) anyNA(tf_domain(x))
+
 domain_contains <- function(x, to) {
+  if (unknown_domain(x) || unknown_domain(to)) {
+    return(TRUE)
+  }
   dom_x <- tf_domain(x)
   dom_to <- tf_domain(to)
   (dom_to[1] <= dom_x[1]) && (dom_to[2] >= dom_x[2])
@@ -21,7 +28,11 @@ assert_domain_x_in_to <- function(x, to) {
 }
 
 assert_same_domains <- function(x, to) {
-  if (all(tf_domain(x) == tf_domain(to))) {
+  if (
+    unknown_domain(x) ||
+      unknown_domain(to) ||
+      all(tf_domain(x) == tf_domain(to))
+  ) {
     return(TRUE)
   }
   stop_incompatible_cast(
@@ -51,6 +62,10 @@ assert_arg <- function(arg, x, check_unique = TRUE, null_ok = FALSE) {
 
 assert_arg_vector <- function(arg, x, check_unique = TRUE) {
   domain_x <- tf_domain(x)
+  if (anyNA(domain_x)) {
+    # unknown (sentinel) domain of an empty prototype constrains nothing
+    domain_x <- c(-Inf, Inf)
+  }
   assert_numeric(
     arg,
     lower = domain_x[1],
@@ -148,9 +163,13 @@ validate_tf <- function(x) {
   # in the tfb constructors, or c(NA_real_, NA_real_) in the tfd constructors (matching
   # the S4 prototype); only require the structural shape (length-2 numeric) for prototypes.
   is_proto <- length(unclass(x)) == 0L
-  bad_domain <- !is.numeric(domain) || length(domain) != 2L ||
-    (!is_proto && (anyNA(domain) || any(!is.finite(domain)) ||
-       domain[1] > domain[2] || length(unique(domain)) != 2L))
+  bad_domain <- !is.numeric(domain) ||
+    length(domain) != 2L ||
+    (!is_proto &&
+      (anyNA(domain) ||
+        any(!is.finite(domain)) ||
+        domain[1] > domain[2] ||
+        length(unique(domain)) != 2L))
   if (bad_domain) {
     cli::cli_abort(paste0(
       "Invalid {.field domain}: must be a finite, sorted length-2 numeric ",
@@ -298,7 +317,8 @@ validate_tfd_irreg <- function(x) {
       ))
     }
     validate_arg_vector(
-      el$arg, domain,
+      el$arg,
+      domain,
       where = paste0("tfd_irreg element ", i),
       check_unique = TRUE
     )
@@ -314,8 +334,14 @@ validate_tfb_spline <- function(x) {
     return(invisible(TRUE))
   }
   required <- c(
-    "basis", "basis_matrix", "basis_label", "basis_args",
-    "arg", "family", "family_label", "domain"
+    "basis",
+    "basis_matrix",
+    "basis_label",
+    "basis_args",
+    "arg",
+    "family",
+    "family_label",
+    "domain"
   )
   missing_attrs <- setdiff(required, names(attributes(x)))
   if (length(missing_attrs)) {
@@ -375,8 +401,13 @@ validate_tfb_fpc <- function(x) {
     return(invisible(TRUE))
   }
   required <- c(
-    "basis", "basis_matrix", "basis_label",
-    "arg", "score_variance", "scoring_function", "domain"
+    "basis",
+    "basis_matrix",
+    "basis_label",
+    "arg",
+    "score_variance",
+    "scoring_function",
+    "domain"
   )
   missing_attrs <- setdiff(required, names(attributes(x)))
   if (length(missing_attrs)) {
@@ -460,9 +491,20 @@ validate_tf_mv <- function(x) {
   # which the constructor enforces.
   domain <- attr(x, "domain")
   is_proto <- length(unclass(x)) == 0L
-  bad_domain <- !is.numeric(domain) || length(domain) != 2L ||
-    any(!is.finite(domain)) || domain[1] > domain[2] ||
-    (!is_proto && length(unique(domain)) != 2L)
+  # empty prototypes may carry the sentinel domain c(NA, NA), matching the
+  # univariate empty-tfd prototype (see new_tfd)
+  sentinel_domain <- is.numeric(domain) &&
+    length(domain) == 2L &&
+    all(is.na(domain))
+  bad_domain <- !is.numeric(domain) ||
+    length(domain) != 2L ||
+    if (is_proto && sentinel_domain) {
+      FALSE
+    } else {
+      any(!is.finite(domain)) ||
+        domain[1] > domain[2] ||
+        (!is_proto && length(unique(domain)) != 2L)
+    }
   if (bad_domain) {
     cli::cli_abort(paste0(
       "{.cls tf_mv}: invalid {.field domain}: must be a finite sorted ",

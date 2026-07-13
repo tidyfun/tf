@@ -260,7 +260,7 @@ test_that("as.matrix(<tf_mv>, arg = ...) re-evaluates on a new grid", {
 test_that("as.matrix(<tf_mv>) uses the union grid for mixed regular component grids", {
   x <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
   y <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
-  f <- tfd_mv(list(x = x, y = y))
+  expect_warning(f <- tfd_mv(list(x = x, y = y)), "Widening domain")
   expect_warning(m <- as.matrix(f), "interpolate = FALSE")
   expect_identical(dim(m), c(1L, 4L, 2L))
   expect_true(is.na(m[1, "4", "x"]))
@@ -270,7 +270,7 @@ test_that("as.matrix(<tf_mv>) uses the union grid for mixed regular component gr
 test_that("[.tf_mv(matrix = FALSE) uses per-curve union grids when j is missing", {
   x <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
   y <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
-  f <- tfd_mv(list(x = x, y = y))
+  expect_warning(f <- tfd_mv(list(x = x, y = y)), "Widening domain")
   expect_warning(
     out <- f[,, interpolate = FALSE, matrix = FALSE],
     "interpolate = FALSE"
@@ -294,10 +294,14 @@ test_that("as.data.frame(<tf_mv>) supports both unnested and 1-column forms", {
   expect_identical(levels(d2$component), c("x", "y"))
   expect_identical(nrow(d2), 2L * 5L * 2L)
   # x values match the univariate as.data.frame on the x-component
-  expect_equal(d2$value[d2$component == "x"],
-               as.data.frame(f$x, unnest = TRUE)$value)
-  expect_equal(d2$value[d2$component == "y"],
-               as.data.frame(f$y, unnest = TRUE)$value)
+  expect_equal(
+    d2$value[d2$component == "x"],
+    as.data.frame(f$x, unnest = TRUE)$value
+  )
+  expect_equal(
+    d2$value[d2$component == "y"],
+    as.data.frame(f$y, unnest = TRUE)$value
+  )
   # opt-in to legacy wide schema
   d2w <- as.data.frame(f, unnest = TRUE, long = FALSE)
   expect_named(d2w, c("id", "arg", "x", "y"))

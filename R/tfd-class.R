@@ -42,9 +42,8 @@ new_tfd <- function(
   # if a downstream caller ran `assert_arg` against it. "Truly empty" means
   # either size 0 or every entry is a length-0 *numeric* vector (no NULLs --
   # NULL is the in-vector representation of an NA function and must survive).
-  truly_empty <- vec_size(datalist) == 0 || (
-    !any(map_lgl(datalist, is.null)) && all(lengths(datalist) == 0L)
-  )
+  truly_empty <- vec_size(datalist) == 0 ||
+    (!any(map_lgl(datalist, is.null)) && all(lengths(datalist) == 0L))
   if (truly_empty) {
     arg <- arg %||% list(numeric())
     domain <- domain %||% c(NA_real_, NA_real_)
@@ -62,16 +61,25 @@ new_tfd <- function(
   }
 
   # All-NA input with size > 0: produce a length-n vector of NA functions
-  # rather than silently collapsing to length 0.
-  if (allMissing(unlist(datalist, use.names = FALSE))) {
+  # rather than silently collapsing to length 0. Entries may arrive either as
+  # NA vectors or already converted to NULL placeholders (tf's NA
+  # representation), so check per entry -- `unlist()` drops NULLs.
+  all_na_input <- all(
+    map_lgl(datalist, \(x) is.null(x) || allMissing(x))
+  )
+  if (all_na_input) {
     n <- vec_size(datalist)
     arg_list <- if (is.null(arg)) {
       list(seq_len(max(lengths(datalist), 1L)))
     } else {
       ensure_list(arg)
     }
-    domain <- domain %||% range(unlist(arg_list, use.names = FALSE))
-    if (!is.finite(domain[1]) || !is.finite(domain[2]) || domain[1] == domain[2]) {
+    arg_values <- unlist(arg_list, use.names = FALSE)
+    domain <- domain %||%
+      if (length(arg_values)) range(arg_values) else c(NA_real_, NA_real_)
+    if (
+      !is.finite(domain[1]) || !is.finite(domain[2]) || domain[1] == domain[2]
+    ) {
       domain <- c(NA_real_, NA_real_)
     }
     subclass <- if (regular) "tfd_reg" else "tfd_irreg"
@@ -98,9 +106,7 @@ new_tfd <- function(
   # irregular -> per-entry arg list (length 1 = shared, or length n).
   # Every non-NA data entry must have length matching its arg vector.
   arg_list <- ensure_list(arg)
-  if (
-    length(arg_list) != 1 && length(arg_list) != length(datalist)
-  ) {
+  if (length(arg_list) != 1 && length(arg_list) != length(datalist)) {
     cli::cli_abort(
       "Length of {.arg arg} list ({length(arg_list)}) must be 1 or match length of {.arg data} ({length(datalist)})."
     )

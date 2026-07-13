@@ -35,16 +35,23 @@ new_tf_mv <- function(
       )
     }
     domains <- map(components, tf_domain)
+    # empty prototypes carry the sentinel domain c(NA, NA), which imposes
+    # no constraints on the shared mv domain
+    known <- !map_lgl(domains, anyNA)
     if (is.null(domain)) {
       # union of component domains: a tf_mv lives on a single time axis, but
       # individual components may have been observed only on a subset of it.
-      lows <- map_dbl(domains, 1)
-      highs <- map_dbl(domains, 2)
-      domain <- c(min(lows), max(highs))
+      if (any(known)) {
+        lows <- map_dbl(domains[known], 1)
+        highs <- map_dbl(domains[known], 2)
+        domain <- c(min(lows), max(highs))
+      } else {
+        domain <- c(NA_real_, NA_real_)
+      }
     } else {
       assert_numeric(domain, len = 2, finite = TRUE, sorted = TRUE)
       # supplied domain must contain every component's domain
-      for (cd in domains) {
+      for (cd in domains[known]) {
         if (cd[1] < domain[1] || cd[2] > domain[2]) {
           cli::cli_abort(
             "Component domain {.val {cd}} not contained in supplied {.arg domain} {.val {domain}}."
@@ -53,14 +60,44 @@ new_tf_mv <- function(
       }
     }
     # widen each component's domain to the shared mv domain so all components
-    # agree on the time axis. (`tf_domain<-` warns about changing the domain;
-    # in this context the widening is intended, so we silence it.)
-    components <- map(components, function(comp) {
-      if (!isTRUE(all.equal(tf_domain(comp), domain))) {
-        suppressWarnings(tf_domain(comp) <- domain)
+    # agree on the time axis. For tfd components this is safe (evaluation
+    # outside the observed range yields NA), so we warn once; for tfb
+    # components it is not -- evaluating the basis outside the range it was
+    # fitted on extrapolates, i.e. fabricates values -- so we abort.
+    if (!anyNA(domain)) {
+      widened <- map_lgl(
+        components,
+        \(comp)
+          !anyNA(tf_domain(comp)) &&
+            !isTRUE(all.equal(tf_domain(comp), domain))
+      )
+      if (any(widened & map_lgl(components, is_tfb))) {
+        bad <- names(components)[widened & map_lgl(components, is_tfb)]
+        cli::cli_abort(c(
+          "Cannot widen the domain of {cli::qty(bad)}{.cls tfb} component{?s}
+           {.val {bad}} to the shared domain
+           [{domain[1]}, {domain[2]}] -- basis evaluation outside the fitted
+           range would extrapolate.",
+          i = "Rebase onto the shared domain first, or
+           supply components with identical domains."
+        ))
       }
-      comp
-    })
+      if (any(widened)) {
+        w_names <- names(components)[widened]
+        cli::cli_warn(
+          "Widening domain of {cli::qty(w_names)}component{?s}
+           {.val {w_names}} to the shared domain
+           [{domain[1]}, {domain[2]}]; evaluations outside the observed
+           range will be {.val NA}."
+        )
+      }
+      components <- map(components, function(comp) {
+        if (!isTRUE(all.equal(tf_domain(comp), domain))) {
+          suppressWarnings(tf_domain(comp) <- domain)
+        }
+        comp
+      })
+    }
     curve_names <- map(components, names)
     has_curve_names <- map_lgl(curve_names, Negate(is.null))
     if (any(has_curve_names) && !all(has_curve_names)) {
@@ -101,7 +138,8 @@ new_tf_mv <- function(
       )
     }
   } else {
-    domain <- domain %||% numeric(2)
+    # sentinel domain of empty prototypes, see new_tfd()
+    domain <- domain %||% c(NA_real_, NA_real_)
     subclass <- class %||% "tfd_mv"
     n <- 0L
     curve_names <- NULL

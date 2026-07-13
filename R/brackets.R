@@ -161,7 +161,7 @@ tf_bracket_j <- function(grid, matrix) {
     )
   }
   evals <- tf_evaluate(x, arg = j)
-  if (!interpolate) {
+  if (!interpolate && vec_size(x) > 0) {
     new_j <- map2(j, ensure_list(tf_arg(x)), \(x, y) !(x %in% y))
     if (any(unlist(new_j, use.names = FALSE))) {
       cli::cli_warn(c(
@@ -177,8 +177,9 @@ tf_bracket_j <- function(grid, matrix) {
   }
 
   if (matrix) {
-    ret <- do.call(rbind, evals)
     j <- unlist(j, use.names = FALSE)
+    ret <- do.call(rbind, evals) %||%
+      matrix(numeric(0), nrow = 0, ncol = length(j))
     colnames(ret) <- j
     rownames(ret) <- names(x)
     return(structure(ret, arg = j))
