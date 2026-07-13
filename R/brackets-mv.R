@@ -7,16 +7,13 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   comp_names <- attr(object, "comp_names")
   n <- vec_size(object)
   has_arg <- !missing(arg) && !is.null(arg)
-  # Build the per-curve evaluation grid: caller's `arg` (a numeric vector or
-  # per-curve list) if supplied, otherwise the per-curve union of the
+  # Build the evaluation grid: caller's `arg` (a shared numeric vector or a
+  # per-curve list, both handled by the univariate tf_evaluate and by
+  # assemble_mv_evals) if supplied, otherwise the per-curve union of the
   # components' native grids. Then evaluate each component on that grid so
   # every per-curve data.frame has a single `arg` column with NA-fill where
   # a component has no value at that arg.
-  if (has_arg) {
-    grids <- if (is.list(arg)) arg else rep(list(arg), n)
-  } else {
-    grids <- tf_mv_curve_grids(object)
-  }
+  grids <- if (has_arg) arg else tf_mv_curve_grids(object)
   comp_evals <- map(comps, function(comp) {
     tf_evaluate(comp, arg = grids, ...)
   })
@@ -63,25 +60,19 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   comp_names <- attr(x, "comp_names")
 
   # `interpolate = FALSE` is only meaningful for tfd components; tfb components
-  # are always evaluated from their basis representation. Build a per-component
-  # `interpolate` vector so we honour the user's choice for tfd components in
-  # any (potentially mixed) tf_mv, and emit the "interpolate ignored" inform
-  # at most once even when several components are basis-represented (#252).
-  comp_is_tfb <- map_lgl(comps, is_tfb)
-  if (!interpolate && any(comp_is_tfb)) {
+  # are always evaluated from their basis representation (and the constructor
+  # guarantees all components are the same kind). Emit the "interpolate
+  # ignored" inform only once, not per component (#252).
+  if (!interpolate && length(comps) && is_tfb(comps[[1]])) {
     cli::cli_inform(
       "{.arg interpolate} ignored for data in basis representation."
     )
+    interpolate <- TRUE
   }
-  interpolate_comp <- ifelse(comp_is_tfb, TRUE, interpolate)
 
   # matrix-index i: (function, arg) pairs -> (nrow(i) x d) matrix
   if (!missing(i) && is.matrix(i)) {
-    cols <- map2(
-      comps,
-      interpolate_comp,
-      \(comp, intp) comp[i, interpolate = intp]
-    )
+    cols <- map(comps, \(comp) comp[i, interpolate = interpolate])
     ret <- do.call(cbind, cols)
     colnames(ret) <- comp_names
     return(ret)
@@ -107,10 +98,9 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
         dimnames = list(names(xi), as.character(j), comp_names)
       ))
     }
-    mats <- map2(
+    mats <- map(
       comps_i,
-      interpolate_comp,
-      \(comp, intp) comp[, j, interpolate = intp, matrix = TRUE]
+      \(comp) comp[, j, interpolate = interpolate, matrix = TRUE]
     )
     arr <- array(
       unlist(mats, use.names = FALSE),
@@ -123,10 +113,9 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   if (!length(comps_i) || n_i == 0L) {
     return(setNames(vector("list", n_i), names(xi)))
   }
-  dfs <- map2(
+  dfs <- map(
     comps_i,
-    interpolate_comp,
-    \(comp, intp) comp[, j, interpolate = intp, matrix = FALSE]
+    \(comp) comp[, j, interpolate = interpolate, matrix = FALSE]
   )
   map(seq_len(n_i), function(k) {
     base <- dfs[[1]][[k]]
@@ -184,7 +173,6 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     comp[i] <- v
     comp
   })
-  names(new_comps) <- attr(x, "comp_names")
   new_tf_mv(new_comps, domain = tf_domain(x))
 }
 
@@ -197,7 +185,6 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     names(comp) <- value
     comp
   })
-  names(comps) <- attr(x, "comp_names")
   # Forward the joint MFPC spec, if any: setting curve names is a non-mutating
   # rename and must not silently demote a `tfb_mfpc`. (`vec_c()` runs `names<-`
   # post-restore, which would otherwise strip the spec set by `tf_mv_ptype2`.)

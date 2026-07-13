@@ -40,7 +40,9 @@ tf_bracket_i <- function(x, i, matrix_i = FALSE) {
 # an atomic grid from that path would silently skip the union-collapse here.
 tf_bracket_j <- function(grid, matrix) {
   if (isTRUE(matrix) && is.list(grid)) {
-    sort_unique(grid, simplify = TRUE)
+    # drop duplicated per-curve grids first: for a grid shared by all n curves
+    # this collapses the union to a single sort() instead of sorting n copies
+    sort_unique(vec_unique(grid), simplify = TRUE)
   } else {
     grid
   }

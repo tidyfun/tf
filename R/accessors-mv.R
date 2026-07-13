@@ -54,18 +54,14 @@ tf_components <- function(f) attr(f, "components")
 # leave components with an unusable per-component scoring function.
 map_components <- function(x, .f, ..., .op = "component-wise operation") {
   x <- mfpc_demote_for_op(x, .op)
-  comps <- map(tf_components(x), .f, ...)
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  new_tf_mv(map(tf_components(x), .f, ...))
 }
 
 # like map_components, but .f also receives the component name (for routing
 # per-component arguments via tf_mv_component_arg())
 imap_components <- function(x, .f, ..., .op = "component-wise operation") {
   x <- mfpc_demote_for_op(x, .op)
-  comps <- imap(tf_components(x), .f, ...)
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  new_tf_mv(imap(tf_components(x), .f, ...))
 }
 
 map2_components <- function(x, y, .f, ..., .op = "component-wise operation") {
@@ -73,9 +69,7 @@ map2_components <- function(x, y, .f, ..., .op = "component-wise operation") {
   x_warned <- is_tfb_mfpc(x)
   x <- mfpc_demote_for_op(x, .op)
   y <- mfpc_demote_for_op(y, .op, warn = !x_warned)
-  comps <- map2(tf_components(x), tf_components(y), .f, ...)
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  new_tf_mv(map2(tf_components(x), tf_components(y), .f, ...))
 }
 
 #' @rdname tf_mv_methods
@@ -182,11 +176,10 @@ check_component_index <- function(which, comps, arg = "which") {
 
 #-------------------------------------------------------------------------------
 
-# do all components share (numerically) identical arg grids?
-mv_args_shared <- function(f) {
-  args <- map(tf_components(f), tf_arg)
-  length(args) <= 1L ||
-    all(map_lgl(args[-1], \(a) isTRUE(all.equal(a, args[[1]]))))
+# do all components share (numerically) identical arg grids? `args` can be
+# passed in when the caller has already extracted the per-component grids.
+mv_args_shared <- function(f, args = map(tf_components(f), tf_arg)) {
+  all_equal_to_first(args)
 }
 
 #' @export
@@ -194,7 +187,7 @@ tf_arg.tf_mv <- function(f) {
   comps <- tf_components(f)
   if (!length(comps)) return(numeric(0))
   args <- map(comps, tf_arg)
-  all_agree <- mv_args_shared(f)
+  all_agree <- mv_args_shared(f, args)
   if (any(map_lgl(comps, is_irreg))) {
     # all-irregular + per-curve args shared across components (the typical
     # movement-data case): collapse to a single per-curve list.
@@ -218,17 +211,13 @@ assemble_mv_evals <- function(comp_evals, grids, comp_names, n) {
   shared_grid <- !is.list(grids)
   map(seq_len(n), function(i) {
     g <- if (shared_grid) grids else grids[[i]]
-    df <- data_frame0(arg = if (length(g)) g else numeric(0))
-    if (!d) return(df)
-    for (k in seq_len(d)) {
+    if (!length(g)) g <- numeric(0)
+    cols <- map(seq_len(d), function(k) {
       v <- comp_evals[[k]][[i]]
-      df[[comp_names[k]]] <- if (is.null(v) || length(v) != length(g)) {
-        rep(NA_real_, length(g))
-      } else {
-        v
-      }
-    }
-    df
+      if (is.null(v) || length(v) != length(g)) rep(NA_real_, length(g)) else v
+    })
+    names(cols) <- comp_names
+    do.call(data_frame0, c(list(arg = g), cols))
   })
 }
 
@@ -253,21 +242,20 @@ tf_mv_curve_grids <- function(x) {
   # recompute the grid layout from the components instead of name-sniffing
   # the polymorphic tf_arg() return value (whose per-curve and per-component
   # list shapes are indistinguishable when n == d with colliding names)
-  shared <- mv_args_shared(x)
+  args <- map(comps, tf_arg)
+  shared <- mv_args_shared(x, args)
   if (shared && !is_irreg(comps[[1]])) {
     # one shared numeric grid for all curves and components
-    rep(list(tf_arg(comps[[1]])), n)
+    rep(list(args[[1]]), n)
   } else if (shared) {
     # all irregular with per-curve grids shared across components
-    tf_arg(comps[[1]])
+    args[[1]]
   } else {
     # genuinely different grids per component: per-curve union grids
+    comp_args <- map(args, \(a) if (is.list(a)) a else rep(list(a), n))
     lapply(seq_len(n), function(i) {
       sort(unique(unlist(
-        lapply(comps, function(comp) {
-          comp_arg <- tf_arg(comp)
-          if (is.list(comp_arg)) comp_arg[[i]] else comp_arg
-        }),
+        lapply(comp_args, `[[`, i),
         use.names = FALSE
       )))
     })
@@ -276,18 +264,11 @@ tf_mv_curve_grids <- function(x) {
 
 #' @export
 tf_evaluations.tf_mv <- function(f) {
-  if (!vec_size(f)) return(list())
-  comps <- tf_components(f)
-  comp_names <- attr(f, "comp_names")
-  n <- vec_size(f)
-  # Evaluate every component on each curve's union grid so the per-curve
-  # data.frame has a single shared `arg` column with NA-fill where a component
-  # has no native observation. (For aligned-grid mv this is a no-op.)
-  grids <- tf_mv_curve_grids(f)
-  comp_evals <- map(comps, \(comp) {
-    map(comp[, grids, matrix = FALSE], `[[`, "value")
-  })
-  assemble_mv_evals(comp_evals, grids, comp_names, n)
+  # the no-`arg` branch of tf_evaluate.tf_mv is exactly this contract:
+  # every component evaluated on each curve's union grid, one per-curve
+  # data.frame with a shared `arg` column and NA-fill where a component has
+  # no native observation.
+  tf_evaluate(f)
 }
 
 #' @export
@@ -302,14 +283,14 @@ tf_count.tf_mv <- function(f) {
       dimnames = list(names(f), attr(f, "comp_names"))
     ))
   }
-  if (length(comps) && all(map_lgl(comps, is_tfb))) {
+  if (is_tfb_mv(f)) {
     cli::cli_abort(
       "{.fn tf_count} is not defined for basis-represented ({.cls tfb_mv}) data."
     )
   }
   counts <- map(comps, tf_count)
   mat <- do.call(cbind, counts)
-  if (!is.null(mat)) colnames(mat) <- attr(f, "comp_names")
+  colnames(mat) <- attr(f, "comp_names")
   mat
 }
 
@@ -331,6 +312,5 @@ mv_complete <- function(x, na.rm = FALSE, missing = is.na(x)) {
     suppressWarnings(comp[missing] <- NA)
     comp
   })
-  names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps, domain = tf_domain(x))
 }

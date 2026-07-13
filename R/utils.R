@@ -247,6 +247,12 @@ sort_unique <- function(x, simplify = FALSE) {
   sort(unique(x))
 }
 
+# are all elements of a list (numerically) equal to the first one?
+all_equal_to_first <- function(lst) {
+  length(lst) <= 1L ||
+    all(map_lgl(lst[-1], \(el) isTRUE(all.equal(el, lst[[1]]))))
+}
+
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")
 
 is_monotonic <- function(x) {
