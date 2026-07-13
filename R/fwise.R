@@ -71,42 +71,68 @@ tf_fwise.tf_mv <- function(x, .f, arg = tf_arg(x), ...) {
   setNames(ret, names(x))
 }
 
-# Factory for the function-wise scalar reductions tf_fmax / tf_fmin /
-# tf_fmedian: reduce each function's values with `reduce_op`, unlist the
-# per-function scalars and reattach names. For tf_mv inputs, return an
-# n x d matrix (curves x components) like tf_fmean/tf_fvar/tf_fsd -- naive
-# unlisting would interleave components into a misnamed length-n*d vector.
+# Factory for the default methods of the function-wise scalar reductions
+# tf_fmax / tf_fmin / tf_fmedian: reduce each function's values with
+# `reduce_op`, unlist the per-function scalars and reattach names.
 make_tf_freduce <- function(reduce_op) {
-  freduce <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-    if (is_tf_mv(x)) {
-      return(tf_mv_fsummary_matrix(
-        x,
-        \(comp, arg) freduce(comp, arg = arg, na.rm = na.rm),
-        arg = arg
-      ))
-    }
+  function(x, arg = tf_arg(x), na.rm = FALSE) {
     x |>
       tf_fwise(\(.x) reduce_op(.x$value, na.rm = na.rm), arg = arg) |>
       unlist(use.names = FALSE) |>
       setNames(names(x))
   }
-  freduce
+}
+
+# Factory for the `.tf_mv` methods: return an n x d matrix (curves x
+# components) like tf_fmean/tf_fvar/tf_fsd -- naive unlisting would
+# interleave components into a misnamed length-n*d vector.
+make_tf_freduce_mv <- function(freduce) {
+  function(x, arg = tf_arg(x), na.rm = FALSE) {
+    tf_mv_fsummary_matrix(
+      x,
+      \(comp, arg) freduce(comp, arg = arg, na.rm = na.rm),
+      arg = arg
+    )
+  }
 }
 
 #' @export
 #' @describeIn functionwise maximal value of each function
 #' @inheritParams base::min
-tf_fmax <- make_tf_freduce(max)
+tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) UseMethod("tf_fmax")
+
+#' @export
+tf_fmax.default <- make_tf_freduce(max)
+
+#' @export
+#' @describeIn functionwise component-wise maxima of each vector-valued function
+tf_fmax.tf_mv <- make_tf_freduce_mv(tf_fmax)
 
 #' @export
 #' @describeIn functionwise minimal value of each function
 #' @inheritParams base::min
-tf_fmin <- make_tf_freduce(min)
+tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) UseMethod("tf_fmin")
+
+#' @export
+tf_fmin.default <- make_tf_freduce(min)
+
+#' @export
+#' @describeIn functionwise component-wise minima of each vector-valued function
+tf_fmin.tf_mv <- make_tf_freduce_mv(tf_fmin)
 
 #' @export
 #' @describeIn functionwise median value of each function
 #' @inheritParams base::min
-tf_fmedian <- make_tf_freduce(stats::median)
+tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
+  UseMethod("tf_fmedian")
+}
+
+#' @export
+tf_fmedian.default <- make_tf_freduce(stats::median)
+
+#' @export
+#' @describeIn functionwise component-wise medians of each vector-valued function
+tf_fmedian.tf_mv <- make_tf_freduce_mv(tf_fmedian)
 
 #' @export
 #' @describeIn functionwise range of values of each function
