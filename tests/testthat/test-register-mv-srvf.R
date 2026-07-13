@@ -239,11 +239,21 @@ test_that("shape_rotation_angles handles 2D and 3D correctly (#271)", {
 
   # 3D: rotation by pi/3 about x-axis -- acos((tr(R) - 1) / 2) == pi/3
   phi <- pi / 3
-  R3 <- matrix(c(
-    1, 0, 0,
-    0, cos(phi), sin(phi),
-    0, -sin(phi), cos(phi)
-  ), 3, 3)
+  R3 <- matrix(
+    c(
+      1,
+      0,
+      0,
+      0,
+      cos(phi),
+      sin(phi),
+      0,
+      -sin(phi),
+      cos(phi)
+    ),
+    3,
+    3
+  )
   rot3 <- array(R3, dim = c(3, 3, 1))
   expect_equal(tf:::shape_rotation_angles(rot3), phi)
 })
@@ -257,4 +267,60 @@ test_that("shape_rotation_angles warns and returns NA for d > 3 (#271)", {
     "not implemented for"
   )
   expect_equal(angles, rep(NA_real_, 2))
+})
+
+test_that("tf_register_shape keeps a user-supplied template", {
+  skip_if_not_installed("fdasrvf")
+
+  set.seed(21)
+  f <- make_shape_mv(t = seq(0, 1, length.out = 21))
+  template <- f[2]
+  reg <- tf_register_shape(f, template = template, max_iter = 1)
+  expect_identical(tf_template(reg), template)
+})
+
+test_that("srvf_mv with a single component delegates to univariate srvf", {
+  skip_if_not_installed("fdasrvf")
+
+  set.seed(11)
+  t <- seq(0, 1, length.out = 21)
+  f <- tfd_mv(list(x = tf_rgp(3, arg = t)))
+  warps_mv <- tf_estimate_warps(f, method = "srvf_mv", max_iter = 2)
+  warps_uni <- tf_estimate_warps(
+    tf_component(f, 1),
+    method = "srvf",
+    max_iter = 2
+  )
+  expect_equal(unname(as.matrix(warps_mv)), unname(as.matrix(warps_uni)))
+
+  reg <- tf_register(f, method = "srvf_mv", max_iter = 2)
+  expect_s3_class(reg, "tf_registration")
+  expect_s3_class(tf_aligned(reg), "tfd_mv")
+  # shape options are still rejected for the delegated path
+  expect_error(
+    tf_estimate_warps(f, method = "srvf_mv", rotation = TRUE),
+    "tf_register_shape"
+  )
+  # shape registration of single-component curves is rejected informatively
+  expect_error(tf_register_shape(f, max_iter = 1), "at least two components")
+})
+
+test_that("template-free srvf_mv registration rejects single-curve input", {
+  skip_if_not_installed("fdasrvf")
+
+  set.seed(12)
+  t <- seq(0, 1, length.out = 21)
+  f <- tfd_mv(list(x = tf_rgp(1, arg = t), y = tf_rgp(1, arg = t)))
+  expect_error(
+    tf_register(f, method = "srvf_mv", max_iter = 2),
+    "at least two curves"
+  )
+  expect_error(tf_register_shape(f, max_iter = 2), "at least two curves")
+
+  # a supplied template makes single-curve srvf_mv registration valid
+  set.seed(13)
+  template <- tfd_mv(list(x = tf_rgp(1, arg = t), y = tf_rgp(1, arg = t)))
+  reg <- tf_register(f, method = "srvf_mv", template = template)
+  expect_s3_class(reg, "tf_registration")
+  expect_identical(tf_template(reg), template)
 })

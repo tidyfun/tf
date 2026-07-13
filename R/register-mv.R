@@ -37,12 +37,20 @@ tf_estimate_warps.tf_mv <- function(
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0, finite = TRUE)
   if (method == "srvf_mv") {
-    return(tf_register_srvf_mv(
-      x = x,
-      template = template,
-      max_iter = max_iter,
-      ...
-    ))
+    if (tf_ncomp(x) == 1L) {
+      # single-component tf_mv: multivariate SRVF reduces to univariate
+      # elastic registration, and the fdasrvf multivariate routines cannot
+      # handle d = 1 arrays -- delegate to method = "srvf" on the component.
+      srvf_mv_check_dots(list(...))
+      method <- "srvf"
+    } else {
+      return(tf_register_srvf_mv(
+        x = x,
+        template = template,
+        max_iter = max_iter,
+        ...
+      ))
+    }
   }
   signal <- mv_registration_signal(x, ref_component)
   tmpl <- if (is_tf_mv(template)) {
@@ -98,6 +106,12 @@ srvf_mv_validate_regular <- function(x, arg = "x") {
   if (!length(comps)) {
     cli::cli_abort("{.arg {arg}} must have at least one component.")
   }
+  if (length(comps) == 1L) {
+    cli::cli_abort(c(
+      "{.arg {arg}} must have at least two components for multivariate SRVF registration.",
+      "i" = "For single-component data, use univariate elastic registration: {.code tf_register(tf_component(x, 1), method = \"srvf\")}."
+    ))
+  }
   if (!all(map_lgl(comps, is_reg))) {
     cli::cli_abort(c(
       "{.arg {arg}} must use regular component grids.",
@@ -119,6 +133,20 @@ srvf_mv_validate_regular <- function(x, arg = "x") {
     cli::cli_abort(
       "{.arg {arg}} must not contain missing or non-finite evaluations."
     )
+  }
+  invisible(x)
+}
+
+# Template-free registration aligns curves to (an iterative refinement of)
+# their mean, which is a no-op for a single curve -- and the fdasrvf routines
+# crash on n = 1 input with obscure errors. Reject it up front.
+srvf_mv_require_multiple_curves <- function(x, template) {
+  if (is.null(template) && length(x) < 2L) {
+    cli::cli_abort(c(
+      "{.arg x} must contain at least two curves when {.arg template} is {.code NULL}.",
+      "i" = "Registering a single curve to its own mean is a no-op.",
+      "i" = "Supply a {.arg template} to register a single curve, or more curves."
+    ))
   }
   invisible(x)
 }
@@ -246,6 +274,7 @@ tf_register_srvf_mv <- function(
   srvf_mv_check_dots(dots)
   srvf_mv_validate_regular(x)
   srvf_mv_validate_template(template, x)
+  srvf_mv_require_multiple_curves(x, template)
   assert_count(max_iter, positive = TRUE)
   assert_number(lambda, lower = 0, finite = TRUE)
 
@@ -409,6 +438,7 @@ tf_register_shape <- function(
       cli::cli_abort("{.arg x} and {.arg template} must have the same grid.")
     }
   }
+  srvf_mv_require_multiple_curves(x, template)
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0, finite = TRUE)
   assert_flag(rotation)
@@ -507,7 +537,11 @@ tf_register_shape_srvf_mv <- function(
     }
     new_template <- rowMeans(ret$betan, dims = 2)
     best <- ret
-    best_template <- new_template
+    if (is.null(template)) {
+      # only refine the template when none was supplied: a user-supplied
+      # template must come back unchanged from tf_template().
+      best_template <- new_template
+    }
 
     # a supplied template fixes `iterations` to 1 (see above), so this also
     # covers the "don't refine a user template" case.
@@ -547,12 +581,19 @@ tf_register_shape_srvf_mv <- function(
       curve_names = curve_names
     ),
     warps = warps,
-    template = srvf_mv_array_to_tfd_mv(
-      best_template,
-      arg = arg,
-      comp_names = comp_names,
-      domain = domain
-    ),
+    # a user-supplied template is returned as-is so that tf_template() yields
+    # exactly the supplied object, consistent with tf_register(method =
+    # "srvf_mv", template = ...).
+    template = if (is.null(template)) {
+      srvf_mv_array_to_tfd_mv(
+        best_template,
+        arg = arg,
+        comp_names = comp_names,
+        domain = domain
+      )
+    } else {
+      template
+    },
     rotations = rotations,
     scales = scales
   )

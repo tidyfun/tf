@@ -1476,3 +1476,21 @@ test_that("affine Procrustes loop does not spuriously stop on iteration 1 (#265)
   )
   expect_true(all(diff(objs) <= 1e-8))
 })
+
+test_that("tf_register handles tf_mv inputs with components on different grids", {
+  set.seed(101)
+  f <- tfd_mv(list(
+    x = tf_rgp(4, arg = seq(0, 1, length.out = 51)),
+    y = tf_rgp(4, arg = seq(0, 1, length.out = 41))
+  ))
+  reg <- suppressWarnings(tf_register(f, method = "affine", max_iter = 1))
+  expect_s3_class(reg, "tf_registration")
+  expect_s3_class(tf_aligned(reg), "tfd_mv")
+  inv_warps <- tf_inv_warps(reg)
+  expect_s3_class(inv_warps, "tfd")
+  expect_length(inv_warps, length(f))
+  # inverse warps live on (a subset of) the sorted union of the component grids
+  union_grid <- sort(unique(unlist(tf_arg(f))))
+  expect_true(all(unlist(tf_arg(inv_warps)) %in% union_grid))
+  expect_identical(tf_domain(inv_warps), tf_domain(f))
+})
