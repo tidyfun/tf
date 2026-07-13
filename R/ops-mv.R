@@ -33,40 +33,33 @@ vec_arith.tf_mv.default <- function(op, x, y, ...) {
 #' @export
 #' @method vec_arith.tf_mv tf_mv
 vec_arith.tf_mv.tf_mv <- function(op, x, y, ...) {
-  # if both operands are tfb_mfpc, warn only once for the single user-facing
-  # operation: the warning for `y` is suppressed when `x` already triggered it.
-  x_warns <- is_tfb_mfpc(x)
-  x <- mfpc_demote_for_op(x, op)
-  y <- mfpc_demote_for_op(y, op, warn = !x_warns)
-  map2_components(x, y, \(a, b) vec_arith(op, a, b))
+  # map2_components demotes tfb_mfpc operands, warning only once for the
+  # single user-facing operation when both operands are tfb_mfpc
+  map2_components(x, y, \(a, b) vec_arith(op, a, b), .op = op)
 }
 
 #' @export
 #' @method vec_arith.tf_mv numeric
 vec_arith.tf_mv.numeric <- function(op, x, y, ...) {
-  x <- mfpc_demote_for_op(x, op)
-  map_components(x, \(a) vec_arith(op, a, y))
+  map_components(x, \(a) vec_arith(op, a, y), .op = op)
 }
 
 #' @export
 #' @method vec_arith.numeric tf_mv
 vec_arith.numeric.tf_mv <- function(op, x, y, ...) {
-  y <- mfpc_demote_for_op(y, op)
-  map_components(y, \(b) vec_arith(op, x, b))
+  map_components(y, \(b) vec_arith(op, x, b), .op = op)
 }
 
 #' @export
 #' @method vec_arith.tf_mv MISSING
 vec_arith.tf_mv.MISSING <- function(op, x, y, ...) {
-  x <- mfpc_demote_for_op(x, op)
-  map_components(x, \(a) vec_arith(op, a, MISSING()))
+  map_components(x, \(a) vec_arith(op, a, MISSING()), .op = op)
 }
 
 #' @export
 Math.tf_mv <- function(x, ...) {
   generic <- .Generic
-  x <- mfpc_demote_for_op(x, generic)
-  map_components(x, \(a) do.call(generic, list(a, ...)))
+  map_components(x, \(a) do.call(generic, list(a, ...)), .op = generic)
 }
 
 #' @export
@@ -95,14 +88,16 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
     na.rm = na.rm
   )
   x <- dots[[which(mv_args)[1]]]
-  comps <- imap(tf_components(x), function(comp, nm) {
-    comp_args <- map(dots, function(arg) {
-      if (is_tf_mv(arg)) tf_component(arg, nm) else arg
-    })
-    do.call(generic, c(comp_args, list(na.rm = na.rm)))
-  })
-  names(comps) <- attr(x, "comp_names")
-  new_tf_mv(comps)
+  imap_components(
+    x,
+    function(comp, nm) {
+      comp_args <- map(dots, function(arg) {
+        if (is_tf_mv(arg)) tf_component(arg, nm) else arg
+      })
+      do.call(generic, c(comp_args, list(na.rm = na.rm)))
+    },
+    .op = generic
+  )
 }
 
 #' @export
