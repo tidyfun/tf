@@ -315,11 +315,12 @@ tfd_numeric_op <- function(op, x, y, tf_left) {
   tf_side <- if (tf_left) x else y
   num_side <- if (tf_left) y else x
   ret <- map2(
-    if (tf_left) tf_evaluations(tf_side) else num_side,
-    if (tf_left) num_side else tf_evaluations(tf_side),
-    \(a, b) {
-      if (is.null(a) || is.null(b)) return(NULL)
-      result <- do.call(op, list(a, b))
+    tf_evaluations(tf_side),
+    num_side,
+    \(evals, num) {
+      if (is.null(evals)) return(NULL)
+      operands <- if (tf_left) list(evals, num) else list(num, evals)
+      result <- do.call(op, operands)
       if (allMissing(result)) NULL else result
     }
   )

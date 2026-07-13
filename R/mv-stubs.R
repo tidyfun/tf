@@ -21,14 +21,7 @@ mv_unimplemented <- function(fn, bullets = NULL) {
   cli::cli_abort(bullets, class = "tf_mv_method_unimplemented", call = NULL)
 }
 
-# ---- summarize.R: quantile ---------------------------------------------------
-# (`summary` / `fivenum` now have real joint-depth methods in summarize.R;
-# `median` / `mean` / `sd` / `var` in ops-mv.R; `tf_depth` in depth.R.)
-
-# `quantile.tf_mv` is implemented component-wise in R/depth.R (next to
-# `quantile.tf`).
-
-# ---- depth.R: rank, xtfrm, sort (permanently undefined) ----------------------
+# ---- rank, xtfrm, sort (permanently undefined) -------------------------------
 # (`min`/`max`/`range` are handled by the existing `Summary.tf_mv` group method;
 # `cummax`/`cummin`/`cumprod`/`cumsum` by `Math.tf_mv`. They are not stubbed.)
 #

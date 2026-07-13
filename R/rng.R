@@ -295,6 +295,5 @@ tf_mv_map_same_rng <- function(f, .f) {
     assign(".Random.seed", seed, envir = .GlobalEnv)
     .f(comp)
   })
-  names(comps) <- attr(f, "comp_names")
   new_tf_mv(comps, domain = tf_domain(f))
 }

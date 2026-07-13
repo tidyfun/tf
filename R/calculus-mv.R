@@ -2,7 +2,6 @@
 
 #' @export
 tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
-  cn <- attr(object, "comp_names")
   comps <- tf_components(object)
   # re-express onto a multivariate FPCA basis -> joint re-scoring, not the
   # independent component-wise rebase below.
@@ -25,7 +24,6 @@ tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
       }
     })
   }
-  names(new_comps) <- cn
   new_tf_mv(new_comps)
 }
 
@@ -84,7 +82,6 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
     colnames(mat) <- cn
     return(mat)
   }
-  names(results) <- cn
   new_tf_mv(results)
 }
 

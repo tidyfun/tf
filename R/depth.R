@@ -717,6 +717,5 @@ quantile.tf_mv <- function(
       ...
     ))
   })
-  names(comps) <- attr(x, "comp_names")
   new_tf_mv(comps, domain = tf_domain(x))
 }
