@@ -5,10 +5,7 @@ format.tf_mv <- function(x, ...) {
   comps <- tf_components(x)
   if (!length(comps)) return(character(0))
   per_comp <- map(comps, \(comp) format(comp, ...))
-  n <- vec_size(x)
-  map_chr(seq_len(n), function(i) {
-    paste(map_chr(per_comp, \(p) p[i]), collapse = " | ")
-  })
+  do.call(paste, c(unname(per_comp), list(sep = " | ")))
 }
 
 # one-line description of a single component's representation, mirroring the

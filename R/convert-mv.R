@@ -101,37 +101,36 @@ as.data.frame.tf_mv <- function(
 
   id_factor <- factor(as.character(ids), levels = id_levels)
 
+  # build the pivoted columns in one pass instead of rbind-ing n (or n * d)
+  # per-curve data.frames; the final sort makes the construction order
+  # irrelevant (ties from duplicated `arg` values keep their per-curve
+  # evaluation order under both schemes).
+  nr <- map_int(per_curve, nrow)
+  if (!sum(nr)) {
+    return(if (long) empty_long() else empty_wide())
+  }
+  id_all <- rep(id_factor, nr)
+  arg_all <- unlist(map(per_curve, `[[`, "arg"), use.names = FALSE)
+  comp_col <- function(nm) {
+    unlist(map(per_curve, `[[`, nm), use.names = FALSE)
+  }
+
   if (long) {
-    parts <- map(seq_len(n), function(i) {
-      cdf <- per_curve[[i]]
-      if (!nrow(cdf)) return(empty_long())
-      nr <- nrow(cdf)
-      do.call(
-        rbind,
-        lapply(comp_names, function(nm) {
-          data_frame0(
-            id = rep(id_factor[i], nr),
-            arg = cdf$arg,
-            component = factor(rep(nm, nr), levels = comp_names),
-            value = cdf[[nm]]
-          )
-        })
-      )
-    })
-    out <- do.call(rbind, parts)
-    if (!nrow(out)) return(empty_long())
+    out <- data_frame0(
+      id = rep(id_all, times = length(comp_names)),
+      arg = rep(arg_all, times = length(comp_names)),
+      component = factor(rep(comp_names, each = sum(nr)), levels = comp_names),
+      value = unlist(map(comp_names, comp_col), use.names = FALSE)
+    )
     out <- out[order(out$id, out$arg, out$component), , drop = FALSE]
   } else {
-    parts <- map(seq_len(n), function(i) {
-      cdf <- per_curve[[i]]
-      if (!nrow(cdf)) return(empty_wide())
-      cbind(
-        data_frame0(id = rep(id_factor[i], nrow(cdf))),
-        cdf
+    out <- do.call(
+      data_frame0,
+      c(
+        list(id = id_all, arg = arg_all),
+        map(setNames(comp_names, comp_names), comp_col)
       )
-    })
-    out <- do.call(rbind, parts)
-    if (!nrow(out)) return(empty_wide())
+    )
     out <- out[order(out$id, out$arg), , drop = FALSE]
   }
   rownames(out) <- NULL
