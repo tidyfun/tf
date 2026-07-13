@@ -67,6 +67,14 @@ tf_warp <- function(x, warp, ...) {
   UseMethod("tf_warp")
 }
 
+# Re-evaluate a warped/aligned result on the input's grid, carrying the
+# INPUT's domain so results keep `tf_domain(x)` (#266). Shared by the
+# `keep_new_arg = FALSE` paths of tf_warp.tfd and tf_align.tfd.
+retfd_keep_domain <- function(ret, arg, domain, dots) {
+  dots$domain <- dots$domain %||% domain
+  do.call(tfd, c(list(ret, arg = arg), dots))
+}
+
 #' @rdname tf_warp
 #' @export
 tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
@@ -81,10 +89,7 @@ tf_warp.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
   ret <- tfd(tf_evaluations(x), warp_evals, domain = domain, ...)
 
   if (!keep_new_arg) {
-    # Carry the INPUT's domain so warped results keep `tf_domain(x)` (#266).
-    dots <- list(...)
-    dots$domain <- dots$domain %||% domain
-    ret <- do.call(tfd, c(list(ret, arg = arg), dots))
+    ret <- retfd_keep_domain(ret, arg, domain, list(...))
   }
   ret
 }
@@ -159,15 +164,6 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
       domain = domain,
       evaluator_name = evaluator_name
     )
-
-    if (!keep_new_arg) {
-      # Re-evaluate on regular grid (evaluator returns NA outside valid range).
-      # Carry the INPUT's domain so aligned results keep `tf_domain(x)` (#266).
-      dots <- list(...)
-      dots$domain <- dots$domain %||% domain
-      ret <- do.call(tfd, c(list(ret, arg = arg), dots))
-    }
-    return(ret)
   } else {
     # Original approach for domain-preserving warps
     ret <- unwarp_domain_preserving(
@@ -176,14 +172,12 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
       arg_list = arg_list,
       domain = domain
     )
-    if (!keep_new_arg) {
-      # Carry the INPUT's domain so aligned results keep `tf_domain(x)` (#266).
-      dots <- list(...)
-      dots$domain <- dots$domain %||% domain
-      ret <- do.call(tfd, c(list(ret, arg = arg), dots))
-    }
-    return(ret)
   }
+  if (!keep_new_arg) {
+    # Re-evaluate on the input grid (evaluator returns NA outside valid range)
+    ret <- retfd_keep_domain(ret, arg, domain, list(...))
+  }
+  ret
 }
 #' @rdname tf_align
 #' @export
@@ -833,17 +827,9 @@ tf_register_srvf <- function(x, template, ...) {
     }
     tmpl <- template
   }
-  # fdasrvf returns `gamma` normalized to the observed time grid, so rescale
-  # by `range(arg)` -- NOT `domain`, which may be wider. Pinning endpoints to
-  # arg[1]/arg[k] after a domain-based rescale would yield non-monotone warps
-  # whenever `domain != range(arg)` (#242).
-  lwr <- arg[1]
-  upr <- arg[length(arg)]
-  warp <- lwr + (upr - lwr) * warp
-  # avoid numerical over/underflow issue:
-  warp[, 1] <- arg[1]
-  warp[, length(arg)] <- arg[length(arg)]
-  result <- tfd(warp, arg = arg, domain = domain)
+  # srvf_mv_gamma_to_warps rescales fdasrvf's grid-normalized `gamma` by
+  # `range(arg)` and pins the endpoints (#242); it expects curves in columns.
+  result <- srvf_mv_gamma_to_warps(t(warp), arg, domain)
   attr(result, "template") <- tmpl
   result
 }

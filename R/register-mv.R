@@ -151,12 +151,17 @@ srvf_mv_require_multiple_curves <- function(x, template) {
   invisible(x)
 }
 
-srvf_mv_validate_template <- function(template, x) {
+srvf_mv_validate_template <- function(template, x, scalar_only = FALSE) {
   if (is.null(template)) {
     return(NULL)
   }
   srvf_mv_validate_regular(template, arg = "template")
   check_compatible_mv(x, template)
+  if (scalar_only && length(template) != 1L) {
+    cli::cli_abort(
+      "{.arg template} must be a length-one {.cls tf_mv} object."
+    )
+  }
   if (length(template) != 1L && length(template) != length(x)) {
     cli::cli_abort(
       "{.arg template} must be of length 1 or the same length as {.arg x}."
@@ -423,21 +428,7 @@ tf_register_shape <- function(
     reason = "for multivariate SRVF shape registration"
   )
   srvf_mv_validate_regular(x)
-  if (!is.null(template)) {
-    srvf_mv_validate_regular(template, arg = "template")
-    check_compatible_mv(x, template)
-    if (length(template) != 1L) {
-      cli::cli_abort(
-        "{.arg template} must be a length-one {.cls tf_mv} object."
-      )
-    }
-    if (!all(tf_domain(x) == tf_domain(template))) {
-      cli::cli_abort("{.arg x} and {.arg template} must have the same domain.")
-    }
-    if (!isTRUE(all.equal(tf_arg(x), tf_arg(template)))) {
-      cli::cli_abort("{.arg x} and {.arg template} must have the same grid.")
-    }
-  }
+  srvf_mv_validate_template(template, x, scalar_only = TRUE)
   srvf_mv_require_multiple_curves(x, template)
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0, finite = TRUE)
