@@ -6,6 +6,30 @@ These functions are the extensions that allow `tf` vectors to work with
 ## Usage
 
 ``` r
+# S3 method for class 'tfd_mv.tfd_mv'
+vec_ptype2(x, y, ...)
+
+# S3 method for class 'tfb_mv.tfb_mv'
+vec_ptype2(x, y, ...)
+
+# S3 method for class 'tfd_mv.tfb_mv'
+vec_ptype2(x, y, ...)
+
+# S3 method for class 'tfb_mv.tfd_mv'
+vec_ptype2(x, y, ...)
+
+# S3 method for class 'tfd_mv.tfd_mv'
+vec_cast(x, to, ...)
+
+# S3 method for class 'tfb_mv.tfb_mv'
+vec_cast(x, to, ...)
+
+# S3 method for class 'tfd_mv.tfb_mv'
+vec_cast(x, to, ...)
+
+# S3 method for class 'tfb_mv.tfd_mv'
+vec_cast(x, to, ...)
+
 # S3 method for class 'tfd_reg.tfd_reg'
 vec_cast(x, to, ...)
 
@@ -109,9 +133,9 @@ vec_ptype2(x, y, ...)
 
   Vectors to cast.
 
-- to:
+- y:
 
-  Type to cast to. If `NULL`, `x` will be returned as is.
+  vectors to cast.
 
 - ...:
 
@@ -119,9 +143,9 @@ vec_ptype2(x, y, ...)
   `vec_cast_default()`, and `vec_restore()`, these dots are only for
   future extensions and should be empty.
 
-- y:
+- to:
 
-  vectors to cast.
+  Type to cast to. If `NULL`, `x` will be returned as is.
 
 ## Value
 
@@ -166,7 +190,36 @@ Rules for casting:
 - Only `tfb` with identical bases and domains can be cast into one
   another *losslessly*
 
+- Casts deliberately **keep the source's `arg`-grid**: they *re-express*
+  functions in the target's representation rather than re-evaluate them
+  on the target's grid, so a cast result need not be identical to the
+  target prototype (a deliberate deviation from the strict `vctrs` cast
+  invariant that avoids silently coarsening data during type
+  unification).
+
 ## See also
 
 [`vctrs::vec_cast()`](https://vctrs.r-lib.org/reference/vec_cast.html),
 [`vctrs::vec_ptype2()`](https://vctrs.r-lib.org/reference/vec_ptype2.html)
+
+## Examples
+
+``` r
+set.seed(1)
+x <- tf_rgp(3)
+xi <- tf_sparsify(x)
+# different tf subtypes combine to their common type:
+c(x, xi)
+#> Warning: Combining incompatible <tfd_reg> with <tfd_irreg> by casting to <tfd_irreg>.
+#> irregular tfd[6]: [0,1] -> [-2.191315,1.137399] based on 23 to 51 (mean: 38) evaluations each
+#> interpolation by tf_approx_linear 
+#> 1: (0.00,0.32);(0.02,0.42);(0.04,0.47); ...
+#> 2: (0.00,0.61);(0.02,0.73);(0.04,0.79); ...
+#> 3: (0.00,0.72);(0.02,0.83);(0.04,0.89); ...
+#> 1: (0.02,0.42);(0.12,0.75);(0.14,0.80); ...
+#> 2: (0.02,0.73);(0.10,1.01);(0.14,1.10); ...
+#> 3: (0.02,0.83);(0.04,0.89);(0.08,1.00); ...
+vctrs::vec_ptype_full(vctrs::vec_c(x, xi))
+#> Warning: Combining incompatible <tfd_reg> with <tfd_irreg> by casting to <tfd_irreg>.
+#> [1] "tfd_irreg"
+```

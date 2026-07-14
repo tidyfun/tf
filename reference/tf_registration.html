@@ -9,11 +9,17 @@
 the aligned (registered) curves, estimated inverse warping functions
 \(h_i^{-1}\) (observed \(\to\) aligned time), and the template used.
 Use accessors tf_aligned(), tf_inv_warps(), and tf_template() to extract
-components."><meta property="og:description" content="tf_registration objects store the result of tf_register(), including
+components.
+tf_shape_registration objects, returned by tf_register_shape(), extend
+this structure with shape-space rotations and scale factors. Use
+tf_rotations() and tf_scales() to extract those components."><meta property="og:description" content="tf_registration objects store the result of tf_register(), including
 the aligned (registered) curves, estimated inverse warping functions
 \(h_i^{-1}\) (observed \(\to\) aligned time), and the template used.
 Use accessors tf_aligned(), tf_inv_warps(), and tf_template() to extract
-components."></head><body>
+components.
+tf_shape_registration objects, returned by tf_register_shape(), extend
+this structure with shape-space rotations and scale factors. Use
+tf_rotations() and tf_scales() to extract those components."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -21,7 +27,7 @@ components."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +64,10 @@ components."></head><body>
 the aligned (registered) curves, estimated inverse warping functions
 \(h_i^{-1}\) (observed \(\to\) aligned time), and the template used.
 Use accessors <code>tf_aligned()</code>, <code>tf_inv_warps()</code>, and <code>tf_template()</code> to extract
-components.</p>
+components.
+<code>tf_shape_registration</code> objects, returned by <code><a href="tf_register_shape.html">tf_register_shape()</a></code>, extend
+this structure with shape-space rotations and scale factors. Use
+<code>tf_rotations()</code> and <code>tf_scales()</code> to extract those components.</p>
     </div>
 
     <div class="section level2">
@@ -69,13 +78,26 @@ components.</p>
 <span></span>
 <span><span class="fu">tf_template</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu">tf_rotations</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tf_scales</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S3 method for class 'tf_registration'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf_shape_registration'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'tf_registration'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'summary.tf_registration'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf_shape_registration'</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'summary.tf_shape_registration'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'tf_registration'</span></span>
@@ -85,7 +107,10 @@ components.</p>
 <span><span class="va">x</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'tf_registration'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf_shape_registration'</span></span>
+<span><span class="va">x</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -93,7 +118,7 @@ components.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>a <code>tf_registration</code> object</p></dd>
+<dd><p>a <code>tf_registration</code> or <code>tf_shape_registration</code> object</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -115,7 +140,9 @@ components.</p>
 (inverse warping functions aligning <code>x</code> to the template function), the
 <code>template</code> function, the original data <code>x</code> (if <code>store_x = TRUE</code> was used
 in <code><a href="tf_register.html">tf_register()</a></code>), and the <code>call</code> to <code><a href="tf_register.html">tf_register()</a></code> that created the
-object. Accessors return the respective component.</p>
+object. <code>tf_shape_registration</code> objects additionally contain the forward
+<code>warps</code>, <code>rotations</code>, and <code>scales</code>. Accessors return the respective
+component.</p>
     </div>
     <div class="section level2">
     <h2 id="summary-diagnostics">Summary diagnostics<a class="anchor" aria-label="anchor" href="#summary-diagnostics"></a></h2>
@@ -162,14 +189,21 @@ curves outside the original domain. Domain-preserving methods (<code>srvf</code>
 \(h_i^{-1}(t)\) that map observed time to aligned time (<code>tfd</code> vector).
 Use <code><a href="tf_invert.html">tf_invert()</a></code> on the result to obtain forward warps if needed.</p></li>
 <li><p><code>tf_template(x)</code>: extract the template function (<code>tf</code> vector of length 1).</p></li>
+<li><p><code>tf_rotations(x)</code>: extract the per-curve rotation matrices from a
+<code>tf_shape_registration</code> object.</p></li>
+<li><p><code>tf_scales(x)</code>: extract the per-curve scale factors from a
+<code>tf_shape_registration</code> object. Each factor is relative to the template
+(template SRVF norm divided by the curve's SRVF norm); see
+<code><a href="tf_register_shape.html">tf_register_shape()</a></code>.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other registration functions:
 <code><a href="tf_align.html">tf_align()</a></code>,
 <code><a href="tf_estimate_warps.html">tf_estimate_warps()</a></code>,
-<code><a href="landmarks.html">tf_landmarks_extrema()</a></code>,
+<code><a href="tf_landmarks_extrema.html">tf_landmarks_extrema()</a></code>,
 <code><a href="tf_register.html">tf_register()</a></code>,
+<code><a href="tf_register_shape.html">tf_register_shape()</a></code>,
 <code><a href="tf_warp.html">tf_warp()</a></code></p></div>
     </div>
     <div class="section level2">
@@ -200,7 +234,7 @@ Use <code><a href="tf_invert.html">tf_invert()</a></code> on the result to obtai
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Inverse warp deviations from identity (relative to domain length):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     0%    10%    25%    50%    75%    90%   100% </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.1080 0.1175 0.1318 0.1503 0.1545 0.2170 0.2586 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.1061 0.1157 0.1300 0.1481 0.1524 0.2041 0.2385 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Inverse warp slopes (1 = identity):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   overall range: [1.106, 1.291]</span>
@@ -224,7 +258,7 @@ Use <code><a href="tf_invert.html">tf_invert()</a></code> on the result to obtai
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

@@ -1,6 +1,9 @@
 # Make syntactically valid unique names
 
-See above.
+Coerces `x` to character and returns syntactically valid, unique
+identifiers. Empty strings are replaced with `"NA"` before
+deduplication. If `x` already has no duplicates it is returned
+unchanged.
 
 ## Usage
 
@@ -12,21 +15,26 @@ unique_id(x)
 
 - x:
 
-  any input.
+  any input that can be coerced to character.
 
 ## Value
 
-`x` turned into a list.
+A character vector of unique, syntactically valid names of the same
+length as `x`.
 
 ## See also
 
-Other tidyfun developer tools:
+Other tidyfun utility functions:
 [`ensure_list()`](https://tidyfun.github.io/tf/reference/ensure_list.md),
-[`prep_plotting_arg()`](https://tidyfun.github.io/tf/reference/prep_plotting_arg.md)
+[`in_range()`](https://tidyfun.github.io/tf/reference/in_range.md),
+[`tf_arg()`](https://tidyfun.github.io/tf/reference/tfmethods.md),
+[`tf_zoom()`](https://tidyfun.github.io/tf/reference/tf_zoom.md)
 
 ## Examples
 
 ``` r
-unique_id(c("a", "b", "a"))
-#> [1] "a"   "b"   "a.1"
+unique_id(c("a", "a", "b"))
+#> [1] "a"   "a.1" "b"  
+unique_id(c(1, 1, 2))
+#> [1] "X1"   "X1.1" "X2"  
 ```

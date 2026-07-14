@@ -41,8 +41,8 @@ tf_smooth(
   [`stats::lowess()`](https://rdrr.io/r/stats/lowess.html)),
   `"rollmean"`, `"rollmedian"` (see
   [`zoo::rollmean()`](https://rdrr.io/pkg/zoo/man/rollmean.html)) or
-  `"savgol"` (see
-  [`pracma::savgol()`](https://rdrr.io/pkg/pracma/man/savgol.html)).
+  `"savgol"` (a Savitzky-Golay filter, see
+  [`savgol()`](https://tidyfun.github.io/tf/reference/savgol.md)).
 
 ## Value
 
@@ -75,12 +75,6 @@ library(zoo)
 #> The following objects are masked from ‘package:base’:
 #> 
 #>     as.Date, as.Date.numeric
-library(pracma)
-#> 
-#> Attaching package: ‘pracma’
-#> The following object is masked from ‘package:fdasrvf’:
-#> 
-#>     gradient
 f <- tf_sparsify(tf_jiggle(tf_rgp(4, 201, nugget = 0.05)))
 f_lowess <- tf_smooth(f, "lowess")
 #> Using `f = 0.15` as smoother span for `lowess()`.

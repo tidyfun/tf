@@ -17,7 +17,7 @@ which should be smoothed by using a smaller basis / stronger penalty."></head><b
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,7 +89,8 @@ which should be smoothed by using a smaller basis / stronger penalty.</p>
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>one of <code>"lowess"</code> (see <code><a href="https://rdrr.io/r/stats/lowess.html" class="external-link">stats::lowess()</a></code>), <code>"rollmean"</code>,
-<code>"rollmedian"</code> (see <code><a href="https://rdrr.io/pkg/zoo/man/rollmean.html" class="external-link">zoo::rollmean()</a></code>) or <code>"savgol"</code> (see <code><a href="https://rdrr.io/pkg/pracma/man/savgol.html" class="external-link">pracma::savgol()</a></code>).</p></dd>
+<code>"rollmedian"</code> (see <code><a href="https://rdrr.io/pkg/zoo/man/rollmean.html" class="external-link">zoo::rollmean()</a></code>) or <code>"savgol"</code> (a Savitzky-Golay
+filter, see <code><a href="savgol.html">savgol()</a></code>).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -118,12 +119,6 @@ grid points$&gt;$/10 (i.e., the nearest odd integer to that).</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> The following objects are masked from ‘package:base’:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>     as.Date, as.Date.numeric</span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pracma</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Attaching package: ‘pracma’</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> The following object is masked from ‘package:fdasrvf’:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>     gradient</span>
 <span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_jiggle.html">tf_sparsify</a></span><span class="op">(</span><span class="fu"><a href="tf_jiggle.html">tf_jiggle</a></span><span class="op">(</span><span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">201</span>, nugget <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">f_lowess</span> <span class="op">&lt;-</span> <span class="fu">tf_smooth</span><span class="op">(</span><span class="va">f</span>, <span class="st">"lowess"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `f = 0.15` as smoother span for `lowess()`.</span>
@@ -161,7 +156,7 @@ grid points$&gt;$/10 (i.e., the nearest odd integer to that).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

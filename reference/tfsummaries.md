@@ -33,6 +33,9 @@ var(x, y = NULL, na.rm = FALSE, use)
 
 # S3 method for class 'tf'
 summary(object, ..., depth = "MBD")
+
+# S3 method for class 'tf_mv'
+summary(object, ..., depth = "MBD")
 ```
 
 ## Arguments
@@ -88,7 +91,8 @@ defined by the chosen `depth` (default `"MBD"`, see
 
 Other tidyfun summary functions:
 [`fivenum()`](https://tidyfun.github.io/tf/reference/fivenum.md),
-[`functionwise`](https://tidyfun.github.io/tf/reference/functionwise.md)
+[`functionwise`](https://tidyfun.github.io/tf/reference/functionwise.md),
+[`median.tf_mv()`](https://tidyfun.github.io/tf/reference/median.tf_mv.md)
 
 ## Examples
 

@@ -16,16 +16,34 @@ tf_fwise(x, .f, arg = tf_arg(x), ...)
 
 tf_fmax(x, arg = tf_arg(x), na.rm = FALSE)
 
+# S3 method for class 'tf_mv'
+tf_fmax(x, arg = tf_arg(x), na.rm = FALSE)
+
 tf_fmin(x, arg = tf_arg(x), na.rm = FALSE)
 
+# S3 method for class 'tf_mv'
+tf_fmin(x, arg = tf_arg(x), na.rm = FALSE)
+
+tf_fmedian(x, arg = tf_arg(x), na.rm = FALSE)
+
+# S3 method for class 'tf_mv'
 tf_fmedian(x, arg = tf_arg(x), na.rm = FALSE)
 
 tf_frange(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE)
 
 tf_fmean(x, arg = tf_arg(x))
 
+# S3 method for class 'tf_mv'
+tf_fmean(x, arg = tf_arg(x))
+
 tf_fvar(x, arg = tf_arg(x))
 
+# S3 method for class 'tf_mv'
+tf_fvar(x, arg = tf_arg(x))
+
+tf_fsd(x, arg = tf_arg(x))
+
+# S3 method for class 'tf_mv'
 tf_fsd(x, arg = tf_arg(x))
 
 tf_crosscov(x, y, arg = tf_arg(x))
@@ -85,20 +103,35 @@ summaries.
 
 - `tf_fmax()`: maximal value of each function
 
+- `tf_fmax(tf_mv)`: component-wise maxima of each vector-valued function
+
 - `tf_fmin()`: minimal value of each function
 
+- `tf_fmin(tf_mv)`: component-wise minima of each vector-valued function
+
 - `tf_fmedian()`: median value of each function
+
+- `tf_fmedian(tf_mv)`: component-wise medians of each vector-valued
+  function
 
 - `tf_frange()`: range of values of each function
 
 - `tf_fmean()`: mean of each function: \\\tfrac{1}{\|T\|}\int_T x_i(t)
   dt\\
 
+- `tf_fmean(tf_mv)`: component-wise means of each vector-valued function
+
 - `tf_fvar()`: variance of each function: \\\tfrac{1}{\|T\|}\int_T
   (x_i(t) - \bar x(t))^2 dt\\
 
+- `tf_fvar(tf_mv)`: component-wise variances of each vector-valued
+  function
+
 - `tf_fsd()`: standard deviation of each function:
   \\\sqrt{\tfrac{1}{\|T\|}\int_T (x_i(t) - \bar x(t))^2 dt}\\
+
+- `tf_fsd(tf_mv)`: component-wise standard deviations of each
+  vector-valued function
 
 - `tf_crosscov()`: cross-covariances between two functional vectors:
   \\\tfrac{1}{\|T\|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt\\
@@ -110,6 +143,7 @@ summaries.
 
 Other tidyfun summary functions:
 [`fivenum()`](https://tidyfun.github.io/tf/reference/fivenum.md),
+[`median.tf_mv()`](https://tidyfun.github.io/tf/reference/median.tf_mv.md),
 [`tfsummaries`](https://tidyfun.github.io/tf/reference/tfsummaries.md)
 
 ## Examples
@@ -124,7 +158,7 @@ plot(x_clamp, col = 1:3)
 # standardize each function to have mean / integral 0 and sd 1:
 x_std <- (x - tf_fmean(x)) / tf_fsd(x)
 tf_fvar(x_std) == c(1, 1, 1)
-#> [1]  TRUE FALSE FALSE
+#> [1]  TRUE  TRUE FALSE
 plot(x_std, col = 1:3)
 
 # Custom functions:

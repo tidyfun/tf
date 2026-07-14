@@ -22,12 +22,6 @@ prep_plotting_arg(f, n_grid)
 
 a semi-regular grid rounded down to appropriate resolution.
 
-## See also
-
-Other tidyfun developer tools:
-[`ensure_list()`](https://tidyfun.github.io/tf/reference/ensure_list.md),
-[`unique_id()`](https://tidyfun.github.io/tf/reference/unique_id.md)
-
 ## Examples
 
 ``` r

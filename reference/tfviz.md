@@ -35,12 +35,12 @@ points(
 
 - x:
 
-  an `tf` object.
+  a `tf` object.
 
 - y:
 
-  (optional) numeric vector to be used as `arg` (i.e., for the
-  **x**-axis...!).
+  (optional) numeric vector of evaluation points to use as `arg` for
+  plotting (passed as the function's input grid, not the y-axis values).
 
 - n_grid:
 

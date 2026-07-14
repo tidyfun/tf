@@ -16,22 +16,22 @@ A data frame with 93 rows and 2 variables:
 
 - gender:
 
-  sex of the subject (boy/girl)
+  sex of the subject, a factor with levels `female`/`male`
 
 - height:
 
-  height in centimeters
+  a `tfd` column of height-over-age curves (cm)
 
 ## Details
 
-Data is also include in the
+Data is also included in the
 [fda](https://CRAN.R-project.org/package=fda) package in another format.
 
 ## References
 
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009). *Functional Data
 Analysis with R and MATLAB*, series Use R!, 1 edition. Springer New
-York, New York. ISBN 978-0-387-98184-0,
+York, New York. ISBN 978-0-387-98184-0.
 [doi:10.1007/978-0-387-98185-7](https://doi.org/10.1007/978-0-387-98185-7)
 .
 

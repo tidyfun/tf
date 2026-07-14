@@ -13,19 +13,18 @@ pinch
 
 ## Format
 
-An object of class `tfd_reg` (inherits from `tfd`, `tf`, `vctrs_vctr`,
-`list`) of length 20.
+A `tfd` vector of length 20 containing the pinch-force curves.
 
 ## Details
 
-Data is also include in the
+Data is also included in the
 [fda](https://CRAN.R-project.org/package=fda) package in another format.
 
 ## References
 
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009). *Functional Data
 Analysis with R and MATLAB*, series Use R!, 1 edition. Springer New
-York, New York. ISBN 978-0-387-98184-0,
+York, New York. ISBN 978-0-387-98184-0.
 [doi:10.1007/978-0-387-98185-7](https://doi.org/10.1007/978-0-387-98185-7)
 .
 

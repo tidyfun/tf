@@ -29,8 +29,10 @@ a `logical` vector of the same length as `f`.
 ## See also
 
 Other tidyfun utility functions:
+[`ensure_list()`](https://tidyfun.github.io/tf/reference/ensure_list.md),
 [`tf_arg()`](https://tidyfun.github.io/tf/reference/tfmethods.md),
-[`tf_zoom()`](https://tidyfun.github.io/tf/reference/tf_zoom.md)
+[`tf_zoom()`](https://tidyfun.github.io/tf/reference/tf_zoom.md),
+[`unique_id()`](https://tidyfun.github.io/tf/reference/unique_id.md)
 
 ## Examples
 

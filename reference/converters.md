@@ -68,6 +68,11 @@ column per `arg`.
 **for `as.function.tf`:** an R function with argument `arg` that
 evaluates `x` on `arg` and returns the list of function values
 
+## See also
+
+Other tidyfun converters:
+[`converters-mv`](https://tidyfun.github.io/tf/reference/converters-mv.md)
+
 ## Examples
 
 ``` r

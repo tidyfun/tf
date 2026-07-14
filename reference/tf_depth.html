@@ -15,7 +15,7 @@ central and 0 means most extreme. Available methods:"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,17 @@ central and 0 means most extreme. Available methods:</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'tf'</span></span>
-<span><span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">tf_depth</span><span class="op">(</span><span class="va">x</span>, <span class="va">arg</span>, depth <span class="op">=</span> <span class="st">"MBD"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf_mv'</span></span>
+<span><span class="fu">tf_depth</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  <span class="va">arg</span>,</span>
+<span>  depth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MBD"</span>, <span class="st">"MHI"</span>, <span class="st">"FM"</span>, <span class="st">"FSD"</span>, <span class="st">"RPD"</span><span class="op">)</span>,</span>
+<span>  na.rm <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  weights <span class="op">=</span> <span class="st">"equal"</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -93,6 +103,14 @@ central and 0 means most extreme. Available methods:</p>
 <dd><p>for <code>"RPD"</code>: <code>u</code> (regularization quantile, default 0.01),
 <code>n_projections</code> (M, default 5000), <code>n_projections_beta</code> (L, default
 500).</p></dd>
+
+
+<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
+<dd><p>(<code>tf_mv</code> only) component weighting scheme for the weighted
+componentwise aggregation. Either <code>"equal"</code> (default), <code>"inverse_variance"</code>
+(weights proportional to the inverse of each component's mean pointwise
+variance), or a numeric vector of <code>d</code> strictly positive weights. Weights
+are normalized to sum to 1.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -146,7 +164,7 @@ regularization parameter, default 500).</p></li>
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other tidyfun ordering and ranking functions:
 <code><a href="tf_minmax.html">tf_minmax</a></code>,
-<code><a href="tf_order.html">tf_order</a></code></p></div>
+<code><a href="tf_order.html">tf_order()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -171,7 +189,7 @@ regularization parameter, default 500).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

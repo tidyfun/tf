@@ -19,6 +19,16 @@ tf_depth(
 
 # S3 method for class 'tf'
 tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
+
+# S3 method for class 'tf_mv'
+tf_depth(
+  x,
+  arg,
+  depth = c("MBD", "MHI", "FM", "FSD", "RPD"),
+  na.rm = TRUE,
+  weights = "equal",
+  ...
+)
 ```
 
 ## Arguments
@@ -44,6 +54,14 @@ tf_depth(x, arg, depth = "MBD", na.rm = TRUE, ...)
   for `"RPD"`: `u` (regularization quantile, default 0.01),
   `n_projections` (M, default 5000), `n_projections_beta` (L, default
   500).
+
+- weights:
+
+  (`tf_mv` only) component weighting scheme for the weighted
+  componentwise aggregation. Either `"equal"` (default),
+  `"inverse_variance"` (weights proportional to the inverse of each
+  component's mean pointwise variance), or a numeric vector of `d`
+  strictly positive weights. Weights are normalized to sum to 1.
 
 ## Value
 
@@ -103,7 +121,7 @@ for functional data: Practical issues, computation and applications.”
 
 Other tidyfun ordering and ranking functions:
 [`tf_minmax`](https://tidyfun.github.io/tf/reference/tf_minmax.md),
-[`tf_order`](https://tidyfun.github.io/tf/reference/tf_order.md)
+[`tf_order()`](https://tidyfun.github.io/tf/reference/tf_order.md)
 
 ## Examples
 

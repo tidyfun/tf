@@ -21,7 +21,7 @@ see below.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,6 +114,15 @@ empty vectors for the functions that  never fulfill the <code>cond</code>ition.<
 containing a single entry in <code>f</code> with columns <code>arg</code> and <code>value</code>, so most
 of the usual <code>dplyr</code> tricks are available as well, see examples.<br>
 Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entries in <code>f</code>.</p>
+<p>For vector-valued (<code>tf_mv</code>) input, the <code>data.frame</code> on which <code>cond</code> is
+evaluated has one column per component, named like the components, instead
+of a single <code>value</code> column: conditions are <em>joint</em> conditions across
+components, e.g. <code>tf_where(f, x &gt; 0 &amp; y &lt; 1)</code> or
+<code>tf_where(f, sqrt(x^2 + y^2) &gt; 1)</code> for components <code>"x"</code> and <code>"y"</code>. To apply
+a condition to a single component, extract it first:
+<code>tf_where(f[, component = "x"], value &gt; 0)</code>. All components have to be
+observed on a common grid – use <code><a href="tf_interpolate.html">tf_interpolate()</a></code> to align them first, or
+supply <code>arg</code> explicitly.</p>
     </div>
 
     <div class="section level2">
@@ -243,6 +252,25 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 <span class="r-in"><span><span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">f</span>, <span class="va">value</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     1     2     3     4     5 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> FALSE  TRUE FALSE  TRUE FALSE </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># vector-valued input: conditions refer to components by name</span></span></span>
+<span class="r-in"><span><span class="va">fm</span> <span class="op">&lt;-</span> <span class="fu"><a href="tfd_mv.html">tfd_mv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">11L</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">11L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">tf_where</span><span class="op">(</span><span class="va">fm</span>, <span class="va">x</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">y</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`1`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> numeric(0)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`2`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.0 0.1 0.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`3`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.0 0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span><span class="fu">tf_where</span><span class="op">(</span><span class="va">fm</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span>, <span class="st">"first"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2 3 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0 0 0 </span>
+<span class="r-in"><span><span class="fu">tf_anywhere</span><span class="op">(</span><span class="va">fm</span>, <span class="va">x</span> <span class="op">&gt;</span> <span class="va">y</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1    2    3 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TRUE TRUE TRUE </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -254,7 +282,7 @@ Any <code>cond</code>ition evaluates to <code>NA</code> on <code>NA</code>-entri
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

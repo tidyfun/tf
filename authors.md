@@ -16,28 +16,19 @@
 - **Sebastian Fischer**. Contributor.
   [](https://orcid.org/0000-0002-9609-3197)
 
-- **Trevor Hastie**. Contributor.  
-  softImpute author
-
-- **Rahul Mazumder**. Contributor.  
-  softImpute author
-
-- **Chen Meng**. Contributor.  
-  mogsa author
-
 ## Citation
 
 Source:
 [`DESCRIPTION`](https://github.com/tidyfun/tf/blob/main/DESCRIPTION)
 
 Scheipl F, Goldsmith J, Mücke M (2026). *tf: S3 Classes and Methods for
-Tidy Functional Data*. R package version 0.4.1,
+Tidy Functional Data*. R package version 0.5.0,
 <https://tidyfun.github.io/tf/>.
 
     @Manual{,
       title = {tf: S3 Classes and Methods for Tidy Functional Data},
       author = {Fabian Scheipl and Jeff Goldsmith and Maximilian Mücke},
       year = {2026},
-      note = {R package version 0.4.1},
+      note = {R package version 0.5.0},
       url = {https://tidyfun.github.io/tf/},
     }

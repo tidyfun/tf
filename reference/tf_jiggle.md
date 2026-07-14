@@ -12,7 +12,13 @@ Randomly create some irregular functional data from regular ones.
 ``` r
 tf_jiggle(f, amount = 0.4, ...)
 
-tf_sparsify(f, dropout = 0.5)
+# S3 method for class 'tf_mv'
+tf_jiggle(f, amount = 0.4, same_arg = TRUE, ...)
+
+tf_sparsify(f, dropout = 0.5, ...)
+
+# S3 method for class 'tf_mv'
+tf_sparsify(f, dropout = 0.5, same_arg = TRUE, ...)
 ```
 
 ## Arguments
@@ -31,6 +37,12 @@ tf_sparsify(f, dropout = 0.5)
 - ...:
 
   additional args for the returned `tfd` in `tf_jiggle`.
+
+- same_arg:
+
+  for `tf_mv` objects, should all components receive the same random
+  argument-grid changes? Defaults to `TRUE`; use `FALSE` to jitter or
+  sparsify each component independently.
 
 - dropout:
 

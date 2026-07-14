@@ -46,8 +46,10 @@ into irregular `tfd`-objects if `begin` or `end` are not scalar.
 ## See also
 
 Other tidyfun utility functions:
+[`ensure_list()`](https://tidyfun.github.io/tf/reference/ensure_list.md),
 [`in_range()`](https://tidyfun.github.io/tf/reference/in_range.md),
-[`tf_arg()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
+[`tf_arg()`](https://tidyfun.github.io/tf/reference/tfmethods.md),
+[`unique_id()`](https://tidyfun.github.io/tf/reference/unique_id.md)
 
 ## Examples
 
@@ -55,14 +57,14 @@ Other tidyfun utility functions:
 x <- tf_rgp(10)
 plot(x)
 tf_zoom(x, 0.5, 0.9)
-#> tfd[10]: [0.5,0.9] -> [-2.372634,1.882897] based on 21 evaluations each
+#> tfd[10]: [0.5,0.9] -> [-1.222314,1.699258] based on 21 evaluations each
 #> interpolation by tf_approx_linear 
-#> 1: ▅▅▅▄▄▄▄▄▄▄▅▅▅▅▆▆▆▆▆▇▇
-#> 2: ▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆
-#> 3: ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▅▅▅▅▅▅▅
-#> 4: ▄▅▄▄▅▅▄▅▄▅▅▅▅▅▅▅▅▅▅▆▆
-#> 5: ▄▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▄
-#> 6: ▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▄▄
+#> 1: ▅▅▅▅▅▅▅▅▅▅▅▅▄▅▅▅▅▄▄▄▄
+#> 2: ▄▄▄▅▅▅▅▅▅▅▅▅▅▅▅▄▄▄▃▃▂
+#> 3: ▄▄▄▅▅▅▅▅▆▆▆▆▆▆▆▅▅▅▅▅▅
+#> 4: ▁▁▁▁▁▁▂▂▂▂▃▃▃▃▃▄▄▄▄▄▄
+#> 5: ▄▄▄▄▄▄▃▃▃▃▃▃▃▃▃▂▃▂▂▂▂
+#> 6: ▂▃▃▃▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃▃▃
 #>     [....]   (4 not shown)
 tf_zoom(x, 0.5, 0.9) |> lines(col = "red")
 tf_zoom(x, seq(0, 0.5, length.out = 10), seq(0.5, 1, length.out = 10)) |>

@@ -13,7 +13,7 @@ tf_estimate_warps(
   x,
   ...,
   template = NULL,
-  method = c("srvf", "cc", "affine", "landmark"),
+  method = c("srvf", "srvf_mv", "cc", "affine", "landmark"),
   max_iter = 3L,
   tol = 0.01
 )
@@ -44,6 +44,11 @@ tf_estimate_warps(
     details, see
     [`fdasrvf::time_warping()`](https://rdrr.io/pkg/fdasrvf/man/time_warping.html).
     Default template is the Karcher mean.
+
+  - `"srvf_mv"`: true multivariate SRVF time registration for `tf_mv`
+    objects on a regular shared grid. This method estimates one shared
+    warp from all components jointly and does not rotate or rescale
+    curves.
 
   - `"cc"`: continuous-criterion registration via a tf-native dense-grid
     optimizer with monotone spline warps. Default template is the
@@ -169,7 +174,7 @@ template refinement as the other methods.
 
   **(required)** numeric matrix of landmark positions with one row per
   function and one column per landmark. Use
-  [`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/landmarks.md)
+  [`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/tf_landmarks_extrema.md)
   to find peaks/valleys automatically.
 
 - `template_landmarks`:
@@ -181,8 +186,9 @@ template refinement as the other methods.
 
 Other registration functions:
 [`tf_align()`](https://tidyfun.github.io/tf/reference/tf_align.md),
-[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/landmarks.md),
+[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/tf_landmarks_extrema.md),
 [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md),
+[`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md),
 [`tf_registration`](https://tidyfun.github.io/tf/reference/tf_registration.md),
 [`tf_warp()`](https://tidyfun.github.io/tf/reference/tf_warp.md)
 

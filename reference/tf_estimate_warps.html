@@ -19,7 +19,7 @@ aligns the data, see tf_register()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +64,7 @@ aligns the data, see <code><a href="tf_register.html">tf_register()</a></code>.<
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  template <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srvf"</span>, <span class="st">"cc"</span>, <span class="st">"affine"</span>, <span class="st">"landmark"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"srvf"</span>, <span class="st">"srvf_mv"</span>, <span class="st">"cc"</span>, <span class="st">"affine"</span>, <span class="st">"landmark"</span><span class="op">)</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">3L</span>,</span>
 <span>  tol <span class="op">=</span> <span class="fl">0.01</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -92,6 +92,9 @@ Not used for <code>method = "landmark"</code>.</p></dd>
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>the registration method to use:</p><ul><li><p><code>"srvf"</code>: Square Root Velocity Framework (elastic registration).
 For details, see <code><a href="https://rdrr.io/pkg/fdasrvf/man/time_warping.html" class="external-link">fdasrvf::time_warping()</a></code>. Default template is the Karcher mean.</p></li>
+<li><p><code>"srvf_mv"</code>: true multivariate SRVF time registration for <code>tf_mv</code>
+objects on a regular shared grid. This method estimates one shared warp
+from all components jointly and does not rotate or rescale curves.</p></li>
 <li><p><code>"cc"</code>: continuous-criterion registration via a tf-native dense-grid
 optimizer with monotone spline warps. Default template is the arithmetic
 mean.</p></li>
@@ -199,7 +202,7 @@ Larger bounds allow greater shifts but may result in more <code>NA</code> values
 
 </dl><p><strong>For <code>method = "landmark"</code>:</strong></p><dl><dt><code>landmarks</code></dt>
 <dd><p><strong>(required)</strong> numeric matrix of landmark positions with
-one row per function and one column per landmark. Use <code><a href="landmarks.html">tf_landmarks_extrema()</a></code>
+one row per function and one column per landmark. Use <code><a href="tf_landmarks_extrema.html">tf_landmarks_extrema()</a></code>
 to find peaks/valleys automatically.</p></dd>
 
 <dt><code>template_landmarks</code></dt>
@@ -212,8 +215,9 @@ Default is column-wise mean of <code>landmarks</code>.</p></dd>
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other registration functions:
 <code><a href="tf_align.html">tf_align()</a></code>,
-<code><a href="landmarks.html">tf_landmarks_extrema()</a></code>,
+<code><a href="tf_landmarks_extrema.html">tf_landmarks_extrema()</a></code>,
 <code><a href="tf_register.html">tf_register()</a></code>,
+<code><a href="tf_register_shape.html">tf_register_shape()</a></code>,
 <code><a href="tf_registration.html">tf_registration</a></code>,
 <code><a href="tf_warp.html">tf_warp()</a></code></p></div>
     </div>
@@ -243,7 +247,7 @@ Default is column-wise mean of <code>landmarks</code>.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

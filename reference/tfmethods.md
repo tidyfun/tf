@@ -3,6 +3,11 @@
 A bunch of methods & utilities that do what they say: get or set the
 respective attributes of a `tf`-object.
 
+`is_tf_1d()` distinguishes *univariate* `tf` vectors (length-`n` samples
+of `f: R -> R`) from any `tf` vector. Returns `TRUE` for `tfd` / `tfb`
+and `FALSE` for `tfd_mv` / `tfb_mv`. Useful as a dispatch / guard
+predicate inside helpers that assume scalar per-arg evaluations.
+
 ## Usage
 
 ``` r
@@ -39,6 +44,9 @@ coef(object, ...)
 # S3 method for class 'tf'
 rev(x)
 
+# S3 method for class 'tf_mv'
+rev(x)
+
 # S3 method for class 'tf'
 is.na(x)
 
@@ -46,6 +54,8 @@ is.na(x)
 is.na(x)
 
 is_tf(x)
+
+is_tf_1d(x)
 
 is_tfd(x)
 
@@ -62,6 +72,12 @@ is_tfb(x)
 is_tfb_spline(x)
 
 is_tfb_fpc(x)
+
+is_tf_mv(x)
+
+is_tfd_mv(x)
+
+is_tfb_mv(x)
 ```
 
 ## Arguments
@@ -92,11 +108,11 @@ is_tfb_fpc(x)
 
 - object:
 
-  as usual
+  a `tfb` object.
 
 - ...:
 
-  dots
+  not used.
 
 ## Value
 
@@ -106,8 +122,10 @@ the input object with modified properties.
 ## See also
 
 Other tidyfun utility functions:
+[`ensure_list()`](https://tidyfun.github.io/tf/reference/ensure_list.md),
 [`in_range()`](https://tidyfun.github.io/tf/reference/in_range.md),
-[`tf_zoom()`](https://tidyfun.github.io/tf/reference/tf_zoom.md)
+[`tf_zoom()`](https://tidyfun.github.io/tf/reference/tf_zoom.md),
+[`unique_id()`](https://tidyfun.github.io/tf/reference/unique_id.md)
 
 ## Examples
 
@@ -166,8 +184,8 @@ tf_evaluator(x)
 #>     ret <- do.call(f, dots)
 #>     coredata(ret)[requested]
 #> }
-#> <bytecode: 0x5605e3882868>
-#> <environment: 0x5605e387fb80>
+#> <bytecode: 0x56494f3a00f8>
+#> <environment: 0x56494f38f368>
 tf_evaluate(x, 0.25)
 #> $`1`
 #> [1] 1.630736
@@ -198,8 +216,8 @@ tf_basis(xb)
 #> {
 #>     Predict.matrix(object = spec, data = data_frame0(arg = arg))
 #> }
-#> <bytecode: 0x5605e1d6e7e8>
-#> <environment: 0x5605debf8030>
+#> <bytecode: 0x56494e2403b0>
+#> <environment: 0x5649527cf600>
 tf_basis(xb)(c(0, .1, .2))
 #>        [,1]   [,2]    [,3]   [,4]
 #> [1,] 1.0000 0.0000  0.0000 0.0000

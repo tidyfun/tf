@@ -15,7 +15,7 @@ for (partially missing) data on a common (potentially non-equidistant) grid."></
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,46 +99,47 @@ orthonormal eigen<em>functions</em> \(\phi_j(t)\), not eigen<em>vectors</em>
 given quadrature weights \(\Delta_i\), not
 \(\phi_j'\phi_j = \sum_i \phi_j(t_i)^2 = 1\);<br>
 \(\int_T \phi_j(t) \phi_k(t) dt = 0\) not
-\(\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0\),
-c.f. <code>mogsa::wsvd()</code>.<br>
-For incomplete data, this uses an adaptation of <code>softImpute::softImpute()</code>,
-see references. Note that will not work well for data on a common grid if more
-than a few percent of data points are missing, and it breaks down completely
-for truly irregular data with no/few common timepoints, even if observed very
-densely. For such data, either re-evaluate on a common grid first or use more
-advanced FPCA approaches like <code>refund::fpca_sc()</code>,
+\(\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0\).<br>
+For incomplete data, this uses a soft-impute iterative-SVD scheme
+(see references). Note that this will not work well for data on a common grid
+if more than a few percent of data points are missing, and it breaks down
+completely for truly irregular data with no/few common timepoints, even if
+observed very densely. For such data, either re-evaluate on a common grid
+first or use more advanced FPCA approaches like <code>refund::fpca_sc()</code>,
 see last example for <code><a href="tfb_fpc.html">tfb_fpc()</a></code></p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>code adapted from / inspired by <code>mogsa::wsvd()</code> by Chen Meng
-and <code>softImpute::softImpute()</code> by Trevor Hastie and Rahul Mazumder.<br>
-Meng C (2023).
-<em>mogsa: Multiple omics data integrative clustering and gene set analysis</em>.
-<a href="https://doi.org/10.18129/B9.bioc.mogsa" class="external-link">doi:10.18129/B9.bioc.mogsa</a>
-, <a href="https://bioconductor.org/packages/mogsa" class="external-link">https://bioconductor.org/packages/mogsa</a>.</p>
-<p>Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
+    <p>the soft-impute SVD algorithm for incomplete data is described in
+Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
 “Spectral Regularization Algorithms for Learning Large Incomplete Matrices.”
 <em>The Journal of Machine Learning Research</em>, <b>11</b>, 2287–2322.</p>
-<p>Hastie T, Mazumder R (2021).
-<em>softImpute: Matrix Completion via Iterative Soft-Thresholded SVD</em>.
-<a href="https://doi.org/10.32614/CRAN.package.softImpute" class="external-link">doi:10.32614/CRAN.package.softImpute</a>
-, R package version 1.4-1, <a href="https://CRAN.R-project.org/package=softImpute" class="external-link">https://CRAN.R-project.org/package=softImpute</a>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other tfb-class:
-<code><a href="tfb.html">tfb</a></code>,
+<code><a href="tfb.html">tfb()</a></code>,
 <code><a href="tfb_fpc.html">tfb_fpc()</a></code>,
 <code><a href="tfb_spline.html">tfb_spline()</a></code></p>
 <p>Other tfb_fpc-class:
-<code><a href="tfb_fpc.html">tfb_fpc()</a></code></p></div>
+<code><a href="tfb_fpc.html">tfb_fpc()</a></code>,
+<code><a href="tfb_mfpc.html">tfb_mfpc()</a></code></p></div>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl</p>
+    <p>Fabian Scheipl</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">arg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">41</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span>, length.out <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                 <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span> <span class="op">*</span> <span class="va">arg</span> <span class="op">+</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fpc</span> <span class="op">&lt;-</span> <span class="fu">fpc_wsvd</span><span class="op">(</span><span class="va">data</span>, arg <span class="op">=</span> <span class="va">arg</span>, pve <span class="op">=</span> <span class="fl">0.99</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fpc</span><span class="op">$</span><span class="va">npc</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
@@ -148,7 +149,7 @@ Meng C (2023).
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

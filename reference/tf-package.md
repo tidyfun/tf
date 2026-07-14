@@ -49,6 +49,9 @@ Useful links:
 
 Authors:
 
+- Fabian Scheipl <fabian.scheipl@googlemail.com>
+  ([ORCID](https://orcid.org/0000-0001-8172-3603)) \[copyright holder\]
+
 - Jeff Goldsmith
 
 - Maximilian Mücke ([ORCID](https://orcid.org/0009-0000-9432-9795))
@@ -60,9 +63,3 @@ Other contributors:
 
 - Sebastian Fischer ([ORCID](https://orcid.org/0000-0002-9609-3197))
   \[contributor\]
-
-- Trevor Hastie (softImpute author) \[contributor\]
-
-- Rahul Mazumder (softImpute author) \[contributor\]
-
-- Chen Meng (mogsa author) \[contributor\]

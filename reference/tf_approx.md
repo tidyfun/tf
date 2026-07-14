@@ -89,26 +89,6 @@ Other tidyfun inter/extrapolation functions:
 [`tf_evaluate()`](https://tidyfun.github.io/tf/reference/tf_evaluate.md),
 [`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
 
-Other tidyfun inter/extrapolation functions:
-[`tf_evaluate()`](https://tidyfun.github.io/tf/reference/tf_evaluate.md),
-[`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
-
-Other tidyfun inter/extrapolation functions:
-[`tf_evaluate()`](https://tidyfun.github.io/tf/reference/tf_evaluate.md),
-[`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
-
-Other tidyfun inter/extrapolation functions:
-[`tf_evaluate()`](https://tidyfun.github.io/tf/reference/tf_evaluate.md),
-[`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
-
-Other tidyfun inter/extrapolation functions:
-[`tf_evaluate()`](https://tidyfun.github.io/tf/reference/tf_evaluate.md),
-[`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
-
-Other tidyfun inter/extrapolation functions:
-[`tf_evaluate()`](https://tidyfun.github.io/tf/reference/tf_evaluate.md),
-[`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
-
 ## Examples
 
 ``` r

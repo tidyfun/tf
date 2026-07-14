@@ -73,6 +73,21 @@ For `definite = TRUE`, the definite integrals of the functions in `f`.
 For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 anti-derivatives
 
+## Details
+
+When `f` is irregular **and** `lower` / `upper` are not supplied
+explicitly, they default to each curve's own observed arg range (i.e.,
+the range of its
+[`tf_arg()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
+values) rather than the (shared) domain endpoints; for regular `tfd` the
+defaults remain the domain endpoints. Without this per-curve default,
+curves that do not span the full domain would silently NA-poison the
+trapezoidal sum, because the default linear evaluator does not
+extrapolate. Pass explicit `lower` / `upper` to integrate over a fixed
+sub-interval, or switch to an extrapolating evaluator (e.g.
+[`tf_approx_fill_extend()`](https://tidyfun.github.io/tf/reference/tf_approx.md))
+to integrate over the full domain.
+
 ## See also
 
 Other tidyfun calculus functions:

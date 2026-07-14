@@ -32,12 +32,64 @@ Defining and converting functional data objects
 
   Change (basis) representation of a `tf`-object
 
+## Vector-valued functional data (f: R -\> R^d)
+
+Multivariate-output curves, e.g. movement trajectories (see issues
+
+- [`tfd_mv()`](https://tidyfun.github.io/tf/reference/tfd_mv.md)
+  [`as.tfd_mv()`](https://tidyfun.github.io/tf/reference/tfd_mv.md) :
+
+  Constructors for vector-valued functional data (`f: R -> R^d`)
+
+- [`tfb_mv()`](https://tidyfun.github.io/tf/reference/tfb_mv.md)
+  [`as.tfb_mv()`](https://tidyfun.github.io/tf/reference/tfb_mv.md) :
+
+  Vector-valued functional data in basis representation (`f: R -> R^d`)
+
+- [`tfb_mfpc()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md)
+  [`is_tfb_mfpc()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md)
+  [`tf_mfpc_scores()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md)
+  [`tf_mfpc_efunctions()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md)
+  :
+
+  Multivariate functional principal component analysis (`f: R -> R^d`)
+
+- [`tf_ncomp()`](https://tidyfun.github.io/tf/reference/tf_mv_methods.md)
+  [`tf_components()`](https://tidyfun.github.io/tf/reference/tf_mv_methods.md)
+  [`tf_component()`](https://tidyfun.github.io/tf/reference/tf_mv_methods.md)
+  [`` `tf_component<-`() ``](https://tidyfun.github.io/tf/reference/tf_mv_methods.md)
+  : Accessors and methods for vector-valued functional data
+
+- [`tf_norm()`](https://tidyfun.github.io/tf/reference/tf_geom.md)
+  [`tf_speed()`](https://tidyfun.github.io/tf/reference/tf_geom.md)
+  [`tf_inner()`](https://tidyfun.github.io/tf/reference/tf_geom.md)
+  [`tf_distance()`](https://tidyfun.github.io/tf/reference/tf_geom.md)
+  [`tf_tangent()`](https://tidyfun.github.io/tf/reference/tf_geom.md)
+  [`tf_reparam_arclength()`](https://tidyfun.github.io/tf/reference/tf_geom.md)
+  : Pointwise norm and inner product for functional data
+
+- [`tf_arclength()`](https://tidyfun.github.io/tf/reference/tf_arclength.md)
+  : Arc length of vector-valued functional data
+
+- [`plot(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/plot.tf_mv.md)
+  [`lines(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/plot.tf_mv.md)
+  [`points(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/plot.tf_mv.md)
+  : Plot vector-valued functional data
+
+- [`as.matrix(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/converters-mv.md)
+  [`as.data.frame(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/converters-mv.md)
+  :
+
+  Coerce a `tf_mv` to a matrix or data.frame
+
 ## Evaluating, indexing & re-arranging
 
 Accessing, appending, evaluating, splitting & combining functional data
 objects
 
-- [`` `[`( ``*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tfbrackets.md)
+- [`` `[`( ``*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/tfbrackets.md)
+  [`` `[<-`( ``*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/tfbrackets.md)
+  [`` `[`( ``*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tfbrackets.md)
   [`` `[<-`( ``*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tfbrackets.md)
   :
 
@@ -97,9 +149,13 @@ Functionality for computing with and comparing functional data
   [`sd()`](https://tidyfun.github.io/tf/reference/tfsummaries.md)
   [`var()`](https://tidyfun.github.io/tf/reference/tfsummaries.md)
   [`summary(`*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tfsummaries.md)
+  [`summary(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/tfsummaries.md)
   :
 
   Functions that summarize `tf` objects across argument values
+
+- [`median(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/median.tf_mv.md)
+  : Joint depth-median for vector-valued functional data
 
 - [`tf_fwise()`](https://tidyfun.github.io/tf/reference/functionwise.md)
   [`tf_fmax()`](https://tidyfun.github.io/tf/reference/functionwise.md)
@@ -121,7 +177,7 @@ Functionality for computing with and comparing functional data
 - [`rank()`](https://tidyfun.github.io/tf/reference/tf_order.md)
   [`xtfrm(`*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tf_order.md)
   [`sort(`*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tf_order.md)
-  :
+  [`tf_order()`](https://tidyfun.github.io/tf/reference/tf_order.md) :
 
   Rank, order and sort `tf` vectors
 
@@ -157,27 +213,33 @@ Functions for registering, and warping functional data
 
   Register / align a `tf` vector against a template function
 
+- [`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md)
+  : Register vector-valued curves in elastic shape space
+
 - [`tf_estimate_warps()`](https://tidyfun.github.io/tf/reference/tf_estimate_warps.md)
   : Estimate warping functions for registration
 
 - [`tf_aligned()`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`tf_inv_warps()`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`tf_template()`](https://tidyfun.github.io/tf/reference/tf_registration.md)
+  [`tf_rotations()`](https://tidyfun.github.io/tf/reference/tf_registration.md)
+  [`tf_scales()`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`print(`*`<tf_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
+  [`print(`*`<tf_shape_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`summary(`*`<tf_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`print(`*`<summary.tf_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
+  [`summary(`*`<tf_shape_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
+  [`print(`*`<summary.tf_shape_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`plot(`*`<tf_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`` `[`( ``*`<tf_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   [`length(`*`<tf_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
+  [`` `[`( ``*`<tf_shape_registration>`*`)`](https://tidyfun.github.io/tf/reference/tf_registration.md)
   : Registration Result Object
 
 - [`tf_align()`](https://tidyfun.github.io/tf/reference/tf_align.md) :
   Apply warping functions to align functional data
 
-- [`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/landmarks.md)
-  [`detect_landmarks()`](https://tidyfun.github.io/tf/reference/landmarks.md)
-  [`cluster_landmarks()`](https://tidyfun.github.io/tf/reference/landmarks.md)
-  [`build_landmark_matrix()`](https://tidyfun.github.io/tf/reference/landmarks.md)
+- [`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/tf_landmarks_extrema.md)
   : Find Extrema Locations in Functional Data
 
 - [`tf_warp()`](https://tidyfun.github.io/tf/reference/tf_warp.md) :
@@ -234,9 +296,11 @@ Utility functions
   [`` `tf_arg<-`() ``](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`coef(`*`<tfb>`*`)`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`rev(`*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tfmethods.md)
+  [`rev(`*`<tf_mv>`*`)`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is.na(`*`<tf>`*`)`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is.na(`*`<tfd_irreg>`*`)`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is_tf()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
+  [`is_tf_1d()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is_tfd()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is_reg()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is_tfd_reg()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
@@ -245,7 +309,9 @@ Utility functions
   [`is_tfb()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is_tfb_spline()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
   [`is_tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
-  :
+  [`is_tf_mv()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
+  [`is_tfd_mv()`](https://tidyfun.github.io/tf/reference/tfmethods.md)
+  [`is_tfb_mv()`](https://tidyfun.github.io/tf/reference/tfmethods.md) :
 
   Utility functions for `tf`-objects
 
@@ -271,12 +337,20 @@ Tooling functions
   Find out if values are inside given bounds
 
 - [`ensure_list()`](https://tidyfun.github.io/tf/reference/ensure_list.md)
-  : Turns any object into a list
+  : Wrap a non-list object in a list
 
 - [`unique_id()`](https://tidyfun.github.io/tf/reference/unique_id.md) :
   Make syntactically valid unique names
 
-- [`vec_cast(`*`<tfd_reg.tfd_reg>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+- [`vec_ptype2(`*`<tfd_mv.tfd_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_ptype2(`*`<tfb_mv.tfb_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_ptype2(`*`<tfd_mv.tfb_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_ptype2(`*`<tfb_mv.tfd_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_cast(`*`<tfd_mv.tfd_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_cast(`*`<tfb_mv.tfb_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_cast(`*`<tfd_mv.tfb_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_cast(`*`<tfb_mv.tfd_mv>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
+  [`vec_cast(`*`<tfd_reg.tfd_reg>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
   [`vec_cast(`*`<tfd_reg.tfd_irreg>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
   [`vec_cast(`*`<tfd_reg.tfb_spline>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)
   [`vec_cast(`*`<tfd_reg.tfb_fpc>`*`)`](https://tidyfun.github.io/tf/reference/vctrs.md)

@@ -5,7 +5,11 @@
 including the aligned (registered) curves, estimated inverse warping
 functions \\h_i^{-1}\\ (observed \\\to\\ aligned time), and the template
 used. Use accessors `tf_aligned()`, `tf_inv_warps()`, and
-`tf_template()` to extract components.
+`tf_template()` to extract components. `tf_shape_registration` objects,
+returned by
+[`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md),
+extend this structure with shape-space rotations and scale factors. Use
+`tf_rotations()` and `tf_scales()` to extract those components.
 
 ## Usage
 
@@ -16,13 +20,26 @@ tf_inv_warps(x)
 
 tf_template(x)
 
+tf_rotations(x)
+
+tf_scales(x)
+
 # S3 method for class 'tf_registration'
+print(x, ...)
+
+# S3 method for class 'tf_shape_registration'
 print(x, ...)
 
 # S3 method for class 'tf_registration'
 summary(object, ...)
 
 # S3 method for class 'summary.tf_registration'
+print(x, ...)
+
+# S3 method for class 'tf_shape_registration'
+summary(object, ...)
+
+# S3 method for class 'summary.tf_shape_registration'
 print(x, ...)
 
 # S3 method for class 'tf_registration'
@@ -33,13 +50,16 @@ x[i]
 
 # S3 method for class 'tf_registration'
 length(x)
+
+# S3 method for class 'tf_shape_registration'
+x[i]
 ```
 
 ## Arguments
 
 - x:
 
-  a `tf_registration` object
+  a `tf_registration` or `tf_shape_registration` object
 
 - ...:
 
@@ -63,7 +83,9 @@ in
 [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md)),
 and the `call` to
 [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md)
-that created the object. Accessors return the respective component.
+that created the object. `tf_shape_registration` objects additionally
+contain the forward `warps`, `rotations`, and `scales`. Accessors return
+the respective component.
 
 ## Summary diagnostics
 
@@ -118,13 +140,22 @@ methods (`srvf`, `cc`, `landmark`) always have zero domain loss.
 - `tf_template(x)`: extract the template function (`tf` vector of length
   1).
 
+- `tf_rotations(x)`: extract the per-curve rotation matrices from a
+  `tf_shape_registration` object.
+
+- `tf_scales(x)`: extract the per-curve scale factors from a
+  `tf_shape_registration` object. Each factor is relative to the
+  template (template SRVF norm divided by the curve's SRVF norm); see
+  [`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md).
+
 ## See also
 
 Other registration functions:
 [`tf_align()`](https://tidyfun.github.io/tf/reference/tf_align.md),
 [`tf_estimate_warps()`](https://tidyfun.github.io/tf/reference/tf_estimate_warps.md),
-[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/landmarks.md),
+[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/tf_landmarks_extrema.md),
 [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md),
+[`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md),
 [`tf_warp()`](https://tidyfun.github.io/tf/reference/tf_warp.md)
 
 ## Author
@@ -155,7 +186,7 @@ summary(reg)
 #> 
 #> Inverse warp deviations from identity (relative to domain length):
 #>     0%    10%    25%    50%    75%    90%   100% 
-#> 0.1080 0.1175 0.1318 0.1503 0.1545 0.2170 0.2586 
+#> 0.1061 0.1157 0.1300 0.1481 0.1524 0.2041 0.2385 
 #> 
 #> Inverse warp slopes (1 = identity):
 #>   overall range: [1.106, 1.291]

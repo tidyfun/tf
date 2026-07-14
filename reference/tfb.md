@@ -65,11 +65,6 @@ Other tfb-class:
 [`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md),
 [`tfb_spline()`](https://tidyfun.github.io/tf/reference/tfb_spline.md)
 
-Other tfb-class:
-[`fpc_wsvd()`](https://tidyfun.github.io/tf/reference/fpc_wsvd.md),
-[`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md),
-[`tfb_spline()`](https://tidyfun.github.io/tf/reference/tfb_spline.md)
-
 ## Examples
 
 ``` r

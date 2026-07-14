@@ -2,7 +2,8 @@
 
 The **`tf`** package provides necessary infrastructure for
 [**`tidyfun`**](https://tidyfun.github.io/tidyfun/) with minimal
-dependencies – specifically: no `tidyverse`-dependencies.
+dependencies – `vctrs`/`rlang`/`cli`/`purrr` from the r-lib/tidyverse
+ecosystem, otherwise just `mgcv`, `zoo`, and `checkmate`.
 
 The goal of **`tidyfun`**, in turn, is to provide accessible and
 well-documented software that **makes functional data analysis in `R`
@@ -92,6 +93,39 @@ differentiated, etc.
 [See
 here](https://tidyfun.github.io/tidyfun/articles/x01_tf_Vectors.html)
 for more information on the operations defined for `tf` vectors.
+
+#### Vector-valued (multivariate) functional data
+
+`tf` also provides
+[`tfd_mv()`](https://tidyfun.github.io/tf/reference/tfd_mv.md) and
+[`tfb_mv()`](https://tidyfun.github.io/tf/reference/tfb_mv.md) for
+vector-valued functional data – i.e., functions whose codomain is `R^d`,
+sharing a single domain across components. These behave like the
+univariate `tf` classes (subsetting, arithmetic, plotting), with
+component-wise accessors and the geometry verbs
+[`tf_norm()`](https://tidyfun.github.io/tf/reference/tf_geom.md),
+[`tf_inner()`](https://tidyfun.github.io/tf/reference/tf_geom.md),
+[`tf_tangent()`](https://tidyfun.github.io/tf/reference/tf_geom.md),
+[`tf_arclength()`](https://tidyfun.github.io/tf/reference/tf_arclength.md):
+
+``` r
+
+fm <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+plot(fm, type = "facet")
+```
+
+Multivariate FPCA is available via
+[`tfb_mfpc()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md) (Happ
+& Greven, 2018), and
+[`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md)
+supports joint multivariate alignment (`method = "srvf_mv"`) as well as
+elastic shape registration
+([`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md)).
+Note that
+[`is_tf()`](https://tidyfun.github.io/tf/reference/tfmethods.md) is
+`TRUE` for `tf_mv` as well; use the new
+[`is_tf_1d()`](https://tidyfun.github.io/tf/reference/tfmethods.md) to
+test specifically for univariate `tf`.
 
 #### Methods for converting existing data to `tf` and back
 

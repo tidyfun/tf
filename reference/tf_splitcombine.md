@@ -105,7 +105,7 @@ tf_split(x, splits = c(20, 80), include = "right")
   x <- tf_rgp(5)
   tfs <- tf_split(x, splits = c(.2, .6))
   x2 <- tf_combine(tfs[[1]], tfs[[2]], tfs[[3]])
-#> ! removing 10 duplicated points from input data.
+#> Warning: removing 10 duplicated points from input data.
   # tf_combine(tfs[[1]], tfs[[2]], tfs[[3]], strict = TRUE) # errors out - duplicate values!
   all.equal(x, x2)
 #> [1] TRUE
@@ -119,17 +119,17 @@ tf_split(x, splits = c(20, 80), include = "right")
 #> Percentage of input data variability preserved in basis representation
 #> (per functional observation, approximate):
 #> Min. 1st Qu.  Median Mean 3rd Qu.  Max.
-#> 98.60 99.80 99.90 99.66 100.00 100.00
+#> 87.00 98.40 99.80 96.96 99.80 99.80
   tf_combine(tfs[[1]], tfs2_sparse, tfs3_spline)
-#> ! removing 2 duplicated points from input data.
-#> irregular tfd[5]: [0,1] -> [-2.270273,3.269579] based on 39 to 45 (mean: 42) evaluations each
+#> Warning: removing 2 duplicated points from input data.
+#> irregular tfd[5]: [0,1] -> [-1.870097,0.8602952] based on 39 to 44 (mean: 42) evaluations each
 #> interpolation by tf_approx_linear 
-#> 1: (0.00, -2.0);(0.02, -2.1);(0.04, -2.0); ...
-#> 2: (0.00, -1.5);(0.02, -1.5);(0.04, -1.4); ...
-#> 3: (0.00,-0.77);(0.02,-0.78);(0.04,-0.75); ...
-#> 4: (0.00, 0.60);(0.02, 0.73);(0.04, 0.91); ...
-#> 5: (0.00,-0.16);(0.02,-0.20);(0.04,-0.20); ...
-  # combine(.., strict = F) can be used to coalesce different measurements
+#> 1: (0.00,-0.94);(0.02,-0.83);(0.04,-0.73); ...
+#> 2: (0.00,-1.10);(0.02,-1.00);(0.04,-0.89); ...
+#> 3: (0.00, -1.8);(0.02, -1.8);(0.04, -1.7); ...
+#> 4: (0.00,-0.89);(0.02,-0.90);(0.04,-0.84); ...
+#> 5: (0.00, 0.75);(0.02, 0.66);(0.04, 0.59); ...
+  # combine(.., strict = FALSE) can be used to coalesce different measurements
   # of the same process over different grids:
   x1 <- tfd(x, arg = tf_arg(x)[seq(1, 51, by = 2)])
   x2 <- tfd(x, arg = tf_arg(x)[seq(2, 50, by = 2)])

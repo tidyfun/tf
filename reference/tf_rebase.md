@@ -61,9 +61,9 @@ are themselves generics for methods `tf_rebase.tfd.tfd`,
 x <- tf_rgp(3)
 xb <- tfb(x, k = 8, penalized = FALSE, verbose = FALSE)
 tf_rebase(tf_rgp(3), xb)
-#> tfb[3]: [0,1] -> [-1.307387,1.384965] in basis representation:
+#> tfb[3]: [0,1] -> [-2.021717,1.734419] in basis representation:
 #>  using  s(arg, bs = "cr", k = 8, sp = NA)  
-#> 1: ▆▆▆▆▆▆▆▆▅▅▄▄▃▂▂▁▁▁▁▁▂▃▄▄▅▆
-#> 2: ▂▃▄▆▆▇█████▇▆▆▅▃▂▁▁▁▁▁▁▂▂▃
-#> 3: ▆▆▆▇▇▇▇▇▇▇▆▅▄▄▃▂▂▂▂▂▂▃▃▄▄▅
+#> 1: ▄▄▅▅▅▆▆▆▇▇▇▆▆▆▆▅▅▅▄▄▃▃▃▂▂▂
+#> 2: ▂▂▂▂▂▂▃▃▃▃▃▃▂▂▂▁▁▁▁▁▁▁▁▂▃▄
+#> 3: █████▇▇▆▅▄▃▃▃▃▃▄▅▆▇▇██████
 ```

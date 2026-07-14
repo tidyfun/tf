@@ -47,8 +47,9 @@ the aligned `tf` vector (registered functions)
 
 Other registration functions:
 [`tf_estimate_warps()`](https://tidyfun.github.io/tf/reference/tf_estimate_warps.md),
-[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/landmarks.md),
+[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/tf_landmarks_extrema.md),
 [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md),
+[`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md),
 [`tf_registration`](https://tidyfun.github.io/tf/reference/tf_registration.md),
 [`tf_warp()`](https://tidyfun.github.io/tf/reference/tf_warp.md)
 

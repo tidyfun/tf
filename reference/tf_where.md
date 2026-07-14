@@ -69,6 +69,17 @@ Entries in `f` that do not fulfill `cond` anywhere yield `numeric(0)`.
 examples.  
 Any `cond`ition evaluates to `NA` on `NA`-entries in `f`.
 
+For vector-valued (`tf_mv`) input, the `data.frame` on which `cond` is
+evaluated has one column per component, named like the components,
+instead of a single `value` column: conditions are *joint* conditions
+across components, e.g. `tf_where(f, x > 0 & y < 1)` or
+`tf_where(f, sqrt(x^2 + y^2) > 1)` for components `"x"` and `"y"`. To
+apply a condition to a single component, extract it first:
+`tf_where(f[, component = "x"], value > 0)`. All components have to be
+observed on a common grid – use
+[`tf_interpolate()`](https://tidyfun.github.io/tf/reference/tf_interpolate.md)
+to align them first, or supply `arg` explicitly.
+
 ## Examples
 
 ``` r
@@ -197,4 +208,23 @@ tf_where(f, arg > 0.5 & value > 0)
 tf_anywhere(f, value > 1)
 #>     1     2     3     4     5 
 #> FALSE  TRUE FALSE  TRUE FALSE 
+
+# vector-valued input: conditions refer to components by name
+fm <- tfd_mv(list(x = tf_rgp(3, 11L), y = tf_rgp(3, 11L)))
+tf_where(fm, x > 0 & y < 0)
+#> $`1`
+#> numeric(0)
+#> 
+#> $`2`
+#> [1] 0.0 0.1 0.9
+#> 
+#> $`3`
+#> [1] 0.0 0.1
+#> 
+tf_where(fm, sqrt(x^2 + y^2) > 1, "first")
+#> 1 2 3 
+#> 0 0 0 
+tf_anywhere(fm, x > y)
+#>    1    2    3 
+#> TRUE TRUE TRUE 
 ```

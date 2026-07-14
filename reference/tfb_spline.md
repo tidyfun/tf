@@ -266,7 +266,7 @@ for spline basis options.
 
 Other tfb-class:
 [`fpc_wsvd()`](https://tidyfun.github.io/tf/reference/fpc_wsvd.md),
-[`tfb`](https://tidyfun.github.io/tf/reference/tfb.md),
+[`tfb()`](https://tidyfun.github.io/tf/reference/tfb.md),
 [`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md)
 
 ## Examples

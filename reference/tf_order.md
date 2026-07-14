@@ -40,6 +40,17 @@ xtfrm(x)
 
 # S3 method for class 'tf'
 sort(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...)
+
+tf_order(f, ...)
+
+# Default S3 method
+tf_order(f, ...)
+
+# S3 method for class 'tf'
+tf_order(f, depth = "MHI", ...)
+
+# S3 method for class 'tf_mv'
+tf_order(f, by = "norm", ...)
 ```
 
 ## Arguments
@@ -76,10 +87,19 @@ sort(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...)
 
   logical. Should the sort be decreasing?
 
+- f:
+
+  a `tf` or `tf_mv` vector (for `tf_order`).
+
+- by:
+
+  (`tf_mv` only) the scalar reduction to order by: `"norm"` (the
+  default, uses `tf_norm(f)`) or the name of a component.
+
 ## Value
 
 `rank`: a numeric vector of ranks.  
-`order`: an integer vector of indices.  
+`tf_order`: an integer vector of indices.  
 `sort.tf`: a sorted `tf` vector.  
 `xtfrm.tf`: a numeric vector of depth values.
 
@@ -91,8 +111,12 @@ function. For centrality-based depths (`"MBD"`, `"FM"`, `"FSD"`,
 `"RPD"`), the most extreme function gets rank 1 and the most central
 gets the highest rank.
 
-`order` returns the permutation which rearranges `x` into ascending
-order according to depth.
+`tf_order` returns the permutation which rearranges `x` into ascending
+order according to depth. For vector-valued (`tf_mv`) data there is no
+canonical total order on \\R^d\\: `tf_order.tf_mv()` requires an
+explicit scalar reduction via `by` (either `"norm"` for `tf_norm(f)`, or
+a component name), and then applies the univariate depth order to that
+reduction.
 
 `sort.tf` returns the sorted `tf` vector.
 
@@ -116,18 +140,23 @@ Other tidyfun ordering and ranking functions:
 ``` r
 x <- tf_rgp(5) + 1:5
 rank(x)
-#> [1] 2 1 3 4 5
+#> [1] 1 2 3 4 5
 order(x)
-#> [1] 2 1 3 4 5
+#> Warning: Ordering <tf> vectors via `sort()`/`order()`/`rank()` uses a depth-based total
+#> order ("MHI" by default), not a pointwise comparison.
+#> ℹ See `tf_order()` for the underlying semantics and how to pick a different
+#>   depth.
+#> This warning is displayed once per session.
+#> [1] 1 2 3 4 5
 sort(x)
-#> tfd[5]: [0,1] -> [-0.8587719,6.066542] based on 51 evaluations each
+#> tfd[5]: [0,1] -> [-0.3519689,5.944776] based on 51 evaluations each
 #> interpolation by tf_approx_linear 
-#> [1]: ▄▄▄▄▄▃▃▃▃▂▂▂▂▂▃▂▂▂▂▁▁▁▁▁▁▁
-#> [2]: ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▃▃▃▄▄▄▄▄▃▃
-#> [3]: ▇▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▅▅▅▅▅▄▄▄▃
-#> [4]: ▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇▇▆▆▆▅▅▅▅▅▄▄
-#> [5]: ███████████████▇▇▇▇▇▇▇▇▇██
+#> [1]: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▂▂▃▃▃
+#> [2]: ▃▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▄▄▄
+#> [3]: ▅▅▅▅▅▅▅▅▅▅▅▅▄▄▄▃▃▃▃▃▄▄▄▅▅▅
+#> [4]: ▅▆▆▆▇▇▇████▇▇▇▆▆▅▅▄▄▄▅▅▅▅▅
+#> [5]: ████████████▇▇▇▇▆▆▆▆▆▇▇▇▇▇
 # use a centrality-based depth instead:
 rank(x, depth = "MBD")
-#> [1] 3 2 5 4 1
+#> [1] 1.5 3.0 5.0 4.0 1.5
 ```

@@ -47,7 +47,7 @@ a `tf` object.
 
 Other tidyfun ordering and ranking functions:
 [`tf_depth()`](https://tidyfun.github.io/tf/reference/tf_depth.md),
-[`tf_order`](https://tidyfun.github.io/tf/reference/tf_order.md)
+[`tf_order()`](https://tidyfun.github.io/tf/reference/tf_order.md)
 
 ## Examples
 

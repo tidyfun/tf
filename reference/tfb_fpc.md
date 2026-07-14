@@ -112,11 +112,12 @@ FPCA options.
 
 Other tfb-class:
 [`fpc_wsvd()`](https://tidyfun.github.io/tf/reference/fpc_wsvd.md),
-[`tfb`](https://tidyfun.github.io/tf/reference/tfb.md),
+[`tfb()`](https://tidyfun.github.io/tf/reference/tfb.md),
 [`tfb_spline()`](https://tidyfun.github.io/tf/reference/tfb_spline.md)
 
 Other tfb_fpc-class:
-[`fpc_wsvd()`](https://tidyfun.github.io/tf/reference/fpc_wsvd.md)
+[`fpc_wsvd()`](https://tidyfun.github.io/tf/reference/fpc_wsvd.md),
+[`tfb_mfpc()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md)
 
 ## Examples
 
@@ -150,7 +151,7 @@ lines(x_pc_full, col = 3, lty = 2)
 # partially missing data on common grid:
 x_mis <- x |> tf_sparsify(dropout = .05)
 x_pc_mis <- tfb_fpc(x_mis, pve = .9)
-#> Using softImpute SVD on 5.3% missing data.
+#> Using soft-impute SVD on 5.3% missing data.
 x_pc_mis
 #> tfb[25]: [0,1] -> [-1.975964,2.473672] in basis representation:
 #>  using  4 FPCs 

@@ -43,7 +43,7 @@ approaches in most cases."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,6 +99,9 @@ approaches in most cases.</strong></p>
 <span><span class="fu">tf_interpolate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'tfd'</span></span>
+<span><span class="fu">tf_interpolate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf_mv'</span></span>
 <span><span class="fu">tf_interpolate</span><span class="op">(</span><span class="va">object</span>, <span class="va">arg</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -139,24 +142,24 @@ construction of the returned object.</p></dd>
 <span class="r-in"><span><span class="va">dense</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">10</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">1001</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">less_dense</span> <span class="op">&lt;-</span> <span class="fu">tf_interpolate</span><span class="op">(</span><span class="va">dense</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">101</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">dense</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[10]: [0,1] -&gt; [-2.322422,2.299105] based on 1001 evaluations each</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[10]: [0,1] -&gt; [-2.067743,2.499825] based on 1001 evaluations each</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: ▅▅▄▄▃▃▃▂▂▂▂▂▃▃▃▃▄▄▄▄▄▄▄▅▆▆</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: ▄▄▄▄▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▄▄</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: ▆▆▅▅▅▅▅▅▅▆▆▆▇▇▇██████████▇</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4: ▆▆▅▅▄▄▃▃▃▂▂▂▂▂▂▂▃▃▃▃▃▃▃▃▃▃</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5: ▆▅▅▅▅▅▅▅▅▅▅▄▄▃▃▂▂▂▂▂▃▃▄▄▅▅</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6: ▄▄▄▃▃▃▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: ▁▁▂▂▂▃▃▃▃▃▃▃▃▄▄▄▄▅▅▅▅▅▅▄▄▄</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2: ▂▃▃▃▃▃▃▃▂▂▃▃▃▃▄▄▄▅▅▅▄▄▃▃▃▂</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3: ▇▇▇▇▇▇▇███████████▇▇▆▆▆▅▅▅</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4: ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▃▃▃▃▃▃▃▃▂▂</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5: ▇▆▅▅▄▃▂▂▂▂▂▂▃▃▄▄▄▄▄▄▃▃▃▃▂▃</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6: ▅▅▅▅▄▄▄▄▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     [....]   (4 not shown)</span>
 <span class="r-in"><span><span class="va">less_dense</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[10]: [0,1] -&gt; [-2.27692,2.260684] based on 101 evaluations each</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[10]: [0,1] -&gt; [-2.062278,2.469111] based on 101 evaluations each</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: ▅▅▄▄▃▃▃▂▂▂▂▂▃▃▃▃▄▄▄▄▄▄▄▅▆▆</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: ▄▄▄▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▄▄</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: ▆▆▅▅▅▅▅▅▅▆▆▆▇▇███████████▇</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4: ▆▆▆▅▄▄▃▃▂▂▂▂▂▂▂▂▂▃▃▃▃▃▃▃▃▃</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5: ▆▅▅▅▅▅▅▅▅▅▅▄▄▃▃▂▂▂▂▂▃▃▄▄▅▅</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6: ▄▄▄▃▃▃▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: ▁▁▂▂▂▃▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▄▄▄</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2: ▂▃▃▃▃▃▃▃▃▂▃▃▃▃▄▄▄▅▅▅▄▄▄▃▃▂</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3: ▇▇▇▇▇▇████████████▇▇▆▆▆▅▅▅</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4: ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▃▃▃▃▃▃▃▃▂▂</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5: ▇▆▅▅▄▃▃▂▂▂▂▂▃▃▄▄▄▄▄▄▃▃▃▃▂▃</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6: ▅▅▅▅▄▄▄▄▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     [....]   (4 not shown)</span>
 <span class="r-in"><span><span class="co"># filling out sparse data (use a suitable evaluator-function!)</span></span></span>
 <span class="r-in"><span><span class="va">sparse</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">10</span>, arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span>, length.out <span class="op">=</span> <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span></span>
@@ -193,7 +196,7 @@ construction of the returned object.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

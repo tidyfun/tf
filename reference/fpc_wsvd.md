@@ -55,44 +55,45 @@ returned vectors represent (evaluations of) orthonormal eigen*functions*
 given quadrature weights \\\Delta_i\\, not \\\phi_j'\phi_j = \sum_i
 \phi_j(t_i)^2 = 1\\;  
 \\\int_T \phi_j(t) \phi_k(t) dt = 0\\ not \\\phi_j'\phi_k = \sum_i
-\phi_j(t_i)\phi_k(t_i) = 0\\, c.f. `mogsa::wsvd()`.  
-For incomplete data, this uses an adaptation of
-`softImpute::softImpute()`, see references. Note that will not work well
-for data on a common grid if more than a few percent of data points are
-missing, and it breaks down completely for truly irregular data with
-no/few common timepoints, even if observed very densely. For such data,
-either re-evaluate on a common grid first or use more advanced FPCA
-approaches like `refund::fpca_sc()`, see last example for
+\phi_j(t_i)\phi_k(t_i) = 0\\.  
+For incomplete data, this uses a soft-impute iterative-SVD scheme (see
+references). Note that this will not work well for data on a common grid
+if more than a few percent of data points are missing, and it breaks
+down completely for truly irregular data with no/few common timepoints,
+even if observed very densely. For such data, either re-evaluate on a
+common grid first or use more advanced FPCA approaches like
+`refund::fpca_sc()`, see last example for
 [`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md)
 
 ## References
 
-code adapted from / inspired by `mogsa::wsvd()` by Chen Meng and
-`softImpute::softImpute()` by Trevor Hastie and Rahul Mazumder.  
-Meng C (2023). *mogsa: Multiple omics data integrative clustering and
-gene set analysis*.
-[doi:10.18129/B9.bioc.mogsa](https://doi.org/10.18129/B9.bioc.mogsa) ,
-<https://bioconductor.org/packages/mogsa>.
-
+the soft-impute SVD algorithm for incomplete data is described in
 Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010). “Spectral
 Regularization Algorithms for Learning Large Incomplete Matrices.” *The
 Journal of Machine Learning Research*, **11**, 2287–2322.
 
-Hastie T, Mazumder R (2021). *softImpute: Matrix Completion via
-Iterative Soft-Thresholded SVD*.
-[doi:10.32614/CRAN.package.softImpute](https://doi.org/10.32614/CRAN.package.softImpute)
-, R package version 1.4-1,
-<https://CRAN.R-project.org/package=softImpute>.
-
 ## See also
 
-Other tfb-class: [`tfb`](https://tidyfun.github.io/tf/reference/tfb.md),
+Other tfb-class:
+[`tfb()`](https://tidyfun.github.io/tf/reference/tfb.md),
 [`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md),
 [`tfb_spline()`](https://tidyfun.github.io/tf/reference/tfb_spline.md)
 
 Other tfb_fpc-class:
-[`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md)
+[`tfb_fpc()`](https://tidyfun.github.io/tf/reference/tfb_fpc.md),
+[`tfb_mfpc()`](https://tidyfun.github.io/tf/reference/tfb_mfpc.md)
 
 ## Author
 
-Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
+Fabian Scheipl
+
+## Examples
+
+``` r
+arg <- seq(0, 1, length.out = 41)
+data <- t(sapply(seq(0, 2 * pi, length.out = 10),
+                 function(p) sin(2 * pi * arg + p)))
+fpc <- fpc_wsvd(data, arg = arg, pve = 0.99)
+fpc$npc
+#> [1] 2
+```

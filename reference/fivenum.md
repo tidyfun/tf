@@ -14,6 +14,9 @@ fivenum(x, na.rm = FALSE, ...)
 
 # S3 method for class 'tf'
 fivenum(x, na.rm = FALSE, depth = "MHI", ...)
+
+# S3 method for class 'tf_mv'
+fivenum(x, na.rm = FALSE, depth = "MBD", ...)
 ```
 
 ## Arguments
@@ -47,6 +50,7 @@ fivenum(x, na.rm = FALSE, depth = "MHI", ...)
 
 Other tidyfun summary functions:
 [`functionwise`](https://tidyfun.github.io/tf/reference/functionwise.md),
+[`median.tf_mv()`](https://tidyfun.github.io/tf/reference/median.tf_mv.md),
 [`tfsummaries`](https://tidyfun.github.io/tf/reference/tfsummaries.md)
 
 ## Examples

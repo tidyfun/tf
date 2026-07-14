@@ -9,6 +9,12 @@ more information on creating `tf` objects and converting them to/from
 ## Usage
 
 ``` r
+# S3 method for class 'tf_mv'
+x[i, j, component = NULL, interpolate = TRUE, matrix = TRUE]
+
+# S3 method for class 'tf_mv'
+x[i] <- value
+
 # S3 method for class 'tf'
 x[i, j, interpolate = TRUE, matrix = TRUE]
 
@@ -38,6 +44,14 @@ x[i] <- value
   value of the respective functional datum. If `j` is missing but
   `matrix` is explicitly given, `j` defaults to
   [tf_arg(x)](https://tidyfun.github.io/tf/reference/tfmethods.md).
+
+- component:
+
+  for `tf_mv` objects only: optionally restrict evaluation / extraction
+  to a subset of the output dimensions, given by name or integer index.
+  A single name/index drops to the univariate component (a `tfd` or
+  `tfb`); a vector of length \> 1 returns a sub-`tf_mv` containing just
+  those components. `NULL` (default) keeps all `d` components.
 
 - interpolate:
 

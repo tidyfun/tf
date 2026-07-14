@@ -74,8 +74,9 @@ Set to `TRUE` to avoid. This option is not available for `tfb`-objects.
 Other registration functions:
 [`tf_align()`](https://tidyfun.github.io/tf/reference/tf_align.md),
 [`tf_estimate_warps()`](https://tidyfun.github.io/tf/reference/tf_estimate_warps.md),
-[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/landmarks.md),
+[`tf_landmarks_extrema()`](https://tidyfun.github.io/tf/reference/tf_landmarks_extrema.md),
 [`tf_register()`](https://tidyfun.github.io/tf/reference/tf_register.md),
+[`tf_register_shape()`](https://tidyfun.github.io/tf/reference/tf_register_shape.md),
 [`tf_registration`](https://tidyfun.github.io/tf/reference/tf_registration.md)
 
 ## Author

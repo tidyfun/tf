@@ -17,7 +17,7 @@ tf_combine joins functional fragments together to create longer (or more densely
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -151,7 +151,7 @@ are used, the rest are discarded (with a warning).</p></dd>
 <span class="r-in"><span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">tfs</span> <span class="op">&lt;-</span> <span class="fu">tf_split</span><span class="op">(</span><span class="va">x</span>, splits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.6</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu">tf_combine</span><span class="op">(</span><span class="va">tfs</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">tfs</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>, <span class="va">tfs</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> removing 10 duplicated points from input data.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>removing 10 duplicated points from input data.</span>
 <span class="r-in"><span>  <span class="co"># tf_combine(tfs[[1]], tfs[[2]], tfs[[3]], strict = TRUE) # errors out - duplicate values!</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">x2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
@@ -165,17 +165,17 @@ are used, the rest are discarded (with a warning).</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Percentage of input data variability preserved in basis representation</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> (per functional observation, approximate):</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Min. 1st Qu.  Median Mean 3rd Qu.  Max.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> 98.60 99.80 99.90 99.66 100.00 100.00</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 87.00 98.40 99.80 96.96 99.80 99.80</span>
 <span class="r-in"><span>  <span class="fu">tf_combine</span><span class="op">(</span><span class="va">tfs</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">tfs2_sparse</span>, <span class="va">tfs3_spline</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> removing 2 duplicated points from input data.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> irregular tfd[5]: [0,1] -&gt; [-2.270273,3.269579] based on 39 to 45 (mean: 42) evaluations each</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>removing 2 duplicated points from input data.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> irregular tfd[5]: [0,1] -&gt; [-1.870097,0.8602952] based on 39 to 44 (mean: 42) evaluations each</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1: (0.00, -2.0);(0.02, -2.1);(0.04, -2.0); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2: (0.00, -1.5);(0.02, -1.5);(0.04, -1.4); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3: (0.00,-0.77);(0.02,-0.78);(0.04,-0.75); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4: (0.00, 0.60);(0.02, 0.73);(0.04, 0.91); ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5: (0.00,-0.16);(0.02,-0.20);(0.04,-0.20); ...</span>
-<span class="r-in"><span>  <span class="co"># combine(.., strict = F) can be used to coalesce different measurements</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1: (0.00,-0.94);(0.02,-0.83);(0.04,-0.73); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2: (0.00,-1.10);(0.02,-1.00);(0.04,-0.89); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3: (0.00, -1.8);(0.02, -1.8);(0.04, -1.7); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4: (0.00,-0.89);(0.02,-0.90);(0.04,-0.84); ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5: (0.00, 0.75);(0.02, 0.66);(0.04, 0.59); ...</span>
+<span class="r-in"><span>  <span class="co"># combine(.., strict = FALSE) can be used to coalesce different measurements</span></span></span>
 <span class="r-in"><span>  <span class="co"># of the same process over different grids:</span></span></span>
 <span class="r-in"><span>  <span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="tfd.html">tfd</a></span><span class="op">(</span><span class="va">x</span>, arg <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_arg</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">51</span>, by <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="tfd.html">tfd</a></span><span class="op">(</span><span class="va">x</span>, arg <span class="op">=</span> <span class="fu"><a href="tfmethods.html">tf_arg</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">50</span>, by <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
@@ -198,7 +198,7 @@ are used, the rest are discarded (with a warning).</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

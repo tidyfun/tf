@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The <strong><code>tf</code></strong> package provides necessary infrastructure for <a href="https://tidyfun.github.io/tidyfun/" class="external-link"><strong><code>tidyfun</code></strong></a> with minimal dependencies – specifically: no <code>tidyverse</code>-dependencies.</p>
+<p>The <strong><code>tf</code></strong> package provides necessary infrastructure for <a href="https://tidyfun.github.io/tidyfun/" class="external-link"><strong><code>tidyfun</code></strong></a> with minimal dependencies – <code>vctrs</code>/<code>rlang</code>/<code>cli</code>/<code>purrr</code> from the r-lib/tidyverse ecosystem, otherwise just <code>mgcv</code>, <code>zoo</code>, and <code>checkmate</code>.</p>
 <p>The goal of <strong><code>tidyfun</code></strong>, in turn, is to provide accessible and well-documented software that <strong>makes functional data analysis in <code>R</code> easy</strong> – specifically data wrangling and exploratory analysis.</p>
 <p><strong><code>tf</code></strong> includes definitions of new <code>S3</code> data types for vectors of functional data and associated methods. These <code>tf</code>-vectors, with subclasses <code>tfd</code> and <code>tfb</code>, use the <a href="https://vctrs.r-lib.org/" class="external-link"><strong><code>vctrs</code></strong></a>-framework, can be operated on using most standard functions (<code>+</code>, <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>, etc.) as well as several new functions in <code>tf</code> that implement operations specific for <em>functional</em> data (<code>tf_smooth</code>, <code>tf_derive</code>, <code>tf_integrate</code>, <code>tf_register</code>, …).</p>
 <p><strong>Crucially</strong>, vectors of class <code>tf</code> can be included in data frames containing other variables, for simple and reliable data manipulation. This approach is connected to the conceptual framework in functional data analysis which assumes that <em>complete functions</em> are the unit of observation. With <code>tidyfun</code> and <code>tf</code>, you can keep full curves alongside numeric, factor, and other observations on the same subject in one data frame.</p>
@@ -116,6 +116,15 @@
 <p>are defined for the vector classes defined in <strong><code>tf</code></strong> (<a href="https://tidyfun.github.io/tidyfun/reference/index.html#section-arithmetic-logical-and-summary-functions" class="external-link">more</a>).</p>
 <p>The <code>tf</code> objects are just glorified lists, so they work well as columns in data frames. That makes it a lot easier to keep your other data and functional measurements together in one object for preprocessing, exploratory analysis and description. At the same time, these objects actually behave like vectors of <em>functions</em> to some extent, i.e., they can be evaluated on any point in their domain, they can be integrated or differentiated, etc.</p>
 <p><a href="https://tidyfun.github.io/tidyfun/articles/x01_tf_Vectors.html" class="external-link">See here</a> for more information on the operations defined for <code>tf</code> vectors.</p>
+</div>
+<div class="section level4">
+<h4 id="vector-valued-multivariate-functional-data">Vector-valued (multivariate) functional data<a class="anchor" aria-label="anchor" href="#vector-valued-multivariate-functional-data"></a>
+</h4>
+<p><code>tf</code> also provides <code><a href="reference/tfd_mv.html">tfd_mv()</a></code> and <code><a href="reference/tfb_mv.html">tfb_mv()</a></code> for vector-valued functional data – i.e., functions whose codomain is <code>R^d</code>, sharing a single domain across components. These behave like the univariate <code>tf</code> classes (subsetting, arithmetic, plotting), with component-wise accessors and the geometry verbs <code><a href="reference/tf_geom.html">tf_norm()</a></code>, <code><a href="reference/tf_geom.html">tf_inner()</a></code>, <code><a href="reference/tf_geom.html">tf_tangent()</a></code>, <code><a href="reference/tf_arclength.html">tf_arclength()</a></code>:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fm</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tfd_mv.html">tfd_mv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="reference/tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="reference/tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fm</span>, type <span class="op">=</span> <span class="st">"facet"</span><span class="op">)</span></span></code></pre></div>
+<p>Multivariate FPCA is available via <code><a href="reference/tfb_mfpc.html">tfb_mfpc()</a></code> (Happ &amp; Greven, 2018), and <code><a href="reference/tf_register.html">tf_register()</a></code> supports joint multivariate alignment (<code>method = "srvf_mv"</code>) as well as elastic shape registration (<code><a href="reference/tf_register_shape.html">tf_register_shape()</a></code>). Note that <code><a href="reference/tfmethods.html">is_tf()</a></code> is <code>TRUE</code> for <code>tf_mv</code> as well; use the new <code><a href="reference/tfmethods.html">is_tf_1d()</a></code> to test specifically for univariate <code>tf</code>.</p>
 </div>
 <div class="section level4">
 <h4 id="methods-for-converting-existing-data-to-tf-and-back">Methods for converting existing data to <code>tf</code> and back<a class="anchor" aria-label="anchor" href="#methods-for-converting-existing-data-to-tf-and-back"></a>
@@ -180,7 +189,7 @@ Please let us know so we can make it better.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

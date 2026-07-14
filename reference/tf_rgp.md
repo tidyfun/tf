@@ -11,7 +11,7 @@ see `cov`), The implemented defaults with `scale` parameter \\\phi\\,
 - *Wiener* process: \\Cov(x(t), x(t')) = \min(t',t)/\phi + \sigma^2
   \delta\_{t}(t')\\,
 
-- [*Matèrn*
+- [*Matérn*
   process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition):
   \\Cov(x(t), x(t')) = \tfrac{2^{1-o}}{\Gamma(o)}
   (\tfrac{\sqrt{2o}\|t-t'\|}{\phi})^o
@@ -70,7 +70,7 @@ tf_rgp(
 
 - order:
 
-  order of the Matèrn covariance (if used, must be \>0), defaults to
+  order of the Matérn covariance (if used, must be \>0), defaults to
   1.5. The higher, the smoother the process. Evaluation of the
   covariance function becomes numerically unstable for large (\>20)
   `order`, use "squareexp".
@@ -95,16 +95,16 @@ Other tidyfun RNG functions:
 (x1 <- tf_rgp(10, cov = "squareexp", nugget = 0))
 #> tfd[10]: [0,1] -> [-2.394052,3.134049] based on 51 evaluations each
 #> interpolation by tf_approx_linear 
-#> 1: ▇▆▆▅▅▅▅▅▅▅▅▆▆▆▆▆▅▅▄▄▃▃▂▂▂▂
-#> 2: ▃▃▃▄▄▄▄▄▄▄▄▄▃▃▃▂▂▂▁▁▁▁▁▁▂▂
-#> 3: ▄▄▄▄▄▄▅▅▅▆▆▆▆▆▆▆▆▅▅▄▃▃▂▂▂▂
-#> 4: ▄▄▄▄▄▅▅▅▅▅▅▅▅▅▅▄▄▄▄▃▃▃▃▂▂▂
-#> 5: ▂▂▂▂▂▂▃▃▃▃▃▃▂▂▂▂▁▁▁▁▁▁▂▂▂▃
-#> 6: ▆▆▆▆▆▆▅▅▄▄▃▃▃▃▃▃▄▄▅▆▆▆▆▆▆▆
+#> 1: ▅▅▅▅▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▅▅▆▇▇
+#> 2: ▆▇▇███████▇▇▆▆▅▅▅▄▄▄▄▄▄▄▄▄
+#> 3: ▁▁▁▁▁▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▂▃▃▄▅▅
+#> 4: ▃▃▃▃▃▃▃▃▄▄▄▃▃▃▃▄▄▅▅▆▇▇▇▇▇▆
+#> 5: ▇▇▇▆▅▅▄▃▃▃▃▃▄▄▄▄▄▄▄▃▃▂▂▂▂▃
+#> 6: ▄▅▅▅▅▅▅▅▅▅▅▄▄▄▄▄▄▄▄▄▄▄▄▄▅▅
 #>     [....]   (4 not shown)
 tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34))))
-#> irregular tfd[2]: [0.0005705222,0.9909104] -> [-1.634664,1.179332] based on 25 to 34 (mean: 30) evaluations each
+#> irregular tfd[2]: [0.005399961,0.9991947] -> [-1.474299,1.492926] based on 25 to 34 (mean: 30) evaluations each
 #> interpolation by tf_approx_linear 
-#> 1: (0.00057,0.27);(0.05877,0.50);(0.12418,0.77); ...
-#> 2: ( 0.0026,-1.6);( 0.0857,-1.6);( 0.0858,-1.6); ...
+#> 1: (0.0054,  1.5);(0.0284,  1.5);(0.0465,  1.4); ...
+#> 2: (0.0073,-0.64);(0.0241,-0.67);(0.1019,-0.77); ...
 ```

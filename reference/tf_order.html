@@ -19,7 +19,7 @@ methods available via tf_depth(), or supply a custom depth function.'></head><bo
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,7 +88,18 @@ methods available via <code><a href="tf_depth.html">tf_depth()</a></code>, or su
 <span><span class="fu"><a href="https://rdrr.io/r/base/xtfrm.html" class="external-link">xtfrm</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'tf'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">x</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span>, na.last <span class="op">=</span> <span class="cn">NA</span>, depth <span class="op">=</span> <span class="st">"MHI"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">x</span>, decreasing <span class="op">=</span> <span class="cn">FALSE</span>, na.last <span class="op">=</span> <span class="cn">NA</span>, depth <span class="op">=</span> <span class="st">"MHI"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">tf_order</span><span class="op">(</span><span class="va">f</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Default S3 method</span></span>
+<span><span class="fu">tf_order</span><span class="op">(</span><span class="va">f</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf'</span></span>
+<span><span class="fu">tf_order</span><span class="op">(</span><span class="va">f</span>, depth <span class="op">=</span> <span class="st">"MHI"</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S3 method for class 'tf_mv'</span></span>
+<span><span class="fu">tf_order</span><span class="op">(</span><span class="va">f</span>, by <span class="op">=</span> <span class="st">"norm"</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -120,10 +131,19 @@ available via <code><a href="tf_depth.html">tf_depth()</a></code> (default: <cod
 <dt id="arg-decreasing">decreasing<a class="anchor" aria-label="anchor" href="#arg-decreasing"></a></dt>
 <dd><p>logical. Should the sort be decreasing?</p></dd>
 
+
+<dt id="arg-f">f<a class="anchor" aria-label="anchor" href="#arg-f"></a></dt>
+<dd><p>a <code>tf</code> or <code>tf_mv</code> vector (for <code>tf_order</code>).</p></dd>
+
+
+<dt id="arg-by">by<a class="anchor" aria-label="anchor" href="#arg-by"></a></dt>
+<dd><p>(<code>tf_mv</code> only) the scalar reduction to order by: <code>"norm"</code> (the
+default, uses <code>tf_norm(f)</code>) or the name of a component.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p><code>rank</code>: a numeric vector of ranks.<br><code>order</code>: an integer vector of indices.<br><code>sort.tf</code>: a sorted <code>tf</code> vector.<br><code>xtfrm.tf</code>: a numeric vector of depth values.</p>
+    <p><code>rank</code>: a numeric vector of ranks.<br><code>tf_order</code>: an integer vector of indices.<br><code>sort.tf</code>: a sorted <code>tf</code> vector.<br><code>xtfrm.tf</code>: a numeric vector of depth values.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -131,8 +151,11 @@ available via <code><a href="tf_depth.html">tf_depth()</a></code> (default: <cod
 ranks. For <code>"MHI"</code> this gives an ordering from lowest to highest function.
 For centrality-based depths (<code>"MBD"</code>, <code>"FM"</code>, <code>"FSD"</code>, <code>"RPD"</code>), the most
 extreme function gets rank 1 and the most central gets the highest rank.</p>
-<p><code>order</code> returns the permutation which rearranges <code>x</code> into ascending
-order according to depth.</p>
+<p><code>tf_order</code> returns the permutation which rearranges <code>x</code> into ascending
+order according to depth. For vector-valued (<code>tf_mv</code>) data there is no
+canonical total order on \(R^d\): <code>tf_order.tf_mv()</code> requires an explicit
+scalar reduction via <code>by</code> (either <code>"norm"</code> for <code>tf_norm(f)</code>, or a component
+name), and then applies the univariate depth order to that reduction.</p>
 <p><code>sort.tf</code> returns the sorted <code>tf</code> vector.</p>
 <p><code>xtfrm.tf</code> returns a numeric vector of MHI depth values, enabling
 <code><a href="https://rdrr.io/r/base/order.html" class="external-link">base::order</a></code> and <code><a href="https://rdrr.io/r/base/rank.html" class="external-link">base::rank</a></code> to work on <code>tf</code> vectors.</p>
@@ -149,20 +172,25 @@ order according to depth.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="tf_rgp.html">tf_rgp</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span></span></span>
 <span class="r-in"><span><span class="fu">rank</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2 1 3 4 5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1 2 3 4 5</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2 1 3 4 5</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ordering <span style="color: #0000BB;">&lt;tf&gt;</span> vectors via `sort()`/`order()`/`rank()` uses a depth-based total</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> order (<span style="color: #0000BB;">"MHI"</span> by default), not a pointwise comparison.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> See `tf_order()` for the underlying semantics and how to pick a different</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span>   depth.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #555555;">This warning is displayed once per session.</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1 2 3 4 5</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[5]: [0,1] -&gt; [-0.8587719,6.066542] based on 51 evaluations each</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tfd[5]: [0,1] -&gt; [-0.3519689,5.944776] based on 51 evaluations each</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> interpolation by tf_approx_linear </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1]: ▄▄▄▄▄▃▃▃▃▂▂▂▂▂▃▂▂▂▂▁▁▁▁▁▁▁</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2]: ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▃▃▃▄▄▄▄▄▃▃</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3]: ▇▇▇▆▆▆▆▆▆▆▆▆▆▆▆▆▆▅▅▅▅▅▄▄▄▃</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4]: ▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇▇▆▆▆▅▅▅▅▅▄▄</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5]: ███████████████▇▇▇▇▇▇▇▇▇██</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1]: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▂▂▃▃▃</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2]: ▃▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▄▄▄</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3]: ▅▅▅▅▅▅▅▅▅▅▅▅▄▄▄▃▃▃▃▃▄▄▄▅▅▅</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4]: ▅▆▆▆▇▇▇████▇▇▇▆▆▅▅▄▄▄▅▅▅▅▅</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5]: ████████████▇▇▇▇▆▆▆▆▆▇▇▇▇▇</span>
 <span class="r-in"><span><span class="co"># use a centrality-based depth instead:</span></span></span>
 <span class="r-in"><span><span class="fu">rank</span><span class="op">(</span><span class="va">x</span>, depth <span class="op">=</span> <span class="st">"MBD"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3 2 5 4 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.5 3.0 5.0 4.0 1.5</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -174,7 +202,7 @@ order according to depth.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

@@ -23,7 +23,7 @@ alternatively for definite = FALSE the anti-derivative on
 
     <a class="navbar-brand me-2" href="../index.html">tf</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -131,6 +131,18 @@ antiderivative. See description.</p></dd>
 anti-derivatives</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>When <code>f</code> is irregular <strong>and</strong> <code>lower</code> / <code>upper</code> are not supplied explicitly,
+they default to each curve's own observed arg range (i.e., the range of its
+<code><a href="tfmethods.html">tf_arg()</a></code> values) rather than the (shared) domain endpoints; for regular <code>tfd</code>
+the defaults remain the domain endpoints.
+Without this per-curve default, curves that do not span the full domain
+would silently NA-poison the trapezoidal sum, because the default linear
+evaluator does not extrapolate. Pass explicit <code>lower</code> / <code>upper</code> to integrate
+over a fixed sub-interval, or switch to an extrapolating evaluator
+(e.g. <code><a href="tf_approx.html">tf_approx_fill_extend()</a></code>) to integrate over the full domain.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other tidyfun calculus functions:
 <code><a href="tf_derive.html">tf_derive()</a></code></p></div>
@@ -159,7 +171,7 @@ anti-derivatives</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
