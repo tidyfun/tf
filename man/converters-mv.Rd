@@ -16,6 +16,7 @@
   long = TRUE,
   arg = NULL,
   interpolate = TRUE,
+  grids = c("union", "component"),
   ...
 )
 }
@@ -43,6 +44,18 @@ components are always interpolated.}
 univariate \verb{(id, arg, value)} contract, with \code{component} a \code{factor} over
 \code{attr(x, "comp_names")}. \code{long = FALSE} returns the wide
 \verb{(id, arg, comp1, ..., compd)} schema.}
+
+\item{grids}{when \code{unnest = TRUE}, controls \emph{where} components are
+evaluated when they live on different argument grids (for shared grids
+both settings agree). \code{"union"} (default) evaluates every component on
+each curve's union grid, so components get (interpolated) values at the
+\emph{other} components' arg values inside their observed range. \code{"component"}
+evaluates each component strictly on its \strong{own} grid (or on \code{arg}, if
+supplied): no values are fabricated at args a component was not observed
+at -- in the long schema such rows are simply absent, in the wide schema
+the other components' columns are \code{NA} there. Use \code{"union"} for paired
+evaluations (e.g. trajectory plots), \code{"component"} for faithful tabular
+exports of the observed data.}
 }
 \value{
 a 3-d array (\code{as.matrix.tf_mv}) or a data.frame (\code{as.data.frame.tf_mv}).

@@ -670,3 +670,65 @@ test_that("per-curve grids survive curve names that collide with component names
   expect_equal(ev[[1]]$arg, args[[1]])
   expect_equal(ev[[2]]$arg, args[[2]])
 })
+
+test_that("as.data.frame(grids = 'component') evaluates strictly on own grids", {
+  cx <- tfd(matrix(1:3, nrow = 1), arg = 1:3)
+  cy <- tfd(matrix(11:14, nrow = 1), arg = 1:4)
+  mv <- suppressWarnings(tfd_mv(list(x = cx, y = cy)))
+
+  lng <- as.data.frame(mv, unnest = TRUE, grids = "component")
+  # x contributes rows only on its own grid 1:3, y on 1:4; nothing fabricated
+  expect_identical(nrow(lng), 7L)
+  expect_identical(sum(lng$component == "x"), 3L)
+  expect_false(anyNA(lng$value))
+
+  wide <- as.data.frame(mv, unnest = TRUE, long = FALSE, grids = "component")
+  expect_identical(nrow(wide), 4L)
+  expect_true(is.na(wide$x[wide$arg == 4]))
+  expect_identical(wide$y, as.numeric(11:14))
+
+  # union mode fills/evaluates on the union grid instead (default unchanged)
+  expect_identical(nrow(as.data.frame(mv, unnest = TRUE)), 8L)
+})
+
+test_that("as.data.frame grids modes agree on shared component grids", {
+  set.seed(32)
+  f <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  expect_equal(
+    as.data.frame(f, unnest = TRUE),
+    as.data.frame(f, unnest = TRUE, grids = "component")
+  )
+  expect_equal(
+    as.data.frame(f, unnest = TRUE, long = FALSE),
+    as.data.frame(f, unnest = TRUE, long = FALSE, grids = "component")
+  )
+})
+
+test_that("as.data.frame(grids = 'component') keeps NA rows for gaps", {
+  # interpolate = FALSE at a user grid covering an observation gap: the NA
+  # evaluations must appear as NA rows, not vanish
+  g <- tfd(list(c(0, 1, 1, 0)), arg = list(c(0, 1, 3, 4)))
+  mv <- tfd_mv(list(x = g, y = g))
+  lng <- suppressWarnings(
+    as.data.frame(
+      mv,
+      unnest = TRUE,
+      grids = "component",
+      arg = 0:4,
+      interpolate = FALSE
+    )
+  )
+  expect_identical(nrow(lng), 10L)
+  expect_true(all(is.na(lng$value[lng$arg == 2])))
+
+  # empty prototypes yield the empty schemas
+  e <- tfd_mv(list(x = tfd(), y = tfd()))
+  expect_identical(
+    nrow(as.data.frame(e, unnest = TRUE, grids = "component")),
+    0L
+  )
+  expect_identical(
+    nrow(as.data.frame(e, unnest = TRUE, long = FALSE, grids = "component")),
+    0L
+  )
+})

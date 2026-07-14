@@ -25,6 +25,17 @@
 #'   univariate `(id, arg, value)` contract, with `component` a `factor` over
 #'   `attr(x, "comp_names")`. `long = FALSE` returns the wide
 #'   `(id, arg, comp1, ..., compd)` schema.
+#' @param grids when `unnest = TRUE`, controls *where* components are
+#'   evaluated when they live on different argument grids (for shared grids
+#'   both settings agree). `"union"` (default) evaluates every component on
+#'   each curve's union grid, so components get (interpolated) values at the
+#'   *other* components' arg values inside their observed range. `"component"`
+#'   evaluates each component strictly on its **own** grid (or on `arg`, if
+#'   supplied): no values are fabricated at args a component was not observed
+#'   at -- in the long schema such rows are simply absent, in the wide schema
+#'   the other components' columns are `NA` there. Use `"union"` for paired
+#'   evaluations (e.g. trajectory plots), `"component"` for faithful tabular
+#'   exports of the observed data.
 #' @param row.names,optional standard `as.data.frame` plumbing.
 #' @param ... passed through.
 #' @returns a 3-d array (`as.matrix.tf_mv`) or a data.frame (`as.data.frame.tf_mv`).
@@ -58,6 +69,7 @@ as.data.frame.tf_mv <- function(
   long = TRUE,
   arg = NULL,
   interpolate = TRUE,
+  grids = c("union", "component"),
   ...
 ) {
   if (!unnest) {
@@ -65,6 +77,7 @@ as.data.frame.tf_mv <- function(
     names(out) <- "data"
     return(out)
   }
+  grids <- match.arg(grids)
 
   comp_names <- attr(x, "comp_names") %||% character(0)
   n <- vec_size(x)
@@ -91,6 +104,20 @@ as.data.frame.tf_mv <- function(
 
   if (!length(comp_names) || !n) {
     return(if (long) empty_long() else empty_wide())
+  }
+
+  if (grids == "component") {
+    return(mv_df_component_grids(
+      x,
+      long = long,
+      arg = arg,
+      interpolate = interpolate,
+      id_levels = id_levels,
+      comp_names = comp_names,
+      empty_long = empty_long,
+      empty_wide = empty_wide,
+      ...
+    ))
   }
 
   # `tf_evaluate.tf_mv` returns a length-n list of per-curve data.frames with
@@ -132,6 +159,70 @@ as.data.frame.tf_mv <- function(
       )
     )
     out <- out[order(out$id, out$arg), , drop = FALSE]
+  }
+  rownames(out) <- NULL
+  out
+}
+
+# grids = "component" backend of as.data.frame.tf_mv: each component is
+# evaluated strictly on its own grid (or `arg`) via the univariate tf_2_df(),
+# so no values are fabricated at other components' args. Long = the stacked
+# per-component rows; wide = outer alignment on the (id, arg) key set with NA
+# where a component was not evaluated.
+mv_df_component_grids <- function(
+  x,
+  long,
+  arg,
+  interpolate,
+  id_levels,
+  comp_names,
+  empty_long,
+  empty_wide,
+  ...
+) {
+  comps <- tf_components(x)
+  per_comp <- map(comp_names, function(nm) {
+    comp <- comps[[nm]]
+    df <- if (is.null(arg)) {
+      tf_2_df(comp, interpolate = interpolate, ...)
+    } else {
+      tf_2_df(comp, arg = arg, interpolate = interpolate, ...)
+    }
+    df$component <- nm
+    df
+  })
+  stacked <- do.call(rbind, per_comp)
+  if (!nrow(stacked)) {
+    return(if (long) empty_long() else empty_wide())
+  }
+  id_f <- factor(as.character(stacked$id), levels = id_levels)
+  component_f <- factor(stacked$component, levels = comp_names)
+  if (long) {
+    out <- data_frame0(
+      id = id_f,
+      arg = stacked$arg,
+      component = component_f,
+      value = stacked$value
+    )
+    out <- out[order(out$id, out$arg, out$component), , drop = FALSE]
+  } else {
+    keys <- data_frame0(id = id_f, arg = stacked$arg)
+    ukeys <- vec_unique(keys)
+    ukeys <- ukeys[order(ukeys$id, ukeys$arg), , drop = FALSE]
+    loc <- vec_match(keys, ukeys)
+    cols <- map(comp_names, function(nm) {
+      v <- rep(NA_real_, nrow(ukeys))
+      sel <- component_f == nm
+      v[loc[sel]] <- stacked$value[sel]
+      v
+    })
+    out <- do.call(
+      data_frame0,
+      c(
+        list(id = ukeys$id, arg = ukeys$arg),
+        setNames(cols, comp_names)
+      )
+    )
   }
   rownames(out) <- NULL
   out

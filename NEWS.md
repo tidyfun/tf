@@ -109,6 +109,16 @@ univariate `tfd`/`tfb` classes.
   handled by the soft-impute SVD); re-scoring new data with `NA` curves via
   `tf_rebase()` / `vec_cast()` yields `NA` scores and `NA` entries.
 
+### Tabular export of components on differing grids
+
+* `as.data.frame.tf_mv(unnest = TRUE)` gains a `grids` argument controlling
+  where components are evaluated when they live on different argument grids:
+  `"union"` (default, previous behavior) evaluates every component on each
+  curve's union grid, interpolating inside the observed range; `"component"`
+  evaluates each component strictly on its own grid (or on `arg`), so no
+  values are fabricated where a component was not observed -- the faithful
+  export used by `tidyfun::tf_unnest()`. For shared grids both agree.
+
 ## More bug fixes (pre-release review)
 
 * Empty prototypes (`tfd()`, `tfb()`, `tfd_mv(list())` and friends) carry the
