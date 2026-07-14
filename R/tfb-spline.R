@@ -1,16 +1,17 @@
 new_tfb_spline <- function(
   data, # data.frame with id, arg, value
   domain = NULL,
-  arg = NULL,
   penalized = TRUE,
   global = FALSE,
   verbose = FALSE,
-  ...
+  ...,
+  spec_override = NULL
 ) {
   if (vec_size(data) == 0) {
     ret <- new_vctr(
       data,
-      domain = numeric(2),
+      # sentinel domain of empty prototypes, see new_tfd()
+      domain = c(NA_real_, NA_real_),
       arg = numeric(),
       family = character(),
       class = c("tfb_spline", "tfb", "tf")
@@ -38,16 +39,6 @@ new_tfb_spline <- function(
   data$id <- factor(data$id, unique(as.character(data$id)))
 
   dots <- list(...)
-  s_args <- dots[names(dots) %in% formalArgs(s)]
-  if (!has_name(s_args, "bs")) s_args$bs <- "cr"
-  if (s_args$bs == "ad") {
-    cli::cli_warn(c(
-      x = "Adaptive smooths with ({.code bs = 'ad'}) not implemented yet.",
-      i = "Return value uses {.code bs = 'cr'} instead."
-    ))
-    s_args$bs <- "cr"
-  }
-  if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
   gam_args <- dots[names(dots) %in% c(formalArgs(gam), formalArgs(bam))]
   if (!has_name(gam_args, "sp")) gam_args$sp <- -1
 
@@ -55,14 +46,38 @@ new_tfb_spline <- function(
   arg_list <- split(data$arg, data$id)
   regular <- all(duplicated(arg_list)[-1])
 
-  s_call <- as.call(c(quote(s), quote(arg), s_args))
-  s_spec <- eval(s_call)
-  spec_object <- smooth.construct(
-    s_spec,
-    data = data_frame0(arg = arg_u$x),
-    knots = NULL
-  )
-  spec_object$call <- s_call
+  if (is.null(spec_override)) {
+    s_args <- dots[names(dots) %in% formalArgs(s)]
+    if (!has_name(s_args, "bs")) s_args$bs <- "cr"
+    if (s_args$bs == "ad") {
+      cli::cli_warn(c(
+        x = "Adaptive smooths with ({.code bs = 'ad'}) not implemented yet.",
+        i = "Return value uses {.code bs = 'cr'} instead."
+      ))
+      s_args$bs <- "cr"
+    }
+    if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
+    s_call <- as.call(c(quote(s), quote(arg), s_args))
+    s_spec <- eval(s_call)
+    spec_object <- smooth.construct(
+      s_spec,
+      data = data_frame0(arg = arg_u$x),
+      knots = NULL
+    )
+    spec_object$call <- s_call
+  } else {
+    # Reuse a pre-built mgcv spec (used by tf_rebase.tfd.tfb_spline to project
+    # onto an existing basis without re-constructing it). Skips mgcv's
+    # unique-args-vs-k check, which is exactly what we want when fewer
+    # unique args than knots are available and the penalty handles the rest.
+    spec_object <- spec_override
+    spec_object$X <- PredictMat(
+      spec_object,
+      data = data_frame0(arg = arg_u$x)
+    )
+    s_args <- list(bs = spec_object$bs.dim, k = spec_object$bs.dim)
+    s_call <- spec_object$call %||% as.call(c(quote(s), quote(arg), s_args))
+  }
 
   if (is.null(gam_args$family)) {
     gam_args$family <- stats::gaussian()
@@ -545,7 +560,6 @@ tfb_spline.tfb <- function(
 
     new_tfb_spline(
       data,
-      arg = arg,
       domain = domain,
       penalized = penalized,
       global = global,
@@ -584,9 +598,8 @@ tfb_spline.default <- function(
     "Input {.arg data} not from a recognized class; returning prototype of length 0."
   )
 
-  data <- data_frame0()
   new_tfb_spline(
-    data,
+    numeric(0),
     domain = domain,
     penalized = penalized,
     global = global,

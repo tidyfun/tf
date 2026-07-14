@@ -20,25 +20,26 @@ test_that("tfd.numeric works", {
   expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
-  # empty data
+  # empty data: length-0 prototype with NA sentinel domain
   f <- tfd(numeric())
   expect_s3_class(f, "tfd_reg")
   expect_length(f, 0)
   expect_identical(attr(f, "arg"), list(integer()))
-  expect_identical(attr(f, "domain"), c(0, 0))
+  expect_identical(attr(f, "domain"), c(NA_real_, NA_real_))
   expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
   expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
 
-  # single NA
+  # single NA -> length-1 vector of NA functions (#241)
   for (x in list(NA_real_, NA_integer_)) {
-    f <- tfd(x)
+    f <- suppressWarnings(tfd(x))
     expect_s3_class(f, "tfd_reg")
-    expect_length(f, 0)
-    expect_identical(attr(f, "arg"), list(1L))
-    expect_identical(attr(f, "domain"), c(0, 0))
+    expect_length(f, 1)
+    expect_true(is.na(f))
     expect_function(attr(f, "evaluator"), args = c("x", "arg", "evaluations"))
     expect_identical(attr(f, "evaluator_name"), "tf_approx_linear")
   }
+  # warn on NA-only input
+  expect_warning(tfd(NA_real_), "NA")
 
   # evaluations must be inside the domain
   x <- 1:10
@@ -55,6 +56,12 @@ test_that("tfd.numeric works", {
     tfd(x, domain = c(2, 9)),
     "Evaluations must be inside the domain."
   )
+
+  # constructor invariants
+  expect_valid_tf(tfd(runif(100)))
+  x_na <- runif(100); x_na[c(2, 4, 6)] <- NA
+  expect_valid_tf(tfd(x_na))
+  expect_valid_tf(tfd(numeric()))
 })
 
 test_that("tfd works consistently for partially missing data", {
@@ -81,6 +88,9 @@ test_that("tfd works consistently for partially missing data", {
     tfd(x_df) |> suppressWarnings(),
     tfd(x_mat) |> suppressWarnings()
   )
+
+  expect_valid_tf(suppressWarnings(tfd(x_df)))
+  expect_valid_tf(suppressWarnings(tfd(x_mat)))
 })
 
 test_that("NA creation warning uses singular/plural wording and lists indices", {
@@ -119,4 +129,60 @@ test_that("NA creation warning uses singular/plural wording and lists indices", 
     tfd(x_many_na, arg = 1:5),
     "Affected indices: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, \\.{3}"
   )
+})
+
+test_that("tfd.list errors on mismatched per-entry lengths (#235)", {
+  # different lengths with shared arg -> must not silently return tfd_reg
+  expect_error(
+    tfd(list(1:3, 1:5), arg = 1:5),
+    "arg"
+  )
+  # different lengths and arg list -> irregular path catches it
+  expect_error(
+    tfd(list(1:3, 1:5), arg = list(1:3, 1:4)),
+    "do not match"
+  )
+})
+
+test_that("all-NA input yields length-n NA functions, not length-0 (#241)", {
+  # vector of NAs
+  x <- rep(NA_real_, 3)
+  expect_warning(f <- tfd(x), "NA")
+  expect_s3_class(f, "tfd")
+  expect_length(f, 1) # one curve, all NA evaluations
+  expect_true(is.na(f))
+
+  # matrix with all-NA rows -> one NA function per row
+  m <- matrix(NA_real_, nrow = 3, ncol = 5)
+  expect_warning(f <- tfd(m, arg = 1:5), "NA")
+  expect_length(f, 3)
+  expect_true(all(is.na(f)))
+})
+
+test_that("all-NA list input preserves vec_size (#262)", {
+  x <- suppressWarnings(tfd(list(NA_real_, NA_real_), arg = list(c(1, 2), c(1, 2))))
+  expect_length(x, 2)
+  expect_true(all(is.na(x)))
+  expect_warning(tfd(list(NA_real_, NA_real_), arg = list(c(1, 2), c(1, 2))), "NA")
+  # mixed NA and real entries keep working
+  y <- suppressWarnings(tfd(list(NA_real_, c(1, 2)), arg = list(c(1, 2), c(1, 2))))
+  expect_length(y, 2)
+  expect_equal(is.na(y), c(TRUE, FALSE))
+  # validate_tf() accepts the result
+  expect_valid_tf(x)
+  expect_valid_tf(y)
+})
+
+test_that("tfd() length-0 prototype uses NA sentinel domain (#241)", {
+  f <- tfd(numeric())
+  expect_identical(attr(f, "domain"), c(NA_real_, NA_real_))
+  expect_length(f, 0)
+})
+
+test_that("tfd.list infers irregular when lengths differ but arg list matches (#235)", {
+  f <- tfd(list(1:3, 1:5), arg = list(1:3, 1:5))
+  expect_s3_class(f, "tfd_irreg")
+  expect_length(f, 2)
+  expect_equal(tf_evaluations(f)[[1]], 1:3)
+  expect_equal(tf_evaluations(f)[[2]], 1:5)
 })

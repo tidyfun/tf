@@ -95,8 +95,34 @@ tf_invert.tfb <- function(x, ...) {
 }
 
 
-# reinsert NULL entries for previously missing functions while preserving tf attrs
-restore_na_entries <- function(tf_non_na, na_entries, names_out) {
+# Trapezoidal quadrature weights for a possibly-irregular grid.
+#
+# Contract: given a sorted numeric grid `arg` of length n, returns a length-n
+# weight vector `w` such that for a function sampled on `arg` with values `v`,
+# `sum(w * v)` is the trapezoidal-rule approximation of the integral over
+# `[arg[1], arg[n]]`. Interior weights are the average of the two adjacent
+# `diff(arg)` spacings; boundary weights are half of the single adjacent
+# spacing. The result is invariant to a constant shift of `arg`.
+trapezoid_weights <- function(arg) {
+  delta <- c(0, diff(arg))
+  0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+}
+
+# Reinsert NULL entries for previously missing functions while preserving tf attrs.
+#
+# Contract: `tf_non_na` is a (possibly zero-length) `tf` carrying the desired
+# output attributes (e.g. a freshly rebased `tfb`); `na_entries` is the logical
+# mask of the full-length result; `names_out` are the final names. When some
+# entries are non-NA, those slots are filled from `unclass(tf_non_na)` in order.
+# When every entry is NA, pass `ref_tfb` to supply the attributes (since
+# `tf_non_na` would itself be empty and carry no useful attributes); by default
+# `ref_tfb` falls back to `tf_non_na`.
+restore_na_entries <- function(
+  tf_non_na,
+  na_entries,
+  names_out,
+  ref_tfb = tf_non_na
+) {
   if (!any(na_entries)) {
     return(setNames(tf_non_na, names_out))
   }
@@ -105,7 +131,7 @@ restore_na_entries <- function(tf_non_na, na_entries, names_out) {
     ret[!na_entries] <- unclass(tf_non_na)
   }
   ret[na_entries] <- list(NULL)
-  attributes(ret) <- attributes(tf_non_na)
+  attributes(ret) <- attributes(ref_tfb)
   names(ret) <- names_out
   ret
 }
@@ -307,6 +333,16 @@ tf_derive.tfb_fpc <- function(f, arg = tf_arg(f), order = 1, ...) {
 #' @returns For `definite = TRUE`, the definite integrals of the functions in
 #'   `f`. For `definite = FALSE` and `tf`-inputs, a `tf` object containing their
 #'   anti-derivatives
+#' @details
+#' When `f` is irregular **and** `lower` / `upper` are not supplied explicitly,
+#' they default to each curve's own observed arg range (i.e., the range of its
+#' `tf_arg()` values) rather than the (shared) domain endpoints; for regular `tfd`
+#' the defaults remain the domain endpoints.
+#' Without this per-curve default, curves that do not span the full domain
+#' would silently NA-poison the trapezoidal sum, because the default linear
+#' evaluator does not extrapolate. Pass explicit `lower` / `upper` to integrate
+#' over a fixed sub-interval, or switch to an extrapolating evaluator
+#' (e.g. [tf_approx_fill_extend()]) to integrate over the full domain.
 #' @examples
 #' arg <- seq(0, 1, length.out = 11)
 #' x <- tfd(rbind(arg, arg^2), arg = arg)
@@ -317,6 +353,20 @@ tf_derive.tfb_fpc <- function(f, arg = tf_arg(f), order = 1, ...) {
 #' @family tidyfun calculus functions
 tf_integrate <- function(f, arg, lower, upper, ...) {
   UseMethod("tf_integrate")
+}
+
+# reuse a grid point that (almost) coincides with `value`: returns the nearest
+# point of `grid` if it is closer than the grid's resolution, else `value`
+# itself. Guards against float mismatches between user-supplied limits and
+# grid values (e.g. 0.3 vs seq()'s 0.30000000000000004) that would otherwise
+# introduce (almost-)duplicate arg values.
+snap_to_grid <- function(value, grid) {
+  if (length(grid) < 2) {
+    return(value)
+  }
+  resolution <- get_resolution(grid)
+  nearest <- grid[which.min(abs(grid - value))]
+  if (abs(nearest - value) < resolution) nearest else value
 }
 
 #' @rdname tf_integrate
@@ -335,17 +385,41 @@ tf_integrate.tfd <- function(
 ) {
   assert_arg(arg, f)
   arg <- ensure_list(arg)
-  # TODO: integrate is NA whenever arg does not cover entire domain!
+  default_lower <- missing(lower)
+  default_upper <- missing(upper)
   assert_limit(lower, f)
   assert_limit(upper, f)
+  if (is_irreg(f) && (default_lower || default_upper)) {
+    # For irregular data, the default linear evaluator does not extrapolate.
+    # Using global domain endpoints when curves don't reach them yields NA
+    # for the boundary evaluations and NA-poisoned integrals. Fall back to
+    # each curve's own arg range for any defaulted limit.
+    per_curve_range <- map(ensure_list(tf_arg(f)), range)
+    if (default_lower) {
+      lower <- map_dbl(per_curve_range, 1)
+    }
+    if (default_upper) {
+      upper <- map_dbl(per_curve_range, 2)
+    }
+  }
   limits <- cbind(lower, upper)
   if (nrow(limits) > 1) {
-    if (!definite) .NotYetImplemented() # needs vd-data
+    if (!definite && !is_irreg(f)) .NotYetImplemented() # needs vd-data
     limits <- limits |> split(seq_len(nrow(limits)))
   }
-  arg <- map2(
+  # a user-supplied limit may float-mismatch a grid point (e.g. 0.3 vs
+  # seq()'s 0.30000000000000004): reuse the (almost-)coinciding grid point as
+  # the limit instead of inserting an (almost-)duplicate arg value, which
+  # would construct an invalid tfd that later aborts with
+  # "(Almost) non-unique `arg` values detected".
+  limits <- map2(
     arg,
     ensure_list(limits),
+    \(x, y) map_dbl(as.numeric(y), snap_to_grid, grid = x)
+  )
+  arg <- map2(
+    arg,
+    limits,
     \(x, y) c(y[1], x[x > y[1] & x < y[2]], y[2])
   )
   na_entries <- is.na(f)
@@ -385,7 +459,8 @@ tf_integrate.tfd <- function(
     ret <- tfd(
       data = data_non_na,
       arg = arg_non_na[[1]],
-      domain = as.numeric(limits),
+      # `limits` is now always a list (possibly of one 2-vector)
+      domain = as.numeric(limits[[1]]),
       evaluator = !!attr(f, "evaluator_name")
     )
     return(restore_na_entries(ret, na_entries, names(f)))
@@ -398,10 +473,21 @@ tf_integrate.tfd <- function(
   } else {
     data_list <- map(quads, cumsum)
     names(data_list) <- names(f)
+    # for irregular `f`, `arg` holds per-curve grids and must stay a list;
+    # flattening would yield an unsorted vector and fail `tfd.list`'s checks.
+    arg_out <- if (length(arg) == 1) arg[[1]] else arg
+    # with per-curve limits (irregular f, default args) `limits` is a list of
+    # 2-vectors; collapse to a single [min(lower), max(upper)] domain.
+    domain_out <- if (is.list(limits)) {
+      lims <- do.call(rbind, limits)
+      c(min(lims[, 1]), max(lims[, 2]))
+    } else {
+      as.numeric(limits)
+    }
     tfd(
       data = data_list,
-      arg = unlist(arg, use.names = FALSE),
-      domain = as.numeric(limits),
+      arg = arg_out,
+      domain = domain_out,
       evaluator = !!attr(f, "evaluator_name")
     )
   }

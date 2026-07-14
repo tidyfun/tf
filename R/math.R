@@ -1,10 +1,11 @@
 # utility function for linear operations that can be done on coefs or
 #   evaluations directly.
-fun_math <- function(x, op) {
+fun_math <- function(x, op, ...) {
   attr_ret <- attributes(x)
+  dots <- list(...)
   ret <- map(tf_evaluations(x), \(x) {
     if (is.null(x)) return(NULL)
-    result <- do.call(op, list(x = x))
+    result <- do.call(op, c(list(x = x), dots))
     if (allMissing(result)) NULL else result
   })
   if (is_irreg(x)) {
@@ -25,7 +26,7 @@ NULL
 #' @export
 #' @family tidyfun compute functions
 Math.tfd <- function(x, ...) {
-  fun_math(x, .Generic)
+  fun_math(x, .Generic, ...)
 }
 
 #' @rdname tfgroupgenerics
@@ -36,35 +37,21 @@ Math.tfb <- function(x, ...) {
     "Potentially lossy cast to {.cls tfd} and back in {.fn {genericname}}({.cls {vec_ptype_full(x)}})."
   )
   basis_args <- attr(x, "basis_args")
-  eval <- fun_math(tfd(x), .Generic)
+  eval <- fun_math(tfd(x), .Generic, ...)
   na_entries <- is.na(eval)
   if (all(na_entries)) {
-    # all entries became NA -- return tfb with NULL entries
-    result <- vector("list", length(eval))
-    result[] <- list(NULL)
-    result_names <- names(eval)
-    attributes(result) <- attributes(x)
-    names(result) <- result_names
-    return(result)
+    return(restore_na_entries(
+      eval[!na_entries],
+      na_entries,
+      names(eval),
+      ref_tfb = x
+    ))
   }
-  if (any(na_entries)) {
-    # refit only non-NA entries, then insert NULLs at NA positions
-    non_na <- do.call(
-      "tfb",
-      c(list(eval[!na_entries]), basis_args, penalized = FALSE, verbose = FALSE)
-    )
-    result <- vector("list", length(eval))
-    result[!na_entries] <- unclass(non_na)
-    result[na_entries] <- list(NULL)
-    result_names <- names(eval)
-    attributes(result) <- attributes(non_na)
-    names(result) <- result_names
-    return(result)
-  }
-  do.call(
+  non_na <- do.call(
     "tfb",
-    c(list(eval), basis_args, penalized = FALSE, verbose = FALSE)
+    c(list(eval[!na_entries]), basis_args, penalized = FALSE, verbose = FALSE)
   )
+  restore_na_entries(non_na, na_entries, names(eval))
 }
 
 #-------------------------------------------------------------------------------

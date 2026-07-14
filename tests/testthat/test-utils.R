@@ -22,3 +22,40 @@ test_that("format_bib", {
   bibentries <- list(checkmate = citation("checkmate"), R = citation())
   expect_string(format_bib("checkmate", "R"))
 })
+
+test_that("trapezoid_weights matches the trapezoidal rule", {
+  # On an equidistant grid all interior weights equal the spacing,
+  # boundary weights equal half the spacing -> the discrete integral
+  # of v == 1 on [0, 1] is 1.
+  arg <- seq(0, 1, length.out = 11)
+  w <- trapezoid_weights(arg)
+  expect_equal(sum(w), 1)
+  expect_equal(w[1], 0.05)
+  expect_equal(w[length(w)], 0.05)
+  expect_true(all(abs(w[2:10] - 0.1) < 1e-12))
+
+  # On a non-equidistant grid, weights still integrate constant 1 to the
+  # domain length and weights equal the average of adjacent spacings interior,
+  # half-spacings at the boundary.
+  arg <- c(0, 0.1, 0.3, 0.7, 1)
+  w <- trapezoid_weights(arg)
+  expect_equal(sum(w), 1)
+  expect_equal(w[1], 0.05)
+  expect_equal(w[5], 0.15)
+  expect_equal(w[2], 0.15)
+  expect_equal(w[3], 0.3)
+  expect_equal(w[4], 0.35)
+
+  # Equivalence with the by-hand sum((dev[-n] + dev[-1])/2 * dt) formulation.
+  set.seed(42)
+  v <- runif(5)
+  dt <- diff(arg)
+  by_hand <- sum((v[-length(v)] + v[-1]) / 2 * dt)
+  expect_equal(sum(w * v), by_hand)
+})
+
+test_that("unique_id replaces empty strings after coercion", {
+  ids <- unique_id(factor(c("", "a", "")))
+  expect_true(all(nzchar(ids)))
+  expect_false(anyDuplicated(ids) > 0)
+})

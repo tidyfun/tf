@@ -59,6 +59,17 @@ alternatively for \code{definite = FALSE} the \emph{anti-derivative} on
 \verb{[lower, upper]}, e.g. a \code{tfd} or \code{tfb} object representing \eqn{F(t) \approx
 \int^{t}_{lower}f(s)ds}, for \eqn{t \in}\verb{[lower, upper]}, is returned.
 }
+\details{
+When \code{f} is irregular \strong{and} \code{lower} / \code{upper} are not supplied explicitly,
+they default to each curve's own observed arg range (i.e., the range of its
+\code{tf_arg()} values) rather than the (shared) domain endpoints; for regular \code{tfd}
+the defaults remain the domain endpoints.
+Without this per-curve default, curves that do not span the full domain
+would silently NA-poison the trapezoidal sum, because the default linear
+evaluator does not extrapolate. Pass explicit \code{lower} / \code{upper} to integrate
+over a fixed sub-interval, or switch to an extrapolating evaluator
+(e.g. \code{\link[=tf_approx_fill_extend]{tf_approx_fill_extend()}}) to integrate over the full domain.
+}
 \examples{
 arg <- seq(0, 1, length.out = 11)
 x <- tfd(rbind(arg, arg^2), arg = arg)
@@ -67,7 +78,7 @@ anti <- tf_integrate(x, definite = FALSE)
 tf_arg(anti)
 }
 \seealso{
-Other tidyfun calculus functions: 
-\code{\link{tf_derive}()}
+Other tidyfun calculus functions:
+\code{\link[=tf_derive]{tf_derive()}}
 }
 \concept{tidyfun calculus functions}

@@ -33,7 +33,7 @@ domain divided by 10.}
 \item{nugget}{nugget effect for additional white noise / unstructured
 variability. Defaults to \code{scale/200} (so: very little white noise).}
 
-\item{order}{order of the Matèrn covariance (if used, must be >0), defaults
+\item{order}{order of the Matérn covariance (if used, must be >0), defaults
 to 1.5. The higher, the smoother the process. Evaluation of the covariance
 function becomes numerically unstable for large (>20) \code{order}, use
 "squareexp".}
@@ -54,7 +54,7 @@ accepts user-defined covariance functions (without "nugget" effect, see
 \delta_{t}(t')}.
 \item \emph{Wiener} process: \eqn{Cov(x(t), x(t')) =
 \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matèrn} process}:
+\item \href{https://en.wikipedia.org/wiki/Mat\%C3\%A9rn_covariance_function#Definition}{\emph{Matérn} process}:
 \eqn{Cov(x(t), x(t')) =
 \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
 + \sigma^2 \delta_{t}(t')}
@@ -68,7 +68,7 @@ accepts user-defined covariance functions (without "nugget" effect, see
 tf_rgp(2, arg = list(sort(runif(25)), sort(runif(34))))
 }
 \seealso{
-Other tidyfun RNG functions: 
-\code{\link{tf_jiggle}()}
+Other tidyfun RNG functions:
+\code{\link[=tf_jiggle]{tf_jiggle()}}
 }
 \concept{tidyfun RNG functions}

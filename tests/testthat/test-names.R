@@ -33,3 +33,14 @@ test_that("vec_arith keeps names", {
   expect_named(xn - mean(x), names(xn))
   expect_named(mean(xn) - xn, names(xn - mean(x)))
 })
+
+test_that("coef.tfb preserves names", {
+  set.seed(1)
+  x <- tfb(tf_rgp(3, arg = seq(0, 1, length.out = 21)))
+  names(x) <- c("a", "b", "c")
+  expect_named(coef(x), c("a", "b", "c"))
+
+  # null names stay null
+  names(x) <- NULL
+  expect_null(names(coef(x)))
+})

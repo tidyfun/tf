@@ -4,6 +4,18 @@
 # turn a tf object into a data.frame evaluated on arg with cols id-arg-value
 tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
   assert_tf(tf)
+  # tf_2_df is the univariate (id, arg, value) builder. For a tf_mv, hand off
+  # to the multivariate-aware as.data.frame.tf_mv() instead of running the
+  # hard-coded scalar-column path on a multi-component object.
+  if (!is_tf_1d(tf)) {
+    return(as.data.frame(
+      tf,
+      unnest = TRUE,
+      arg = if (missing(arg)) NULL else arg,
+      interpolate = interpolate,
+      ...
+    ))
+  }
   if (missing(arg)) {
     arg <- tf_arg(tf)
   }
@@ -29,8 +41,17 @@ tf_2_df <- function(tf, arg, interpolate = TRUE, ...) {
 # from refund
 df_2_mat <- function(data, binning = FALSE, maxbins = 1000) {
   data <- data[complete.cases(data), ]
-  nobs <- vec_unique_count(data$id)
-  newid <- as.numeric(as.factor(data$id))
+  # a factor id fixes the row layout: one row PER LEVEL, so curves whose
+  # rows were all dropped as incomplete (all-NA curves) stay row-aligned
+  # with the input (their row is all-NA). A non-factor id gets one row per
+  # id actually present.
+  if (is.factor(data$id)) {
+    nobs <- nlevels(data$id)
+    newid <- as.numeric(data$id)
+  } else {
+    nobs <- vec_unique_count(data$id)
+    newid <- as.numeric(as.factor(data$id))
+  }
   bins <- sort_unique(data$arg)
   if (binning && (length(bins) > maxbins)) {
     binvalues <- seq(
@@ -80,7 +101,10 @@ mat_2_df <- function(x, arg) {
   assert_true(length(arg) == ncol(x))
 
   id <- unique_id(rownames(x)) %||% seq_len(nrow(x))
-  id <- ordered(id, levels = unique(id))
+  # use plain factor() rather than ordered() so id has the same class as the
+  # other coercion paths (tf_2_df also uses factor()); avoids silent
+  # ordered-factor surprises downstream.
+  id <- factor(id, levels = unique(id))
   t_x <- t(x)
   df_2_df(data_frame0(
     # use t(x) here so that order of vector remains unchanged...

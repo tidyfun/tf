@@ -40,6 +40,11 @@ same_args <- function(x, to) {
 #'     note it's lossless only on the *original* `arg`-grid)
 #' - Any cast of a `tfd` into `tfb` is potentially *lossy* (because we don't know how expressive the chosen basis is)
 #' - Only `tfb` with identical bases and domains can be cast into one another *losslessly*
+#' - Casts deliberately **keep the source's `arg`-grid**: they *re-express*
+#'   functions in the target's representation rather than re-evaluate them on
+#'   the target's grid, so a cast result need not be identical to the target
+#'   prototype (a deliberate deviation from the strict `vctrs` cast invariant
+#'   that avoids silently coarsening data during type unification).
 #'
 #' @name vctrs
 #' @family tidyfun vctrs
@@ -47,6 +52,13 @@ same_args <- function(x, to) {
 #' @param y vectors to cast.
 #' @returns for `vec_cast`: the casted `tf`-vector, for `vec_ptype2`: the common prototype
 #' @seealso [vctrs::vec_cast()], [vctrs::vec_ptype2()]
+#' @examples
+#' set.seed(1)
+#' x <- tf_rgp(3)
+#' xi <- tf_sparsify(x)
+#' # different tf subtypes combine to their common type:
+#' c(x, xi)
+#' vctrs::vec_ptype_full(vctrs::vec_c(x, xi))
 NULL
 
 #' @rdname vctrs
@@ -71,6 +83,11 @@ vec_cast.tfd_reg.tfd_irreg <- function(x, to, ...) {
 #' @family tidyfun vctrs
 #' @export
 vec_cast.tfd_reg.tfb_spline <- function(x, to, ...) {
+  # an empty tfb prototype carries no basis to evaluate; the cast result is
+  # simply an empty vector of the target type
+  if (is_empty_proto(x)) {
+    return(vec_slice(to, integer(0)))
+  }
   tf_rebase(x, to, arg = tf_arg(x))
 }
 
@@ -104,15 +121,24 @@ vec_cast.tfd_irreg.tfb_fpc <- vec_cast.tfd_irreg.tfd_reg
 #-------------------------------------------------------------------------------
 
 vec_cast_tfb_tfb <- function(x, to, ...) {
+  # empty prototypes carry no basis to compare/rebase; the cast result is
+  # simply an empty vector of the target type
+  if (is_empty_proto(x)) {
+    return(vec_slice(to, integer(0)))
+  }
   assert_same_domains(x, to)
   same_basis <- isTRUE(all.equal(
     tf_basis(to)(tf_arg(x)),
     attr(x, "basis_matrix"),
     check.attributes = FALSE
   ))
-  if (same_basis) return(x)
+  # cast invariant: result attributes (including `arg`) must match `to`. The
+  # basis-matrix check above does not catch cases where x and to share a basis
+  # spec but were stored on different arg grids -- only short-circuit when arg
+  # also matches; otherwise fall through to tf_rebase. (#269 copilot comment)
+  if (same_basis && identical(tf_arg(x), tf_arg(to))) return(x)
   maybe_lossy_cast(
-    tf_rebase(x, to, arg = tf_arg(x)),
+    tf_rebase(x, to, arg = tf_arg(to)),
     x,
     to,
     lossy = TRUE,
@@ -125,6 +151,10 @@ vec_cast_tfb_tfb <- function(x, to, ...) {
 }
 
 vec_cast_tfb_tfd <- function(x, to, ...) {
+  # empty tfd prototypes have no evaluations to refit in the target basis
+  if (is_empty_proto(x)) {
+    return(vec_slice(to, integer(0)))
+  }
   maybe_lossy_cast(
     tf_rebase(x, to, arg = tf_arg(x)),
     x,

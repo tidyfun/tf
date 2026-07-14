@@ -44,42 +44,40 @@ orthonormal eigen\emph{functions} \eqn{\phi_j(t)}, not eigen\emph{vectors}
 given quadrature weights \eqn{\Delta_i}, not
 \eqn{\phi_j'\phi_j = \sum_i \phi_j(t_i)^2 = 1};\cr
 \eqn{\int_T \phi_j(t) \phi_k(t) dt = 0} not
-\eqn{\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0},
-c.f. \code{mogsa::wsvd()}.\cr
-For incomplete data, this uses an adaptation of \code{softImpute::softImpute()},
-see references. Note that will not work well for data on a common grid if more
-than a few percent of data points are missing, and it breaks down completely
-for truly irregular data with no/few common timepoints, even if observed very
-densely. For such data, either re-evaluate on a common grid first or use more
-advanced FPCA approaches like \code{refund::fpca_sc()},
+\eqn{\phi_j'\phi_k = \sum_i \phi_j(t_i)\phi_k(t_i) = 0}.\cr
+For incomplete data, this uses a soft-impute iterative-SVD scheme
+(see references). Note that this will not work well for data on a common grid
+if more than a few percent of data points are missing, and it breaks down
+completely for truly irregular data with no/few common timepoints, even if
+observed very densely. For such data, either re-evaluate on a common grid
+first or use more advanced FPCA approaches like \code{refund::fpca_sc()},
 see last example for \code{\link[=tfb_fpc]{tfb_fpc()}}
 }
+\examples{
+arg <- seq(0, 1, length.out = 41)
+data <- t(sapply(seq(0, 2 * pi, length.out = 10),
+                 function(p) sin(2 * pi * arg + p)))
+fpc <- fpc_wsvd(data, arg = arg, pve = 0.99)
+fpc$npc
+}
 \references{
-code adapted from / inspired by \code{mogsa::wsvd()} by Chen Meng
-and \code{softImpute::softImpute()} by Trevor Hastie and Rahul Mazumder.\cr
-Meng C (2023).
-\emph{mogsa: Multiple omics data integrative clustering and gene set analysis}.
-\doi{10.18129/B9.bioc.mogsa}, \url{https://bioconductor.org/packages/mogsa}.
-
+the soft-impute SVD algorithm for incomplete data is described in
 Mazumder, Rahul, Hastie, Trevor, Tibshirani, Robert (2010).
 \dQuote{Spectral Regularization Algorithms for Learning Large Incomplete Matrices.}
 \emph{The Journal of Machine Learning Research}, \bold{11}, 2287--2322.
-
-Hastie T, Mazumder R (2021).
-\emph{softImpute: Matrix Completion via Iterative Soft-Thresholded SVD}.
-\doi{10.32614/CRAN.package.softImpute}, R package version 1.4-1, \url{https://CRAN.R-project.org/package=softImpute}.
 }
 \seealso{
-Other tfb-class: 
-\code{\link{tfb}},
-\code{\link{tfb_fpc}()},
-\code{\link{tfb_spline}()}
+Other tfb-class:
+\code{\link[=tfb]{tfb()}},
+\code{\link[=tfb_fpc]{tfb_fpc()}},
+\code{\link[=tfb_spline]{tfb_spline()}}
 
-Other tfb_fpc-class: 
-\code{\link{tfb_fpc}()}
+Other tfb_fpc-class:
+\code{\link[=tfb_fpc]{tfb_fpc()}},
+\code{\link[=tfb_mfpc]{tfb_mfpc()}}
 }
 \author{
-Trevor Hastie, Rahul Mazumder, Chen Meng, Fabian Scheipl
+Fabian Scheipl
 }
 \concept{tfb-class}
 \concept{tfb_fpc-class}

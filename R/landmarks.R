@@ -24,7 +24,6 @@
 #'   each column). Contains `NA` where a curve is missing a landmark.
 #' @seealso [tf_register()] with `method = "landmark"`
 #' @export
-#' @rdname landmarks
 #' @family registration functions
 #' @examples
 #' t <- seq(0, 1, length.out = 101)
@@ -54,7 +53,7 @@ tf_landmarks_extrema <- function(
   # Get per-curve arg grids for feature detection
   arg_list <- tf_arg(x)
   if (!is.list(arg_list)) {
-    # Regular tfd: single shared grid → replicate for uniform interface
+    # Regular tfd: single shared grid -> replicate for uniform interface
     arg_list <- rep(list(as.numeric(arg_list)), n)
   }
   # Representative grid spacing (for bandwidth/boundary defaults)
@@ -112,14 +111,14 @@ tf_landmarks_extrema <- function(
 
 # --- Landmark Detection Helpers ------------------------------------------------
 
-#' @details
-#' - `detect_landmarks` detects local extrema and zero crossings per curve.
+#' Detect local extrema and zero crossings per curve
+#'
 #' @param x tf object (already smoothed if needed)
 #' @param arg_list list of numeric vectors: per-curve evaluation grids
 #' @param which character vector: subset of c("max", "min", "zero")
-#' @returns `detect_landmarks`: list of n data.frames with columns (position, type)
+#' @returns list of n data.frames with columns (position, type)
 #' @keywords internal
-#' @rdname landmarks
+#' @noRd
 detect_landmarks <- function(x, arg_list, which) {
   x_evals <- tf_evaluations(x)
   n <- length(x)
@@ -183,17 +182,19 @@ detect_landmarks <- function(x, arg_list, which) {
 }
 
 
-#' @details
-#' - `cluster_landmarks` clusters within each feature type separately
-#' (max with max, min with min, etc.) to avoid merging adjacent features of
-#' different types. Then combines and sorts by position.
+#' Cluster detected features across curves
+#'
+#' Clusters within each feature type separately (max with max, min with min,
+#' etc.) to avoid merging adjacent features of different types. Then combines
+#' and sorts by position.
+#'
 #' @param features list of per-curve data.frames from detect_landmarks()
 #' @param n number of curves
 #' @param bandwidth merge distance for clustering
 #' @param threshold minimum proportion of curves for a cluster to be retained
-#' @returns `cluster_landmarks`: data.frame with columns: center, type, count, proportion
+#' @returns data.frame with columns: center, type, count, proportion
 #' @keywords internal
-#' @rdname landmarks
+#' @noRd
 cluster_landmarks <- function(features, n, bandwidth, threshold) {
   # Pool all features with curve ID
   all_f <- do.call(
@@ -264,16 +265,17 @@ cluster_landmarks <- function(features, n, bandwidth, threshold) {
   result[order(result$center), , drop = FALSE]
 }
 
-#' @details
-#' - `build_landmark_matrix` creates a landmark matrix by matching per-curve
-#'  features to clusters.
+#' Build the landmark matrix from per-curve features and clusters
+#'
+#' Creates a landmark matrix by matching per-curve features to clusters.
+#'
 #' @param features list of per-curve data.frames
 #' @param clusters data.frame from cluster_landmarks()
 #' @param n number of curves
 #' @param bandwidth matching distance
-#' @returns `build_landmark_matrix`: n x k matrix with feature_types attribute
+#' @returns n x k matrix with feature_types attribute
 #' @keywords internal
-#' @rdname landmarks
+#' @noRd
 build_landmark_matrix <- function(features, clusters, n, bandwidth) {
   k <- nrow(clusters)
   lm_mat <- matrix(NA_real_, nrow = n, ncol = k)

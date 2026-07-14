@@ -189,7 +189,12 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #' @export
 `tf_arg<-.tfd_irreg` <- function(x, value) {
   assert_arg(value, x, check_unique = FALSE)
-  ret <- map2(tf_evaluations(x), value, \(x, y) list(arg = y, data = x))
+  value <- ensure_list(value)
+  if (length(value) == 1) value <- rep(value, length(x))
+  ret <- map2(tf_evaluations(x), value, \(v, y) {
+    if (is.null(v)) return(NULL)
+    list(arg = y, value = v)
+  })
   attributes(ret) <- attributes(x)
   ret
 }
@@ -222,18 +227,26 @@ tf_basis <- function(f, as_tfd = FALSE) {
 #-------------------------------------------------------------------------------
 
 #' @rdname tfmethods
-#' @param object as usual
-#' @param ... dots
+#' @param object a `tfb` object.
+#' @param ... not used.
 #' @export
 #' @importFrom stats coef
 coef.tfb <- function(object, ...) {
+  nms <- names(object)
   attributes(object) <- NULL
+  names(object) <- nms
   object
 }
 
 #' @export
 #' @rdname tfmethods
 rev.tf <- function(x) {
+  x[rev(seq_along(x))]
+}
+
+#' @export
+#' @rdname tfmethods
+rev.tf_mv <- function(x) {
   x[rev(seq_along(x))]
 }
 
@@ -256,6 +269,14 @@ is.na.tfd_irreg <- function(x) {
 #' @rdname tfmethods
 #' @export
 is_tf <- function(x) inherits(x, "tf")
+
+#' @rdname tfmethods
+#' @description `is_tf_1d()` distinguishes *univariate* `tf` vectors (length-`n`
+#'   samples of `f: R -> R`) from any `tf` vector. Returns `TRUE` for `tfd` /
+#'   `tfb` and `FALSE` for `tfd_mv` / `tfb_mv`. Useful as a dispatch / guard
+#'   predicate inside helpers that assume scalar per-arg evaluations.
+#' @export
+is_tf_1d <- function(x) inherits(x, "tf") && !inherits(x, "tf_mv")
 
 #' @rdname tfmethods
 #' @export
@@ -288,3 +309,15 @@ is_tfb_spline <- function(x) inherits(x, "tfb_spline")
 #' @rdname tfmethods
 #' @export
 is_tfb_fpc <- function(x) inherits(x, "tfb_fpc")
+
+#' @rdname tfmethods
+#' @export
+is_tf_mv <- function(x) inherits(x, "tf_mv")
+
+#' @rdname tfmethods
+#' @export
+is_tfd_mv <- function(x) inherits(x, "tfd_mv")
+
+#' @rdname tfmethods
+#' @export
+is_tfb_mv <- function(x) inherits(x, "tfb_mv")

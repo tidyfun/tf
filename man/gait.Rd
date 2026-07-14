@@ -8,8 +8,8 @@
 A data frame with 39 rows and 3 variables:
 \describe{
 \item{subject_id}{subject identifier}
-\item{knee_angle}{knee joint angles in degrees}
-\item{hip_angle}{hip joint angle in degrees}
+\item{knee_angle}{a \code{tfd} column of knee-joint angles (degrees)}
+\item{hip_angle}{a \code{tfd} column of hip-joint angles (degrees)}
 }
 }
 \usage{
@@ -17,9 +17,12 @@ gait
 }
 \description{
 Hip and knee angle measurements in degrees through a 20-point movement cycle
-for 39 boys. The data represents the angular positions of hip and knee
+for 39 children. The data represents the angular positions of hip and knee
 joints during normal walking gait, captured at evenly spaced time points
 throughout the gait cycle.
+}
+\details{
+Data is also included in the \CRANpkg{fda} package in another format.
 }
 \examples{
 head(gait)
@@ -28,7 +31,5 @@ head(gait)
 Olshen, A R, Biden, N E, Wyatt, P M, Sutherland, H D (1989).
 \dQuote{Gait Analysis and the Bootstrap.}
 \emph{The Annals of Statistics}, \bold{17}(4), 1419--1440.
-
-Data is also include in the \code{datasets} package in another format.
 }
 \keyword{datasets}

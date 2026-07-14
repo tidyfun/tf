@@ -45,7 +45,7 @@ test_that("fpc_wsvd works for smooth non-equidistant data", {
 test_that("fpc_wsvd works for partially missing data", {
   expect_s3_class(tfb_fpc(sparse), "tfb_fpc") |> suppressMessages()
   expect_message(tfb_fpc(sparse), "High `pve`") |> suppressMessages()
-  expect_message(tfb_fpc(sparse), "Using softImpute") |> suppressMessages()
+  expect_message(tfb_fpc(sparse), "Using soft-impute") |> suppressMessages()
   set.seed(1312)
   x <- tf_rgp(50)
   x_sp_pc <- x |>
@@ -78,5 +78,8 @@ test_that("tfb_fpc defaults work for all kinds of regular input", {
       tolerance = 1e-1,
       ignore_attr = TRUE
     )
+    expect_valid_tf(smoo_)
   }
+  expect_valid_tf(tfb_fpc(smoo))
+  expect_valid_tf(tfb_fpc(smoo, pve = 0.9999))
 })

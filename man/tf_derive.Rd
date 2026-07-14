@@ -84,7 +84,7 @@ Fornberg, Bengt (1988).
 \emph{Mathematics of Computation}, \bold{51}(184), 699--706.
 }
 \seealso{
-Other tidyfun calculus functions: 
-\code{\link{tf_integrate}()}
+Other tidyfun calculus functions:
+\code{\link[=tf_integrate]{tf_integrate()}}
 }
 \concept{tidyfun calculus functions}

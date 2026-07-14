@@ -35,6 +35,13 @@ find_arg <- function(data, arg) {
   list(arg)
 }
 
+# A length-1 NA-valued tf with the same attributes / domain / arg as `x[i]`.
+# Uses the `1 * NA * <tf>` arithmetic dispatch so attributes propagate correctly
+# for both tfd and tfb.
+tf_na_like <- function(x, i = 1L) {
+  1 * NA * x[i]
+}
+
 domains_overlap <- function(x, y) {
   dom_x <- tf_domain(x)
   dom_y <- tf_domain(y)
@@ -190,37 +197,44 @@ get_args <- function(args, f) {
   args[names(args) %in% formalArgs(f)]
 }
 
-#' Turns any object into a list
+#' Wrap a non-list object in a list
 #'
-#' See above.
+#' Returns `x` unchanged if it is already a list, otherwise wraps it in
+#' a one-element list. Used internally to normalize `arg` inputs that may
+#' be either a single numeric vector or a list of per-curve vectors.
+#'
 #' @param x any input.
-#' @returns `x` turned into a list.
+#' @returns `x` if it is a list, otherwise `list(x)`.
 #' @examples
 #' ensure_list(1:3)
-#' ensure_list(list(1, 2))
+#' ensure_list(list(1:3, 4:6))
+#' @family tidyfun utility functions
 #' @export
-#' @family tidyfun developer tools
 ensure_list <- function(x) {
   if (is.list(x)) x else list(x)
 }
 
 #' Make syntactically valid unique names
 #'
-#' See above.
-#' @param x any input.
-#' @returns `x` turned into a list.
+#' Coerces `x` to character and returns syntactically valid, unique
+#' identifiers. Empty strings are replaced with `"NA"` before
+#' deduplication. If `x` already has no duplicates it is returned
+#' unchanged.
+#'
+#' @param x any input that can be coerced to character.
+#' @returns A character vector of unique, syntactically valid names of
+#'   the same length as `x`.
 #' @examples
-#' unique_id(c("a", "b", "a"))
+#' unique_id(c("a", "a", "b"))
+#' unique_id(c(1, 1, 2))
+#' @family tidyfun utility functions
 #' @export
-#' @family tidyfun developer tools
 unique_id <- function(x) {
   if (anyDuplicated(x) == 0) {
     return(x)
   }
-  if (is.character(x)) {
-    x <- sub("^$", "NA", x)
-  }
-  x <- make.names(as.character(x), unique = TRUE)
+  x <- sub("^$", "NA", as.character(x))
+  x <- make.names(x, unique = TRUE)
   x
 }
 
@@ -231,6 +245,12 @@ sort_unique <- function(x, simplify = FALSE) {
     x <- unlist(x, use.names = FALSE)
   }
   sort(unique(x))
+}
+
+# are all elements of a list (numerically) equal to the first one?
+all_equal_to_first <- function(lst) {
+  length(lst) <= 1L ||
+    all(map_lgl(lst[-1], \(el) isTRUE(all.equal(el, lst[[1]]))))
 }
 
 data_frame0 <- function(...) data_frame(..., .name_repair = "minimal")

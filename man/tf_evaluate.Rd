@@ -47,8 +47,8 @@ tf_evaluate(f, arg = new_grid) |> str()
 f[, new_grid]
 }
 \seealso{
-Other tidyfun inter/extrapolation functions: 
-\code{\link{tf_approx_linear}()},
-\code{\link{tf_interpolate}()}
+Other tidyfun inter/extrapolation functions:
+\code{\link[=tf_approx_linear]{tf_approx_linear()}},
+\code{\link[=tf_interpolate]{tf_interpolate()}}
 }
 \concept{tidyfun inter/extrapolation functions}

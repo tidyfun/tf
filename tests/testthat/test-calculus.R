@@ -51,6 +51,9 @@ test_that("basic derivatives work", {
     tolerance = 0.1,
     ignore_attr = TRUE
   )
+  expect_valid_tf(tf_derive(cubic))
+  expect_valid_tf(tf_derive(cubic_irreg))
+  expect_valid_tf(tf_derive(cubic_b))
 })
 
 test_that("basic definite integration works", {
@@ -81,6 +84,9 @@ test_that("basic antiderivatives work", {
     tolerance = 0.1,
     ignore_attr = TRUE
   )
+  expect_valid_tf(tf_integrate(square, definite = FALSE))
+  expect_valid_tf(tf_integrate(square_irreg, definite = FALSE))
+  expect_valid_tf(tf_integrate(square_b, definite = FALSE))
 })
 
 test_that("calculus works for tfb_spline with non-identity link", {
@@ -189,4 +195,58 @@ test_that("derivative at extremum is near zero", {
   f_quad <- tfd(-(qgrid - 2)^2 + 5, arg = qgrid)
   f_deriv <- tf_derive(f_quad)
   expect_equal(as.numeric(f_deriv[, 2]), 0, tolerance = 1e-4)
+})
+
+test_that("tf_integrate antiderivative for irregular tfd does not crash (#237)", {
+  set.seed(11)
+  f <- tf_sparsify(tf_rgp(3))
+  anti <- expect_no_error(tf_integrate(f, definite = FALSE))
+  expect_s3_class(anti, "tfd")
+  expect_length(anti, length(f))
+  # cumsum-based antiderivative starts at 0 at each curve's first arg
+  expect_equal(
+    vapply(tf_evaluations(anti), `[`, numeric(1), 1),
+    rep(0, length(anti)),
+    ignore_attr = TRUE
+  )
+})
+test_that("tf_integrate definite for irregular tfd is non-NA under defaults (#253)", {
+  set.seed(11)
+  f <- tf_sparsify(tf_rgp(3))
+  res <- expect_no_warning(tf_integrate(f))
+  expect_true(all(!is.na(res)))
+  # compare to explicit per-curve limits: should agree exactly
+  ranges <- lapply(tf_arg(f), range)
+  lo <- vapply(ranges, `[`, numeric(1), 1)
+  up <- vapply(ranges, `[`, numeric(1), 2)
+  res_explicit <- tf_integrate(f, lower = lo, upper = up)
+  expect_equal(unname(res), unname(res_explicit))
+})
+
+test_that("indefinite tf_integrate tolerates float-mismatched limits on irregular tfd", {
+  set.seed(12)
+  arg <- seq(0, 1, length.out = 11)
+  x <- tf_rgp(3, arg = arg)
+  keep <- list(1:11, c(1:5, 7:11), c(1:4, 6:11))
+  xi <- tfd(
+    Map(function(ev, i) ev[i], tf_evaluations(x), keep),
+    arg = lapply(keep, function(i) arg[i])
+  )
+  expect_s3_class(xi, "tfd_irreg")
+  # 0.3 float-mismatches the interior grid point 0.30000000000000004 from
+  # seq(); the strict-comparison limit insertion used to keep both values,
+  # silently constructing an invalid tfd whose per-curve arg grid has
+  # (almost-)duplicate values
+  anti <- tf_integrate(xi, lower = c(0.2, 0.2, 0.3), definite = FALSE)
+  expect_true(all(unlist(lapply(tf_arg(anti), diff)) > 1e-8))
+  # downstream use must not abort with "(Almost) non-unique `arg` values"
+  expect_output(print(anti))
+  ev <- expect_no_error(tf_evaluate(anti, arg = 0.5))
+  expect_true(all(is.finite(unlist(ev))))
+  # antiderivative starts at 0 at each curve's (snapped) lower limit
+  expect_equal(
+    vapply(tf_evaluations(anti), `[`, numeric(1), 1),
+    rep(0, length(anti)),
+    ignore_attr = TRUE
+  )
 })

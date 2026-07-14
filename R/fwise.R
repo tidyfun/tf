@@ -44,6 +44,11 @@ NULL
 #' tf_crosscor(x, -x)
 #' tf_crosscov(x, x) == tf_fvar(x)
 tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
+  UseMethod("tf_fwise")
+}
+
+#' @export
+tf_fwise.default <- function(x, .f, arg = tf_arg(x), ...) {
   assert_tf(x)
   assert_arg(arg = arg, x = x)
   x_ <- x[, arg, matrix = FALSE]
@@ -53,34 +58,81 @@ tf_fwise <- function(x, .f, arg = tf_arg(x), ...) {
 }
 
 #' @export
+tf_fwise.tf_mv <- function(x, .f, arg = tf_arg(x), ...) {
+  comp_names <- attr(x, "comp_names")
+  comp_results <- imap(tf_components(x), function(comp, nm) {
+    tf_fwise(comp, .f, arg = tf_mv_component_arg(arg, nm, comp_names), ...)
+  })
+  ret <- map(seq_along(x), function(i) {
+    vals <- map(comp_results, \(res) res[[i]])
+    names(vals) <- comp_names
+    vals
+  })
+  setNames(ret, names(x))
+}
+
+# Factory for the default methods of the function-wise scalar reductions
+# tf_fmax / tf_fmin / tf_fmedian: reduce each function's values with
+# `reduce_op`, unlist the per-function scalars and reattach names.
+make_tf_freduce <- function(reduce_op) {
+  function(x, arg = tf_arg(x), na.rm = FALSE) {
+    x |>
+      tf_fwise(\(.x) reduce_op(.x$value, na.rm = na.rm), arg = arg) |>
+      unlist(use.names = FALSE) |>
+      setNames(names(x))
+  }
+}
+
+# Factory for the `.tf_mv` methods: return an n x d matrix (curves x
+# components) like tf_fmean/tf_fvar/tf_fsd -- naive unlisting would
+# interleave components into a misnamed length-n*d vector.
+make_tf_freduce_mv <- function(freduce) {
+  function(x, arg = tf_arg(x), na.rm = FALSE) {
+    tf_mv_fsummary_matrix(
+      x,
+      \(comp, arg) freduce(comp, arg = arg, na.rm = na.rm),
+      arg = arg
+    )
+  }
+}
+
+#' @export
 #' @describeIn functionwise maximal value of each function
 #' @inheritParams base::min
-tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  x |>
-    tf_fwise(\(.x) max(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
-    setNames(names(x))
-}
+tf_fmax <- function(x, arg = tf_arg(x), na.rm = FALSE) UseMethod("tf_fmax")
+
+#' @export
+tf_fmax.default <- make_tf_freduce(max)
+
+#' @export
+#' @describeIn functionwise component-wise maxima of each vector-valued function
+tf_fmax.tf_mv <- make_tf_freduce_mv(tf_fmax)
 
 #' @export
 #' @describeIn functionwise minimal value of each function
 #' @inheritParams base::min
-tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  x |>
-    tf_fwise(\(.x) min(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
-    setNames(names(x))
-}
+tf_fmin <- function(x, arg = tf_arg(x), na.rm = FALSE) UseMethod("tf_fmin")
+
+#' @export
+tf_fmin.default <- make_tf_freduce(min)
+
+#' @export
+#' @describeIn functionwise component-wise minima of each vector-valued function
+tf_fmin.tf_mv <- make_tf_freduce_mv(tf_fmin)
 
 #' @export
 #' @describeIn functionwise median value of each function
 #' @inheritParams base::min
 tf_fmedian <- function(x, arg = tf_arg(x), na.rm = FALSE) {
-  x |>
-    tf_fwise(\(.x) median(.x$value, na.rm = na.rm), arg = arg) |>
-    unlist(use.names = FALSE) |>
-    setNames(names(x))
+  UseMethod("tf_fmedian")
 }
+
+#' @export
+tf_fmedian.default <- make_tf_freduce(stats::median)
+
+#' @export
+#' @describeIn functionwise component-wise medians of each vector-valued function
+tf_fmedian.tf_mv <- make_tf_freduce_mv(tf_fmedian)
 
 #' @export
 #' @describeIn functionwise range of values of each function
@@ -93,6 +145,11 @@ tf_frange <- function(x, arg = tf_arg(x), na.rm = FALSE, finite = FALSE) {
 #' @describeIn functionwise mean of each function:
 #'   \eqn{\tfrac{1}{|T|}\int_T x_i(t) dt}
 tf_fmean <- function(x, arg = tf_arg(x)) {
+  UseMethod("tf_fmean")
+}
+
+#' @export
+tf_fmean.default <- function(x, arg = tf_arg(x)) {
   assert_tf(x)
   assert_arg(arg = arg, x = x)
   x_ <- tf_interpolate(x, arg = arg)
@@ -102,9 +159,20 @@ tf_fmean <- function(x, arg = tf_arg(x)) {
 }
 
 #' @export
+#' @describeIn functionwise component-wise means of each vector-valued function
+tf_fmean.tf_mv <- function(x, arg = tf_arg(x)) {
+  tf_mv_fsummary_matrix(x, tf_fmean, arg = arg)
+}
+
+#' @export
 #' @describeIn functionwise variance of each function:
 #'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}
 tf_fvar <- function(x, arg = tf_arg(x)) {
+  UseMethod("tf_fvar")
+}
+
+#' @export
+tf_fvar.default <- function(x, arg = tf_arg(x)) {
   assert_tf(x)
   assert_arg(arg = arg, x = x)
   arg <- ensure_list(arg)
@@ -116,16 +184,71 @@ tf_fvar <- function(x, arg = tf_arg(x)) {
 }
 
 #' @export
+#' @describeIn functionwise component-wise variances of each vector-valued function
+tf_fvar.tf_mv <- function(x, arg = tf_arg(x)) {
+  tf_mv_fsummary_matrix(x, tf_fvar, arg = arg)
+}
+
+#' @export
 #' @describeIn functionwise standard deviation of each function:
 #'   \eqn{\sqrt{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t))^2 dt}}
 tf_fsd <- function(x, arg = tf_arg(x)) {
+  UseMethod("tf_fsd")
+}
+
+#' @export
+tf_fsd.default <- function(x, arg = tf_arg(x)) {
   tf_fvar(x, arg) |> sqrt()
+}
+
+#' @export
+#' @describeIn functionwise component-wise standard deviations of each vector-valued function
+tf_fsd.tf_mv <- function(x, arg = tf_arg(x)) {
+  tf_mv_fsummary_matrix(x, tf_fsd, arg = arg)
+}
+
+tf_mv_fsummary_matrix <- function(x, .f, arg = tf_arg(x)) {
+  comps <- tf_components(x)
+  comp_names <- attr(x, "comp_names")
+  if (!length(comps)) {
+    return(matrix(
+      numeric(0),
+      nrow = vec_size(x),
+      ncol = 0L,
+      dimnames = list(names(x), comp_names)
+    ))
+  }
+  vals <- imap(comps, function(comp, nm) {
+    .f(comp, arg = tf_mv_component_arg(arg, nm, comp_names))
+  })
+  ret <- do.call(cbind, vals)
+  dimnames(ret) <- list(names(x), comp_names)
+  ret
+}
+
+tf_mv_component_arg <- function(arg, nm, comp_names) {
+  if (
+    is.list(arg) &&
+      length(arg) == length(comp_names) &&
+      !is.null(names(arg)) &&
+      !anyDuplicated(names(arg)) &&
+      setequal(names(arg), comp_names)
+  ) {
+    arg[[nm]]
+  } else {
+    arg
+  }
 }
 
 #' @export
 #' @describeIn functionwise cross-covariances between two functional vectors:
 #'   \eqn{\tfrac{1}{|T|}\int_T (x_i(t) - \bar x(t)) (y_i(t)-\bar y(t)) dt}
 tf_crosscov <- function(x, y, arg = tf_arg(x)) {
+  UseMethod("tf_crosscov")
+}
+
+#' @export
+tf_crosscov.default <- function(x, y, arg = tf_arg(x)) {
   # check same domain, arg
   assert_tf(x)
   assert_tf(y)
@@ -153,5 +276,10 @@ tf_crosscov <- function(x, y, arg = tf_arg(x)) {
 #' @describeIn functionwise cross-correlation between two functional vectors:
 #'   `tf_crosscov(x, y) / (tf_fsd(x) * tf_fsd(y))`
 tf_crosscor <- function(x, y, arg = tf_arg(x)) {
+  UseMethod("tf_crosscor")
+}
+
+#' @export
+tf_crosscor.default <- function(x, y, arg = tf_arg(x)) {
   tf_crosscov(x, y, arg) / sqrt(tf_fvar(x, arg) * tf_fvar(y, arg))
 }

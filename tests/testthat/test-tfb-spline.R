@@ -20,7 +20,9 @@ test_that("tfb_spline defaults work for all kinds of regular input", {
       tolerance = 1e-3,
       ignore_attr = TRUE
     )
+    expect_valid_tf(smoo_)
   }
+  expect_valid_tf(tfb_spline(smoo, verbose = FALSE))
 })
 
 test_that("tfb_spline works for fda::fd input", {
@@ -142,7 +144,10 @@ test_that("tfb_spline defaults work for all kinds of irregular input", {
       tolerance = 1e-1,
       ignore_attr = TRUE
     )
+    expect_valid_tf(irr_tfb_)
   }
+  expect_valid_tf(irr_tfb_1)
+  expect_valid_tf(irr_tfb_2)
 })
 
 test_that("unpenalized tfb_spline works", {
@@ -240,6 +245,7 @@ test_that("mgcv spline basis options work", {
         knots = NULL
       ))
     )
+    expect_valid_tf(smoo_)
   }
 })
 

@@ -73,8 +73,15 @@ evaluate_tfd_once <- function(
   seen <- !is.na(seen)
   ret <- rep(NA_real_, length(new_arg))
   ret[seen] <- evaluations[seen_index]
-  ret[!seen] <-
-    evaluator(new_arg[!seen], arg = arg, evaluations = evaluations)
+  if (any(!seen)) {
+    # evaluator may sort/uniquify its input (see zoo_wrapper); evaluate on
+    # the unique sorted unseen args, then map back so duplicated `new_arg`
+    # values land at the correct positions.
+    unseen <- new_arg[!seen]
+    u <- sort_unique(unseen)
+    vals <- evaluator(u, arg = arg, evaluations = evaluations)
+    ret[!seen] <- vals[match(unseen, u)]
+  }
   ret
 }
 
@@ -94,7 +101,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       evals <- evaluate_tfb_once(
         x = arg,
         arg = tf_arg(object),
-        coefs = do.call(cbind, coef(object[!na_entries])),
+        coefs = do.call(cbind, unname(coef(object[!na_entries]))),
         basis = attr(object, "basis"),
         X = attr(object, "basis_matrix")
       )
@@ -111,7 +118,7 @@ tf_evaluate.tfb <- function(object, arg, ...) {
     }
   } else {
     ret <- pmap(
-      list(arg, ensure_list(tf_arg(object)), coef(object)),
+      list(arg, ensure_list(tf_arg(object)), unname(coef(object))),
       function(x, y, z) {
         if (!length(z) || anyNA(z)) {
           return(rep(NA_real_, length(x)))

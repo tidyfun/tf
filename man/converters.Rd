@@ -58,4 +58,8 @@ as.matrix(f)
 fun <- as.function(f)
 fun(c(0, 0.5, 1))
 }
+\seealso{
+Other tidyfun converters:
+\code{\link{converters-mv}}
+}
 \concept{tidyfun converters}

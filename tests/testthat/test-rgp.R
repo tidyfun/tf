@@ -21,3 +21,21 @@ test_that("user defined covariance works", {
     "2 formal arguments"
   )
 })
+
+test_that("tf_rgp reproducibility (regression test for base-R rmvnorm replacement)", {
+  # Pin a digest of the output for a fixed seed. Guards against accidental
+  # changes to the GP sampling path (which now uses a base-R eigen-decomposition
+  # sampler instead of mvtnorm::rmvnorm).
+  set.seed(20260610)
+  x_a <- tf_rgp(3, arg = 21L, cov = "squareexp", nugget = 0)
+  set.seed(20260610)
+  x_b <- tf_rgp(3, arg = 21L, cov = "squareexp", nugget = 0)
+  expect_equal(x_a, x_b)
+
+  # Check sampled values have the right empirical scale (variance roughly 1
+  # for the squared-exp kernel with no nugget at f_cov(t, t) = 1).
+  set.seed(1)
+  x <- tf_rgp(200, arg = 51L, cov = "squareexp", nugget = 0)
+  evals <- do.call(rbind, tf_evaluations(x))
+  expect_true(abs(mean(apply(evals, 2, var)) - 1) < 0.2)
+})

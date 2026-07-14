@@ -5,12 +5,18 @@
 \alias{tf_aligned}
 \alias{tf_inv_warps}
 \alias{tf_template}
+\alias{tf_rotations}
+\alias{tf_scales}
 \alias{print.tf_registration}
+\alias{print.tf_shape_registration}
 \alias{summary.tf_registration}
 \alias{print.summary.tf_registration}
+\alias{summary.tf_shape_registration}
+\alias{print.summary.tf_shape_registration}
 \alias{plot.tf_registration}
 \alias{[.tf_registration}
 \alias{length.tf_registration}
+\alias{[.tf_shape_registration}
 \title{Registration Result Object}
 \usage{
 tf_aligned(x)
@@ -19,20 +25,32 @@ tf_inv_warps(x)
 
 tf_template(x)
 
+tf_rotations(x)
+
+tf_scales(x)
+
 \method{print}{tf_registration}(x, ...)
+
+\method{print}{tf_shape_registration}(x, ...)
 
 \method{summary}{tf_registration}(object, ...)
 
 \method{print}{summary.tf_registration}(x, ...)
+
+\method{summary}{tf_shape_registration}(object, ...)
+
+\method{print}{summary.tf_shape_registration}(x, ...)
 
 \method{plot}{tf_registration}(x, ...)
 
 \method{[}{tf_registration}(x, i)
 
 \method{length}{tf_registration}(x)
+
+\method{[}{tf_shape_registration}(x, i)
 }
 \arguments{
-\item{x}{a \code{tf_registration} object}
+\item{x}{a \code{tf_registration} or \code{tf_shape_registration} object}
 
 \item{...}{additional arguments (currently unused)}
 
@@ -46,7 +64,9 @@ For \code{tf_registration} objects: a list with entries \code{registered}
 (inverse warping functions aligning \code{x} to the template function), the
 \code{template} function, the original data \code{x} (if \code{store_x = TRUE} was used
 in \code{\link[=tf_register]{tf_register()}}), and the \code{call} to \code{\link[=tf_register]{tf_register()}} that created the
-object. Accessors return the respective component.
+object. \code{tf_shape_registration} objects additionally contain the forward
+\code{warps}, \code{rotations}, and \code{scales}. Accessors return the respective
+component.
 }
 \description{
 \code{tf_registration} objects store the result of \code{\link[=tf_register]{tf_register()}}, including
@@ -54,6 +74,9 @@ the aligned (registered) curves, estimated inverse warping functions
 \eqn{h_i^{-1}} (observed \eqn{\to} aligned time), and the template used.
 Use accessors \code{\link[=tf_aligned]{tf_aligned()}}, \code{\link[=tf_inv_warps]{tf_inv_warps()}}, and \code{\link[=tf_template]{tf_template()}} to extract
 components.
+\code{tf_shape_registration} objects, returned by \code{\link[=tf_register_shape]{tf_register_shape()}}, extend
+this structure with shape-space rotations and scale factors. Use
+\code{\link[=tf_rotations]{tf_rotations()}} and \code{\link[=tf_scales]{tf_scales()}} to extract those components.
 }
 \section{Summary diagnostics}{
 
@@ -102,6 +125,12 @@ curves outside the original domain. Domain-preserving methods (\code{srvf},
 \eqn{h_i^{-1}(t)} that map observed time to aligned time (\code{tfd} vector).
 Use \code{\link[=tf_invert]{tf_invert()}} on the result to obtain forward warps if needed.
 \item \code{tf_template(x)}: extract the template function (\code{tf} vector of length 1).
+\item \code{tf_rotations(x)}: extract the per-curve rotation matrices from a
+\code{tf_shape_registration} object.
+\item \code{tf_scales(x)}: extract the per-curve scale factors from a
+\code{tf_shape_registration} object. Each factor is relative to the template
+(template SRVF norm divided by the curve's SRVF norm); see
+\code{\link[=tf_register_shape]{tf_register_shape()}}.
 }
 }
 
@@ -112,12 +141,13 @@ summary(reg)
 plot(reg)
 }
 \seealso{
-Other registration functions: 
-\code{\link{tf_align}()},
-\code{\link{tf_estimate_warps}()},
-\code{\link{tf_landmarks_extrema}()},
-\code{\link{tf_register}()},
-\code{\link{tf_warp}()}
+Other registration functions:
+\code{\link[=tf_align]{tf_align()}},
+\code{\link[=tf_estimate_warps]{tf_estimate_warps()}},
+\code{\link[=tf_landmarks_extrema]{tf_landmarks_extrema()}},
+\code{\link[=tf_register]{tf_register()}},
+\code{\link[=tf_register_shape]{tf_register_shape()}},
+\code{\link[=tf_warp]{tf_warp()}}
 }
 \author{
 Fabian Scheipl, Claude Opus 4.6

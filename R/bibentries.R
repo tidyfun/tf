@@ -1,4 +1,15 @@
 bibentries <- c(
+  happ2018 = bibentry(
+    "article",
+    title = "Multivariate functional principal component analysis for data observed on different (dimensional) domains",
+    author = "Happ, Clara and Greven, Sonja",
+    journal = "Journal of the American Statistical Association",
+    volume = "113",
+    number = "522",
+    pages = "649--659",
+    year = "2018",
+    publisher = "Taylor & Francis"
+  ),
   sun2012exact = bibentry(
     "article",
     title = "Exact fast computation of band depth for large functional datasets: How quickly can one million curves be ranked?",
@@ -40,23 +51,6 @@ bibentries <- c(
     volume = "11",
     pages = "2287--2322",
     year = "2010"
-  ),
-  softimpute = bibentry(
-    "manual",
-    title = "softImpute: Matrix Completion via Iterative Soft-Thresholded SVD",
-    author = "Trevor Hastie and Rahul Mazumder",
-    year = "2021",
-    note = "R package version 1.4-1",
-    url = "https://CRAN.R-project.org/package=softImpute",
-    doi = "10.32614/CRAN.package.softImpute"
-  ),
-  meng2023mogsa = bibentry(
-    "manual",
-    title = "mogsa: Multiple omics data integrative clustering and gene set analysis",
-    author = "Chen Meng",
-    year = "2023",
-    url = "https://bioconductor.org/packages/mogsa",
-    doi = "10.18129/B9.bioc.mogsa"
   ),
   swihart2010lasagna = bibentry(
     "article",

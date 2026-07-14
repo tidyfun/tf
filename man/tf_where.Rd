@@ -54,6 +54,16 @@ Entries in \code{f} that do not fulfill \code{cond} anywhere yield \code{numeric
 containing a single entry in \code{f} with columns \code{arg} and \code{value}, so most
 of the usual \code{dplyr} tricks are available as well, see examples.\cr
 Any \code{cond}ition evaluates to \code{NA} on \code{NA}-entries in \code{f}.
+
+For vector-valued (\code{tf_mv}) input, the \code{data.frame} on which \code{cond} is
+evaluated has one column per component, named like the components, instead
+of a single \code{value} column: conditions are \emph{joint} conditions across
+components, e.g. \code{tf_where(f, x > 0 & y < 1)} or
+\code{tf_where(f, sqrt(x^2 + y^2) > 1)} for components \code{"x"} and \code{"y"}. To apply
+a condition to a single component, extract it first:
+\code{tf_where(f[, component = "x"], value > 0)}. All components have to be
+observed on a common grid -- use \code{\link[=tf_interpolate]{tf_interpolate()}} to align them first, or
+supply \code{arg} explicitly.
 }
 \examples{
 \dontshow{if (rlang::is_installed("dplyr")) withAutoprint(\{ # examplesIf}
@@ -83,6 +93,12 @@ tf_where(
 tf_where(f, arg > 0.5 & value > 0)
 # does the function ever exceed?
 tf_anywhere(f, value > 1)
+
+# vector-valued input: conditions refer to components by name
+fm <- tfd_mv(list(x = tf_rgp(3, 11L), y = tf_rgp(3, 11L)))
+tf_where(fm, x > 0 & y < 0)
+tf_where(fm, sqrt(x^2 + y^2) > 1, "first")
+tf_anywhere(fm, x > y)
 \dontshow{\}) # examplesIf}
 }
 \concept{tidyfun query-functions}

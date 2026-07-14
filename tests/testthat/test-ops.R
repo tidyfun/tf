@@ -172,3 +172,17 @@ test_that("tfb arithmetic operations with other tfb", {
   expect_no_error(x + x[1])
   expect_no_error(x[3] + x)
 })
+
+test_that("==.tfb dispatches like ==.tfd (PR C target 7)", {
+  xb <- suppressWarnings(tfb(tf_rgp(3)))
+  yb <- xb
+  yb[2] <- NA
+  # Comparison is per-curve via isTRUE(all.equal()) and never returns NA:
+  # an NA entry compares equal to itself and unequal to any non-NA entry.
+  expect_equal(unname(xb == xb), rep(TRUE, 3))
+  expect_equal(unname(xb != xb), rep(FALSE, 3))
+  expect_equal(unname(yb == yb), rep(TRUE, 3))
+  expect_equal(unname(yb != yb), rep(FALSE, 3))
+  expect_equal(unname(xb == yb), c(TRUE, FALSE, TRUE))
+  expect_equal(unname(xb != yb), c(FALSE, TRUE, FALSE))
+})

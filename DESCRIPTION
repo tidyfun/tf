@@ -1,6 +1,6 @@
 Package: tf
 Title: S3 Classes and Methods for Tidy Functional Data
-Version: 0.4.1
+Version: 0.5.0
 Authors@R: c(
     person("Fabian", "Scheipl", , "fabian.scheipl@googlemail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8172-3603")),
@@ -10,13 +10,7 @@ Authors@R: c(
     person("Julia", "Wrobel", role = "ctb",
            comment = c(ORCID = "0000-0001-6783-1421")),
     person("Sebastian", "Fischer", role = "ctb",
-           comment = c(ORCID = "0000-0002-9609-3197")),
-    person("Trevor", "Hastie", role = "ctb",
-           comment = "softImpute author"),
-    person("Rahul", "Mazumder", role = "ctb",
-           comment = "softImpute author"),
-    person("Chen", "Meng", role = "ctb",
-           comment = "mogsa author")
+           comment = c(ORCID = "0000-0002-9609-3197"))
   )
 Description: Provides S3 vector types for functional data represented on
     grids, in spline bases, or via functional principal components.
@@ -37,8 +31,6 @@ Imports:
     cli,
     methods,
     mgcv,
-    mvtnorm,
-    pracma,
     purrr (>= 1.0.0),
     rlang,
     stats,
@@ -48,29 +40,40 @@ Suggests:
     covr,
     dplyr,
     fda,
-    fdasrvf,
+    fdasrvf (>= 2.4.0),
     pillar,
     refund,
     testthat (>= 3.0.0),
+    tibble,
+    tidyr,
     withr
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Collate:
+    'tfb-class.R'
+    'tfd-class.R'
+    'tfd-mv.R'
+    'tfb-mv.R'
+    'vctrs-mv.R'
+    'accessors-mv.R'
     'approx.R'
     'assertions.R'
     'bibentries.R'
+    'brackets-mv.R'
     'brackets.R'
+    'calculus-mv.R'
     'calculus.R'
     'convert-construct-utils.R'
+    'convert-mv.R'
     'convert.R'
     'data.R'
     'depth.R'
     'evaluate.R'
     'fda-connectors.R'
     'fwise.R'
+    'geometry-mv.R'
     'globals.R'
     'graphics.R'
     'interpolate.R'
@@ -78,9 +81,14 @@ Collate:
     'ops.R'
     'math.R'
     'methods.R'
+    'mv-stubs.R'
+    'ops-mv.R'
+    'plot-mv.R'
+    'print-format-mv.R'
     'print-format.R'
     'rebase.R'
     'register-cc.R'
+    'register-mv.R'
     'register-utils.R'
     'register.R'
     'registration-class.R'
@@ -92,10 +100,9 @@ Collate:
     'tf-package.R'
     'tfb-fpc.R'
     'tfb-spline.R'
-    'tfb-class.R'
-    'tfd-class.R'
     'tf-s4.R'
     'tfb-fpc-utils.R'
+    'tfb-mfpc.R'
     'tfb-spline-utils.R'
     'utils.R'
     'vctrs-cast.R'
@@ -103,3 +110,4 @@ Collate:
     'where.R'
     'zoom.R'
     'zzz.R'
+Config/roxygen2/version: 8.0.0

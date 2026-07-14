@@ -26,6 +26,11 @@
 #' @param depth one of `"MBD"`, `"MHI"`, `"FM"`, `"FSD"`, or `"RPD"`.
 #' @param arg grid of evaluation points.
 #' @param na.rm remove missing observations? Defaults to `TRUE`.
+#' @param weights (`tf_mv` only) component weighting scheme for the weighted
+#'   componentwise aggregation. Either `"equal"` (default), `"inverse_variance"`
+#'   (weights proportional to the inverse of each component's mean pointwise
+#'   variance), or a numeric vector of `d` strictly positive weights. Weights
+#'   are normalized to sum to 1.
 #' @param ... for `"RPD"`: `u` (regularization quantile, default 0.01),
 #'   `n_projections` (M, default 5000), `n_projections_beta` (L, default
 #'   500).
@@ -84,7 +89,7 @@ tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
   if (!missing(arg)) assert_arg_vector(arg, x)
   # TODO: warn if irreg?
   # TODO: Implement depths for partially observed functions instead of
-  # interpolating them onto a common grid; see Elías et al. (2022),
+  # interpolating them onto a common grid; see Elias et al. (2022),
   # "Integrated Depths for Partially Observed Functional Data",
   # doi:10.1080/10618600.2022.2070171.
   if (na.rm) x <- x[!is.na(x)]
@@ -94,6 +99,113 @@ tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
     na.rm = na.rm,
     ...
   )
+}
+
+#' @export
+#' @rdname tf_depth
+tf_depth.tf_mv <- function(
+  x,
+  arg,
+  depth = c("MBD", "MHI", "FM", "FSD", "RPD"),
+  na.rm = TRUE,
+  weights = "equal",
+  ...
+) {
+  depth <- match.arg(depth)
+  if (identical(depth, "MHI")) {
+    cli::cli_abort(c(
+      "{.val MHI} is an up-down ordering index, not a centrality depth, and \\
+       has no canonical vector-valued analogue for {.cls tf_mv}.",
+      i = "Use {.fn tf_order} with {.arg by} to order vector-valued curves by \\
+           an explicit scalar reduction, e.g. \\
+           {.code tf_order(f, by = \"norm\")}."
+    ))
+  }
+  if (!tf_ncomp(x)) {
+    cli::cli_abort(
+      "Cannot compute {.fn tf_depth} for a zero-component {.cls tf_mv}."
+    )
+  }
+  # Mirror the univariate na.rm default: drop curves that are missing in *any*
+  # component (the union, per `is.na.tf_mv`) so every component then aligns.
+  if (na.rm) x <- x[!is.na(x)]
+  n <- vec_size(x)
+  if (n == 0) {
+    return(setNames(numeric(0), names(x)))
+  }
+  comps <- tf_components(x)
+  w <- resolve_mv_depth_weights(weights, comps)
+  depth_args <- c(
+    if (!missing(arg)) list(arg = arg),
+    list(depth = depth, na.rm = na.rm),
+    list(...)
+  )
+  per_comp <- vapply(
+    comps,
+    function(comp) do.call(tf_depth, c(list(comp), depth_args)),
+    numeric(n)
+  )
+  # vapply returns a bare vector for n == 1; the n x d shape is needed below.
+  per_comp <- matrix(per_comp, nrow = n)
+  result <- as.numeric(per_comp %*% w)
+  names(result) <- names(x)
+  result
+}
+
+# Index of the (joint-)depth median: the first maximal-depth observation, with
+# an inform on ties. tf_mv medians must return an *observed* curve, so ties
+# cannot be averaged like `median.tf` does.
+depth_median_index <- function(d) {
+  if (!any(is.finite(d))) {
+    cli::cli_abort(
+      "Can't determine a depth median: no finite depth values."
+    )
+  }
+  # non-finite depths (partially-NA curves under some depths) never win and
+  # must not poison the tie count.
+  d[!is.finite(d)] <- -Inf
+  idx <- which.max(d)
+  n_max <- sum(d == d[idx])
+  if (n_max > 1) {
+    cli::cli_inform(c(
+      x = "{n_max} observations with maximal depth; returning the first."
+    ))
+  }
+  idx
+}
+
+# resolve the `tf_mv` depth weighting scheme to a length-d numeric vector that
+# sums to 1. Mirrors the `tfb_mfpc()` vocabulary (`"equal"`,
+# `"inverse_variance"`, numeric), but "inverse_variance" here is the inverse of
+# each component's *mean pointwise variance* (not the score-variance used by the
+# MFPC eigenbasis), which is the natural scale for a depth aggregation.
+resolve_mv_depth_weights <- function(weights, comps) {
+  d <- length(comps)
+  if (is.numeric(weights)) {
+    assert_numeric(weights, len = d, finite = TRUE, any.missing = FALSE)
+    if (any(weights <= 0)) {
+      cli::cli_abort("Numeric {.arg weights} must be strictly positive.")
+    }
+    w <- weights
+  } else {
+    weights <- match.arg(weights, c("equal", "inverse_variance"))
+    w <- switch(
+      weights,
+      equal = rep(1, d),
+      inverse_variance = {
+        # canonical mean-pointwise-variance helper (registration-class.R, #249)
+        mean_pw_var <- map_dbl(comps, mean_pointwise_variance)
+        if (any(!is.finite(mean_pw_var) | mean_pw_var <= 0)) {
+          cli::cli_abort(
+            "Can't use {.val inverse_variance} weights: a component has zero \\
+             (or undefined) pointwise variance."
+          )
+        }
+        1 / mean_pw_var
+      }
+    )
+  }
+  w / sum(w)
 }
 
 #-------------------------------------------------------------------------------
@@ -178,7 +290,7 @@ fsd_block_size <- function(n, max_block_entries = 1e7) {
 }
 
 # Regularized projection depth:
-# Bočinec, F., Nagy, S., and Yeon, H. (2026)
+# Bocinec, F., Nagy, S., and Yeon, H. (2026)
 # Note: uses random projections -- set RNG seed before calling for
 # reproducible results.
 rpd <- function(
@@ -309,7 +421,7 @@ validate_depth <- function(depth) {
 depth_data <- function(x, depth, na.rm = FALSE, ...) {
   validate_depth(depth)
   if (!na.rm && anyNA(x))
-    return(list(x = 1 * NA * x[which(is.na(x))[1]], d = NULL))
+    return(list(x = tf_na_like(x, which(is.na(x))[1]), d = NULL))
 
   x <- x[!is.na(x)]
   if (length(x) == 0) return(list(x = x, d = NULL))
@@ -345,8 +457,11 @@ depth_extreme <- function(
 #' For centrality-based depths (`"MBD"`, `"FM"`, `"FSD"`, `"RPD"`), the most
 #' extreme function gets rank 1 and the most central gets the highest rank.
 #'
-#' `order` returns the permutation which rearranges `x` into ascending
-#' order according to depth.
+#' `tf_order` returns the permutation which rearranges `x` into ascending
+#' order according to depth. For vector-valued (`tf_mv`) data there is no
+#' canonical total order on \eqn{R^d}: `tf_order.tf_mv()` requires an explicit
+#' scalar reduction via `by` (either `"norm"` for `tf_norm(f)`, or a component
+#' name), and then applies the univariate depth order to that reduction.
 #'
 #' `sort.tf` returns the sorted `tf` vector.
 #'
@@ -354,6 +469,9 @@ depth_extreme <- function(
 #' `base::order` and `base::rank` to work on `tf` vectors.
 #'
 #' @param x a `tf` vector.
+#' @param f a `tf` or `tf_mv` vector (for `tf_order`).
+#' @param by (`tf_mv` only) the scalar reduction to order by: `"norm"` (the
+#'   default, uses `tf_norm(f)`) or the name of a component.
 #' @param depth the depth function to use for ranking. One of the depths
 #'   available via [tf_depth()] (default: `"MHI"`) or a function that takes a
 #'   `tf` vector and returns a numeric vector of depth values.
@@ -362,7 +480,7 @@ depth_extreme <- function(
 #' @param decreasing logical. Should the sort be decreasing?
 #' @param ... passed to [tf_depth()] (e.g. `arg`).
 #' @returns `rank`: a numeric vector of ranks.\cr
-#'   `order`: an integer vector of indices.\cr
+#'   `tf_order`: an integer vector of indices.\cr
 #'   `sort.tf`: a sorted `tf` vector.\cr
 #'   `xtfrm.tf`: a numeric vector of depth values.
 #' @examples
@@ -417,6 +535,17 @@ rank.tf <- function(
 #' @rdname tf_order
 #' @export
 xtfrm.tf <- function(x) {
+  cli::cli_warn(
+    c(
+      "Ordering {.cls tf} vectors via {.fn sort}/{.fn order}/{.fn rank} \\
+       uses a depth-based total order ({.val MHI} by default), not a \\
+       pointwise comparison.",
+      i = "See {.fn tf_order} for the underlying semantics and how to \\
+           pick a different depth."
+    ),
+    .frequency = "once",
+    .frequency_id = "tf_xtfrm"
+  )
   compute_depth(x, "MHI", na.rm = FALSE)
 }
 
@@ -426,6 +555,42 @@ sort.tf <- function(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...) {
   d <- compute_depth(x, depth, na.rm = FALSE, ...)
   o <- base::order(d, na.last = na.last, decreasing = decreasing)
   x[o]
+}
+
+#' @rdname tf_order
+#' @export
+tf_order <- function(f, ...) {
+  UseMethod("tf_order")
+}
+
+#' @rdname tf_order
+#' @export
+tf_order.default <- function(f, ...) {
+  base::order(f, ...)
+}
+
+#' @rdname tf_order
+#' @export
+tf_order.tf <- function(f, depth = "MHI", ...) {
+  d <- compute_depth(f, depth, na.rm = FALSE, ...)
+  base::order(d)
+}
+
+#' @rdname tf_order
+#' @export
+tf_order.tf_mv <- function(f, by = "norm", ...) {
+  comp_names <- attr(f, "comp_names")
+  reduction <- if (identical(by, "norm")) {
+    tf_norm(f)
+  } else if (is.character(by) && length(by) == 1L && by %in% comp_names) {
+    tf_component(f, by)
+  } else {
+    cli::cli_abort(c(
+      "{.arg by} must be {.val norm} or a component name.",
+      i = "Available component{?s}: {.val {comp_names}}."
+    ))
+  }
+  tf_order(reduction, ...)
 }
 
 #' Depth-based minimum, maximum and range for `tf` vectors
@@ -523,4 +688,34 @@ quantile.tf <- function(
     eval = is_tfd(x),
     ...
   )
+}
+
+# Component-wise pointwise quantiles for vector-valued functional data: returns
+# a `tf_mv` with one curve per requested probability in `probs`, exactly as
+# `quantile.tf()` produces per component. The per-component `cli_inform()` about
+# "only pointwise quantiles" is suppressed and emitted once here instead.
+#' @export
+quantile.tf_mv <- function(
+  x,
+  probs = seq(0, 1, 0.25),
+  na.rm = FALSE,
+  names = TRUE,
+  type = 7,
+  ...
+) {
+  cli::cli_inform(c(
+    i = "Only pointwise, non-functional quantiles implemented for {.cls tf}s;
+         returned component-wise for {.cls tf_mv}."
+  ))
+  comps <- map(tf_components(x), function(comp) {
+    suppressMessages(quantile(
+      comp,
+      probs = probs,
+      na.rm = na.rm,
+      names = names,
+      type = type,
+      ...
+    ))
+  })
+  new_tf_mv(comps, domain = tf_domain(x))
 }

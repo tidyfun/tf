@@ -15,9 +15,11 @@
 \alias{tf_arg<-.tfb}
 \alias{coef.tfb}
 \alias{rev.tf}
+\alias{rev.tf_mv}
 \alias{is.na.tf}
 \alias{is.na.tfd_irreg}
 \alias{is_tf}
+\alias{is_tf_1d}
 \alias{is_tfd}
 \alias{is_reg}
 \alias{is_tfd_reg}
@@ -26,6 +28,9 @@
 \alias{is_tfb}
 \alias{is_tfb_spline}
 \alias{is_tfb_fpc}
+\alias{is_tf_mv}
+\alias{is_tfd_mv}
+\alias{is_tfb_mv}
 \title{Utility functions for \code{tf}-objects}
 \usage{
 tf_arg(f)
@@ -56,11 +61,15 @@ tf_arg(x) <- value
 
 \method{rev}{tf}(x)
 
+\method{rev}{tf_mv}(x)
+
 \method{is.na}{tf}(x)
 
 \method{is.na}{tfd_irreg}(x)
 
 is_tf(x)
+
+is_tf_1d(x)
 
 is_tfd(x)
 
@@ -77,6 +86,12 @@ is_tfb(x)
 is_tfb_spline(x)
 
 is_tfb_fpc(x)
+
+is_tf_mv(x)
+
+is_tfd_mv(x)
+
+is_tfb_mv(x)
 }
 \arguments{
 \item{f}{an \code{tf} object.}
@@ -95,9 +110,9 @@ the domain. \cr}
 \code{tf_arg(f)}? Defaults to \code{FALSE}, which returns the matrix of basis functions
 (columns) evaluated on \code{tf_arg(f)} (rows).}
 
-\item{object}{as usual}
+\item{object}{a \code{tfb} object.}
 
-\item{...}{dots}
+\item{...}{not used.}
 }
 \value{
 either the respective attribute or, for setters (assignment functions),
@@ -106,6 +121,11 @@ the input object with modified properties.
 \description{
 A bunch of methods & utilities that do what they say: get or set the
 respective attributes of a \code{tf}-object.
+
+\code{is_tf_1d()} distinguishes \emph{univariate} \code{tf} vectors (length-\code{n}
+samples of \code{f: R -> R}) from any \code{tf} vector. Returns \code{TRUE} for \code{tfd} /
+\code{tfb} and \code{FALSE} for \code{tfd_mv} / \code{tfb_mv}. Useful as a dispatch / guard
+predicate inside helpers that assume scalar per-arg evaluations.
 }
 \examples{
 x <- tf_rgp(3)
@@ -125,8 +145,10 @@ tf_basis(xb)(c(0, .1, .2))
 c(is_tfb(xb), is_tfb_spline(xb), is_tfb_fpc(xb))
 }
 \seealso{
-Other tidyfun utility functions: 
-\code{\link{in_range}()},
-\code{\link{tf_zoom}()}
+Other tidyfun utility functions:
+\code{\link[=ensure_list]{ensure_list()}},
+\code{\link[=in_range]{in_range()}},
+\code{\link[=tf_zoom]{tf_zoom()}},
+\code{\link[=unique_id]{unique_id()}}
 }
 \concept{tidyfun utility functions}

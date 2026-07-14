@@ -7,20 +7,27 @@
 unique_id(x)
 }
 \arguments{
-\item{x}{any input.}
+\item{x}{any input that can be coerced to character.}
 }
 \value{
-\code{x} turned into a list.
+A character vector of unique, syntactically valid names of
+the same length as \code{x}.
 }
 \description{
-See above.
+Coerces \code{x} to character and returns syntactically valid, unique
+identifiers. Empty strings are replaced with \code{"NA"} before
+deduplication. If \code{x} already has no duplicates it is returned
+unchanged.
 }
 \examples{
-unique_id(c("a", "b", "a"))
+unique_id(c("a", "a", "b"))
+unique_id(c(1, 1, 2))
 }
 \seealso{
-Other tidyfun developer tools: 
-\code{\link{ensure_list}()},
-\code{\link{prep_plotting_arg}()}
+Other tidyfun utility functions:
+\code{\link[=ensure_list]{ensure_list()}},
+\code{\link[=in_range]{in_range()}},
+\code{\link[=tf_arg]{tf_arg()}},
+\code{\link[=tf_zoom]{tf_zoom()}}
 }
-\concept{tidyfun developer tools}
+\concept{tidyfun utility functions}

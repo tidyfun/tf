@@ -226,14 +226,28 @@ validate_template_landmarks <- function(
   domain,
   n_landmarks
 ) {
-  if (is.null(template)) {
-    return(colMeans(landmarks, na.rm = TRUE))
+  user_supplied <- !is.null(template)
+  if (!user_supplied) {
+    template <- colMeans(landmarks, na.rm = TRUE)
   }
 
   assert_numeric(template, len = n_landmarks, any.missing = FALSE)
 
   if (n_landmarks > 1 && !all(diff(template) > 0)) {
-    cli::cli_abort("Template landmarks must be strictly increasing.")
+    if (user_supplied) {
+      cli::cli_abort("Template landmarks must be strictly increasing.")
+    }
+    # Default template (column-wise mean) crosses because of NA patterns
+    # in `landmarks`. Identify which columns are not monotone and report
+    # the NA counts to help the user diagnose. (#243)
+    na_per_col <- colSums(is.na(landmarks))
+    bad <- which(diff(template) <= 0)
+    cli::cli_abort(c(
+      "Default template landmarks (column means of {.arg landmarks}) are not strictly increasing.",
+      "i" = "Crossing between columns: {paste(bad, bad + 1L, sep = '-', collapse = ', ')}.",
+      "i" = "NA count per landmark column: {paste(na_per_col, collapse = ', ')}.",
+      "i" = "Supply a strictly increasing {.arg template_landmarks} vector, or impute/drop the NA-laden curves."
+    ))
   }
   if (any(template < domain[1]) || any(template > domain[2])) {
     cli::cli_abort(

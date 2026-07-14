@@ -40,6 +40,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Fabian Scheipl \email{fabian.scheipl@googlemail.com} (\href{https://orcid.org/0000-0001-8172-3603}{ORCID}) [copyright holder]
   \item Jeff Goldsmith
   \item Maximilian Mücke (\href{https://orcid.org/0009-0000-9432-9795}{ORCID})
 }
@@ -48,9 +49,6 @@ Other contributors:
 \itemize{
   \item Julia Wrobel (\href{https://orcid.org/0000-0001-6783-1421}{ORCID}) [contributor]
   \item Sebastian Fischer (\href{https://orcid.org/0000-0002-9609-3197}{ORCID}) [contributor]
-  \item Trevor Hastie (softImpute author) [contributor]
-  \item Rahul Mazumder (softImpute author) [contributor]
-  \item Chen Meng (mogsa author) [contributor]
 }
 
 }

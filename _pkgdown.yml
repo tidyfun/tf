@@ -18,6 +18,17 @@ reference:
   - tfb_fpc
   - fpc_wsvd
   - tf_rebase
+- title: 'Vector-valued functional data (f: R -> R^d)'
+  desc: Multivariate-output curves, e.g. movement trajectories (see issues #18, #27)
+  contents:
+  - tfd_mv
+  - tfb_mv
+  - tfb_mfpc
+  - tf_mv_methods
+  - tf_geom
+  - tf_arclength
+  - plot.tf_mv
+  - converters-mv
 - title: Evaluating, indexing & re-arranging
   desc: Accessing, appending, evaluating, splitting & combining functional data objects
   contents:
@@ -31,6 +42,7 @@ reference:
   contents:
   - tfgroupgenerics
   - tfsummaries
+  - median.tf_mv
   - functionwise
   - tf_depth
   - tf_order
@@ -45,6 +57,7 @@ reference:
   desc: Functions for registering, and warping functional data
   contents:
   - tf_register
+  - tf_register_shape
   - tf_estimate_warps
   - tf_registration
   - tf_align

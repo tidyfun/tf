@@ -2,7 +2,11 @@
 # op has to be a string!
 summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
   dots <- list(...)
-  funs <- map_lgl(dots, is_tf)
+  # only univariate tf vectors flow through this scalar-evaluations summary
+  # path; tf_mv inputs have their own .tf_mv group-generic in R/ops-mv.R and
+  # must not be silently absorbed into the as.matrix() + apply() reduction
+  # below (which assumes 2-d [curve, arg] not 3-d [curve, arg, component]).
+  funs <- map_lgl(dots, is_tf_1d)
   op_args <- dots[!funs]
   funs <- dots[funs]
   op_call <- function(x) do.call(op, c(list(x), op_args))
@@ -38,7 +42,7 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
     }
     return(unname(ret))
   }
-  ret <- do.call(
+  do.call(
     tfb,
     c(args, penalized = FALSE, verbose = FALSE, attr(funs, "basis_args"))
   ) |>
@@ -88,7 +92,7 @@ mean.tf <- function(x, ...) {
 #' @rdname tfsummaries
 median.tf <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   if (!na.rm && anyNA(x)) {
-    return(1 * NA * x[1])
+    return(tf_na_like(x))
   }
   x <- x[!is.na(x)]
   if (is.character(depth) && length(depth) == 1 && depth == "pointwise") {
@@ -136,6 +140,12 @@ var.default <- stats::var
 #' @export
 #' @rdname tfsummaries
 var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
+  if (!is.null(y)) {
+    cli::cli_abort(c(
+      "{.fn var} on {.cls tf} does not support a second argument {.arg y}.",
+      "i" = "Use {.fn tf_crosscov} or {.fn tf_crosscor} for cross-(co)variance."
+    ))
+  }
   summarize_tf(x, na.rm = na.rm, op = "var", eval = is_tfd(x))
 }
 
@@ -202,7 +212,7 @@ fivenum.default <- function(x, na.rm = FALSE, ...) {
 #' @rdname fivenum
 fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
   if (!na.rm && anyNA(x)) {
-    return(1 * NA * x[1])
+    return(tf_na_like(x))
   }
   prepared <- depth_data(x, depth, na.rm = na.rm, ...)
   if (is.null(prepared$d)) {
@@ -211,21 +221,77 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
     return(ret[seq_len(min(length(ret), 5))])
   }
   o <- order(prepared$d)
-  # For small samples, reuse the nearest available order statistic.
-  n <- length(prepared$x)
-  idx <- pmax(
-    1L,
-    c(
-      1L,
-      floor((n + 1) / 4),
-      floor((n + 1) / 2),
-      floor(3 * (n + 1) / 4),
-      n
-    )
-  )
-  idx <- o[idx]
-  ret <- prepared$x[idx]
+  ret <- prepared$x[o[fivenum_positions(length(prepared$x))]]
   names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  ret
+}
+
+# Order-statistic positions for a depth-based five-number summary; for small
+# samples the nearest available order statistic is reused.
+fivenum_positions <- function(n) {
+  pmax(
+    1L,
+    c(1L, floor((n + 1) / 4), floor((n + 1) / 2), floor(3 * (n + 1) / 4), n)
+  )
+}
+
+#-------------------------------------------------------------------------------
+# Vector-valued (tf_mv) summaries.
+# Pointwise entries (min / mean / max, and the min/max of the central half) are
+# computed component-wise via the existing tf_mv group generics; the depth-based
+# selections (median, central region, five-number order statistics) use the
+# *joint* depth (`tf_depth.tf_mv`), so one index selects the same observed curve
+# across all components (no chimera). See tidyfun/tf#273.
+
+#' @export
+#' @rdname tfsummaries
+summary.tf_mv <- function(object, ..., depth = "MBD") {
+  nms <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+  if (vec_size(object) == 0 || all(is.na(object))) {
+    # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
+    ret <- if (vec_size(object) == 0) {
+      vctrs::vec_init(object, 6)
+    } else {
+      object[rep(1L, 6)]
+    }
+    names(ret) <- nms
+    return(ret)
+  }
+  complete <- object[!is.na(object)]
+  d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
+  central <- complete[d >= stats::median(d)]
+  ret <- vctrs::vec_c(
+    min(object, na.rm = TRUE),
+    min(central, na.rm = TRUE),
+    unname(complete[depth_median_index(d)]),
+    mean(object, na.rm = TRUE),
+    max(central, na.rm = TRUE),
+    max(object, na.rm = TRUE)
+  )
+  names(ret) <- nms
+  ret
+}
+
+#' @export
+#' @rdname fivenum
+fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
+  nms <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  if (!na.rm && any(is.na(x))) {
+    ret <- tf_na_like(x)[rep(1L, 5)]
+    names(ret) <- nms
+    return(ret)
+  }
+  complete <- x[!is.na(x)]
+  if (vec_size(complete) == 0) {
+    # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
+    ret <- vctrs::vec_init(complete, 5)
+    names(ret) <- nms
+    return(ret)
+  }
+  d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
+  o <- base::order(d)
+  ret <- complete[o[fivenum_positions(vec_size(complete))]]
+  names(ret) <- nms
   ret
 }
 
@@ -235,7 +301,7 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
 Summary.tf <- function(...) {
   not_defined <- switch(.Generic, all = , any = TRUE, FALSE)
   if (not_defined) {
-    cli::cli_abort("{.Generic} not defined for {.cls tf} objects.")
+    cli::cli_abort("{(.Generic)} not defined for {.cls tf} objects.")
   }
   # min, max, range have dedicated methods that accept a depth argument
   if (.Generic %in% c("min", "max", "range")) {
@@ -244,51 +310,41 @@ Summary.tf <- function(...) {
   summarize_tf(..., op = .Generic, eval = is_tfd(list(...)[[1]]))
 }
 
-#' @rdname tfgroupgenerics
-#' @export
-cummax.tfd <- function(...) {
-  summarize_tf(..., op = "cummax", eval = TRUE)
+# Single dispatcher for the four cum* Math-group operations across tfd / tfb.
+# Each cum* S3 method below is a thin wrapper that forwards .Generic.
+cum_tf <- function(op, ..., eval) {
+  summarize_tf(..., op = op, eval = eval)
 }
 
 #' @rdname tfgroupgenerics
 #' @export
-cummin.tfd <- function(...) {
-  summarize_tf(..., op = "cummin", eval = TRUE)
-}
+cummax.tfd <- function(...) cum_tf("cummax", ..., eval = TRUE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cumsum.tfd <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = TRUE)
-}
+cummin.tfd <- function(...) cum_tf("cummin", ..., eval = TRUE)
+
+#' @rdname tfgroupgenerics
+#' @export
+cumsum.tfd <- function(...) cum_tf("cumsum", ..., eval = TRUE)
 
 #' @rdname tfgroupgenerics
 #' @export
 #' @family tidyfun compute
-cumprod.tfd <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = TRUE)
-}
+cumprod.tfd <- function(...) cum_tf("cumprod", ..., eval = TRUE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cummax.tfb <- function(...) {
-  summarize_tf(..., op = "cummax", eval = FALSE)
-}
+cummax.tfb <- function(...) cum_tf("cummax", ..., eval = FALSE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cummin.tfb <- function(...) {
-  summarize_tf(..., op = "cummin", eval = FALSE)
-}
+cummin.tfb <- function(...) cum_tf("cummin", ..., eval = FALSE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cumsum.tfb <- function(...) {
-  summarize_tf(..., op = "cumsum", eval = FALSE)
-}
+cumsum.tfb <- function(...) cum_tf("cumsum", ..., eval = FALSE)
 
 #' @rdname tfgroupgenerics
 #' @export
-cumprod.tfb <- function(...) {
-  summarize_tf(..., op = "cumprod", eval = FALSE)
-}
+cumprod.tfb <- function(...) cum_tf("cumprod", ..., eval = FALSE)

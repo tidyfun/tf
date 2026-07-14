@@ -8,7 +8,7 @@
 #' \delta_{t}(t')}.
 #' - *Wiener* process: \eqn{Cov(x(t), x(t')) =
 #' \min(t',t)/\phi + \sigma^2 \delta_{t}(t')},
-#' -  [*Matèrn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition):
+#' -  [*Matérn* process](https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function#Definition):
 #' \eqn{Cov(x(t), x(t')) =
 #' \tfrac{2^{1-o}}{\Gamma(o)} (\tfrac{\sqrt{2o}|t-t'|}{\phi})^o \text{Bessel}_o(\tfrac{\sqrt{2o}|t-t'|}{s})
 #' + \sigma^2 \delta_{t}(t')}
@@ -29,14 +29,14 @@
 #'   effect* for pairs of inputs t and t'.
 #' @param nugget nugget effect for additional white noise / unstructured
 #'   variability. Defaults to `scale/200` (so: very little white noise).
-#' @param order order of the Matèrn covariance (if used, must be >0), defaults
+#' @param order order of the Matérn covariance (if used, must be >0), defaults
 #'   to 1.5. The higher, the smoother the process. Evaluation of the covariance
 #'   function becomes numerically unstable for large (>20) `order`, use
 #'   "squareexp".
 #' @param domain of the generated functions. If not provided, the range of the
 #'   supplied `arg` values.
 #' @returns an `tfd`-vector of length `n`.
-#' @importFrom mvtnorm rmvnorm
+#' @importFrom stats rnorm
 #' @export
 #' @family tidyfun RNG functions
 #' @examples
@@ -120,7 +120,18 @@ tf_rgp <- function(
 
   ret <- map(arg, \(.arg) {
     cov <- outer(.arg, .arg, f_cov) + diag(0 * .arg + nugget)
-    cbind(.arg, t(rmvnorm(1, mean = 0 * .arg, sigma = cov)))
+    # zero-mean multivariate normal draw via eigen-decomposition of the
+    # covariance. Matches `mvtnorm::rmvnorm(method = "eigen")` semantics
+    # exactly: rank-deficient kernels (e.g. squared-exp with zero nugget) are
+    # sampled in their effective subspace; tiny negative eigenvalues from
+    # numerical noise are clamped to zero. We use the symmetric square root
+    # `V D^{1/2} V^T` so draws match the previous `mvtnorm` implementation
+    # under `set.seed()`.
+    e <- eigen(cov, symmetric = TRUE)
+    d <- pmax(e$values, 0)
+    R <- e$vectors %*% (sqrt(d) * t(e$vectors))
+    sample <- as.numeric(R %*% rnorm(nrow(cov)))
+    cbind(.arg, sample)
   }) |>
     tfd()
   names(ret) <- 1:n
@@ -140,6 +151,9 @@ tf_rgp <- function(
 #'   lie, at most (relative to original distance to neighboring grid points).
 #'   Defaults to at most 40% (0.4) of the original grid distances. Must be lower
 #'   than 0.5.
+#' @param same_arg for `tf_mv` objects, should all components receive the same
+#'   random argument-grid changes? Defaults to `TRUE`; use `FALSE` to jitter or
+#'   sparsify each component independently.
 #' @param ... additional args for the returned `tfd` in `tf_jiggle`.
 #' @returns an (irregular) `tfd` object.
 #' @importFrom stats runif
@@ -153,8 +167,16 @@ tf_rgp <- function(
 #' (x_sp <- tf_sparsify(x, dropout = 0.3))
 #' c(is_irreg(x_jig), is_irreg(x_sp))
 tf_jiggle <- function(f, amount = 0.4, ...) {
+  UseMethod("tf_jiggle")
+}
+
+#' @export
+tf_jiggle.default <- function(f, amount = 0.4, ...) {
   assert_tfd(f)
   assert_number(amount, lower = 0, upper = 0.5)
+  if (!vec_size(f)) {
+    return(as.tfd_irreg(f))
+  }
   f <- as.tfd_irreg(f)
   new_args <- map(tf_arg(f), tf_jiggle_args, amount = amount)
   evaluator <- attr(f, "evaluator_name")
@@ -165,6 +187,17 @@ tf_jiggle <- function(f, amount = 0.4, ...) {
   )
   tf_evaluator(ret) <- evaluator
   ret
+}
+
+#' @export
+#' @rdname tf_jiggle
+tf_jiggle.tf_mv <- function(f, amount = 0.4, same_arg = TRUE, ...) {
+  assert_flag(same_arg)
+  if (!same_arg) {
+    return(map_components(f, \(comp) tf_jiggle(comp, amount = amount, ...)))
+  }
+  tf_mv_assert_shared_arg(f, op = "tf_jiggle")
+  tf_mv_map_same_rng(f, \(comp) tf_jiggle(comp, amount = amount, ...))
 }
 
 tf_jiggle_args <- function(arg, amount) {
@@ -187,8 +220,17 @@ tf_jiggle_args <- function(arg, amount) {
 #' @rdname tf_jiggle
 #' @param dropout what proportion of values of `f` to drop, on average. Defaults to half.
 #' @export
-tf_sparsify <- function(f, dropout = 0.5) {
+tf_sparsify <- function(f, dropout = 0.5, ...) {
+  UseMethod("tf_sparsify")
+}
+
+#' @export
+tf_sparsify.default <- function(f, dropout = 0.5, ...) {
+  rlang::check_dots_empty()
   assert_tf(f)
+  if (!vec_size(f)) {
+    return(as.tfd_irreg(f))
+  }
   nas <- map(tf_evaluations(f), \(x) runif(length(x)) < dropout)
   tf_evals <- map2(tf_evaluations(f), nas, \(x, y) x[!y])
   tf_args <- ensure_list(tf_arg(f))
@@ -199,4 +241,59 @@ tf_sparsify <- function(f, dropout = 0.5) {
     tf_evaluator(ret) <- evaluator
   }
   ret
+}
+
+#' @export
+#' @rdname tf_jiggle
+tf_sparsify.tf_mv <- function(f, dropout = 0.5, same_arg = TRUE, ...) {
+  assert_flag(same_arg)
+  if (!same_arg) {
+    return(map_components(f, \(comp) tf_sparsify(comp, dropout = dropout, ...)))
+  }
+  tf_mv_assert_shared_arg(f, op = "tf_sparsify")
+  tf_mv_map_same_rng(f, \(comp) tf_sparsify(comp, dropout = dropout, ...))
+}
+
+tf_component_arg_list <- function(comp, n = vec_size(comp)) {
+  args <- ensure_list(tf_arg(comp))
+  if (length(args) == 1L && n != 1L) {
+    rep(args, n)
+  } else {
+    args
+  }
+}
+
+tf_mv_assert_shared_arg <- function(f, op) {
+  comps <- tf_components(f)
+  n <- vec_size(f)
+  if (!length(comps)) {
+    return(invisible(TRUE))
+  }
+  comp_args <- map(comps, tf_component_arg_list, n = n)
+  shared <- comp_args[[1]]
+  compatible <- map_lgl(comp_args[-1], function(args) {
+    length(args) == length(shared) &&
+      all(map2_lgl(args, shared, \(x, y) isTRUE(all.equal(x, y))))
+  })
+  if (any(!compatible)) {
+    cli::cli_abort(c(
+      "{.fn {op}} with {.code same_arg = TRUE} requires all components to share argument values.",
+      i = "Use {.code same_arg = FALSE} to change argument grids independently per component."
+    ))
+  }
+  invisible(TRUE)
+}
+
+tf_mv_map_same_rng <- function(f, .f) {
+  comps <- tf_components(f)
+  if (!length(comps)) return(f)
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+    runif(1)
+  }
+  seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+  comps <- map(comps, function(comp) {
+    assign(".Random.seed", seed, envir = .GlobalEnv)
+    .f(comp)
+  })
+  new_tf_mv(comps, domain = tf_domain(f))
 }

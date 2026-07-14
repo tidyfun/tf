@@ -19,7 +19,8 @@
 #'
 #' @param x a `tf` object containing functional data.
 #' @param method one of `"lowess"` (see [stats::lowess()]), `"rollmean"`,
-#'   `"rollmedian"` (see [zoo::rollmean()]) or `"savgol"` (see [pracma::savgol()]).
+#'   `"rollmedian"` (see [zoo::rollmean()]) or `"savgol"` (a Savitzky-Golay
+#'   filter, see [savgol()]).
 #' @param verbose give lots of diagnostic messages? Defaults to `TRUE`.
 #' @param ... arguments for the respective `method`. See details.
 #' @returns a smoothed version of the input. For some methods/options, the
@@ -43,12 +44,10 @@ tf_smooth.tfb <- function(x, verbose = TRUE, ...) {
   x
 }
 
-#' @importFrom pracma savgol
 #' @rdname tf_smooth
 #' @export
 #' @examples
 #' library(zoo)
-#' library(pracma)
 #' f <- tf_sparsify(tf_jiggle(tf_rgp(4, 201, nugget = 0.05)))
 #' f_lowess <- tf_smooth(f, "lowess")
 #' # these methods ignore the distances between arg-values:
@@ -78,7 +77,6 @@ tf_smooth.tfd <- function(
   dots <- list(...)
   nas <- is.na(x)
   x_evals <- tf_evaluations(x)[!nas]
-  # nocov start
   if (method %in% c("savgol", "rollmean", "rollmedian")) {
     if (verbose && !is_equidist(x)) {
       cli::cli_inform(c(
@@ -114,7 +112,6 @@ tf_smooth.tfd <- function(
       \(x) do.call(smoother, append(list(x), dots))
     )
   }
-  # nocov end
   if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- 0.15
@@ -140,3 +137,68 @@ tf_smooth.tfd <- function(
 
 #' @export
 tf_smooth.default <- function(x, ...) .NotYetImplemented()
+
+# Cache of Savitzky-Golay convolution coefficients keyed by (fl, forder, dorder)
+# so repeated tf_smooth() calls with the same parameters avoid recomputing the
+# pseudoinverse.
+.savgol_coef_cache <- new.env(parent = emptyenv())
+
+.savgol_coefs <- function(fl, forder, dorder) {
+  key <- paste(fl, forder, dorder, sep = "_")
+  if (!is.null(.savgol_coef_cache[[key]])) {
+    return(.savgol_coef_cache[[key]])
+  }
+  fc <- (fl - 1) / 2
+  # Vandermonde-style design matrix on the centered window (Savitzky & Golay 1964).
+  X <- outer(-fc:fc, 0:forder, FUN = "^")
+  # SVD pseudoinverse, matching pracma::pinv's behavior; row dorder + 1
+  # gives the convolution coefficients for the derivative of order dorder.
+  s <- svd(X)
+  tol <- .Machine$double.eps^(2 / 3)
+  p <- s$d > max(tol * s$d[1], 0)
+  pinv_X <- s$v[, p, drop = FALSE] %*% (1 / s$d[p] * t(s$u[, p, drop = FALSE]))
+  coefs <- pinv_X[dorder + 1, ]
+  .savgol_coef_cache[[key]] <- coefs
+  coefs
+}
+
+#' Savitzky-Golay smoothing filter
+#'
+#' Local polynomial least-squares smoother. Re-implementation of
+#' `pracma::savgol()` to avoid the extra dependency; numerically equivalent
+#' (Savitzky & Golay 1964).
+#'
+#' @param T a numeric vector to smooth.
+#' @param fl filter window length (odd integer > 1, must be greater than
+#'   `forder`).
+#' @param forder polynomial order of the local fit (non-negative integer,
+#'   default 4).
+#' @param dorder derivative order (non-negative integer not greater than
+#'   `forder`, default 0).
+#' @returns a smoothed numeric vector of the same length as `T`.
+#' @keywords internal
+#' @export
+savgol <- function(T, fl, forder = 4, dorder = 0) {
+  assert_numeric(T)
+  assert_int(fl, lower = 3)
+  assert_count(forder)
+  assert_count(dorder)
+  if (fl %% 2 == 0) {
+    cli::cli_abort("Argument {.arg fl} must be an odd integer greater than 1.")
+  }
+  if (fl <= forder) {
+    cli::cli_abort("Argument {.arg fl} must be greater than {.arg forder}.")
+  }
+  if (dorder > forder) {
+    cli::cli_abort(
+      "Argument {.arg dorder} must not be greater than {.arg forder}."
+    )
+  }
+  fc <- (fl - 1) / 2
+  coefs <- .savgol_coefs(fl, forder, dorder)
+  # Match pracma's exact end-effect handling: open (linear) convolution, then
+  # trim fc samples from each end to recover length(T).
+  T2 <- stats::convolve(T, rev(coefs), type = "o")
+  T2 <- T2[(fc + 1):(length(T2) - fc)]
+  (-1)^dorder * T2
+}

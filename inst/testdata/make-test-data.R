@@ -14,3 +14,11 @@ irr_list <- tf_evaluations(irr)
 irr_matrix <- suppressWarnings(as.matrix(irr))
 irr_df <- as.data.frame(irr, unnest = TRUE)
 narrow_df <- as.data.frame(narrow, unnest = TRUE)
+
+# vector-valued (f: R -> R^d) fixtures: 2-d "movement" trajectories
+traj_mv <- tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10)))
+traj_mv_irr <- tfd_mv(list(
+  x = tf_sparsify(tf_rgp(10)),
+  y = tf_sparsify(tf_rgp(10))
+))
+traj_mvb <- tfb_mv(traj_mv, verbose = FALSE)

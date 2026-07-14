@@ -227,10 +227,10 @@ fit
 \seealso{
 \code{\link[mgcv:smooth.terms]{mgcv::smooth.terms()}} for spline basis options.
 
-Other tfb-class: 
-\code{\link{fpc_wsvd}()},
-\code{\link{tfb}},
-\code{\link{tfb_fpc}()}
+Other tfb-class:
+\code{\link[=fpc_wsvd]{fpc_wsvd()}},
+\code{\link[=tfb]{tfb()}},
+\code{\link[=tfb_fpc]{tfb_fpc()}}
 }
 \concept{tfb-class}
 \concept{tfb_spline-class}

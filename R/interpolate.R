@@ -67,6 +67,16 @@ tf_interpolate.tfd <- function(object, arg, ...) {
   tfd(object, arg = arg, ...)
 }
 
+#' @export
+#' @rdname tf_interpolate
+tf_interpolate.tf_mv <- function(object, arg, ...) {
+  comp_names <- attr(object, "comp_names")
+  comps <- imap(tf_components(object), function(comp, nm) {
+    tf_interpolate(comp, arg = tf_mv_component_arg(arg, nm, comp_names), ...)
+  })
+  new_tf_mv(comps, domain = tf_domain(object), mfpc = attr(object, "mfpc"))
+}
+
 # #' @export
 # #' @rdname tf_interpolate
 # tf_interpolate.tfd_irreg <- function(object, arg, force = FALSE, ...) {

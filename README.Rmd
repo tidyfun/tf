@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 [![R-universe version](https://tidyfun.r-universe.dev/tf/badges/version)](https://tidyfun.r-universe.dev/tf)
 <!-- badges: end -->
 
-The **`tf`** package provides necessary infrastructure for [**`tidyfun`**](https://tidyfun.github.io/tidyfun/) with minimal dependencies -- specifically: no `tidyverse`-dependencies.  
+The **`tf`** package provides necessary infrastructure for [**`tidyfun`**](https://tidyfun.github.io/tidyfun/) with minimal dependencies -- `vctrs`/`rlang`/`cli`/`purrr` from the r-lib/tidyverse ecosystem, otherwise just `mgcv`, `zoo`, and `checkmate`.
 
 The goal of **`tidyfun`**, in turn, is to provide accessible and well-documented software that **makes functional data analysis in `R` easy** -- specifically data wrangling and exploratory analysis. 
 
@@ -82,7 +82,18 @@ are defined for the vector classes defined in **`tf`** ([more](https://tidyfun.g
 
 The `tf` objects are just glorified lists, so they work well as columns in data frames. That makes it a lot easier to keep your other data and functional measurements together in one object for preprocessing, exploratory analysis and description. At the same time, these objects actually behave like vectors of *functions* to some extent, i.e., they can be evaluated on any point in their domain, they can be integrated or differentiated, etc.
 
-[See here](https://tidyfun.github.io/tidyfun/articles/x01_tf_Vectors.html) for more information on the operations defined for `tf` vectors. 
+[See here](https://tidyfun.github.io/tidyfun/articles/x01_tf_Vectors.html) for more information on the operations defined for `tf` vectors.
+
+#### Vector-valued (multivariate) functional data
+
+`tf` also provides `tfd_mv()` and `tfb_mv()` for vector-valued functional data -- i.e., functions whose codomain is `R^d`, sharing a single domain across components. These behave like the univariate `tf` classes (subsetting, arithmetic, plotting), with component-wise accessors and the geometry verbs `tf_norm()`, `tf_inner()`, `tf_tangent()`, `tf_arclength()`:
+
+```{r, eval = FALSE}
+fm <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+plot(fm, type = "facet")
+```
+
+Multivariate FPCA is available via `tfb_mfpc()` (Happ & Greven, 2018), and `tf_register()` supports joint multivariate alignment (`method = "srvf_mv"`) as well as elastic shape registration (`tf_register_shape()`). Note that `is_tf()` is `TRUE` for `tf_mv` as well; use the new `is_tf_1d()` to test specifically for univariate `tf`.
 
 #### Methods for converting existing data to `tf` and back
 

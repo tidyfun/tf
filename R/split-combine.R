@@ -31,17 +31,20 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
   include <- match.arg(include)
   resolution_x <- get_resolution(tf_arg(x))
   # if user supplied domain limit(s), remove
-  if (splits[1] == tf_domain(x)[1]) {
+  if (length(splits) && splits[1] == tf_domain(x)[1]) {
     splits <- splits[-1]
   }
-  if (splits[length(splits)] == tf_domain(x)[2]) {
+  if (length(splits) && splits[length(splits)] == tf_domain(x)[2]) {
     splits <- splits[-length(splits)]
+  }
+  if (length(splits) == 0) {
+    return(list(x))
   }
 
   start <- c(tf_domain(x)[1], splits)
   end <- c(splits, tf_domain(x)[2])
   if (include == "left") {
-    end[1:(length(end) - 1)] <- head(end, -1) - resolution_x
+    end[seq_len(length(end) - 1)] <- head(end, -1) - resolution_x
   }
   if (include == "right") {
     start[-1] <- start[-1] + resolution_x
@@ -74,7 +77,7 @@ tf_split <- function(x, splits, include = c("both", "left", "right")) {
 #'   tfs2_sparse <- tf_sparsify(tfs[[2]])
 #'   tfs3_spline <- tfb(tfs[[3]])
 #'   tf_combine(tfs[[1]], tfs2_sparse, tfs3_spline)
-#'   # combine(.., strict = F) can be used to coalesce different measurements
+#'   # combine(.., strict = FALSE) can be used to coalesce different measurements
 #'   # of the same process over different grids:
 #'   x1 <- tfd(x, arg = tf_arg(x)[seq(1, 51, by = 2)])
 #'   x2 <- tfd(x, arg = tf_arg(x)[seq(2, 50, by = 2)])
@@ -134,8 +137,9 @@ tf_combine <- function(..., strict = FALSE) {
         "Can't combine functions with multiple values at the same argument."
       )
     }
-    cli::cli_alert_warning(
-      "removing {length(duplicates)} duplicated points from input data."
+    cli::cli_warn(
+      "removing {length(duplicates)} duplicated points from input data.",
+      class = "tf_combine_duplicates"
     )
     tfs_data <- tfs_data[-duplicates, ]
   }

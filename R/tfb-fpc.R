@@ -8,7 +8,8 @@ new_tfb_fpc <- function(
   if (all(dim(data) == 0)) {
     ret <- new_vctr(
       data,
-      domain = domain %||% numeric(2),
+      # sentinel domain of empty prototypes, see new_tfd()
+      domain = domain %||% c(NA_real_, NA_real_),
       arg = numeric(),
       score_variance = numeric(),
       class = c("tfb_fpc", "tfb", "tf")
@@ -47,8 +48,7 @@ new_tfb_fpc <- function(
     scoring_function <- attr(basis_from, "scoring_function")
 
     # trapezoid integration weights: #TODO generally appropriate or just for wsvd?
-    delta <- c(0, diff(arg))
-    weights <- 0.5 * c(delta[-1] + head(delta, -1), tail(delta, 1))
+    weights <- trapezoid_weights(arg)
     scores <- scoring_function(
       df_2_mat(data),
       basis_matrix[, -1],
@@ -214,6 +214,16 @@ tfb_fpc.numeric <- function(
 tfb_fpc.tf <- function(data, arg = NULL, method = fpc_wsvd, ...) {
   # TODO: major computational shortcuts possible here for tfb-inputs:
   #   reduced rank, direct inner prods of basis functions etc...
+  na_curves <- which(is.na(data))
+  if (length(na_curves)) {
+    cli::cli_abort(c(
+      "Can't compute FPC representation: {.arg data} contains
+       {length(na_curves)} completely missing curve{?s}.",
+      x = "Affected indices: {.val {unname(na_curves)}}.",
+      i = "Drop them first, e.g. {.code data[!is.na(data)]}.
+       (Partially missing evaluations are handled by soft-impute SVD.)"
+    ))
+  }
   arg <- arg %||% tf_arg(data)
   names_data <- names(data)
   ret <- tfb_fpc(
@@ -241,6 +251,5 @@ tfb_fpc.default <- function(
     )
   }
 
-  data <- data_frame0()
-  new_tfb_spline(data = data, arg = arg, method = method, domain = domain, ...)
+  new_tfb_fpc(data = numeric(0), method = method, domain = domain, ...)
 }

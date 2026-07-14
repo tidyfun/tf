@@ -4,7 +4,17 @@ warn_tfd_cast <- function(x, y, to = class(y)[1]) {
   )
 }
 
+# empty prototypes (e.g. `tfd()`) carry the sentinel domain c(NA, NA) and
+# impose no type constraints: the common type is simply the other type
+is_empty_proto <- function(x) {
+  vec_size(x) == 0L && unknown_domain(x)
+}
+
 get_larger_domain <- function(x, y) {
+  # unknown (sentinel) domains are compatible with everything:
+  # defer to the other operand
+  if (unknown_domain(x)) return("y")
+  if (unknown_domain(y)) return("x")
   domains <- cbind(x = tf_domain(x), y = tf_domain(y))
   dom_x_larger <- domains[1, 1] <= domains[1, 2] &&
     domains[2, 1] >= domains[2, 2]
@@ -28,6 +38,8 @@ get_larger_domain <- function(x, y) {
 #' @family tidyfun vctrs
 #' @export
 vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
+  if (is_empty_proto(x)) return(y)
+  if (is_empty_proto(y)) return(x)
   dom_ret <- get_larger_domain(x, y)
   same_args <- same_args(x, y)
   # same grid --> common way to represent x and y is still a tfd_reg
@@ -47,6 +59,8 @@ vec_ptype2.tfd_reg.tfd_reg <- function(x, y, ...) {
 #' @family tidyfun vctrs
 #' @export
 vec_ptype2.tfd_reg.tfd_irreg <- function(x, y, ...) {
+  if (is_empty_proto(x)) return(y)
+  if (is_empty_proto(y)) return(x)
   dom_ret <- get_larger_domain(x, y)
   # different grids --> only tfd_irreg can represent x *and* y
   warn_tfd_cast(x, y, "tfd_irreg")
@@ -77,6 +91,8 @@ vec_ptype2.tfd_irreg.tfd_reg <- function(x, y, ...) {
 #' @family tidyfun vctrs
 #' @export
 vec_ptype2.tfd_irreg.tfd_irreg <- function(x, y, ...) {
+  if (is_empty_proto(x)) return(y)
+  if (is_empty_proto(y)) return(x)
   dom_ret <- get_larger_domain(x, y)
   # return the one with larger domain
   if (dom_ret == "x") x else y
@@ -100,6 +116,8 @@ vec_ptype2.tfd_irreg.tfb_fpc <- vec_ptype2.tfd_irreg.tfb_spline
 #' @family tidyfun vctrs
 #' @export
 vec_ptype2.tfb_spline.tfb_spline <- function(x, y, ...) {
+  if (is_empty_proto(x)) return(y)
+  if (is_empty_proto(y)) return(x)
   same_basis <- isTRUE(all.equal(
     tf_basis(y)(tf_arg(x)),
     attr(x, "basis_matrix"),

@@ -15,6 +15,7 @@
 ^\.dockerignore$
 ^\.editorconfig$
 ^\.gitattributes$
+^\.git$
 ^\.github$
 ^\.gitignore$
 ^\.httr-oauth$
@@ -23,6 +24,7 @@
 ^\.pre-commit-config\.yaml$
 ^\.vscode$
 ^\.claude$
+^\.codex$
 ^_pkgdown\.yml$
 ^attic$
 ^vignettes$
@@ -39,3 +41,4 @@
 ^revdep$
 CLAUDE.md
 AGENTS.md
+^pr-233-code-review\.md$

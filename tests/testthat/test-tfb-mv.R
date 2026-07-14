@@ -1,0 +1,102 @@
+test_that("tfb_mv fits a basis per component", {
+  set.seed(1)
+  f <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  tb <- tfb_mv(f, k = 8, verbose = FALSE)
+  expect_s3_class(tb, "tfb_mv")
+  expect_true(is_tfb_mv(tb))
+  expect_false(is_tfb(tb)) # not a univariate tfb
+  expect_length(tb, 4)
+  expect_identical(tf_ncomp(tb), 2L)
+  expect_true(all(map_lgl(tf_components(tb), is_tfb)))
+  expect_equal(tb$x, tfb(f$x, k = 8, verbose = FALSE))
+  expect_equal(tb$y, tfb(f$y, k = 8, verbose = FALSE))
+  expect_valid_tf(tb)
+})
+
+test_that("tfb_mv round-trips tfd_mv -> tfb_mv -> tfd_mv approximately", {
+  set.seed(2)
+  arg <- seq(0, 1, length.out = 101)
+  f <- tfd_mv(list(x = tf_rgp(3, arg = arg), y = tf_rgp(3, arg = arg)))
+  tb <- tfb_mv(f, k = 25, verbose = FALSE)
+  back <- as.tfd_mv(tb)
+  expect_s3_class(back, "tfd_mv")
+  diff_x <- max(abs(
+    unlist(tf_evaluations(f$x)) - unlist(tf_evaluations(back$x))
+  ))
+  diff_y <- max(abs(
+    unlist(tf_evaluations(f$y)) - unlist(tf_evaluations(back$y))
+  ))
+  expect_lt(diff_x, 0.1)
+  expect_lt(diff_y, 0.1)
+  expect_valid_tf(tb)
+  expect_valid_tf(back)
+})
+
+test_that("tfb_mv supports fpc basis", {
+  set.seed(3)
+  f <- tfd_mv(list(x = tf_rgp(10), y = tf_rgp(10)))
+  tb <- tfb_mv(f, basis = "fpc", verbose = FALSE)
+  expect_s3_class(tb, "tfb_mv")
+  expect_true(all(map_lgl(tf_components(tb), is_tfb_fpc)))
+  expect_equal(tb$x, tfb(f$x, basis = "fpc", verbose = FALSE))
+  expect_equal(tb$y, tfb(f$y, basis = "fpc", verbose = FALSE))
+  expect_valid_tf(tb)
+})
+
+test_that("per-component basis is reachable via tf_components()", {
+  set.seed(4)
+  tb <- tfb_mv(tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3))), verbose = FALSE)
+  b <- map(tf_components(tb), tf_basis)
+  expect_length(b, 2)
+  expect_true(all(map_lgl(b, is.function)))
+  expect_equal(b$x(tf_arg(tb$x)), tf_basis(tb$x)(tf_arg(tb$x)))
+  expect_equal(b$y(tf_arg(tb$y)), tf_basis(tb$y)(tf_arg(tb$y)))
+})
+
+test_that("tfb_mv() distributes a properly-named per-component list arg", {
+  set.seed(41)
+  d <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  tb <- tfb_mv(d, k = list(x = 4, y = 6), penalized = FALSE, verbose = FALSE)
+  # per-component k values flow through to the underlying tfb basis
+  expect_identical(length(attr(tb$x, "basis_matrix")[1, ]), 4L)
+  expect_identical(length(attr(tb$y, "basis_matrix")[1, ]), 6L)
+})
+
+test_that("tfb_mv() rejects per-component lists with duplicated names", {
+  set.seed(42)
+  d <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  # `list(x = 4, x = 6)` previously slipped through the distribution predicate
+  # (length 2, all names %in% comp_names) and silently passed NULL to tfb()
+  # for component "y". Now it falls back to "treat the whole list as a single
+  # scalar arg to tfb()", which tfb rejects as a malformed k.
+  expect_error(
+    tfb_mv(d, k = list(x = 4, x = 6), penalized = FALSE, verbose = FALSE)
+  )
+})
+
+test_that("tf_count aborts with a clear message on basis-represented data", {
+  set.seed(5)
+  tb <- tfb_mv(tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3))), verbose = FALSE)
+  expect_error(tf_count(tb), "not defined for basis-represented")
+})
+
+test_that("tfb_mv with an explicit basis re-fits instead of returning the old basis", {
+  set.seed(24)
+  f <- tfd_mv(list(x = tf_rgp(4), y = tf_rgp(4)))
+  fp <- suppressMessages(tfb_mv(f, basis = "fpc"))
+  sp <- suppressWarnings(tfb_mv(fp, basis = "spline", verbose = FALSE))
+  expect_false(identical(fp, sp))
+  expect_true(all(map_lgl(tf_components(sp), inherits, "tfb_spline")))
+  # no-argument call still short-circuits
+  expect_identical(tfb_mv(fp), fp)
+})
+
+test_that("tfb_mv.list separates constructor from basis arguments", {
+  set.seed(25)
+  t_grid <- seq(0, 1, length.out = 21)
+  mx <- matrix(rnorm(4 * 21), nrow = 4)
+  my <- matrix(rnorm(4 * 21), nrow = 4)
+  tb <- tfb_mv(list(x = mx, y = my), arg = t_grid, k = 7, verbose = FALSE)
+  expect_s3_class(tb, "tfb_mv")
+  expect_length(tb, 4L)
+})

@@ -5,7 +5,7 @@
 \alias{pinch}
 \title{Pinch force data}
 \format{
-An object of class \code{tfd_reg} (inherits from \code{tfd}, \code{tf}, \code{vctrs_vctr}, \code{list}) of length 20.
+A \code{tfd} vector of length 20 containing the pinch-force curves.
 }
 \usage{
 pinch
@@ -16,7 +16,7 @@ recorded every 2 milliseconds over 300 milliseconds. The data captures the
 dynamics of finger pinch force applied during controlled motor tasks.
 }
 \details{
-Data is also include in the \CRANpkg{fda} package in another format.
+Data is also included in the \CRANpkg{fda} package in another format.
 }
 \examples{
 pinch
@@ -25,7 +25,8 @@ pinch
 Ramsay, O. J, Hooker, Giles, Graves, Spencer (2009).
 \emph{Functional Data Analysis with R and MATLAB},  series Use R!, 1 edition.
 Springer New York, New York.
-ISBN 978-0-387-98184-0, \doi{10.1007/978-0-387-98185-7}.
+ISBN 978-0-387-98184-0.
+\doi{10.1007/978-0-387-98185-7}.
 
 Ramsay, O. J, Silverman, W. B (2005).
 \emph{Functional Data Analysis},  series Springer Series in Statistics, 2nd edition.

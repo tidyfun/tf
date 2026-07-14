@@ -240,6 +240,28 @@ test_that("tf_registration summary works", {
   expect_false(s2$has_original)
 })
 
+test_that("summary.tf_registration is robust to all-NA inputs (#271)", {
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
+  reg <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift")
+  )
+  # Force mean_pointwise_variance() into the degenerate path by replacing
+  # stored data with an all-NA tfd. var() on this will not produce useful
+  # evaluations and may error / warn -- summary() must still return NA
+  # gracefully without erroring or emitting warnings.
+  reg_na <- reg
+  reg_na$x <- tfd(
+    matrix(NA_real_, nrow = length(x), ncol = length(t)),
+    arg = t
+  )
+  expect_no_warning(s_na <- summary(reg_na))
+  expect_true(is.na(s_na$amp_var_reduction))
+
+  # Directly exercise mean_pointwise_variance on a NULL-evaluations input
+  expect_identical(tf:::mean_pointwise_variance(NULL), NA_real_)
+})
+
 test_that("tf_registration plot works", {
   t <- seq(0, 2 * pi, length.out = 101)
   x <- tfd(t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))), arg = t)
@@ -328,6 +350,25 @@ test_that("tf_estimate_warps works for SRVF and CC methods", {
     tf_estimate_warps(tfd(t(data)) |> tf_sparsify(.2), method = "cc"),
     "only `affine` and `landmark` registration are currently supported"
   )
+})
+
+test_that("SRVF warps are monotone when domain is wider than arg range (#242)", {
+  skip_if_not_installed("fdasrvf")
+  set.seed(1)
+  x <- tfd(
+    matrix(rnorm(5 * 9), 5),
+    arg = seq(0.1, 0.9, length.out = 9),
+    domain = c(0, 1)
+  )
+  w <- tf_estimate_warps(x, method = "srvf")
+  arg_x <- as.numeric(tf_arg(x))
+  for (i in seq_along(w)) {
+    v <- tf_evaluations(w)[[i]]
+    expect_true(all(diff(v) > 0))
+    expect_equal(v[1], min(arg_x))
+    expect_equal(v[length(v)], max(arg_x))
+  }
+  expect_no_error(tf_register(x, method = "srvf"))
 })
 
 test_that("tf_estimate_warps returns tfd (not tf_registration)", {
@@ -812,6 +853,17 @@ test_that("register_landmark handles NA landmarks correctly", {
     expect_equal(vals[1], domain[1])
     expect_equal(vals[length(vals)], domain[2])
   }
+})
+
+test_that("landmark registration errors clearly on NA-induced non-monotone template (#243)", {
+  # NA pattern arranged so that default colMeans(landmarks, na.rm=TRUE) crosses:
+  # col 1 mean = mean(0.1, 0.9) = 0.5, col 2 mean = 0.3 -> not strictly increasing.
+  lm <- matrix(c(0.1, NA, NA, 0.3, 0.9, NA), nrow = 3, byrow = TRUE)
+  x <- tf_rgp(3)
+  expect_error(
+    tf_estimate_warps(x, landmarks = lm, method = "landmark"),
+    "monoton|landmark"
+  )
 })
 
 test_that("tf_estimate_warps landmark method validates input", {
@@ -1338,4 +1390,107 @@ test_that("SRVF with template=NULL gives same result regardless of max_iter", {
   w1 <- tf_estimate_warps(x, method = "srvf", max_iter = 1L)
   w5 <- tf_estimate_warps(x, method = "srvf", max_iter = 5L)
   expect_equal(as.matrix(w1), as.matrix(w5))
+})
+
+test_that("registration keeps the input domain when wider than arg range (#266)", {
+  withr::local_seed(1)
+  f <- tfd(
+    tf_rgp(3, arg = seq(0.1, 0.9, length.out = 9)),
+    domain = c(0, 1)
+  )
+
+  # The affine repro used to hard-error in assert_warp() because the estimated
+  # warps carried domain range(arg) instead of tf_domain(x).
+  reg <- quiet_expected_registration_warnings(
+    tf_register(f, method = "affine")
+  )
+  expect_identical(tf_domain(tf_aligned(reg)), c(0, 1))
+  expect_identical(tf_domain(tf_inv_warps(reg)), c(0, 1))
+
+  # Estimated warps carry the input domain; #242: their VALUES for affine may
+  # extend outside range(arg) but must stay monotone.
+  warps <- quiet_expected_registration_warnings(
+    tf_estimate_warps(f, method = "affine")
+  )
+  expect_identical(tf_domain(warps), c(0, 1))
+  expect_true(all(vapply(
+    tf_evaluations(warps),
+    \(v) all(diff(v) > 0),
+    logical(1)
+  )))
+
+  # Landmark method on a wide domain keeps the input domain too.
+  t <- seq(0, 2 * pi, length.out = 101)
+  x <- tfd(
+    t(sapply(c(-0.3, 0, 0.3), \(s) sin(t + s))),
+    arg = t,
+    domain = c(-1, 2 * pi + 1)
+  )
+  peaks <- tf_landmarks_extrema(x, "max")
+  reg_lm <- quiet_expected_registration_warnings(
+    tf_register(x, method = "landmark", landmarks = peaks)
+  )
+  expect_identical(tf_domain(tf_aligned(reg_lm)), tf_domain(x))
+  expect_identical(tf_domain(tf_inv_warps(reg_lm)), tf_domain(x))
+})
+
+test_that("affine Procrustes loop does not spuriously stop on iteration 1 (#265)", {
+  withr::local_seed(7)
+  t <- seq(0, 2 * pi, length.out = 101)
+  shifts <- c(-0.6, -0.3, 0, 0.3, 0.6)
+  x <- tfd(t(sapply(shifts, \(s) sin(t + s))), arg = t)
+
+  # Genuine improvement must be allowed to continue past the first iteration:
+  # no "alignment worsened" message on iteration 1.
+  msgs <- character(0)
+  withCallingHandlers(
+    quiet_expected_registration_warnings(
+      tf_estimate_warps(x, method = "affine", type = "shift", max_iter = 5L)
+    ),
+    message = function(m) {
+      msgs <<- c(msgs, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  expect_false(any(grepl("stopped after 1 of", msgs)))
+
+  # Objective evaluated against a FIXED final template is non-increasing across
+  # accepted iterations: objectives across templates are now comparable (#265).
+  reg_final <- quiet_expected_registration_warnings(
+    tf_register(x, method = "affine", type = "shift", max_iter = 8L)
+  )
+  tmpl <- tf_template(reg_final)
+  objs <- vapply(
+    1:5,
+    \(k) {
+      w <- quiet_expected_registration_warnings(
+        tf_estimate_warps(x, method = "affine", type = "shift", max_iter = k)
+      )
+      al <- suppressWarnings(tf_interpolate(tf_align(x, w), arg = t))
+      suppressWarnings(mean(
+        tf_integrate((al - tmpl)^2, arg = t),
+        na.rm = TRUE
+      ))
+    },
+    numeric(1)
+  )
+  expect_true(all(diff(objs) <= 1e-8))
+})
+
+test_that("tf_register handles tf_mv inputs with components on different grids", {
+  set.seed(101)
+  f <- tfd_mv(list(
+    x = tf_rgp(4, arg = seq(0, 1, length.out = 51)),
+    y = tf_rgp(4, arg = seq(0, 1, length.out = 41))
+  ))
+  reg <- suppressWarnings(tf_register(f, method = "affine", max_iter = 1))
+  expect_s3_class(reg, "tf_registration")
+  expect_s3_class(tf_aligned(reg), "tfd_mv")
+  inv_warps <- tf_inv_warps(reg)
+  expect_s3_class(inv_warps, "tfd")
+  expect_length(inv_warps, length(f))
+  # inverse warps live on (a subset of) the sorted union of the component grids
+  union_grid <- sort(unique(unlist(tf_arg(f))))
+  expect_true(all(unlist(tf_arg(inv_warps)) %in% union_grid))
+  expect_identical(tf_domain(inv_warps), tf_domain(f))
 })

@@ -30,4 +30,10 @@ test_that("tf_where basics work", {
     tf_where(lin, value < -2),
     list(numeric(0), numeric(0))
   )
+  # scalar conditions recycle to all args, as under the old subset() semantics
+  expect_equal(
+    tf_where(lin, mean(value) < 0.05),
+    list(tf_arg(lin), numeric(0))
+  )
+  expect_error(tf_where(lin, value + 1), "logical")
 })
