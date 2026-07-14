@@ -53,7 +53,7 @@ tf_landmarks_extrema <- function(
   # Get per-curve arg grids for feature detection
   arg_list <- tf_arg(x)
   if (!is.list(arg_list)) {
-    # Regular tfd: single shared grid → replicate for uniform interface
+    # Regular tfd: single shared grid -> replicate for uniform interface
     arg_list <- rep(list(as.numeric(arg_list)), n)
   }
   # Representative grid spacing (for bandwidth/boundary defaults)

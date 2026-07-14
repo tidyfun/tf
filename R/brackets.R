@@ -36,7 +36,7 @@ tf_bracket_i <- function(x, i, matrix_i = FALSE) {
 # native argument grid (`tf_arg()` for `tf`, per-curve grids for `tf_mv`).
 # `matrix = TRUE` requires a single shared vector, so a per-curve (list) grid is
 # collapsed to its sorted union; otherwise the per-curve grid is kept as-is.
-# The tf_mv caller relies on `tf_mv_curve_grids()` ALWAYS returning a list —
+# The tf_mv caller relies on `tf_mv_curve_grids()` ALWAYS returning a list --
 # an atomic grid from that path would silently skip the union-collapse here.
 tf_bracket_j <- function(grid, matrix) {
   if (isTRUE(matrix) && is.list(grid)) {

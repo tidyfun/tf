@@ -52,6 +52,13 @@ same_args <- function(x, to) {
 #' @param y vectors to cast.
 #' @returns for `vec_cast`: the casted `tf`-vector, for `vec_ptype2`: the common prototype
 #' @seealso [vctrs::vec_cast()], [vctrs::vec_ptype2()]
+#' @examples
+#' set.seed(1)
+#' x <- tf_rgp(3)
+#' xi <- tf_sparsify(x)
+#' # different tf subtypes combine to their common type:
+#' c(x, xi)
+#' vctrs::vec_ptype_full(vctrs::vec_c(x, xi))
 NULL
 
 #' @rdname vctrs

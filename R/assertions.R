@@ -159,7 +159,7 @@ validate_tf <- function(x) {
   }
   # ---- domain (all tf subclasses) -----------------------------------------
   domain <- attr(x, "domain")
-  # length-0 prototypes legitimately carry a degenerate domain — numeric(2) (= c(0, 0))
+  # length-0 prototypes legitimately carry a degenerate domain -- numeric(2) (= c(0, 0))
   # in the tfb constructors, or c(NA_real_, NA_real_) in the tfd constructors (matching
   # the S4 prototype); only require the structural shape (length-2 numeric) for prototypes.
   is_proto <- length(unclass(x)) == 0L

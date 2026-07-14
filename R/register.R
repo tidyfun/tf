@@ -154,7 +154,7 @@ tf_align.tfd <- function(x, warp, ..., keep_new_arg = FALSE) {
 
   if (is_non_domain_preserving) {
     # For warps that go outside the domain (true affine warps), compute x(h(t))
-    # The optimizer finds h such that x(h(s)) ≈ template(s)
+    # The optimizer finds h such that x(h(s)) ~ template(s)
     # Create irregular tfd with only valid points, then re-evaluate on grid
     evaluator_name <- attr(x, "evaluator_name") %||% "tf_approx_linear"
     ret <- unwarp_non_domain_preserving(

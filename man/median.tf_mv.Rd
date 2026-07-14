@@ -29,6 +29,13 @@ curves, but averaging components would break the observed-curve guarantee,
 so \code{median.tf_mv} returns the first tied curve (with a message). On tied
 data, \code{median(f)$x} and \code{median(f$x)} can therefore differ.
 }
+\examples{
+set.seed(1)
+f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+# the joint median is the observed curve with maximal joint depth:
+median(f)
+tf_depth(f)
+}
 \seealso{
 Other tidyfun summary functions:
 \code{\link[=fivenum]{fivenum()}},

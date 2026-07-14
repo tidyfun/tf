@@ -89,7 +89,7 @@ tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
   if (!missing(arg)) assert_arg_vector(arg, x)
   # TODO: warn if irreg?
   # TODO: Implement depths for partially observed functions instead of
-  # interpolating them onto a common grid; see Elías et al. (2022),
+  # interpolating them onto a common grid; see Elias et al. (2022),
   # "Integrated Depths for Partially Observed Functional Data",
   # doi:10.1080/10618600.2022.2070171.
   if (na.rm) x <- x[!is.na(x)]
@@ -290,7 +290,7 @@ fsd_block_size <- function(n, max_block_entries = 1e7) {
 }
 
 # Regularized projection depth:
-# Bočinec, F., Nagy, S., and Yeon, H. (2026)
+# Bocinec, F., Nagy, S., and Yeon, H. (2026)
 # Note: uses random projections -- set RNG seed before calling for
 # reproducible results.
 rpd <- function(

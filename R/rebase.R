@@ -100,7 +100,7 @@ tf_rebase.tfd.tfb_spline <- function(
   basis_args <- attr(basis_from, "basis_args")
   dots$penalized <- dots$penalized %||% !is.na(basis_args$sp)
 
-  # Fit on object's NATIVE arg values, reusing basis_from's mgcv spec — no
+  # Fit on object's NATIVE arg values, reusing basis_from's mgcv spec -- no
   # pre-interpolation (that would compound interpolation error on top of basis
   # approximation error). spec_override skips mgcv's unique-args-vs-k check
   # so the under-determined case (n_obs <= k) succeeds via the penalty.

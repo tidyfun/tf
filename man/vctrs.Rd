@@ -174,6 +174,14 @@ prototype (a deliberate deviation from the strict \code{vctrs} cast invariant
 that avoids silently coarsening data during type unification).
 }
 }
+\examples{
+set.seed(1)
+x <- tf_rgp(3)
+xi <- tf_sparsify(x)
+# different tf subtypes combine to their common type:
+c(x, xi)
+vctrs::vec_ptype_full(vctrs::vec_c(x, xi))
+}
 \seealso{
 \code{\link[vctrs:vec_cast]{vctrs::vec_cast()}}, \code{\link[vctrs:vec_ptype2]{vctrs::vec_ptype2()}}
 }

@@ -138,6 +138,12 @@ mean.tf_mv <- function(x, ..., na.rm = FALSE) {
 #' @returns a length-1 `tf_mv`: the observed curve with maximal joint depth.
 #' @export
 #' @family tidyfun summary functions
+#' @examples
+#' set.seed(1)
+#' f <- tfd_mv(list(x = tf_rgp(5), y = tf_rgp(5)))
+#' # the joint median is the observed curve with maximal joint depth:
+#' median(f)
+#' tf_depth(f)
 median.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
   if (!na.rm && any(is.na(x))) {
     return(tf_na_like(x))
