@@ -1,0 +1,163 @@
+# Rank, order and sort `tf` vectors
+
+These methods use
+[`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md)
+to rank, order, and sort functional data. By default they use the
+modified hypograph index (`"MHI"`) which provides an up-down ordering
+(lowest to highest). You can also use any of the other depth methods
+available via
+[`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md),
+or supply a custom depth function.
+
+## Usage
+
+``` r
+rank(
+  x,
+  na.last = TRUE,
+  ties.method = c("average", "first", "last", "random", "max", "min"),
+  ...
+)
+
+# Default S3 method
+rank(
+  x,
+  na.last = TRUE,
+  ties.method = c("average", "first", "last", "random", "max", "min"),
+  ...
+)
+
+# S3 method for class 'tf'
+rank(
+  x,
+  na.last = TRUE,
+  ties.method = c("average", "first", "last", "random", "max", "min"),
+  depth = "MHI",
+  ...
+)
+
+# S3 method for class 'tf'
+xtfrm(x)
+
+# S3 method for class 'tf'
+sort(x, decreasing = FALSE, na.last = NA, depth = "MHI", ...)
+
+tf_order(f, ...)
+
+# Default S3 method
+tf_order(f, ...)
+
+# S3 method for class 'tf'
+tf_order(f, depth = "MHI", ...)
+
+# S3 method for class 'tf_mv'
+tf_order(f, by = "norm", ...)
+```
+
+## Arguments
+
+- x:
+
+  a `tf` vector.
+
+- na.last:
+
+  for handling of `NA`s; see
+  [`base::rank()`](https://rdrr.io/r/base/rank.html) and
+  [`base::sort()`](https://rdrr.io/r/base/sort.html).
+
+- ties.method:
+
+  a character string for handling ties; see
+  [`base::rank()`](https://rdrr.io/r/base/rank.html).
+
+- ...:
+
+  passed to
+  [`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md)
+  (e.g. `arg`).
+
+- depth:
+
+  the depth function to use for ranking. One of the depths available via
+  [`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md)
+  (default: `"MHI"`) or a function that takes a `tf` vector and returns
+  a numeric vector of depth values.
+
+- decreasing:
+
+  logical. Should the sort be decreasing?
+
+- f:
+
+  a `tf` or `tf_mv` vector (for `tf_order`).
+
+- by:
+
+  (`tf_mv` only) the scalar reduction to order by: `"norm"` (the
+  default, uses `tf_norm(f)`) or the name of a component.
+
+## Value
+
+`rank`: a numeric vector of ranks.  
+`tf_order`: an integer vector of indices.  
+`sort.tf`: a sorted `tf` vector.  
+`xtfrm.tf`: a numeric vector of depth values.
+
+## Details
+
+`rank` assigns ranks based on depth values: lower depth values get lower
+ranks. For `"MHI"` this gives an ordering from lowest to highest
+function. For centrality-based depths (`"MBD"`, `"FM"`, `"FSD"`,
+`"RPD"`), the most extreme function gets rank 1 and the most central
+gets the highest rank.
+
+`tf_order` returns the permutation which rearranges `x` into ascending
+order according to depth. For vector-valued (`tf_mv`) data there is no
+canonical total order on \\R^d\\: `tf_order.tf_mv()` requires an
+explicit scalar reduction via `by` (either `"norm"` for `tf_norm(f)`, or
+a component name), and then applies the univariate depth order to that
+reduction.
+
+`sort.tf` returns the sorted `tf` vector.
+
+`xtfrm.tf` returns a numeric vector of MHI depth values, enabling
+[`base::order`](https://rdrr.io/r/base/order.html) and
+[`base::rank`](https://rdrr.io/r/base/rank.html) to work on `tf`
+vectors.
+
+## See also
+
+[`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md),
+[`min.tf()`](https://tidyfun.github.io/tf/dev/reference/tf_minmax.md),
+[`max.tf()`](https://tidyfun.github.io/tf/dev/reference/tf_minmax.md)
+
+Other tidyfun ordering and ranking functions:
+[`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md),
+[`tf_minmax`](https://tidyfun.github.io/tf/dev/reference/tf_minmax.md)
+
+## Examples
+
+``` r
+x <- tf_rgp(5) + 1:5
+rank(x)
+#> [1] 1 2 3 4 5
+order(x)
+#> Warning: Ordering <tf> vectors via `sort()`/`order()`/`rank()` uses a depth-based total
+#> order ("MHI" by default), not a pointwise comparison.
+#> ℹ See `tf_order()` for the underlying semantics and how to pick a different
+#>   depth.
+#> This warning is displayed once per session.
+#> [1] 1 2 3 4 5
+sort(x)
+#> tfd[5]: [0,1] -> [-0.3519689,5.944776] based on 51 evaluations each
+#> interpolation by tf_approx_linear 
+#> [1]: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂▂▂▃▃▃
+#> [2]: ▃▄▄▄▄▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▃▄▄▄▄
+#> [3]: ▅▅▅▅▅▅▅▅▅▅▅▅▄▄▄▃▃▃▃▃▄▄▄▅▅▅
+#> [4]: ▅▆▆▆▇▇▇████▇▇▇▆▆▅▅▄▄▄▅▅▅▅▅
+#> [5]: ████████████▇▇▇▇▆▆▆▆▆▇▇▇▇▇
+# use a centrality-based depth instead:
+rank(x, depth = "MBD")
+#> [1] 1.5 3.0 5.0 4.0 1.5
+```
