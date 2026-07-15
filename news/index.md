@@ -2,6 +2,8 @@
 
 ## tf 0.5.0
 
+CRAN release: 2026-07-14
+
 ### Internal
 
 - [`tf_rgp()`](https://tidyfun.github.io/tf/reference/tf_rgp.md) no
