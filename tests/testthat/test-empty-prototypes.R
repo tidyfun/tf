@@ -24,6 +24,13 @@ test_that("vctrs combinations with empty tfd prototypes work", {
   expect_identical(vctrs::vec_c(tfb(), xb), xb)
 })
 
+test_that("tfd(list()) returns the length-0 prototype", {
+  x <- tfd(list())
+  expect_s3_class(x, "tfd")
+  expect_length(x, 0)
+  expect_identical(x, tfd(numeric(0)))
+})
+
 test_that("vctrs combinations with empty tf_mv prototypes work", {
   set.seed(4712)
   m <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
