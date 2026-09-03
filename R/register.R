@@ -709,8 +709,11 @@ tf_estimate_warps.tfd_reg <- function(
     current_template <- new_template
   }
   result <- best_warps %||% warps
-  attr(result, "template") <- if (!is.null(best_warps)) best_template else
+  attr(result, "template") <- if (!is.null(best_warps)) {
+    best_template
+  } else {
     current_template
+  }
   result
 }
 
@@ -939,7 +942,9 @@ tf_register_affine <- function(
 
   # Prepare data matrices on common grid
   arg <- tf_arg(x)
-  if (is.list(arg)) arg <- sort_unique(arg, simplify = TRUE)
+  if (is.list(arg)) {
+    arg <- sort_unique(arg, simplify = TRUE)
+  }
 
   x_mat <- as.matrix(tfd(x, arg = arg))
   template_vec <- as.matrix(tfd(template, arg = arg))[1, ]
@@ -960,7 +965,9 @@ tf_register_affine <- function(
 
 # Helper: validate template for affine registration
 validate_affine_template <- function(template, x, domain) {
-  if (is.null(template)) return(mean(x))
+  if (is.null(template)) {
+    return(mean(x))
+  }
 
   assert_tf(template)
   if (length(template) != 1) {

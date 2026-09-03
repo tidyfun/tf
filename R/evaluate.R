@@ -67,7 +67,9 @@ evaluate_tfd_once <- function(
   evaluations,
   evaluator
 ) {
-  if (isTRUE(all.equal(new_arg, arg))) return(evaluations)
+  if (isTRUE(all.equal(new_arg, arg))) {
+    return(evaluations)
+  }
   seen <- match(new_arg, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
@@ -143,9 +145,13 @@ evaluate_tfb_once <- function(x, arg, coefs, basis, X) {
   seen <- match(x, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
-  if (all(seen)) return(drop(X[seen_index, , drop = FALSE] %*% coefs))
+  if (all(seen)) {
+    return(drop(X[seen_index, , drop = FALSE] %*% coefs))
+  }
   Xnew <- X[rep(1, length(x)), ]
-  if (any(seen)) Xnew[seen, ] <- X[seen_index, , drop = FALSE]
+  if (any(seen)) {
+    Xnew[seen, ] <- X[seen_index, , drop = FALSE]
+  }
   Xnew[!seen, ] <- basis(x[!seen])
   drop(Xnew %*% coefs)
 }

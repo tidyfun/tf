@@ -75,7 +75,7 @@ test_that("validate_tf rejects non-tf input", {
 test_that("validate_tf rejects bad domain", {
   set.seed(1)
   x <- tf_rgp(3)
-  attr(x, "domain") <- c(1, 1)  # not distinct
+  attr(x, "domain") <- c(1, 1) # not distinct
   expect_error(validate_tf(x), "domain")
 })
 
@@ -102,7 +102,7 @@ test_that("validate_tf rejects tfd_irreg with bad element shape", {
   x <- tf_rgp(3) |> tf_sparsify(0.5)
   bad <- unclass(x)
   attrs <- attributes(x)
-  bad[[1]] <- list(arg = bad[[1]]$arg, data = bad[[1]]$value)  # #234-style bug
+  bad[[1]] <- list(arg = bad[[1]]$arg, data = bad[[1]]$value) # #234-style bug
   attributes(bad) <- attrs
   expect_error(validate_tf(bad), "arg.*value|value")
 })
@@ -112,7 +112,7 @@ test_that("validate_tf rejects tfb_spline with wrong coef length", {
   suppressMessages(x <- tfb(tf_rgp(5)))
   bad <- unclass(x)
   attrs <- attributes(x)
-  bad[[1]] <- bad[[1]][-1]  # truncate coefficient vector
+  bad[[1]] <- bad[[1]][-1] # truncate coefficient vector
   attributes(bad) <- attrs
   expect_error(validate_tf(bad), "ncol\\(basis_matrix\\)|length")
 })

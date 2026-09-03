@@ -211,7 +211,9 @@ validate_arg_vector <- function(arg, domain, where, check_unique = TRUE) {
   if (!is.numeric(arg)) {
     cli::cli_abort("{where}: {.field arg} must be numeric.")
   }
-  if (length(arg) == 0L) return(invisible(TRUE))
+  if (length(arg) == 0L) {
+    return(invisible(TRUE))
+  }
   if (anyNA(arg) || any(!is.finite(arg))) {
     cli::cli_abort("{where}: {.field arg} contains non-finite values.")
   }
@@ -260,7 +262,9 @@ validate_tfd_reg <- function(x) {
   expected_len <- length(arg_attr[[1]])
   for (i in seq_along(data)) {
     el <- data[[i]]
-    if (is.null(el)) next
+    if (is.null(el)) {
+      next
+    }
     if (!is.numeric(el)) {
       cli::cli_abort(
         "{.cls tfd_reg}: element {.val {i}} is not numeric."
@@ -296,7 +300,9 @@ validate_tfd_irreg <- function(x) {
   data <- unclass(x)
   for (i in seq_along(data)) {
     el <- data[[i]]
-    if (is.null(el)) next
+    if (is.null(el)) {
+      next
+    }
     if (!is.list(el)) {
       cli::cli_abort(paste0(
         "{.cls tfd_irreg}: element {.val {i}} must be a list (got ",
@@ -356,7 +362,9 @@ validate_tfb_common <- function(x, cls) {
   expected_len <- ncol(bmat)
   for (i in seq_along(data)) {
     el <- data[[i]]
-    if (is.null(el)) next
+    if (is.null(el)) {
+      next
+    }
     if (!is.numeric(el)) {
       cli::cli_abort(
         "{.cls {cls}}: coefficient {.val {i}} is not numeric."

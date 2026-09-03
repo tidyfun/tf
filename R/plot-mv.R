@@ -10,11 +10,21 @@ traj_curve_par <- c("col", "lty", "lwd", "pch", "cex", "lend", "ljoin")
 # should use `as.matrix.tf_mv()` or `as.data.frame.tf_mv(long = TRUE)`
 # directly rather than reach into this private helper.
 mv_paired_xy <- function(x) {
-  arr <- as.matrix(x, interpolate = TRUE)  # [n_curve, n_arg, 2]
-  list(x = matrix(arr[, , 1L], nrow = dim(arr)[1L], ncol = dim(arr)[2L],
-                  dimnames = dimnames(arr)[1:2]),
-       y = matrix(arr[, , 2L], nrow = dim(arr)[1L], ncol = dim(arr)[2L],
-                  dimnames = dimnames(arr)[1:2]))
+  arr <- as.matrix(x, interpolate = TRUE) # [n_curve, n_arg, 2]
+  list(
+    x = matrix(
+      arr[,, 1L],
+      nrow = dim(arr)[1L],
+      ncol = dim(arr)[2L],
+      dimnames = dimnames(arr)[1:2]
+    ),
+    y = matrix(
+      arr[,, 2L],
+      nrow = dim(arr)[1L],
+      ncol = dim(arr)[2L],
+      dimnames = dimnames(arr)[1:2]
+    )
+  )
 }
 
 # Draw each curve (row of mx/my) as a column of a matrix so that matlines() /
@@ -110,8 +120,11 @@ plot.tf_mv <- function(x, y, ..., type = NULL) {
   }
   # Prefer a single row for up to 3 components (wider figures are typical);
   # fall back to n2mfrow's roughly-square layout for larger d.
-  mfrow_layout <- if (length(comps) <= 3L) c(1L, length(comps)) else
+  mfrow_layout <- if (length(comps) <= 3L) {
+    c(1L, length(comps))
+  } else {
     grDevices::n2mfrow(length(comps))
+  }
   op <- graphics::par(mfrow = mfrow_layout)
   on.exit(graphics::par(op))
   iwalk(comps, \(comp, nm) plot(comp, main = nm, ...))

@@ -182,7 +182,9 @@ tf_derive.default <- function(f, arg, order = 1, ...) .NotYetImplemented()
 #' @export
 #' @describeIn tf_derive row-wise finite differences
 tf_derive.matrix <- function(f, arg, order = 1, ...) {
-  if (missing(arg)) arg <- unlist(find_arg(f), use.names = FALSE)
+  if (missing(arg)) {
+    arg <- unlist(find_arg(f), use.names = FALSE)
+  }
   assert_numeric(
     arg,
     any.missing = FALSE,
@@ -404,7 +406,9 @@ tf_integrate.tfd <- function(
   }
   limits <- cbind(lower, upper)
   if (nrow(limits) > 1) {
-    if (!definite && !is_irreg(f)) .NotYetImplemented() # needs vd-data
+    if (!definite && !is_irreg(f)) {
+      .NotYetImplemented()
+    } # needs vd-data
     limits <- limits |> split(seq_len(nrow(limits)))
   }
   # a user-supplied limit may float-mismatch a grid point (e.g. 0.3 vs
@@ -521,7 +525,9 @@ tf_integrate.tfb <- function(
     ))
   }
   limits <- cbind(lower, upper)
-  if (nrow(limits) > 1) .NotYetImplemented() # needs vd-data
+  if (nrow(limits) > 1) {
+    .NotYetImplemented()
+  } # needs vd-data
   arg <- c(
     limits[1],
     arg[arg > limits[1] & arg < limits[2]],

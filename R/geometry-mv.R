@@ -67,8 +67,11 @@ mv_reduce_to_tfd <- function(evals, reduce, domain, nms, evals2 = NULL) {
     )
   } else {
     map2(evals, evals2, \(a, b) {
-      if (nrow(a)) reduce(evals_to_matrix(a), evals_to_matrix(b)) else
+      if (nrow(a)) {
+        reduce(evals_to_matrix(a), evals_to_matrix(b))
+      } else {
         numeric(0)
+      }
     })
   }
   names(vals) <- nms
@@ -78,8 +81,9 @@ mv_reduce_to_tfd <- function(evals, reduce, domain, nms, evals2 = NULL) {
 #' @rdname tf_geom
 #' @export
 tf_norm.tf_mv <- function(f) {
-  if (!tf_ncomp(f) || !vec_size(f))
+  if (!tf_ncomp(f) || !vec_size(f)) {
     return(tfd(numeric(0), domain = tf_domain(f)))
+  }
   # Components may live on different argument grids (the constructor allows
   # this), so evaluate every component on each curve's union grid -- a plain
   # `Reduce(`+`, comp^2)` would error or misalign, and on tfb would rebase
@@ -138,7 +142,9 @@ tf_inner.tf_mv <- function(f, g) {
   } else {
     max(vec_size(f), vec_size(g))
   }
-  if (!tf_ncomp(f) || !n) return(tfd(numeric(0), domain = tf_domain(f)))
+  if (!tf_ncomp(f) || !n) {
+    return(tfd(numeric(0), domain = tf_domain(f)))
+  }
   # the inner product is only defined where both curves are -- the intersection
   # of their domains. Evaluating on the union would step outside one operand's
   # support (mirrors univariate `tfd * tfd`, which errors on non-overlapping
@@ -216,16 +222,22 @@ tf_mv_pair_grids <- function(x, y, domain = NULL) {
   sizes <- c(vec_size(x), vec_size(y))
   # vctrs recycling: a size-0 operand collapses the common size to 0.
   n <- if (min(sizes) == 0L) 0L else max(sizes)
-  if (!n) return(list())
+  if (!n) {
+    return(list())
+  }
   x_grids <- tf_mv_curve_grids(x)
   y_grids <- tf_mv_curve_grids(y)
   grid_at <- function(grids, i) {
-    if (!length(grids)) return(numeric(0))
+    if (!length(grids)) {
+      return(numeric(0))
+    }
     grids[[if (length(grids) == 1L) 1L else i]]
   }
   map(seq_len(n), function(i) {
     g <- sort(unique(c(grid_at(x_grids, i), grid_at(y_grids, i))))
-    if (!is.null(domain)) g <- g[g >= domain[1] & g <= domain[2]]
+    if (!is.null(domain)) {
+      g <- g[g >= domain[1] & g <= domain[2]]
+    }
     g
   })
 }
@@ -240,7 +252,9 @@ tf_mv_evaluate_on_grids <- function(x, grids) {
 #' @rdname tf_geom
 #' @export
 tf_reparam_arclength <- function(f) {
-  if (!vec_size(f)) return(f)
+  if (!vec_size(f)) {
+    return(f)
+  }
   s <- tf_arclength(f, definite = FALSE) # cumulative s(t), one per curve
   L <- tf_arclength(f) # total length per curve
   dom <- tf_domain(f)
@@ -370,9 +384,15 @@ tf_arclength.tf_mv <- function(
     # tf_integrate() defaults any missing limit to each curve's own arg range;
     # explicitly passing the domain endpoints would defeat that rescue and
     # NA-poison every curve that does not span the full domain.
-    if (!missing(lower)) call_args$lower <- lower
-    if (!missing(upper)) call_args$upper <- upper
-    if (!is.null(arg)) call_args$arg <- arg
+    if (!missing(lower)) {
+      call_args$lower <- lower
+    }
+    if (!missing(upper)) {
+      call_args$upper <- upper
+    }
+    if (!is.null(arg)) {
+      call_args$arg <- arg
+    }
     return(do.call(tf_integrate, call_args))
   }
   arclength_polyline(f, arg, lower, upper, definite)
@@ -396,11 +416,17 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
   # observed argument range. Without this, irregular curves that don't span the
   # full global domain would be evaluated outside their support and yield NA.
   grids <- lapply(grids, function(g) {
-    if (lower == upper) return(lower)
-    if (!length(g)) return(numeric(0))
+    if (lower == upper) {
+      return(lower)
+    }
+    if (!length(g)) {
+      return(numeric(0))
+    }
     lo_i <- max(lower, min(g))
     up_i <- min(upper, max(g))
-    if (lo_i > up_i) return(numeric(0))
+    if (lo_i > up_i) {
+      return(numeric(0))
+    }
     # tolerance-aware endpoint insertion: reuse a grid point that (almost)
     # coincides with an endpoint (float mismatch, e.g. 0.3 vs seq()'s
     # 0.30000000000000004) instead of adding an (almost-)duplicate vertex,
@@ -435,10 +461,14 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     ))
   }
   per_curve_segs <- map(seq_len(n), function(i) {
-    if (empty[i]) return(NA_real_)
+    if (empty[i]) {
+      return(NA_real_)
+    }
     # single-point grids have no segments; otherwise tf_evaluate() filled a
     # data.frame with one row per grid point (>= 2) above
-    if (!needs_eval[i]) return(numeric(0))
+    if (!needs_eval[i]) {
+      return(numeric(0))
+    }
     mat <- evals_to_matrix(paired_dfs[[i]])
     sqrt(rowSums(diff(mat)^2))
   })

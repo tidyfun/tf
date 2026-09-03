@@ -275,7 +275,9 @@ tfd_op_tfd <- function(op, x, y) {
   }
 
   evals_ret <- map2(x_, y_, \(x, y) {
-    if (is.null(x) || is.null(y)) return(NULL)
+    if (is.null(x) || is.null(y)) {
+      return(NULL)
+    }
     do.call(op, list(x, y))
   })
   if (vec_size(x) >= vec_size(y)) {
@@ -318,7 +320,9 @@ tfd_numeric_op <- function(op, x, y, tf_left) {
     tf_evaluations(tf_side),
     num_side,
     \(evals, num) {
-      if (is.null(evals)) return(NULL)
+      if (is.null(evals)) {
+        return(NULL)
+      }
       operands <- if (tf_left) list(evals, num) else list(num, evals)
       result <- do.call(op, operands)
       if (allMissing(result)) NULL else result
@@ -326,7 +330,9 @@ tfd_numeric_op <- function(op, x, y, tf_left) {
   )
   if (is_irreg(tf_side)) {
     ret <- map2(tf_arg(tf_side), ret, \(.arg, .ret) {
-      if (is.null(.ret)) return(NULL)
+      if (is.null(.ret)) {
+        return(NULL)
+      }
       list(arg = .arg, value = .ret)
     })
   }
@@ -357,7 +363,9 @@ tfb_multdiv_numeric <- function(op, x, y) {
   }
   # if not, * and / can simply be applied to the basis coefficients:
   ret <- map2(vec_data(x), y, \(x, y) {
-    if (is.null(x)) return(NULL)
+    if (is.null(x)) {
+      return(NULL)
+    }
     result <- do.call(op, list(e1 = x, e2 = y))
     if (allMissing(result)) NULL else result
   })
@@ -447,7 +455,9 @@ tfb_plusminus_tfb <- function(op, x, y) {
     vec_data(x),
     vec_data(y),
     \(x, y) {
-      if (is.null(x) || is.null(y)) return(NULL)
+      if (is.null(x) || is.null(y)) {
+        return(NULL)
+      }
       result <- do.call(op, list(e1 = x, e2 = y))
       if (allMissing(result)) NULL else result
     }

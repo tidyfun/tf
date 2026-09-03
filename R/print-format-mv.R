@@ -3,7 +3,9 @@
 #' @export
 format.tf_mv <- function(x, ...) {
   comps <- tf_components(x)
-  if (!length(comps)) return(character(0))
+  if (!length(comps)) {
+    return(character(0))
+  }
   per_comp <- map(comps, \(comp) format(comp, ...))
   do.call(paste, c(unname(per_comp), list(sep = " | ")))
 }

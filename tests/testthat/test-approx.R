@@ -11,7 +11,11 @@ test_that("tf_approx_linear interpolates and returns NA outside", {
 test_that("tf_approx_spline interpolates linear data exactly", {
   arg <- seq(0, 1, length.out = 11)
   evals <- 2 * arg + 1
-  res <- tf_approx_spline(x = c(0.05, 0.27, 0.95), arg = arg, evaluations = evals)
+  res <- tf_approx_spline(
+    x = c(0.05, 0.27, 0.95),
+    arg = arg,
+    evaluations = evals
+  )
   expect_equal(res, 2 * c(0.05, 0.27, 0.95) + 1, tolerance = 1e-8)
 })
 
@@ -53,8 +57,7 @@ test_that("tf_approx_nocb carries next observation backward", {
 })
 
 test_that("evaluators are wired up via tf_evaluator<- on tfd", {
-  x <- tfd(matrix(c(0, 1, 2), nrow = 1), arg = c(0, 0.5, 1),
-           domain = c(-1, 2))
+  x <- tfd(matrix(c(0, 1, 2), nrow = 1), arg = c(0, 0.5, 1), domain = c(-1, 2))
   expect_true(is.na(as.numeric(x[, 1.5])))
   tf_evaluator(x) <- tf_approx_fill_extend
   expect_equal(as.numeric(x[, 1.5]), 2)

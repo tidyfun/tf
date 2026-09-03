@@ -176,7 +176,8 @@ print_registration <- function(x, cls, count_line, slots) {
 #' @export
 print.tf_registration <- function(x, ...) {
   print_registration(
-    x, "tf_registration",
+    x,
+    "tf_registration",
     "{length(x$registered)} curve{?s} on [{domain[1]}, {domain[2]}]",
     c(
       "aligned" = !is.null(x$registered),
@@ -191,7 +192,8 @@ print.tf_registration <- function(x, ...) {
 #' @export
 print.tf_shape_registration <- function(x, ...) {
   print_registration(
-    x, "tf_shape_registration",
+    x,
+    "tf_shape_registration",
     "{length(x$registered)} curve{?s} with {tf_ncomp(x$registered)} component{?s} on [{domain[1]}, {domain[2]}]",
     c(
       "aligned" = !is.null(x$registered),

@@ -49,7 +49,7 @@ test_that("simpute_svd is a no-op when there are no NAs (rank-J slice)", {
     s_new$u %*% (s_new$d * t(s_new$v)),
     s_ref$u[, seq_along(s_new$d), drop = FALSE] %*%
       (s_ref$d[seq_along(s_new$d)] *
-         t(s_ref$v[, seq_along(s_new$d), drop = FALSE])),
+        t(s_ref$v[, seq_along(s_new$d), drop = FALSE])),
     tolerance = 1e-10
   )
 })

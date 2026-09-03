@@ -144,8 +144,14 @@ test_that("#269 vec_cast_tfb_tfb honours arg in short-circuit", {
 test_that("tfb_fpc -> tfb_fpc cast actually exercises tf_rebase (#239)", {
   # Different arg grids -> same_basis is FALSE so the rebase path runs.
   set.seed(2392392)
-  x_src <- suppressMessages(tf_smooth(tf_rgp(8, arg = seq(0, 1, length.out = 21))))
-  x_to <- suppressMessages(tf_smooth(tf_rgp(8, arg = seq(0, 1, length.out = 41))))
+  x_src <- suppressMessages(tf_smooth(tf_rgp(
+    8,
+    arg = seq(0, 1, length.out = 21)
+  )))
+  x_to <- suppressMessages(tf_smooth(tf_rgp(
+    8,
+    arg = seq(0, 1, length.out = 41)
+  )))
   f_src <- tfb_fpc(x_src, pve = 0.9)
   f_to <- tfb_fpc(x_to, pve = 0.9)
   expect_false(tf:::same_basis(f_src, f_to))

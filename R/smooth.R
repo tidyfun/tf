@@ -87,25 +87,28 @@ tf_smooth.tfd <- function(
       if (is.null(dots$k)) {
         dots$k <- ceiling(0.05 * min(tf_count(x)))
         dots$k <- dots$k + !(dots$k %% 2) # make uneven
-        if (verbose)
+        if (verbose) {
           cli::cli_inform(
             "Using {.code k = {dots$k}} observations for rolling data window."
           )
+        }
       }
       if (is.null(dots$fill)) {
-        if (verbose)
+        if (verbose) {
           cli::cli_inform(
             "Setting {.code fill = 'extend'} for start/end values."
           )
+        }
         dots$fill <- "extend"
       }
     } else if (is.null(dots$fl)) {
       dots$fl <- ceiling(0.15 * min(tf_count(x)))
       dots$fl <- dots$fl + !(dots$fl %% 2) # make uneven
-      if (verbose)
+      if (verbose) {
         cli::cli_inform(
           "Using {.code fl = {dots$fl}} observations for rolling data window."
         )
+      }
     }
     smoothed <- map(
       x_evals,
@@ -115,10 +118,11 @@ tf_smooth.tfd <- function(
   if (method == "lowess") {
     if (is.null(dots$f)) {
       dots$f <- 0.15
-      if (verbose)
+      if (verbose) {
         cli::cli_inform(
           "Using {.code f = {dots$f}} as smoother span for {.fn lowess}."
         )
+      }
     }
     smoothed <- map(
       x_evals,

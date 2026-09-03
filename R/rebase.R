@@ -70,7 +70,9 @@ tf_rebase.tfd.tfd <- function(
   if (!identical(tf_arg(object), arg)) {
     object <- tfd(object, arg, domain = tf_domain(basis_from), ...)
   }
-  if (is_irreg(basis_from)) object <- as.tfd_irreg(object)
+  if (is_irreg(basis_from)) {
+    object <- as.tfd_irreg(object)
+  }
   attr(object, "domain") <- tf_domain(basis_from)
   attr(object, "evaluator") <- attr(basis_from, "evaluator")
   attr(object, "evaluator_name") <- attr(basis_from, "evaluator_name")

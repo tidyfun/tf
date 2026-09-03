@@ -105,7 +105,9 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
   check_compatible_mv(e1, e2)
   # a zero-component object has no values to compare: trivially equal (and
   # `Reduce()` on an empty list would return `NULL` rather than `logical(0)`).
-  if (!tf_ncomp(e1)) return(rep(TRUE, vec_size(e1)))
+  if (!tf_ncomp(e1)) {
+    return(rep(TRUE, vec_size(e1)))
+  }
   eqs <- map2(tf_components(e1), tf_components(e2), \(a, b) a == b)
   Reduce(`&`, eqs)
 }

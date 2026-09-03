@@ -4,13 +4,17 @@ fun_math <- function(x, op, ...) {
   attr_ret <- attributes(x)
   dots <- list(...)
   ret <- map(tf_evaluations(x), \(x) {
-    if (is.null(x)) return(NULL)
+    if (is.null(x)) {
+      return(NULL)
+    }
     result <- do.call(op, c(list(x = x), dots))
     if (allMissing(result)) NULL else result
   })
   if (is_irreg(x)) {
     ret <- map2(tf_arg(x), ret, \(x, y) {
-      if (is.null(y)) return(NULL)
+      if (is.null(y)) {
+        return(NULL)
+      }
       list(arg = x, value = y)
     })
   }

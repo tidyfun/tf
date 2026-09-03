@@ -115,7 +115,9 @@ new_tfd <- function(
   data_lens <- lengths(datalist)
   bad <- map_lgl(seq_along(datalist), \(i) {
     x <- datalist[[i]]
-    if (is.null(x) || allMissing(x)) return(FALSE)
+    if (is.null(x) || allMissing(x)) {
+      return(FALSE)
+    }
     expected <- if (length(arg_list) == 1) arg_lens[1] else arg_lens[i]
     length(x) != expected
   })
@@ -152,7 +154,9 @@ new_tfd <- function(
       datalist,
       arg,
       function(x, y) {
-        if (is.null(x) || allMissing(x)) return(NULL)
+        if (is.null(x) || allMissing(x)) {
+          return(NULL)
+        }
         this_arg <- unname(y[!is.na(x)])
         list(arg = this_arg, value = unname(x[!is.na(x)]))
       }
@@ -596,7 +600,9 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 as.tfd_irreg.tfd_reg <- function(data, ...) {
   arg <- ensure_list(tf_arg(data))
   ret <- map2(tf_evaluations(data), arg, \(x, y) {
-    if (is.null(x)) return(NULL)
+    if (is.null(x)) {
+      return(NULL)
+    }
     list(arg = y, value = x)
   })
   attributes(ret) <- attributes(data)

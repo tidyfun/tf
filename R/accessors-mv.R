@@ -185,18 +185,24 @@ mv_args_shared <- function(f, args = map(tf_components(f), tf_arg)) {
 #' @export
 tf_arg.tf_mv <- function(f) {
   comps <- tf_components(f)
-  if (!length(comps)) return(numeric(0))
+  if (!length(comps)) {
+    return(numeric(0))
+  }
   args <- map(comps, tf_arg)
   all_agree <- mv_args_shared(f, args)
   if (any(map_lgl(comps, is_irreg))) {
     # all-irregular + per-curve args shared across components (the typical
     # movement-data case): collapse to a single per-curve list.
-    if (all(map_lgl(comps, is_irreg)) && all_agree) return(args[[1]])
+    if (all(map_lgl(comps, is_irreg)) && all_agree) {
+      return(args[[1]])
+    }
     # otherwise return per-component (genuinely different args per dim)
     return(args)
   }
   # all components are regular: collapse if they share the grid
-  if (all_agree) return(args[[1]])
+  if (all_agree) {
+    return(args[[1]])
+  }
   args
 }
 
@@ -206,12 +212,16 @@ tf_arg.tf_mv <- function(f) {
 # `comp_evals[[k]][[i]]` holds the k-th component's numeric evaluations at
 # `grids[[i]]` (or `grids`); NA-fill where a component has no value at that arg.
 assemble_mv_evals <- function(comp_evals, grids, comp_names, n) {
-  if (!n) return(list())
+  if (!n) {
+    return(list())
+  }
   d <- length(comp_evals)
   shared_grid <- !is.list(grids)
   map(seq_len(n), function(i) {
     g <- if (shared_grid) grids else grids[[i]]
-    if (!length(g)) g <- numeric(0)
+    if (!length(g)) {
+      g <- numeric(0)
+    }
     cols <- map(seq_len(d), function(k) {
       v <- comp_evals[[k]][[i]]
       if (is.null(v) || length(v) != length(g)) rep(NA_real_, length(g)) else v
@@ -297,7 +307,9 @@ tf_count.tf_mv <- function(f) {
 #' @export
 is.na.tf_mv <- function(x) {
   comp_na <- map(tf_components(x), is.na)
-  if (!length(comp_na)) return(logical(0))
+  if (!length(comp_na)) {
+    return(logical(0))
+  }
   Reduce(`|`, comp_na)
 }
 

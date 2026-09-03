@@ -2,7 +2,9 @@
 
 #' @export
 tf_evaluate.tf_mv <- function(object, arg, ...) {
-  if (!vec_size(object)) return(list())
+  if (!vec_size(object)) {
+    return(list())
+  }
   comps <- tf_components(object)
   comp_names <- attr(object, "comp_names")
   n <- vec_size(object)
@@ -44,7 +46,9 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   }
   if (!is.null(component)) {
     comp <- tf_component(x, component)
-    if (missing(i)) i <- seq_along(comp)
+    if (missing(i)) {
+      i <- seq_along(comp)
+    }
     if (missing(j)) {
       if (missing(matrix)) {
         return(comp[i, interpolate = interpolate])
@@ -135,7 +139,9 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   # NA assignment, length recycling and lossy casts per component), then
   # rebuild. This is more robust than letting the default `[<-.tf` thread a
   # `vec_slice<-` through the data-frame-of-components proxy.
-  if (missing(i)) i <- seq_along(x)
+  if (missing(i)) {
+    i <- seq_along(x)
+  }
   comps <- tf_components(x)
   value_comps <- if (is_tf_mv(value)) {
     check_compatible_mv(x, value)

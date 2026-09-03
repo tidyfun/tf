@@ -12,8 +12,11 @@ tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
     check_compatible_mv(object, basis_from)
     bases <- tf_components(basis_from)
     new_comps <- map2(comps, bases, function(o, b) {
-      if (is.null(arg)) tf_rebase(o, b, ...) else
+      if (is.null(arg)) {
+        tf_rebase(o, b, ...)
+      } else {
         tf_rebase(o, b, arg = arg, ...)
+      }
     })
   } else {
     new_comps <- map(comps, function(o) {
@@ -72,9 +75,15 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
   }
   results <- imap(tf_components(f), function(comp, nm) {
     call_args <- list(comp, definite = definite, ...)
-    if (has_arg) call_args$arg <- tf_mv_component_arg(arg, nm, cn)
-    if (has_lower) call_args$lower <- lower
-    if (has_upper) call_args$upper <- upper
+    if (has_arg) {
+      call_args$arg <- tf_mv_component_arg(arg, nm, cn)
+    }
+    if (has_lower) {
+      call_args$lower <- lower
+    }
+    if (has_upper) {
+      call_args$upper <- upper
+    }
     do.call(tf_integrate, call_args)
   })
   if (is.numeric(results[[1]])) {

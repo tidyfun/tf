@@ -20,10 +20,16 @@ summarize_tf <- function(..., op = NULL, eval = FALSE, verbose = TRUE) {
   if (eval) {
     ret <- do.call(tfd, c(args, evaluator = attr(funs, "evaluator_name")))
     empty <- length(ret) == 0
-    if (empty) ret <- c(ret, NA)
+    if (empty) {
+      ret <- c(ret, NA)
+    }
 
-    if (is_irreg(funs) && !is_irreg(ret)) ret <- as.tfd_irreg(ret)
-    if (!is_irreg(funs) && is_irreg(ret)) ret <- as.tfd(ret)
+    if (is_irreg(funs) && !is_irreg(ret)) {
+      ret <- as.tfd_irreg(ret)
+    }
+    if (!is_irreg(funs) && is_irreg(ret)) {
+      ret <- as.tfd(ret)
+    }
 
     na_rm <- dots$na.rm %||% FALSE
     if ((empty || is_irreg(ret) && !na_rm) && verbose) {

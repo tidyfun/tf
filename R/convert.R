@@ -30,7 +30,9 @@ as.data.frame.tf <- function(
   unnest = FALSE,
   ...
 ) {
-  if (unnest) return(tf_2_df(x))
+  if (unnest) {
+    return(tf_2_df(x))
+  }
   new_data_frame(list(x), names = deparse1(substitute(x)))
 }
 
@@ -53,7 +55,9 @@ as.matrix.tf <- function(x, arg, interpolate = FALSE, ...) {
     }
   }
 
-  if (is_tfb(x)) interpolate <- TRUE
+  if (is_tfb(x)) {
+    interpolate <- TRUE
+  }
   assert_arg_vector(arg, x, check_unique = FALSE)
   x[, arg, interpolate = interpolate, matrix = TRUE]
 }

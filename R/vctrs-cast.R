@@ -136,7 +136,9 @@ vec_cast_tfb_tfb <- function(x, to, ...) {
   # basis-matrix check above does not catch cases where x and to share a basis
   # spec but were stored on different arg grids -- only short-circuit when arg
   # also matches; otherwise fall through to tf_rebase. (#269 copilot comment)
-  if (same_basis && identical(tf_arg(x), tf_arg(to))) return(x)
+  if (same_basis && identical(tf_arg(x), tf_arg(to))) {
+    return(x)
+  }
   maybe_lossy_cast(
     tf_rebase(x, to, arg = tf_arg(to)),
     x,

@@ -67,9 +67,10 @@ new_tf_mv <- function(
     if (!anyNA(domain)) {
       widened <- map_lgl(
         components,
-        \(comp)
+        \(comp) {
           !anyNA(tf_domain(comp)) &&
             !isTRUE(all.equal(tf_domain(comp), domain))
+        }
       )
       # components are all-tfd or all-tfb (checked above), so `all_tfb`
       # decides whether any widening would extrapolate a basis

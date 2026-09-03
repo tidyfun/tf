@@ -345,9 +345,15 @@ test_that("every univariate-tf generic either has a tf_mv method or aborts clean
   checked <- character()
   for (gen in names(by_gen)) {
     classes <- by_gen[[gen]]
-    if (!has_univariate(classes)) next
-    if (has_tf_mv(classes)) next
-    if (!(gen %in% walkable)) next
+    if (!has_univariate(classes)) {
+      next
+    }
+    if (has_tf_mv(classes)) {
+      next
+    }
+    if (!(gen %in% walkable)) {
+      next
+    }
     # try a one-arg call; skip anything that genuinely needs >1 argument
     call_expr <- str2lang(sprintf("%s(fm)", gen))
     expect_true(

@@ -118,8 +118,9 @@ test_that("concatentation of mixed tfs works as expected", {
     suppressWarnings()
   # TODO: y do.call(c, l) no work?
   incremental_c <- l[[1]]
-  for (i in 2:length(l))
+  for (i in 2:length(l)) {
     incremental_c <- c(incremental_c, l[[i]]) |> suppressWarnings()
+  }
   expect_identical(incremental_c, all_c)
 })
 

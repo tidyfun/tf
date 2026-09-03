@@ -54,7 +54,9 @@ tf_interpolate <- function(object, arg, ...) UseMethod("tf_interpolate")
 #' @family tidyfun setters
 tf_interpolate.tfb <- function(object, arg, ...) {
   assert_arg(arg, object)
-  if (is.list(arg)) arg <- arg[[1]]
+  if (is.list(arg)) {
+    arg <- arg[[1]]
+  }
   attr(object, "arg") <- arg
   attr(object, "basis_matrix") <- attr(object, "basis")(arg)
   object

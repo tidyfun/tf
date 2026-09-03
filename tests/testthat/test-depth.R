@@ -92,7 +92,9 @@ test_that("FSD works", {
 test_that("FSD blockwise computation matches full-matrix reference", {
   fsd_full <- function(x, arg = seq_len(ncol(x))) {
     n <- nrow(x)
-    if (n == 1) return(1)
+    if (n == 1) {
+      return(1)
+    }
     weights <- trap_weights(arg)
     xw <- t(t(x) * sqrt(weights))
     G <- tcrossprod(xw)

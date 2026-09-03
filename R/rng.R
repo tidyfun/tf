@@ -90,7 +90,7 @@ tf_rgp <- function(
     assert_true(length(arg) == n)
     map(
       arg,
-      \(x)
+      \(x) {
         assert_numeric(
           x,
           any.missing = FALSE,
@@ -98,6 +98,7 @@ tf_rgp <- function(
           sorted = TRUE,
           .var.name = "arg"
         )
+      }
     )
   }
 
@@ -286,7 +287,9 @@ tf_mv_assert_shared_arg <- function(f, op) {
 
 tf_mv_map_same_rng <- function(f, .f) {
   comps <- tf_components(f)
-  if (!length(comps)) return(f)
+  if (!length(comps)) {
+    return(f)
+  }
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
     runif(1)
   }
