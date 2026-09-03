@@ -228,8 +228,9 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
   }
   # curves without a finite depth (irregular data not complete on the common
   # grid) cannot be ranked and are left out
-  ranked <- prepared$x[is.finite(prepared$d)]
-  o <- order(prepared$d[is.finite(prepared$d)])
+  finite <- is.finite(prepared$d)
+  ranked <- prepared$x[finite]
+  o <- order(prepared$d[finite])
   ret <- ranked[o[fivenum_positions(length(ranked))]]
   names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
   ret
@@ -298,8 +299,9 @@ fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
     return(ret)
   }
   d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
-  ranked <- complete[is.finite(d)]
-  o <- base::order(d[is.finite(d)])
+  finite <- is.finite(d)
+  ranked <- complete[finite]
+  o <- base::order(d[finite])
   ret <- ranked[o[fivenum_positions(vec_size(ranked))]]
   names(ret) <- nms
   ret

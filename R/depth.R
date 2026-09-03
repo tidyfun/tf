@@ -435,7 +435,9 @@ compute_depth <- function(x, depth, na.rm = TRUE, ...) {
       "{.arg depth} must return a numeric vector of length {n_x} or {sum(complete)}."
     )
   }
-  if (n_x > 0 && !any(is.finite(ret))) {
+  # complete curves exist but none of them has a finite depth: the input is
+  # irregular and no curve covers the common grid
+  if (any(complete) && !any(is.finite(ret))) {
     cli::cli_abort(c(
       "No finite depth values: no observation is complete on the common grid.",
       i = "Depths of irregular data are computed on the union of all {.arg arg} \
