@@ -195,7 +195,7 @@ m
 dim(tf_mfpc_scores(m))
 #> [1] 20  8
 tf_mfpc_efunctions(m)
-#> tfd_mv<d=2>[8] (hip, knee): [0, 1] -> [-1.351106, 1.658433] x [-1.564996, 1.729235]
+#> tfd_mv<d=2>[8] (hip, knee): [0, 1] -> [-1.658433, 1.351106] x [-1.564996, 1.729235]
 #> components based on 51 evaluations each, interpolation by tf_approx_linear
 #> [1]: ▄▄▄▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▂▂ | ▃▃▃▃▂▂▂▂▁▁▂▂▂▂▂▂▂▂▂▂▃▃▃▃▄▄
 #> [2]: ▇▇▇▇▇▆▆▆▆▆▅▅▅▅▄▄▄▃▃▂▂▂▁▁▂▂ | ▆▇▇▇▇▆▆▆▆▆▆▆▆▆▆▅▅▄▄▃▂▁▁▁▁▁

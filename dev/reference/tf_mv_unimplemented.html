@@ -76,6 +76,10 @@ total order on \(R^d\) – use <code><a href="tf_order.html">tf_order()</a></cod
 <code><a href="tf_invert.html">tf_invert()</a></code> (function inversion requires a monotone scalar function,
 which a vector-valued <code>f: R -&gt; R^d</code> is not – invert a monotone component
 instead, e.g. <code>tf_invert(f$x)</code>).</p>
+<p>Note that R dispatches the <code>Summary</code> group generics (<code><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max()</a></code>, <code><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min()</a></code>,
+<code><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum()</a></code>, <code><a href="https://rdrr.io/r/base/range.html" class="external-link">range()</a></code>, ...) on their <em>first</em> argument only. Put the <code>tf_mv</code>
+first, as in <code>max(f, 0)</code>: a call like <code>max(0, f)</code> bypasses the <code>tf_mv</code>
+method and errors (<code>range(0, f)</code> returns a meaningless <code>c(0, 0)</code>).</p>
 <p>Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 being designed verb-by-verb in <a href="https://github.com/tidyfun/tf/issues/255" class="external-link">https://github.com/tidyfun/tf/issues/255</a>;
 <code><a href="functionwise.html">tf_crosscov()</a></code> / <code><a href="functionwise.html">tf_crosscor()</a></code> remain blocked pending their joint design

@@ -403,6 +403,8 @@ Real world functional data
 
 - [`gait`](https://tidyfun.github.io/tf/dev/reference/gait.md) : Hip and
   knee angle while walking data
+- [`gait_mv`](https://tidyfun.github.io/tf/dev/reference/gait_mv.md) :
+  Hip and knee angle while walking data, as vector-valued curves
 - [`growth`](https://tidyfun.github.io/tf/dev/reference/growth.md) :
   Berkeley growth study data
 - [`pinch`](https://tidyfun.github.io/tf/dev/reference/pinch.md) : Pinch

@@ -2,6 +2,69 @@
 
 ## tf (development version)
 
+### New features
+
+- New `gait_mv` dataset: the `gait` hip- and knee-angle trajectories as
+  a single vector-valued `tfd_mv` curve per subject
+  ([\#300](https://github.com/tidyfun/tf/issues/300)).
+
+### Bug fixes
+
+- `tfd(list())` returns the length-0 prototype instead of erroring with
+  “subscript out of bounds”
+  ([\#296](https://github.com/tidyfun/tf/issues/296)).
+- [`tf_evaluate()`](https://tidyfun.github.io/tf/dev/reference/tf_evaluate.md)
+  on `tfb` objects (and hence `f[i, j]`) no longer errors when
+  evaluating at a single `arg` value that is not on the original grid
+  ([\#302](https://github.com/tidyfun/tf/issues/302)).
+- [`tf_derive()`](https://tidyfun.github.io/tf/dev/reference/tf_derive.md)
+  on `tfd` no longer fails with “Evaluations must be inside the domain”
+  for grids whose endpoints do not round-trip through
+  [`colnames()`](https://rdrr.io/r/base/colnames.html),
+  e.g. `seq(0, 2 * pi, length.out = 101)`
+  ([\#310](https://github.com/tidyfun/tf/issues/310)).
+- `as.data.frame(<tf_mv>, unnest = TRUE)` honours `interpolate = FALSE`
+  on the default union grid, returning `NA` where a component was not
+  observed, like [`as.matrix()`](https://rdrr.io/r/base/matrix.html)
+  does ([\#303](https://github.com/tidyfun/tf/issues/303)).
+- [`rep()`](https://rdrr.io/r/base/rep.html) and `[[` work on `tf_mv`
+  vectors; `f[[i]]` returns the `i`-th curve as a length-1 `tf_mv`
+  ([\#304](https://github.com/tidyfun/tf/issues/304)).
+- `tf_evaluate(<tf_mv>, arg = list(...))` recycles a length-1 `arg` list
+  to all curves, as the univariate method does
+  ([\#305](https://github.com/tidyfun/tf/issues/305)).
+- Cumulative
+  [`tf_arclength()`](https://tidyfun.github.io/tf/dev/reference/tf_arclength.md)
+  keeps the object’s domain, so
+  [`tf_reparam_arclength()`](https://tidyfun.github.io/tf/dev/reference/tf_geom.md)
+  works when `domain` is wider than `range(arg)`
+  ([\#306](https://github.com/tidyfun/tf/issues/306)).
+- [`tf_depth()`](https://tidyfun.github.io/tf/dev/reference/tf_depth.md)
+  returns `NA` for curves that are not completely observed on the common
+  grid instead of silently returning fewer values than curves;
+  `tf_depth(<tf_mv>)` no longer crashes on such input, and the
+  depth-based summaries (`median`, `summary`, `fivenum`) rank the curves
+  with finite depth. All-incomplete input gives an informative error
+  ([\#307](https://github.com/tidyfun/tf/issues/307)).
+- `max(0, f)`, `sum(0, f)` etc. with a `tf_mv` in a non-leading position
+  now error, like they do for univariate `tf`, instead of returning a
+  number silently computed from internal curve indices. (R only
+  dispatches the `Summary` group on the first argument, so put the
+  `tf_mv` first.) ([\#308](https://github.com/tidyfun/tf/issues/308))
+
+### Internal
+
+- [`tf_evaluate.tfb()`](https://tidyfun.github.io/tf/dev/reference/tf_evaluate.md)
+  with a per-curve list of `arg` values builds the basis design matrix
+  once on the union of all requested values instead of once per curve.
+- Internal deduplication: shared helpers for NULL-propagating
+  element-wise operations (`op_or_null()`), irregular `(arg, value)`
+  pairing (`irreg_pairs()`), derivative assembly, registration backends,
+  printing of `tf` entries and plotting grids;
+  [`tf_integrate.tfd()`](https://tidyfun.github.io/tf/dev/reference/tf_integrate.md)
+  handles `NA` entries in a single code path; `new_tfb_fpc()` reuses the
+  MFPCA component assembler. No user-visible changes.
+
 ## tf 0.5.0
 
 CRAN release: 2026-07-14

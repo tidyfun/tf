@@ -38,6 +38,11 @@ Olshen, A R, Biden, N E, Wyatt, P M, Sutherland, H D (1989). “Gait
 Analysis and the Bootstrap.” *The Annals of Statistics*, **17**(4),
 1419–1440.
 
+## See also
+
+[gait_mv](https://tidyfun.github.io/tf/dev/reference/gait_mv.md) for the
+same data as a single vector-valued curve per subject.
+
 ## Examples
 
 ``` r

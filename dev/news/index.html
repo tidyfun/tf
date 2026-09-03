@@ -46,6 +46,36 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="tf-development-version">tf (development version)<a class="anchor" aria-label="anchor" href="#tf-development-version"></a></h2>
+<div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li>New <code>gait_mv</code> dataset: the <code>gait</code> hip- and knee-angle trajectories as a single vector-valued <code>tfd_mv</code> curve per subject (<a href="https://github.com/tidyfun/tf/issues/300" class="external-link">#300</a>).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>
+<code>tfd(list())</code> returns the length-0 prototype instead of erroring with “subscript out of bounds” (<a href="https://github.com/tidyfun/tf/issues/296" class="external-link">#296</a>).</li>
+<li>
+<code><a href="../reference/tf_evaluate.html">tf_evaluate()</a></code> on <code>tfb</code> objects (and hence <code>f[i, j]</code>) no longer errors when evaluating at a single <code>arg</code> value that is not on the original grid (<a href="https://github.com/tidyfun/tf/issues/302" class="external-link">#302</a>).</li>
+<li>
+<code><a href="../reference/tf_derive.html">tf_derive()</a></code> on <code>tfd</code> no longer fails with “Evaluations must be inside the domain” for grids whose endpoints do not round-trip through <code><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames()</a></code>, e.g. <code>seq(0, 2 * pi, length.out = 101)</code> (<a href="https://github.com/tidyfun/tf/issues/310" class="external-link">#310</a>).</li>
+<li>
+<code>as.data.frame(&lt;tf_mv&gt;, unnest = TRUE)</code> honours <code>interpolate = FALSE</code> on the default union grid, returning <code>NA</code> where a component was not observed, like <code><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix()</a></code> does (<a href="https://github.com/tidyfun/tf/issues/303" class="external-link">#303</a>).</li>
+<li>
+<code><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep()</a></code> and <code>[[</code> work on <code>tf_mv</code> vectors; <code>f[[i]]</code> returns the <code>i</code>-th curve as a length-1 <code>tf_mv</code> (<a href="https://github.com/tidyfun/tf/issues/304" class="external-link">#304</a>).</li>
+<li>
+<code>tf_evaluate(&lt;tf_mv&gt;, arg = list(...))</code> recycles a length-1 <code>arg</code> list to all curves, as the univariate method does (<a href="https://github.com/tidyfun/tf/issues/305" class="external-link">#305</a>).</li>
+<li>Cumulative <code><a href="../reference/tf_arclength.html">tf_arclength()</a></code> keeps the object’s domain, so <code><a href="../reference/tf_geom.html">tf_reparam_arclength()</a></code> works when <code>domain</code> is wider than <code>range(arg)</code> (<a href="https://github.com/tidyfun/tf/issues/306" class="external-link">#306</a>).</li>
+<li>
+<code><a href="../reference/tf_depth.html">tf_depth()</a></code> returns <code>NA</code> for curves that are not completely observed on the common grid instead of silently returning fewer values than curves; <code>tf_depth(&lt;tf_mv&gt;)</code> no longer crashes on such input, and the depth-based summaries (<code>median</code>, <code>summary</code>, <code>fivenum</code>) rank the curves with finite depth. All-incomplete input gives an informative error (<a href="https://github.com/tidyfun/tf/issues/307" class="external-link">#307</a>).</li>
+<li>
+<code>max(0, f)</code>, <code>sum(0, f)</code> etc. with a <code>tf_mv</code> in a non-leading position now error, like they do for univariate <code>tf</code>, instead of returning a number silently computed from internal curve indices. (R only dispatches the <code>Summary</code> group on the first argument, so put the <code>tf_mv</code> first.) (<a href="https://github.com/tidyfun/tf/issues/308" class="external-link">#308</a>)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="internal-development-version">Internal<a class="anchor" aria-label="anchor" href="#internal-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/tf_evaluate.html">tf_evaluate.tfb()</a></code> with a per-curve list of <code>arg</code> values builds the basis design matrix once on the union of all requested values instead of once per curve.</li>
+<li>Internal deduplication: shared helpers for NULL-propagating element-wise operations (<code>op_or_null()</code>), irregular <code>(arg, value)</code> pairing (<code>irreg_pairs()</code>), derivative assembly, registration backends, printing of <code>tf</code> entries and plotting grids; <code><a href="../reference/tf_integrate.html">tf_integrate.tfd()</a></code> handles <code>NA</code> entries in a single code path; <code>new_tfb_fpc()</code> reuses the MFPCA component assembler. No user-visible changes.</li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.0" id="tf-050">tf 0.5.0<a class="anchor" aria-label="anchor" href="#tf-050"></a></h2><p class="text-muted">CRAN release: 2026-07-14</p>
