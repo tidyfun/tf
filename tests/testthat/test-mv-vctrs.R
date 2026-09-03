@@ -130,3 +130,15 @@ test_that("Summary generics with a leading numeric do not fabricate numbers (#30
   # the tf_mv-first call is the supported one
   expect_s3_class(max(mv, 0), "tfd_mv")
 })
+
+test_that("vec_restore.tf_mv rejects anything but the component proxy", {
+  mv <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  expect_error(vctrs::vec_restore(1:2, mv), "component proxy")
+})
+
+test_that("[<-.tf_mv with missing i replaces every curve", {
+  mv <- tfd_mv(list(x = tf_rgp(2), y = tf_rgp(2)))
+  mv[] <- NA
+  expect_true(all(is.na(mv)))
+  expect_length(mv, 2)
+})

@@ -117,6 +117,16 @@ test_that("as.data.frame.tf_mv honours interpolate = FALSE on the union grid (#3
   expect_true(anyNA(first$x) && anyNA(first$y))
   # default interpolation is unchanged
   expect_false(anyNA(as.data.frame(mv, unnest = TRUE, long = FALSE)$y))
+  # explicit arg with interpolate = FALSE: only observed values survive
+  at <- suppressWarnings(as.data.frame(
+    mv,
+    unnest = TRUE,
+    long = FALSE,
+    arg = c(0, 0.1),
+    interpolate = FALSE
+  ))
+  expect_equal(at$x[at$id == "1"], c(1, 3))
+  expect_equal(at$y[at$id == "1"], c(1, NA))
 })
 
 test_that("as.data.frame.tf_mv forwards ... (evaluator) on the union grid", {

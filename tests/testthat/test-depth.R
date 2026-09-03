@@ -213,3 +213,7 @@ test_that("median works", {
   expect_identical(median(c(na, lin), na.rm = TRUE), median(lin))
   expect_message(median(lin[1:2]), "maximal depth")
 })
+
+test_that("custom depth functions must return one value per (complete) curve", {
+  expect_error(rank(lin, depth = \(x, ...) 1), "length")
+})

@@ -257,3 +257,14 @@ test_that("Summary.tf error messages do not crash cli (#247)", {
   # prod is a Summary-group generic but should not land in the error branch
   expect_no_error(prod(x))
 })
+
+test_that("fivenum(na.rm = TRUE) on an all-NA vector returns NA entries", {
+  f <- tf_rgp(3)
+  f[1:3] <- NA
+  fn <- fivenum(f, na.rm = TRUE)
+  expect_true(all(is.na(fn)))
+  expect_equal(
+    names(fn),
+    c("min", "lower_hinge", "median", "upper_hinge", "max")
+  )
+})

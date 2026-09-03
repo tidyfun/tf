@@ -94,3 +94,9 @@ test_that("tfd(list()) returns the length-0 prototype (#296)", {
     tfd(numeric(0), domain = c(0, 1), evaluator = tf_approx_spline)
   )
 })
+
+test_that("tfd(list()) keeps a supplied grid, also given as a list", {
+  grid <- seq(0, 1, length.out = 5)
+  expect_identical(tf_arg(tfd(list(), arg = list(grid))), grid)
+  expect_length(tfd(list(), arg = list()), 0)
+})
