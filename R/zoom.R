@@ -63,7 +63,9 @@ tf_zoom.tfd <- function(
   )
   if (is_irreg(f) || !args$regular) {
     nas <- map_int(ret, nrow) == 0
-    if (all(nas)) cli::cli_abort("No data in zoom region.")
+    if (all(nas)) {
+      cli::cli_abort("No data in zoom region.")
+    }
     if (any(nas)) {
       cli::cli_warn(
         "{.code NA}s created by re-evaluating on new grid in {.fn tf_zoom}."
@@ -96,7 +98,9 @@ tf_zoom.tfb <- function(
     return(tf_zoom(tfd(f), begin, end))
   }
   use <- tf_arg(f) >= args$dom[1] & tf_arg(f) <= args$dom[2]
-  if (!any(use)) cli::cli_abort("No data in zoom region.")
+  if (!any(use)) {
+    cli::cli_abort("No data in zoom region.")
+  }
   ret <- f
   attr(ret, "basis_matrix") <- attr(f, "basis_matrix")[use, ]
   attr(ret, "arg") <- tf_arg(f)[use]

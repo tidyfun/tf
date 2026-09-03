@@ -40,7 +40,9 @@ new_tfb_spline <- function(
 
   dots <- list(...)
   gam_args <- dots[names(dots) %in% c(formalArgs(gam), formalArgs(bam))]
-  if (!has_name(gam_args, "sp")) gam_args$sp <- -1
+  if (!has_name(gam_args, "sp")) {
+    gam_args$sp <- -1
+  }
 
   n_evaluations <- table(data$id)
   arg_list <- split(data$arg, data$id)
@@ -48,7 +50,9 @@ new_tfb_spline <- function(
 
   if (is.null(spec_override)) {
     s_args <- dots[names(dots) %in% formalArgs(s)]
-    if (!has_name(s_args, "bs")) s_args$bs <- "cr"
+    if (!has_name(s_args, "bs")) {
+      s_args$bs <- "cr"
+    }
     if (s_args$bs == "ad") {
       cli::cli_warn(c(
         x = "Adaptive smooths with ({.code bs = 'ad'}) not implemented yet.",
@@ -56,7 +60,9 @@ new_tfb_spline <- function(
       ))
       s_args$bs <- "cr"
     }
-    if (!has_name(s_args, "k")) s_args$k <- min(25, nrow(arg_u))
+    if (!has_name(s_args, "k")) {
+      s_args$k <- min(25, nrow(arg_u))
+    }
     s_call <- as.call(c(quote(s), quote(arg), s_args))
     s_spec <- eval(s_call)
     spec_object <- smooth.construct(
@@ -317,7 +323,9 @@ tfb_spline.matrix <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is.null(arg)) arg <- unlist(find_arg(data, arg), use.names = FALSE)
+  if (is.null(arg)) {
+    arg <- unlist(find_arg(data, arg), use.names = FALSE)
+  }
   names_data <- rownames(data)
 
   data <- mat_2_df(data, arg)

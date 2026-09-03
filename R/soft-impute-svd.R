@@ -24,12 +24,14 @@
 #   maxit   : iteration cap
 # output: list(u, d, v) with non-zero singular values (and a final +1 buffer),
 #         analogous to base::svd() but operating on an NA-filled matrix.
-simpute_svd <- function(x,
-                        J = min(dim(x)) - 1,
-                        thresh = 1e-5,
-                        lambda = 0,
-                        maxit = 100,
-                        ...) {
+simpute_svd <- function(
+  x,
+  J = min(dim(x)) - 1,
+  thresh = 1e-5,
+  lambda = 0,
+  maxit = 100,
+  ...
+) {
   # clamp J to the available SVD rank; guards against J > min(dim(x)) and
   # against the degenerate default J = 0 for single-row/column inputs
   J <- max(min(as.integer(J), min(dim(x))), 1L)
@@ -37,9 +39,11 @@ simpute_svd <- function(x,
   if (!any(nas)) {
     s <- svd(x)
     keep <- seq_len(min(J, length(s$d)))
-    return(list(u = s$u[, keep, drop = FALSE],
-                d = pmax(s$d[keep] - lambda, 0),
-                v = s$v[, keep, drop = FALSE]))
+    return(list(
+      u = s$u[, keep, drop = FALSE],
+      d = pmax(s$d[keep] - lambda, 0),
+      v = s$v[, keep, drop = FALSE]
+    ))
   }
 
   # Initial fill: zeros. Callers pass column-centered data, so zero is the
@@ -63,8 +67,12 @@ simpute_svd <- function(x,
     d_new_thr <- pmax(s_new$d - lambda, 0)
 
     ratio <- .simpute_frob_ratio(
-      s_prev$u[, idx, drop = FALSE], d_thr[idx], s_prev$v[, idx, drop = FALSE],
-      s_new$u[, idx, drop = FALSE], d_new_thr[idx], s_new$v[, idx, drop = FALSE]
+      s_prev$u[, idx, drop = FALSE],
+      d_thr[idx],
+      s_prev$v[, idx, drop = FALSE],
+      s_new$u[, idx, drop = FALSE],
+      d_new_thr[idx],
+      s_new$v[, idx, drop = FALSE]
     )
 
     s_prev <- s_new
@@ -82,7 +90,9 @@ simpute_svd <- function(x,
   d_final <- pmax(s_prev$d[idx] - lambda, 0)
   keep <- min(sum(d_final > 0) + 1, J)
   keep_idx <- seq_len(keep)
-  list(u = s_prev$u[, keep_idx, drop = FALSE],
-       d = d_final[keep_idx],
-       v = s_prev$v[, keep_idx, drop = FALSE])
+  list(
+    u = s_prev$u[, keep_idx, drop = FALSE],
+    d = d_final[keep_idx],
+    v = s_prev$v[, keep_idx, drop = FALSE]
+  )
 }

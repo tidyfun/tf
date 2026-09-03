@@ -517,12 +517,7 @@ tf_estimate_warps.tfd_reg <- function(
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
 
-  if (method == "srvf_mv") {
-    cli::cli_abort(c(
-      "{.val srvf_mv} registration is only available for {.cls tf_mv} objects.",
-      "i" = "Use {.val srvf} for univariate functional data."
-    ))
-  }
+  abort_srvf_mv_univariate(method)
 
   # Landmark method doesn't use template, uses landmarks instead
   if (method == "landmark") {
@@ -575,21 +570,13 @@ tf_estimate_warps.tfd_reg <- function(
   keep <- NULL # fixed subset of curves with a finite objective (#265)
   cc_min_iter <- 3L
   for (iter in seq_len(max_iter)) {
-    warps <- switch(
+    backend <- switch(
       method,
-      srvf = do.call(
-        tf_register_srvf,
-        c(list(x = x, template = current_template), dots)
-      ),
-      cc = do.call(
-        tf_register_cc,
-        c(list(x = x, template = current_template), dots)
-      ),
-      affine = do.call(
-        tf_register_affine,
-        c(list(x = x, template = current_template), dots)
-      )
+      srvf = tf_register_srvf,
+      cc = tf_register_cc,
+      affine = tf_register_affine
     )
+    warps <- do.call(backend, c(list(x = x, template = current_template), dots))
 
     aligned <- tf_align(x, warps)
     aligned_on_arg <- suppressWarnings(tf_interpolate(aligned, arg = arg))
@@ -709,9 +696,21 @@ tf_estimate_warps.tfd_reg <- function(
     current_template <- new_template
   }
   result <- best_warps %||% warps
-  attr(result, "template") <- if (!is.null(best_warps)) best_template else
+  attr(result, "template") <- if (!is.null(best_warps)) {
+    best_template
+  } else {
     current_template
+  }
   result
+}
+
+abort_srvf_mv_univariate <- function(method) {
+  if (method == "srvf_mv") {
+    cli::cli_abort(c(
+      "{.val srvf_mv} registration is only available for {.cls tf_mv} objects.",
+      "i" = "Use {.val srvf} for univariate functional data."
+    ))
+  }
 }
 
 #' @export
@@ -748,12 +747,7 @@ tf_estimate_warps.tfd_irreg <- function(
   assert_count(max_iter, positive = TRUE)
   assert_number(tol, lower = 0)
 
-  if (method == "srvf_mv") {
-    cli::cli_abort(c(
-      "{.val srvf_mv} registration is only available for {.cls tf_mv} objects.",
-      "i" = "Use {.val srvf} for univariate functional data."
-    ))
-  }
+  abort_srvf_mv_univariate(method)
 
   if (method %in% c("srvf", "cc")) {
     cli::cli_abort(
@@ -939,7 +933,9 @@ tf_register_affine <- function(
 
   # Prepare data matrices on common grid
   arg <- tf_arg(x)
-  if (is.list(arg)) arg <- sort_unique(arg, simplify = TRUE)
+  if (is.list(arg)) {
+    arg <- sort_unique(arg, simplify = TRUE)
+  }
 
   x_mat <- as.matrix(tfd(x, arg = arg))
   template_vec <- as.matrix(tfd(template, arg = arg))[1, ]
@@ -960,7 +956,9 @@ tf_register_affine <- function(
 
 # Helper: validate template for affine registration
 validate_affine_template <- function(template, x, domain) {
-  if (is.null(template)) return(mean(x))
+  if (is.null(template)) {
+    return(mean(x))
+  }
 
   assert_tf(template)
   if (length(template) != 1) {

@@ -115,7 +115,9 @@ new_tfd <- function(
   data_lens <- lengths(datalist)
   bad <- map_lgl(seq_along(datalist), \(i) {
     x <- datalist[[i]]
-    if (is.null(x) || allMissing(x)) return(FALSE)
+    if (is.null(x) || allMissing(x)) {
+      return(FALSE)
+    }
     expected <- if (length(arg_list) == 1) arg_lens[1] else arg_lens[i]
     length(x) != expected
   })
@@ -152,7 +154,9 @@ new_tfd <- function(
       datalist,
       arg,
       function(x, y) {
-        if (is.null(x) || allMissing(x)) return(NULL)
+        if (is.null(x) || allMissing(x)) {
+          return(NULL)
+        }
         this_arg <- unname(y[!is.na(x)])
         list(arg = this_arg, value = unname(x[!is.na(x)]))
       }
@@ -347,6 +351,17 @@ tfd.list <- function(
   ...
 ) {
   evaluator <- as_name(enexpr(evaluator))
+  # an empty list carries no data: route to the length-0 prototype via the
+  # matrix path (on the supplied grid, if any) so that `tfd(list())` and
+  # `tfd(numeric(0))` agree (#296)
+  if (!length(data)) {
+    if (is.list(arg)) {
+      arg <- if (length(arg)) arg[[1]] else NULL
+    }
+    empty <- matrix(numeric(0), nrow = 0, ncol = length(arg))
+    args <- list(empty, arg = arg, domain = domain, evaluator = evaluator)
+    return(do.call(tfd, args))
+  }
   vectors <- map_lgl(data, \(x) is.null(x) || (is.numeric(x) & !is.array(x)))
   if (all(vectors)) {
     where_na <- map(data, is.na)
@@ -594,11 +609,7 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
-  arg <- ensure_list(tf_arg(data))
-  ret <- map2(tf_evaluations(data), arg, \(x, y) {
-    if (is.null(x)) return(NULL)
-    list(arg = y, value = x)
-  })
+  ret <- irreg_pairs(ensure_list(tf_arg(data)), tf_evaluations(data))
   attributes(ret) <- attributes(data)
   attr(ret, "arg") <- numeric(0)
   class(ret)[1] <- "tfd_irreg"

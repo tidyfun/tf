@@ -354,8 +354,8 @@ mfpc_choose_npc <- function(evalues, pve, npc) {
 }
 
 # assemble a tfb_fpc from a precomputed (mean + eigenfunctions) basis and a
-# score matrix -- mirrors the assembly in new_tfb_fpc() but takes the spec
-# directly, so it can carry *shared* multivariate scores.
+# score matrix. Shared by new_tfb_fpc() and the MFPCA fitter, whose components
+# carry *shared* multivariate scores.
 new_tfb_fpc_shared <- function(
   basis_matrix,
   scores,

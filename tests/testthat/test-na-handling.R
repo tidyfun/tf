@@ -39,7 +39,9 @@ test_that("arithmetic with NA_real_ produces NULL entries", {
   for (op in list(`+`, `-`, `*`, `/`, `^`)) {
     y <- op(x, NA_real_)
     expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
-    for (i in 1:3) expect_null(unclass(y)[[i]])
+    for (i in 1:3) {
+      expect_null(unclass(y)[[i]])
+    }
   }
 })
 
@@ -48,7 +50,9 @@ test_that("NA_real_ op tfd produces NULL entries", {
   x <- tf_rgp(3)
   y <- NA_real_ - x
   expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
-  for (i in 1:3) expect_null(unclass(y)[[i]])
+  for (i in 1:3) {
+    expect_null(unclass(y)[[i]])
+  }
 })
 
 test_that("vectorized arithmetic with NA produces NULL at correct positions", {
@@ -77,7 +81,9 @@ test_that("all-NA irregular tfd + tfd preserves vector size", {
   y <- suppressWarnings(x + x)
   expect_length(y, 2)
   expect_equal(is.na(y), c(TRUE, TRUE), ignore_attr = "names")
-  for (i in seq_along(y)) expect_null(unclass(y)[[i]])
+  for (i in seq_along(y)) {
+    expect_null(unclass(y)[[i]])
+  }
 })
 
 test_that("irregular arithmetic with NA_real_ produces NULL entries", {
@@ -85,7 +91,9 @@ test_that("irregular arithmetic with NA_real_ produces NULL entries", {
   x <- tf_rgp(3) |> tf_sparsify(0.6)
   y <- x - NA_real_
   expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
-  for (i in 1:3) expect_null(unclass(y)[[i]])
+  for (i in 1:3) {
+    expect_null(unclass(y)[[i]])
+  }
   expect_no_error(capture.output(print(y)))
 })
 
@@ -171,7 +179,9 @@ test_that("tfb arithmetic with NA_real_ produces NULL entries and returns tfb", 
   y <- suppressWarnings(x + NA_real_)
   expect_true(is_tfb(y))
   expect_equal(is.na(y), rep(TRUE, 3), ignore_attr = "names")
-  for (i in 1:3) expect_null(unclass(y)[[i]])
+  for (i in 1:3) {
+    expect_null(unclass(y)[[i]])
+  }
   # partial NA: numeric_op_tfb
   z <- suppressWarnings(NA_real_ - x[1:2])
   expect_true(is_tfb(z))

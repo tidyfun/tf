@@ -66,3 +66,32 @@ test_that("tf_evaluate.tfd returns values at correct positions for duplicated ar
   # `[` operator path reaches the same code
   expect_equal(as.numeric(x[1, c(0.25, 0.25, 0.35)]), c(0.25, 0.25, 0.35))
 })
+
+test_that("tf_evaluate.tfb works for a single off-grid arg value (#302)", {
+  set.seed(1)
+  x <- tf_rgp(3, arg = seq(0, 1, length.out = 21))
+  fs <- tfb_spline(x, k = 8, verbose = FALSE)
+  fp <- tfb_fpc(x)
+  for (f in list(fs, fp)) {
+    single <- tf_evaluate(f, arg = 0.123)
+    expect_length(single, 3)
+    expect_true(all(lengths(single) == 1))
+    pair <- tf_evaluate(f, arg = c(0.123, 0.456))
+    expect_equal(unlist(single), vapply(pair, `[`, numeric(1), 1))
+    expect_equal(as.numeric(f[1, 0.123]), single[[1]])
+    expect_equal(f[cbind(1:3, 0.123)], unname(unlist(single)))
+  }
+})
+
+test_that("tf_evaluate.tfb with per-curve arg lists matches shared-arg results", {
+  set.seed(2)
+  x <- tf_rgp(4, arg = seq(0, 1, length.out = 21))
+  f <- tfb_spline(x, k = 8, verbose = FALSE)
+  f[2] <- NA
+  args <- list(c(0.05, 0.5), 0.33, c(0.1, 0.9), c(0.05, 0.95))
+  per_curve <- tf_evaluate(f, arg = args)
+  expect_true(is.na(per_curve[[2]]))
+  for (i in c(1, 3, 4)) {
+    expect_equal(per_curve[[i]], tf_evaluate(f[i], arg = args[[i]])[[1]])
+  }
+})

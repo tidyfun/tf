@@ -177,7 +177,13 @@ print.tfd_reg <- function(x, n = 6, ...) {
   NextMethod()
   cat(" based on", length(tf_arg(x)), "evaluations each\n")
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
-  len <- length(x)
+  print_tf_entries(x, n, ...)
+}
+
+# print the first `n` formatted entries of `x` (with a shared value scale for
+# sparklines) and a "not shown" note for the rest
+print_tf_entries <- function(x, n, ...) {
+  len <- vec_size(x)
   if (len > 0) {
     range_ <- safe_range_evals(x)
     scale_ <- if (any(!is.na(range_))) range_ else NULL
@@ -210,15 +216,7 @@ print.tfd_irreg <- function(x, n = 6, ...) {
     cat(" (irregular) \n")
   }
   cat("interpolation by", attr(x, "evaluator_name"), "\n")
-  len <- length(x)
-  if (len > 0) {
-    format(x[seq_len(min(n, len))], prefix = TRUE, ...) |>
-      cat(sep = "\n")
-    if (n < len) {
-      cat(paste0("    [....]   (", len - n, " not shown)\n"))
-    }
-  }
-  invisible(x)
+  print_tf_entries(x, n, ...)
 }
 
 #' @rdname tfdisplay
@@ -226,20 +224,12 @@ print.tfd_irreg <- function(x, n = 6, ...) {
 print.tfb <- function(x, n = 5, ...) {
   NextMethod()
   cat(" in basis representation")
-  len <- vec_size(x)
-  if (len > 0) {
-    range_ <- safe_range_evals(x)
-    scale_ <- if (any(!is.na(range_))) range_ else NULL
-    cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
-    format(x[seq_len(min(n, len))], scale_f = scale_, prefix = TRUE, ...) |>
-      cat(sep = "\n")
-    if (n < len) {
-      cat(paste0("    [....]   (", len - n, " not shown)\n"))
-    }
-    invisible(x)
-  } else {
+  if (vec_size(x) == 0) {
     cat(".\n")
+    return(invisible(x))
   }
+  cat(":\n using ", attr(x, "basis_label"), attr(x, "family_label"), "\n")
+  print_tf_entries(x, n, ...)
 }
 
 #' @rdname tfdisplay

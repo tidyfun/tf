@@ -8,21 +8,15 @@ tf_rebase.tf_mv <- function(object, basis_from, arg = NULL, ...) {
   if (is_tf_mv(basis_from) && is_tfb_mfpc(basis_from)) {
     return(mfpc_rescore(object, basis_from, arg = arg))
   }
+  # only forward `arg` if supplied, so the univariate default (the basis'
+  # own grid) applies otherwise
+  extra <- c(if (!is.null(arg)) list(arg = arg), list(...))
+  rebase_one <- function(o, b) do.call(tf_rebase, c(list(o, b), extra))
   if (is_tf_mv(basis_from)) {
     check_compatible_mv(object, basis_from)
-    bases <- tf_components(basis_from)
-    new_comps <- map2(comps, bases, function(o, b) {
-      if (is.null(arg)) tf_rebase(o, b, ...) else
-        tf_rebase(o, b, arg = arg, ...)
-    })
+    new_comps <- map2(comps, tf_components(basis_from), rebase_one)
   } else {
-    new_comps <- map(comps, function(o) {
-      if (is.null(arg)) {
-        tf_rebase(o, basis_from, ...)
-      } else {
-        tf_rebase(o, basis_from, arg = arg, ...)
-      }
-    })
+    new_comps <- map(comps, rebase_one, b = basis_from)
   }
   new_tf_mv(new_comps)
 }
@@ -72,9 +66,15 @@ tf_integrate.tf_mv <- function(f, arg, lower, upper, definite = TRUE, ...) {
   }
   results <- imap(tf_components(f), function(comp, nm) {
     call_args <- list(comp, definite = definite, ...)
-    if (has_arg) call_args$arg <- tf_mv_component_arg(arg, nm, cn)
-    if (has_lower) call_args$lower <- lower
-    if (has_upper) call_args$upper <- upper
+    if (has_arg) {
+      call_args$arg <- tf_mv_component_arg(arg, nm, cn)
+    }
+    if (has_lower) {
+      call_args$lower <- lower
+    }
+    if (has_upper) {
+      call_args$upper <- upper
+    }
     do.call(tf_integrate, call_args)
   })
   if (is.numeric(results[[1]])) {

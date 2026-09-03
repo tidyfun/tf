@@ -120,11 +120,20 @@ as.data.frame.tf_mv <- function(
     ))
   }
 
-  # `tf_evaluate.tf_mv` returns a length-n list of per-curve data.frames with
-  # columns (arg, comp1, ..., compd), NA-filled where a component has no value
-  # at that arg. This is exactly the union-grid + NA-fill coercion downstream
-  # consumers (e.g. tidyfun's ggplot layer) need; long/wide is just a pivot.
-  per_curve <- tf_evaluate(x, arg = arg, interpolate = interpolate, ...)
+  # Both `tf_evaluate.tf_mv()` and `[.tf_mv` (with `matrix = FALSE`) return a
+  # length-n list of per-curve data.frames with columns (arg, comp1, ...,
+  # compd), NA-filled where a component has no value at that arg. This is
+  # exactly the union-grid + NA-fill coercion downstream consumers (e.g.
+  # tidyfun's ggplot layer) need; long/wide is just a pivot. `tf_evaluate()`
+  # forwards `...` (e.g. `evaluator`) but always interpolates, so
+  # `interpolate = FALSE` goes through `[` instead (#303).
+  per_curve <- if (interpolate) {
+    tf_evaluate(x, arg = arg, ...)
+  } else if (is.null(arg)) {
+    x[, interpolate = FALSE, matrix = FALSE]
+  } else {
+    x[, arg, interpolate = FALSE, matrix = FALSE]
+  }
 
   id_factor <- factor(as.character(ids), levels = id_levels)
 
@@ -142,24 +151,30 @@ as.data.frame.tf_mv <- function(
     unlist(map(per_curve, `[[`, nm), use.names = FALSE)
   }
 
-  if (long) {
-    out <- data_frame0(
+  out <- if (long) {
+    data_frame0(
       id = rep(id_all, times = length(comp_names)),
       arg = rep(arg_all, times = length(comp_names)),
       component = factor(rep(comp_names, each = sum(nr)), levels = comp_names),
       value = unlist(map(comp_names, comp_col), use.names = FALSE)
     )
-    out <- out[order(out$id, out$arg, out$component), , drop = FALSE]
   } else {
-    out <- do.call(
+    do.call(
       data_frame0,
       c(
         list(id = id_all, arg = arg_all),
         map(setNames(comp_names, comp_names), comp_col)
       )
     )
-    out <- out[order(out$id, out$arg), , drop = FALSE]
   }
+  mv_df_sort_rows(out)
+}
+
+# sort an unnested (long or wide) tf_mv data.frame by id, arg (and component)
+# and drop the row names; the construction order upstream is then irrelevant
+mv_df_sort_rows <- function(out) {
+  keys <- out[intersect(c("id", "arg", "component"), names(out))]
+  out <- out[do.call(order, unname(keys)), , drop = FALSE]
   rownames(out) <- NULL
   out
 }
@@ -204,26 +219,19 @@ mv_df_component_grids <- function(
       component = component_f,
       value = stacked$value
     )
-    out <- out[order(out$id, out$arg, out$component), , drop = FALSE]
-  } else {
-    keys <- data_frame0(id = id_f, arg = stacked$arg)
-    ukeys <- vec_unique(keys)
-    ukeys <- ukeys[order(ukeys$id, ukeys$arg), , drop = FALSE]
-    loc <- vec_match(keys, ukeys)
-    cols <- map(comp_names, function(nm) {
-      v <- rep(NA_real_, nrow(ukeys))
-      sel <- component_f == nm
-      v[loc[sel]] <- stacked$value[sel]
-      v
-    })
-    out <- do.call(
-      data_frame0,
-      c(
-        list(id = ukeys$id, arg = ukeys$arg),
-        setNames(cols, comp_names)
-      )
-    )
+    return(mv_df_sort_rows(out))
   }
-  rownames(out) <- NULL
-  out
+  keys <- data_frame0(id = id_f, arg = stacked$arg)
+  ukeys <- mv_df_sort_rows(vec_unique(keys))
+  loc <- vec_match(keys, ukeys)
+  cols <- map(comp_names, function(nm) {
+    v <- rep(NA_real_, nrow(ukeys))
+    sel <- component_f == nm
+    v[loc[sel]] <- stacked$value[sel]
+    v
+  })
+  do.call(
+    data_frame0,
+    c(list(id = ukeys$id, arg = ukeys$arg), setNames(cols, comp_names))
+  )
 }

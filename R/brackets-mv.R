@@ -2,7 +2,9 @@
 
 #' @export
 tf_evaluate.tf_mv <- function(object, arg, ...) {
-  if (!vec_size(object)) return(list())
+  if (!vec_size(object)) {
+    return(list())
+  }
   comps <- tf_components(object)
   comp_names <- attr(object, "comp_names")
   n <- vec_size(object)
@@ -44,7 +46,9 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   }
   if (!is.null(component)) {
     comp <- tf_component(x, component)
-    if (missing(i)) i <- seq_along(comp)
+    if (missing(i)) {
+      i <- seq_along(comp)
+    }
     if (missing(j)) {
       if (missing(matrix)) {
         return(comp[i, interpolate = interpolate])
@@ -128,6 +132,21 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     setNames(names(xi))
 }
 
+#' @export
+`[[.tf_mv` <- function(x, i) {
+  # one curve as a length-1 tf_mv. (Unlike `[[.tfd`, which returns the bare
+  # evaluations of one curve, there is no single-vector representation of a
+  # vector-valued curve.) This is also what list-aware tooling such as
+  # `dplyr::rowwise()` extracts per row.
+  x[vec_as_location2(i, n = vec_size(x), names = names(x))]
+}
+
+#' @export
+rep.tf_mv <- function(x, ...) {
+  # `rep.vctrs_vctr` would hand the bare index vector to `vec_restore` (#304)
+  x[rep(seq_along(x), ...)]
+}
+
 #' @rdname tfbrackets
 #' @export
 `[<-.tf_mv` <- function(x, i, value) {
@@ -135,7 +154,9 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
   # NA assignment, length recycling and lossy casts per component), then
   # rebuild. This is more robust than letting the default `[<-.tf` thread a
   # `vec_slice<-` through the data-frame-of-components proxy.
-  if (missing(i)) i <- seq_along(x)
+  if (missing(i)) {
+    i <- seq_along(x)
+  }
   comps <- tf_components(x)
   value_comps <- if (is_tf_mv(value)) {
     check_compatible_mv(x, value)

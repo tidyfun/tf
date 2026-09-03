@@ -20,6 +20,11 @@ total order on \eqn{R^d} -- use \code{\link[=tf_order]{tf_order()}} with \verb{b
 which a vector-valued \code{f: R -> R^d} is not -- invert a monotone component
 instead, e.g. \code{tf_invert(f$x)}).
 
+Note that R dispatches the \code{Summary} group generics (\code{max()}, \code{min()},
+\code{sum()}, \code{range()}, ...) on their \emph{first} argument only. Put the \code{tf_mv}
+first, as in \code{max(f, 0)}: a call like \code{max(0, f)} bypasses the \code{tf_mv}
+method and errors (\code{range(0, f)} returns a meaningless \code{c(0, 0)}).
+
 Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 being designed verb-by-verb in \url{https://github.com/tidyfun/tf/issues/255};
 \code{tf_crosscov()} / \code{tf_crosscor()} remain blocked pending their joint design

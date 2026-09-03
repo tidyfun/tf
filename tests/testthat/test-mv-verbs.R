@@ -401,3 +401,15 @@ test_that("tf_arclength errors clearly when component domains only partially ove
     tolerance = 1e-8
   )
 })
+
+test_that("tf_integrate.tf_mv forwards explicit limits and arg per component", {
+  arg <- seq(0, 1, length.out = 21)
+  mv <- tfd_mv(list(
+    x = tfd(matrix(rep(1, 21), nrow = 1), arg = arg),
+    y = tfd(matrix(2 * arg, nrow = 1), arg = arg)
+  ))
+  part <- tf_integrate(mv, lower = 0.25, upper = 0.75)
+  expect_equal(unname(part[1, ]), c(0.5, 0.5))
+  coarse <- tf_integrate(mv, arg = seq(0, 1, length.out = 6))
+  expect_equal(unname(coarse[1, ]), c(1, 1))
+})

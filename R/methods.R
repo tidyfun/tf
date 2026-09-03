@@ -32,8 +32,9 @@ tf_arg <- function(f) UseMethod("tf_arg")
 tf_arg.default <- function(f) .NotYetImplemented()
 
 #' @export
-tf_arg.tfd_irreg <- function(f)
+tf_arg.tfd_irreg <- function(f) {
   map(f, \(x) if (is.null(x)) numeric(0) else x$arg)
+}
 
 #' @export
 tf_arg.tfd_reg <- function(f) attr(f, "arg")[[1]]
@@ -63,12 +64,16 @@ tf_evaluations.tfd_irreg <- function(f) {
 #' @export
 tf_evaluations.tfb <- function(f) {
   evals <- map(f, \(x) {
-    if (is.null(x)) return(NULL)
+    if (is.null(x)) {
+      return(NULL)
+    }
     drop(attr(f, "basis_matrix") %*% x) |> unname()
   })
   if (!is_tfb_fpc(f) && vec_size(f) > 0) {
     evals <- map(evals, \(x) {
-      if (is.null(x)) return(NULL)
+      if (is.null(x)) {
+        return(NULL)
+      }
       attr(f, "family")$linkinv(x)
     })
   }
@@ -190,11 +195,10 @@ tf_basis <- function(f, as_tfd = FALSE) {
 `tf_arg<-.tfd_irreg` <- function(x, value) {
   assert_arg(value, x, check_unique = FALSE)
   value <- ensure_list(value)
-  if (length(value) == 1) value <- rep(value, length(x))
-  ret <- map2(tf_evaluations(x), value, \(v, y) {
-    if (is.null(v)) return(NULL)
-    list(arg = y, value = v)
-  })
+  if (length(value) == 1) {
+    value <- rep(value, length(x))
+  }
+  ret <- irreg_pairs(value, tf_evaluations(x))
   attributes(ret) <- attributes(x)
   ret
 }
@@ -246,9 +250,7 @@ rev.tf <- function(x) {
 
 #' @export
 #' @rdname tfmethods
-rev.tf_mv <- function(x) {
-  x[rev(seq_along(x))]
-}
+rev.tf_mv <- rev.tf
 
 #-------------------------------------------------------------------------------
 

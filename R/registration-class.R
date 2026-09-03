@@ -176,7 +176,8 @@ print_registration <- function(x, cls, count_line, slots) {
 #' @export
 print.tf_registration <- function(x, ...) {
   print_registration(
-    x, "tf_registration",
+    x,
+    "tf_registration",
     "{length(x$registered)} curve{?s} on [{domain[1]}, {domain[2]}]",
     c(
       "aligned" = !is.null(x$registered),
@@ -191,7 +192,8 @@ print.tf_registration <- function(x, ...) {
 #' @export
 print.tf_shape_registration <- function(x, ...) {
   print_registration(
-    x, "tf_shape_registration",
+    x,
+    "tf_shape_registration",
     "{length(x$registered)} curve{?s} with {tf_ncomp(x$registered)} component{?s} on [{domain[1]}, {domain[2]}]",
     c(
       "aligned" = !is.null(x$registered),
@@ -240,11 +242,14 @@ mean_pointwise_variance <- function(x) {
 
 #' @rdname tf_registration
 #' @export
+# quantile levels reported by the registration summaries
+registration_probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
+
 summary.tf_registration <- function(object, ...) {
   domain <- tf_domain(object$registered)
   domain_length <- diff(domain)
   n <- length(object$registered)
-  probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
+  probs <- registration_probs
 
   # Amplitude variance reduction: 1 - mean(pointwise_var(reg)) / mean(pointwise_var(orig))
   # `var(tf_mv)` is component-wise (returns a tf_mv), so handle multivariate
@@ -295,32 +300,15 @@ summary.tf_registration <- function(object, ...) {
   domain_loss_quantiles <- stats::quantile(domain_loss_per_curve, probs = probs)
 
   # Warp slope statistics (local time dilation/compression)
-  inv_warp_evals <- tf_evaluations(object$inv_warps)
-  if (is.list(arg)) {
-    slope_per_curve <- vapply(
-      seq_len(n),
-      \(i) {
-        dt <- diff(arg[[i]])
-        dh <- diff(inv_warp_evals[[i]])
-        slopes <- dh / dt
-        slopes <- slopes[is.finite(slopes)]
-        c(min = min(slopes), max = max(slopes))
-      },
-      numeric(2)
-    )
-  } else {
-    dt <- diff(arg)
-    slope_per_curve <- vapply(
-      seq_len(n),
-      \(i) {
-        dh <- diff(inv_warp_evals[[i]])
-        slopes <- dh / dt
-        slopes <- slopes[is.finite(slopes)]
-        c(min = min(slopes), max = max(slopes))
-      },
-      numeric(2)
-    )
-  }
+  slope_per_curve <- vapply(
+    seq_len(n),
+    \(i) {
+      slopes <- diff(inv_warp_evals[[i]]) / diff(args_list[[i]])
+      slopes <- slopes[is.finite(slopes)]
+      c(min = min(slopes), max = max(slopes))
+    },
+    numeric(2)
+  )
   inv_warp_slope_range <- c(
     min = min(slope_per_curve["min", ]),
     max = max(slope_per_curve["max", ])
@@ -463,7 +451,7 @@ shape_rotation_angles <- function(rotations) {
 #' @export
 summary.tf_shape_registration <- function(object, ...) {
   base <- NextMethod()
-  probs <- c(0, 0.1, 0.25, 0.5, 0.75, 0.9, 1)
+  probs <- registration_probs
   angles <- shape_rotation_angles(object$rotations)
   scales <- object$scales %||% numeric(0)
   base$rotation_angles_deg <- if (length(angles) && any(!is.na(angles))) {

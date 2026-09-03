@@ -67,9 +67,10 @@ new_tf_mv <- function(
     if (!anyNA(domain)) {
       widened <- map_lgl(
         components,
-        \(comp)
+        \(comp) {
           !anyNA(tf_domain(comp)) &&
             !isTRUE(all.equal(tf_domain(comp), domain))
+        }
       )
       # components are all-tfd or all-tfb (checked above), so `all_tfb`
       # decides whether any widening would extrapolate a basis
@@ -149,7 +150,14 @@ new_tf_mv <- function(
     n <- 0L
     curve_names <- NULL
   }
-  data <- seq_len(n)
+  # the vctr's own data is a placeholder: all information lives in the
+  # component attributes. Use a raw vector, not the curve indices, so that
+  # base reductions that bypass S3 dispatch because the tf_mv is not the
+  # first argument (e.g. `max(0, f)`, also with `na.rm = TRUE`) error like
+  # they do for univariate tf instead of silently reducing the indices
+  # (#308). (A list would do the same, but vctrs then adds a "list" base
+  # class and dplyr::rowwise() unwraps such columns with `.subset2()`.)
+  data <- raw(n)
   names(data) <- curve_names
   new_vctr(
     data,

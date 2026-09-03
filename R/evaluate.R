@@ -67,7 +67,9 @@ evaluate_tfd_once <- function(
   evaluations,
   evaluator
 ) {
-  if (isTRUE(all.equal(new_arg, arg))) return(evaluations)
+  if (isTRUE(all.equal(new_arg, arg))) {
+    return(evaluations)
+  }
   seen <- match(new_arg, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
@@ -117,21 +119,21 @@ tf_evaluate.tfb <- function(object, arg, ...) {
       ret[na_entries] <- list(rep(NA_real_, length(arg)))
     }
   } else {
-    ret <- pmap(
-      list(arg, ensure_list(tf_arg(object)), unname(coef(object))),
-      function(x, y, z) {
-        if (!length(z) || anyNA(z)) {
-          return(rep(NA_real_, length(x)))
-        }
-        evaluate_tfb_once(
-          x = x,
-          arg = y,
-          coefs = z,
-          basis = attr(object, "basis"),
-          X = attr(object, "basis_matrix")
-        )
-      }
+    # build the design matrix once on the union of all requested args (one
+    # basis() call instead of one per curve), then index the rows per curve
+    arg_union <- sort_unique(arg, simplify = TRUE)
+    X_union <- tfb_design_rows(
+      x = arg_union,
+      arg = tf_arg(object),
+      basis = attr(object, "basis"),
+      X = attr(object, "basis_matrix")
     )
+    ret <- map2(arg, unname(coef(object)), function(x, z) {
+      if (!length(z) || anyNA(z)) {
+        return(rep(NA_real_, length(x)))
+      }
+      drop(X_union[match(x, arg_union), , drop = FALSE] %*% z)
+    })
   }
   if (!is_tfb_fpc(object)) {
     ret <- map(ret, attr(object, "family")$linkinv)
@@ -139,13 +141,24 @@ tf_evaluate.tfb <- function(object, arg, ...) {
   setNames(ret, names(object))
 }
 
-evaluate_tfb_once <- function(x, arg, coefs, basis, X) {
+# Rows of the basis design matrix for arg values `x`: reuse the stored rows
+# of `X` for values on the original grid `arg`, call `basis()` only for the rest.
+tfb_design_rows <- function(x, arg, basis, X) {
   seen <- match(x, arg)
   seen_index <- na.omit(seen)
   seen <- !is.na(seen)
-  if (all(seen)) return(drop(X[seen_index, , drop = FALSE] %*% coefs))
-  Xnew <- X[rep(1, length(x)), ]
-  if (any(seen)) Xnew[seen, ] <- X[seen_index, , drop = FALSE]
+  if (all(seen)) {
+    return(X[seen_index, , drop = FALSE])
+  }
+  # drop = FALSE: a single off-grid `x` must stay a 1-row matrix (#302)
+  Xnew <- X[rep(1, length(x)), , drop = FALSE]
+  if (any(seen)) {
+    Xnew[seen, ] <- X[seen_index, , drop = FALSE]
+  }
   Xnew[!seen, ] <- basis(x[!seen])
-  drop(Xnew %*% coefs)
+  Xnew
+}
+
+evaluate_tfb_once <- function(x, arg, coefs, basis, X) {
+  drop(tfb_design_rows(x, arg, basis, X) %*% coefs)
 }

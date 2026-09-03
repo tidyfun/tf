@@ -1,8 +1,24 @@
 test_that("Math.tfd threads `...` to the generic (#246)", {
   arg <- seq(0, 1, length.out = 11)
-  x <- tfd(matrix(c(1.234, 2.345, 3.456, 4.567, 5.678,
-                    6.789, 7.890, 8.901, 9.012, 10.123, 11.234), nrow = 1),
-           arg = arg)
+  x <- tfd(
+    matrix(
+      c(
+        1.234,
+        2.345,
+        3.456,
+        4.567,
+        5.678,
+        6.789,
+        7.890,
+        8.901,
+        9.012,
+        10.123,
+        11.234
+      ),
+      nrow = 1
+    ),
+    arg = arg
+  )
 
   # round honors digits arg
   r1 <- as.numeric(round(x, 1)[, arg])
@@ -45,8 +61,10 @@ test_that("Math.tfb threads `...` (round-trip via tfd)", {
 })
 
 test_that("Math.tfd works on irregular tfd", {
-  irr <- tfd(list(c(1.1, 2.2, 3.3), c(2.6, 4.7)),
-             arg = list(c(0, 0.5, 1), c(0, 1)))
+  irr <- tfd(
+    list(c(1.1, 2.2, 3.3), c(2.6, 4.7)),
+    arg = list(c(0, 0.5, 1), c(0, 1))
+  )
   r <- round(irr, 0)
   vals <- tf_evaluations(r)
   expect_equal(vals[[1]], c(1, 2, 3))

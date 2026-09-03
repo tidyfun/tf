@@ -56,22 +56,16 @@ new_tfb_fpc <- function(
       weights
     ) #!!
   }
-  fpc_basis <- tfd(t(basis_matrix), arg = arg, domain = domain)
-  fpc_constructor <- fpc_wrapper(fpc_basis)
-  coef_list <- split(cbind(1, scores), row(cbind(1, scores)))
-  names(coef_list) <- levels(as.factor(data$id))
-
-  new_vctr(
-    coef_list,
-    domain = domain,
-    basis = fpc_constructor,
-    basis_label = basis_label,
+  # scoring_function expects data, weights, mean, efunctions -- for tf_rebase
+  new_tfb_fpc_shared(
     basis_matrix = basis_matrix,
+    scores = scores,
     arg = arg,
-    score_variance = score_variance,
-    # scoring_fct expects data, weights, mean, efunctions -- for tf_rebase
+    domain = domain,
+    evalues = score_variance,
+    ids = levels(as.factor(data$id)),
     scoring_function = scoring_function,
-    class = c("tfb_fpc", "tfb", "tf")
+    basis_label = basis_label
   )
 }
 

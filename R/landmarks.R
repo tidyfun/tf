@@ -38,7 +38,9 @@ tf_landmarks_extrema <- function(
 ) {
   assert_tf(x)
   assert_number(threshold, lower = 0, upper = 1)
-  if (!is.null(boundary_tol)) assert_number(boundary_tol, lower = 0)
+  if (!is.null(boundary_tol)) {
+    assert_number(boundary_tol, lower = 0)
+  }
   n <- length(x)
 
   # Parse `which`
@@ -68,7 +70,9 @@ tf_landmarks_extrema <- function(
 
   # --- Drop boundary features ---
   features <- lapply(features, \(f) {
-    if (nrow(f) == 0) return(f)
+    if (nrow(f) == 0) {
+      return(f)
+    }
     interior <- f$position > (domain[1] + boundary_tol) &
       f$position < (domain[2] - boundary_tol)
     f[interior, , drop = FALSE]
@@ -201,7 +205,9 @@ cluster_landmarks <- function(features, n, bandwidth, threshold) {
     rbind,
     lapply(seq_along(features), \(i) {
       f <- features[[i]]
-      if (nrow(f) == 0) return(NULL)
+      if (nrow(f) == 0) {
+        return(NULL)
+      }
       data.frame(
         position = f$position,
         type = f$type,
@@ -227,7 +233,9 @@ cluster_landmarks <- function(features, n, bandwidth, threshold) {
   for (ftype in feature_types) {
     sub <- all_f[all_f$type == ftype, , drop = FALSE]
     sub <- sub[order(sub$position), ]
-    if (nrow(sub) == 0) next
+    if (nrow(sub) == 0) {
+      next
+    }
 
     # Greedy clustering: merge features within bandwidth of cluster center
     cur <- list(positions = sub$position[1], curves = sub$curve[1])
@@ -282,7 +290,9 @@ build_landmark_matrix <- function(features, clusters, n, bandwidth) {
 
   for (i in seq_len(n)) {
     f <- features[[i]]
-    if (nrow(f) == 0) next
+    if (nrow(f) == 0) {
+      next
+    }
     used <- logical(nrow(f))
     prev_pos <- -Inf
     for (j in seq_len(k)) {

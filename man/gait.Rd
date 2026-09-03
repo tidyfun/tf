@@ -32,4 +32,7 @@ Olshen, A R, Biden, N E, Wyatt, P M, Sutherland, H D (1989).
 \dQuote{Gait Analysis and the Bootstrap.}
 \emph{The Annals of Statistics}, \bold{17}(4), 1419--1440.
 }
+\seealso{
+\link{gait_mv} for the same data as a single vector-valued curve per subject.
+}
 \keyword{datasets}

@@ -58,7 +58,9 @@ tf_depth.matrix <- function(
   na.rm = TRUE,
   ...
 ) {
-  if (missing(arg)) arg <- unlist(find_arg(x, arg = NULL), use.names = FALSE)
+  if (missing(arg)) {
+    arg <- unlist(find_arg(x, arg = NULL), use.names = FALSE)
+  }
   assert_numeric(
     arg,
     finite = TRUE,
@@ -68,31 +70,46 @@ tf_depth.matrix <- function(
     sorted = TRUE
   )
 
-  if (na.rm) {
-    x <- x[stats::complete.cases(x), , drop = FALSE]
-  }
-
   depth <- match.arg(depth)
-  switch(
-    depth,
-    MBD = 2 * mbd(x, arg),
-    MHI = mhi(x, arg),
-    FM = fm(x, arg),
-    FSD = fsd(x, arg),
-    RPD = rpd(x, arg, ...)
-  )
+  dots <- list(...)
+  depth_fun <- function(m) {
+    switch(
+      depth,
+      MBD = 2 * mbd(m, arg),
+      MHI = mhi(m, arg),
+      FM = fm(m, arg),
+      FSD = fsd(m, arg),
+      RPD = do.call(rpd, c(list(m, arg), dots))
+    )
+  }
+  if (!na.rm) {
+    return(depth_fun(x))
+  }
+  # compute on the complete rows only, but keep the result aligned with the
+  # rows of `x`: dropped (incomplete) rows get NA depth (#307)
+  keep <- stats::complete.cases(x)
+  ret <- rep(NA_real_, nrow(x))
+  names(ret) <- rownames(x)
+  if (any(keep)) {
+    ret[keep] <- depth_fun(x[keep, , drop = FALSE])
+  }
+  ret
 }
 
 #' @export
 #' @rdname tf_depth
 tf_depth.tf <- function(x, arg, depth = "MBD", na.rm = TRUE, ...) {
-  if (!missing(arg)) assert_arg_vector(arg, x)
+  if (!missing(arg)) {
+    assert_arg_vector(arg, x)
+  }
   # TODO: warn if irreg?
   # TODO: Implement depths for partially observed functions instead of
   # interpolating them onto a common grid; see Elias et al. (2022),
   # "Integrated Depths for Partially Observed Functional Data",
   # doi:10.1080/10618600.2022.2070171.
-  if (na.rm) x <- x[!is.na(x)]
+  if (na.rm) {
+    x <- x[!is.na(x)]
+  }
   tf_depth(
     as.matrix(x, arg = arg, interpolate = TRUE),
     depth = depth,
@@ -128,7 +145,9 @@ tf_depth.tf_mv <- function(
   }
   # Mirror the univariate na.rm default: drop curves that are missing in *any*
   # component (the union, per `is.na.tf_mv`) so every component then aligns.
-  if (na.rm) x <- x[!is.na(x)]
+  if (na.rm) {
+    x <- x[!is.na(x)]
+  }
   n <- vec_size(x)
   if (n == 0) {
     return(setNames(numeric(0), names(x)))
@@ -218,8 +237,12 @@ trap_weights <- function(arg) {
 
 # modified band-2 depth:
 mbd <- function(x, arg = seq_len(ncol(x))) {
-  if (nrow(x) == 1) return(0.5)
-  if (nrow(x) == 2) return(c(0.5, 0.5))
+  if (nrow(x) == 1) {
+    return(0.5)
+  }
+  if (nrow(x) == 2) {
+    return(c(0.5, 0.5))
+  }
 
   # algorithm of Sun/Genton/Nychka (2012)
   # TODO: does this need "ties.method = min" or max instead?
@@ -233,7 +256,9 @@ mbd <- function(x, arg = seq_len(ncol(x))) {
 # modified hypograph index
 # adapted from roahd:::MHI.default
 mhi <- function(x, arg = seq_len(ncol(x))) {
-  if (nrow(x) == 1) return(0.5)
+  if (nrow(x) == 1) {
+    return(0.5)
+  }
   n <- nrow(x)
   weights <- trap_weights(arg)
   ranks <- apply(x, 2, rank, na.last = "keep", ties.method = "max")
@@ -245,7 +270,9 @@ mhi <- function(x, arg = seq_len(ncol(x))) {
 # Fraiman, R. and Muniz, G. (2001)
 fm <- function(x, arg = seq_len(ncol(x))) {
   n <- nrow(x)
-  if (n == 1) return(1)
+  if (n == 1) {
+    return(1)
+  }
   # Use the upper empirical CDF F_n(x) = P(X <= x), which preserves
   # permutation invariance under ties and matches reference implementations.
   ranks <- apply(x, 2, rank, na.last = "keep", ties.method = "max")
@@ -260,7 +287,9 @@ fm <- function(x, arg = seq_len(ncol(x))) {
 # Chakraborty, A. and Chaudhuri, P. (2014)
 fsd <- function(x, arg = seq_len(ncol(x)), block_size = NULL) {
   n <- nrow(x)
-  if (n == 1) return(1)
+  if (n == 1) {
+    return(1)
+  }
   weights <- trap_weights(arg)
   block_size <- block_size %||% fsd_block_size(n)
   block_size <- max(1L, min(as.integer(block_size), n))
@@ -306,7 +335,9 @@ rpd <- function(
 
   n <- nrow(x)
   p <- ncol(x)
-  if (n == 1) return(1)
+  if (n == 1) {
+    return(1)
+  }
 
   sqrt_weights <- sqrt(trap_weights(arg))
 
@@ -340,7 +371,9 @@ rpd <- function(
     projs_c <- candidates %*% t(xw)
     mads_c <- apply(projs_c, 1, stats::mad, constant = 1)
     keep <- mads_c >= beta
-    if (any(keep)) dirs <- rbind(dirs, candidates[keep, , drop = FALSE])
+    if (any(keep)) {
+      dirs <- rbind(dirs, candidates[keep, , drop = FALSE])
+    }
     attempts <- attempts + 1
   }
   if (nrow(dirs) == 0) {
@@ -390,26 +423,37 @@ compute_depth <- function(x, depth, na.rm = TRUE, ...) {
   }
 
   n_x <- length(x)
-  if (length(depth_values) == n_x) {
-    return(depth_values)
-  }
-
   complete <- !is.na(x)
-  if (length(depth_values) == sum(complete)) {
-    ret <- rep(NA_real_, n_x)
-    ret[complete] <- depth_values
-    return(ret)
+  ret <- if (length(depth_values) == n_x) {
+    depth_values
+  } else if (length(depth_values) == sum(complete)) {
+    aligned <- rep(NA_real_, n_x)
+    aligned[complete] <- depth_values
+    aligned
+  } else {
+    cli::cli_abort(
+      "{.arg depth} must return a numeric vector of length {n_x} or {sum(complete)}."
+    )
   }
-
-  cli::cli_abort(
-    "{.arg depth} must return a numeric vector of length {n_x} or {sum(complete)}."
-  )
+  # complete curves exist but none of them has a finite depth: the input is
+  # irregular and no curve covers the common grid
+  if (any(complete) && !any(is.finite(ret))) {
+    cli::cli_abort(c(
+      "No finite depth values: no observation is complete on the common grid.",
+      i = "Depths of irregular data are computed on the union of all {.arg arg} \
+           values; interpolate to a common grid first, e.g. with \
+           {.fn tf_interpolate}."
+    ))
+  }
+  ret
 }
 
 # helper: validate depth argument -- either a known string or a function
 validate_depth <- function(depth) {
   known <- c("MBD", "MHI", "FM", "FSD", "RPD")
-  if (is.function(depth)) return(invisible(depth))
+  if (is.function(depth)) {
+    return(invisible(depth))
+  }
   if (is.character(depth) && length(depth) == 1 && depth %in% known) {
     return(invisible(depth))
   }
@@ -420,11 +464,14 @@ validate_depth <- function(depth) {
 
 depth_data <- function(x, depth, na.rm = FALSE, ...) {
   validate_depth(depth)
-  if (!na.rm && anyNA(x))
+  if (!na.rm && anyNA(x)) {
     return(list(x = tf_na_like(x, which(is.na(x))[1]), d = NULL))
+  }
 
   x <- x[!is.na(x)]
-  if (length(x) == 0) return(list(x = x, d = NULL))
+  if (length(x) == 0) {
+    return(list(x = x, d = NULL))
+  }
 
   list(x = x, d = compute_depth(x, depth, na.rm = TRUE, ...))
 }
@@ -438,7 +485,9 @@ depth_extreme <- function(
 ) {
   which <- match.arg(which)
   prepared <- depth_data(x, depth, na.rm = na.rm, ...)
-  if (is.null(prepared$d)) return(prepared$x)
+  if (is.null(prepared$d)) {
+    return(prepared$x)
+  }
 
   idx <- switch(which, min = which.min(prepared$d), max = which.max(prepared$d))
   unname(prepared$x[idx])

@@ -96,6 +96,7 @@ reference:
   desc: Real world functional data
   contents:
   - gait
+  - gait_mv
   - growth
   - pinch
 navbar:

@@ -322,3 +322,20 @@ test_that("tf_arclength derive method defaults limits per curve for irregular da
   expect_true(all(is.finite(sub)))
   expect_true(all(sub < res))
 })
+
+test_that("cumulative tf_arclength keeps the domain (#306)", {
+  t <- seq(0, 0.8, length.out = 41)
+  f <- suppressWarnings(tfd_mv(
+    list(
+      x = tfd(matrix(cos(2 * pi * t), nrow = 1), arg = t),
+      y = tfd(matrix(sin(2 * pi * t), nrow = 1), arg = t)
+    ),
+    domain = c(0, 1)
+  ))
+  s <- tf_arclength(f, definite = FALSE)
+  expect_equal(tf_domain(s), c(0, 1))
+  expect_equal(tf_domain(tf_arclength(f[c(1, 1)], definite = FALSE)), c(0, 1))
+  reparam <- tf_reparam_arclength(f)
+  expect_s3_class(reparam, "tfd_mv")
+  expect_equal(tf_domain(reparam), c(0, 1))
+})

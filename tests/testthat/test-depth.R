@@ -92,7 +92,9 @@ test_that("FSD works", {
 test_that("FSD blockwise computation matches full-matrix reference", {
   fsd_full <- function(x, arg = seq_len(ncol(x))) {
     n <- nrow(x)
-    if (n == 1) return(1)
+    if (n == 1) {
+      return(1)
+    }
     weights <- trap_weights(arg)
     xw <- t(t(x) * sqrt(weights))
     G <- tcrossprod(xw)
@@ -181,11 +183,17 @@ test_that("RPD works", {
 })
 
 
-test_that("matrix na.rm drops incomplete observations", {
+test_that("matrix na.rm gives NA depth for incomplete observations (#307)", {
   x <- matrix(c(0, NA, 1, 1, 2, 2), nrow = 3, byrow = TRUE)
 
-  expect_equal(tf_depth(x, depth = "FM", na.rm = TRUE), c(1, 0))
-  expect_equal(tf_depth(x, depth = "FSD", na.rm = TRUE), c(0.5, 0.5))
+  expect_equal(tf_depth(x, depth = "FM", na.rm = TRUE), c(NA, 1, 0))
+  expect_equal(tf_depth(x, depth = "FSD", na.rm = TRUE), c(NA, 0.5, 0.5))
+  # aligned with the rows, names kept
+  rownames(x) <- c("a", "b", "c")
+  expect_equal(
+    tf_depth(x, depth = "MBD", na.rm = TRUE),
+    c(a = NA, b = 1, c = 1)
+  )
 
   withr::local_seed(4217)
   expect_equal(
@@ -196,7 +204,7 @@ test_that("matrix na.rm drops incomplete observations", {
       n_projections = 100L,
       n_projections_beta = 20L
     ),
-    c(0.5, 0.5)
+    c(a = NA, b = 0.5, c = 0.5)
   )
 })
 
@@ -204,4 +212,8 @@ test_that("median works", {
   expect_true(is.na(median(c(na, lin))))
   expect_identical(median(c(na, lin), na.rm = TRUE), median(lin))
   expect_message(median(lin[1:2]), "maximal depth")
+})
+
+test_that("custom depth functions must return one value per (complete) curve", {
+  expect_error(rank(lin, depth = \(x, ...) 1), "length")
 })
