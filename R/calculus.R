@@ -203,7 +203,9 @@ tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
   assert_count(order)
   na_entries <- is.na(f)
   data <- as.matrix(f, arg, interpolate = TRUE)
-  arg <- as.numeric(colnames(data))
+  # the exact grid; parsing colnames() back loses digits and can push an
+  # endpoint outside the domain (#310)
+  arg <- attr(data, "arg")
   derived <- derive_matrix(data[!na_entries, , drop = FALSE], arg, order)
   derived_like(f, derived$data, derived$arg, na_entries)
 }

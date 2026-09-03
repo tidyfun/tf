@@ -250,3 +250,13 @@ test_that("indefinite tf_integrate tolerates float-mismatched limits on irregula
     ignore_attr = TRUE
   )
 })
+
+test_that("tf_derive.tfd keeps the exact grid for non-round-tripping endpoints (#310)", {
+  arg <- seq(0, 2 * pi, length.out = 101)
+  f <- tfd(rbind(sin(arg), cos(arg)), arg = arg)
+  df <- tf_derive(f)
+  expect_identical(tf_arg(df), arg)
+  expect_identical(tf_domain(df), tf_domain(f))
+  expect_equal(as.numeric(df[1, pi]), cos(pi), tolerance = 1e-3)
+  expect_s3_class(tf_derive(f, order = 2), "tfd")
+})

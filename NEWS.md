@@ -11,6 +11,9 @@
   "subscript out of bounds" (#296).
 * `tf_evaluate()` on `tfb` objects (and hence `f[i, j]`) no longer errors when
   evaluating at a single `arg` value that is not on the original grid (#302).
+* `tf_derive()` on `tfd` no longer fails with "Evaluations must be inside the
+  domain" for grids whose endpoints do not round-trip through `colnames()`,
+  e.g. `seq(0, 2 * pi, length.out = 101)` (#310).
 * `as.data.frame(<tf_mv>, unnest = TRUE)` honours `interpolate = FALSE` on the
   default union grid, returning `NA` where a component was not observed, like
   `as.matrix()` does (#303).
