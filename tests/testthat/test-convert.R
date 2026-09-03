@@ -118,3 +118,20 @@ test_that("as.data.frame.tf_mv honours interpolate = FALSE on the union grid (#3
   # default interpolation is unchanged
   expect_false(anyNA(as.data.frame(mv, unnest = TRUE, long = FALSE)$y))
 })
+
+test_that("as.data.frame.tf_mv forwards ... (evaluator) on the union grid", {
+  mv <- tfd_mv(list(
+    x = tfd(matrix(1:6, nrow = 2), arg = c(0, 0.5, 1)),
+    y = tfd(matrix(1:6, nrow = 2), arg = c(0, 0.5, 1))
+  ))
+  linear <- as.data.frame(mv, unnest = TRUE, long = FALSE, arg = 0.25)
+  none <- as.data.frame(
+    mv,
+    unnest = TRUE,
+    long = FALSE,
+    arg = 0.25,
+    evaluator = tf_approx_none
+  )
+  expect_equal(linear$x, c(2, 3))
+  expect_true(all(is.na(none$x)))
+})

@@ -104,7 +104,7 @@ tf_crosscor.tf_mv <- function(x, y, ...) mv_unimplemented("tf_crosscor")
 #' Note that R dispatches the `Summary` group generics (`max()`, `min()`,
 #' `sum()`, `range()`, ...) on their *first* argument only. Put the `tf_mv`
 #' first, as in `max(f, 0)`: a call like `max(0, f)` bypasses the `tf_mv`
-#' method and returns `NA`.
+#' method and errors (`range(0, f)` returns a meaningless `c(0, 0)`).
 #'
 #' Real component-wise semantics (joint vs. per-component, norm-based, ...) are
 #' being designed verb-by-verb in <https://github.com/tidyfun/tf/issues/255>;

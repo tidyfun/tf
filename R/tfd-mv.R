@@ -151,13 +151,13 @@ new_tf_mv <- function(
     curve_names <- NULL
   }
   # the vctr's own data is a placeholder: all information lives in the
-  # component attributes. Use NA_real_, not the curve indices, so that base
-  # reductions that bypass S3 dispatch because the tf_mv is not the first
-  # argument (e.g. `max(0, f)`) return NA rather than a number silently
-  # computed from the indices (#308). (A list would make base error like it
-  # does for univariate tf, but vctrs then adds a "list" base class and
-  # dplyr::rowwise() unwraps such columns with `.subset2()`.)
-  data <- rep(NA_real_, n)
+  # component attributes. Use a raw vector, not the curve indices, so that
+  # base reductions that bypass S3 dispatch because the tf_mv is not the
+  # first argument (e.g. `max(0, f)`, also with `na.rm = TRUE`) error like
+  # they do for univariate tf instead of silently reducing the indices
+  # (#308). (A list would do the same, but vctrs then adds a "list" base
+  # class and dplyr::rowwise() unwraps such columns with `.subset2()`.)
+  data <- raw(n)
   names(data) <- curve_names
   new_vctr(
     data,

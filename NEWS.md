@@ -25,10 +25,10 @@
   `tf_depth(<tf_mv>)` no longer crashes on such input, and the depth-based
   summaries (`median`, `summary`, `fivenum`) rank the curves with finite
   depth. All-incomplete input gives an informative error (#307).
-* `max(0, f)` and friends with a `tf_mv` in a non-leading position return `NA`
-  instead of a number silently computed from internal curve indices. (R only
-  dispatches the `Summary` group on the first argument, so put the `tf_mv`
-  first.) (#308)
+* `max(0, f)`, `sum(0, f)` etc. with a `tf_mv` in a non-leading position now
+  error, like they do for univariate `tf`, instead of returning a number
+  silently computed from internal curve indices. (R only dispatches the
+  `Summary` group on the first argument, so put the `tf_mv` first.) (#308)
 
 ## Internal
 

@@ -123,8 +123,10 @@ test_that("rep() and [[ work on tf_mv (#304)", {
 test_that("Summary generics with a leading numeric do not fabricate numbers (#308)", {
   set.seed(1)
   mv <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
-  expect_true(is.na(suppressWarnings(max(0, mv))))
-  expect_true(is.na(suppressWarnings(sum(0, mv))))
+  expect_error(max(0, mv), "invalid 'type'")
+  expect_error(sum(0, mv), "invalid 'type'")
+  expect_error(max(0, mv, na.rm = TRUE), "invalid 'type'")
+  expect_error(prod(0, mv, na.rm = TRUE), "invalid 'type'")
   # the tf_mv-first call is the supported one
   expect_s3_class(max(mv, 0), "tfd_mv")
 })
