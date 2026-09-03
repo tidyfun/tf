@@ -132,6 +132,21 @@ tf_evaluate.tf_mv <- function(object, arg, ...) {
     setNames(names(xi))
 }
 
+#' @export
+`[[.tf_mv` <- function(x, i) {
+  # one curve as a length-1 tf_mv. (Unlike `[[.tfd`, which returns the bare
+  # evaluations of one curve, there is no single-vector representation of a
+  # vector-valued curve.) This is also what list-aware tooling such as
+  # `dplyr::rowwise()` extracts per row.
+  x[vec_as_location2(i, n = vec_size(x), names = names(x))]
+}
+
+#' @export
+rep.tf_mv <- function(x, ...) {
+  # `rep.vctrs_vctr` would hand the bare index vector to `vec_restore` (#304)
+  x[rep(seq_along(x), ...)]
+}
+
 #' @rdname tfbrackets
 #' @export
 `[<-.tf_mv` <- function(x, i, value) {

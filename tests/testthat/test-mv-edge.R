@@ -732,3 +732,16 @@ test_that("as.data.frame(grids = 'component') keeps NA rows for gaps", {
     0L
   )
 })
+
+test_that("tf_evaluate.tf_mv recycles a length-1 arg list (#305)", {
+  set.seed(1)
+  mv <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  recycled <- tf_evaluate(mv, arg = list(c(0, 0.5)))
+  expect_length(recycled, 3)
+  expect_equal(recycled, tf_evaluate(mv, arg = c(0, 0.5)))
+  expect_equal(
+    recycled,
+    mv[, list(c(0, 0.5)), matrix = FALSE],
+    ignore_attr = TRUE
+  )
+})

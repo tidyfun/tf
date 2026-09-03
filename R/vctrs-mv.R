@@ -22,6 +22,14 @@ vec_proxy.tf_mv <- function(x, ...) {
 
 #' @export
 vec_restore.tf_mv <- function(x, to, ...) {
+  if (!is.data.frame(x)) {
+    # the proxy is always the data.frame of components; anything else means a
+    # base vctrs method operated on the bare index vector (#304)
+    cli::cli_abort(
+      "Internal error: {.fn vec_restore.tf_mv} expects the component proxy, \
+       not {.obj_type_friendly {x}}."
+    )
+  }
   components <- as.list(x)
   # An MFPC fit carries a curve-independent joint spec. Slicing reuses the
   # original object as `to`, so the spec (and the ability to re-score) is

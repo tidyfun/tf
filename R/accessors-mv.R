@@ -216,6 +216,10 @@ assemble_mv_evals <- function(comp_evals, grids, comp_names, n) {
     return(list())
   }
   d <- length(comp_evals)
+  # a single numeric grid or a length-1 list is shared by all curves (#305)
+  if (is.list(grids) && length(grids) == 1L) {
+    grids <- grids[[1]]
+  }
   shared_grid <- !is.list(grids)
   map(seq_len(n), function(i) {
     g <- if (shared_grid) grids else grids[[i]]

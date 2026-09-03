@@ -101,3 +101,20 @@ test_that("as.function.tf works", {
   fn <- as.function(x)
   expect_function(fn, args = "arg")
 })
+
+test_that("as.data.frame.tf_mv honours interpolate = FALSE on the union grid (#303)", {
+  mv <- suppressWarnings(tfd_mv(list(
+    x = tfd(matrix(1:22, nrow = 2), arg = seq(0, 1, length.out = 11)),
+    y = tfd(matrix(1:14, nrow = 2), arg = seq(0, 1, length.out = 7))
+  )))
+  wide <- suppressWarnings(
+    as.data.frame(mv, unnest = TRUE, long = FALSE, interpolate = FALSE)
+  )
+  mat <- suppressWarnings(as.matrix(mv, interpolate = FALSE))
+  first <- wide[wide$id == "1", ]
+  expect_equal(first$x, unname(mat[1, , "x"]))
+  expect_equal(first$y, unname(mat[1, , "y"]))
+  expect_true(anyNA(first$x) && anyNA(first$y))
+  # default interpolation is unchanged
+  expect_false(anyNA(as.data.frame(mv, unnest = TRUE, long = FALSE)$y))
+})

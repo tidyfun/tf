@@ -120,11 +120,17 @@ as.data.frame.tf_mv <- function(
     ))
   }
 
-  # `tf_evaluate.tf_mv` returns a length-n list of per-curve data.frames with
-  # columns (arg, comp1, ..., compd), NA-filled where a component has no value
-  # at that arg. This is exactly the union-grid + NA-fill coercion downstream
-  # consumers (e.g. tidyfun's ggplot layer) need; long/wide is just a pivot.
-  per_curve <- tf_evaluate(x, arg = arg, interpolate = interpolate, ...)
+  # `[.tf_mv` with `matrix = FALSE` returns a length-n list of per-curve
+  # data.frames with columns (arg, comp1, ..., compd), NA-filled where a
+  # component has no value at that arg. This is exactly the union-grid +
+  # NA-fill coercion downstream consumers (e.g. tidyfun's ggplot layer) need;
+  # long/wide is just a pivot. Go through `[` rather than `tf_evaluate()` so
+  # that `interpolate = FALSE` is honoured (#303).
+  per_curve <- if (is.null(arg)) {
+    x[, interpolate = interpolate, matrix = FALSE]
+  } else {
+    x[, arg, interpolate = interpolate, matrix = FALSE]
+  }
 
   id_factor <- factor(as.character(ids), levels = id_levels)
 

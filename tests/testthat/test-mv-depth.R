@@ -221,3 +221,22 @@ test_that("empty and NA-depth edge cases are handled (#297 review)", {
     "no finite depth"
   )
 })
+
+test_that("tf_depth gives NA (not a shorter vector) for irregular curves incomplete on the union grid (#307)", {
+  set.seed(18)
+  xs <- tf_sparsify(tf_rgp(3), dropout = 0.3)
+  ys <- tfd(lapply(tf_arg(xs), \(a) rnorm(length(a))), arg = tf_arg(xs))
+  f <- tfd_mv(list(x = xs, y = ys))
+  d_uni <- tf_depth(xs)
+  expect_length(d_uni, 3)
+  d_mv <- tf_depth(f)
+  expect_length(d_mv, 3)
+  expect_equal(is.na(d_mv), is.na(d_uni) | is.na(tf_depth(ys)))
+  # depth-based summaries rank the curves with finite depth only
+  expect_no_error(fivenum(f))
+  expect_no_error(summary(f))
+  # nothing complete on the union grid: a clear error, not a vapply crash
+  disjoint <- tfd(list(1:3, 1:3), arg = list(c(0, 0.1, 0.2), c(0.8, 0.9, 1)))
+  expect_equal(unname(tf_depth(disjoint)), c(NA_real_, NA_real_))
+  expect_error(median(disjoint), "No finite depth")
+})

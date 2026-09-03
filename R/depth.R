@@ -70,19 +70,30 @@ tf_depth.matrix <- function(
     sorted = TRUE
   )
 
-  if (na.rm) {
-    x <- x[stats::complete.cases(x), , drop = FALSE]
-  }
-
   depth <- match.arg(depth)
-  switch(
-    depth,
-    MBD = 2 * mbd(x, arg),
-    MHI = mhi(x, arg),
-    FM = fm(x, arg),
-    FSD = fsd(x, arg),
-    RPD = rpd(x, arg, ...)
-  )
+  dots <- list(...)
+  depth_fun <- function(m) {
+    switch(
+      depth,
+      MBD = 2 * mbd(m, arg),
+      MHI = mhi(m, arg),
+      FM = fm(m, arg),
+      FSD = fsd(m, arg),
+      RPD = do.call(rpd, c(list(m, arg), dots))
+    )
+  }
+  if (!na.rm) {
+    return(depth_fun(x))
+  }
+  # compute on the complete rows only, but keep the result aligned with the
+  # rows of `x`: dropped (incomplete) rows get NA depth (#307)
+  keep <- stats::complete.cases(x)
+  ret <- rep(NA_real_, nrow(x))
+  names(ret) <- rownames(x)
+  if (any(keep)) {
+    ret[keep] <- depth_fun(x[keep, , drop = FALSE])
+  }
+  ret
 }
 
 #' @export
@@ -412,20 +423,27 @@ compute_depth <- function(x, depth, na.rm = TRUE, ...) {
   }
 
   n_x <- length(x)
-  if (length(depth_values) == n_x) {
-    return(depth_values)
-  }
-
   complete <- !is.na(x)
-  if (length(depth_values) == sum(complete)) {
-    ret <- rep(NA_real_, n_x)
-    ret[complete] <- depth_values
-    return(ret)
+  ret <- if (length(depth_values) == n_x) {
+    depth_values
+  } else if (length(depth_values) == sum(complete)) {
+    aligned <- rep(NA_real_, n_x)
+    aligned[complete] <- depth_values
+    aligned
+  } else {
+    cli::cli_abort(
+      "{.arg depth} must return a numeric vector of length {n_x} or {sum(complete)}."
+    )
   }
-
-  cli::cli_abort(
-    "{.arg depth} must return a numeric vector of length {n_x} or {sum(complete)}."
-  )
+  if (n_x > 0 && !any(is.finite(ret))) {
+    cli::cli_abort(c(
+      "No finite depth values: no observation is complete on the common grid.",
+      i = "Depths of irregular data are computed on the union of all {.arg arg} \
+           values; interpolate to a common grid first, e.g. with \
+           {.fn tf_interpolate}."
+    ))
+  }
+  ret
 }
 
 # helper: validate depth argument -- either a known string or a function

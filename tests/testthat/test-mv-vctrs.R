@@ -105,3 +105,26 @@ test_that("curve names round-trip through names<- and subsetting", {
   expect_identical(names(f[2:3]), c("b", "c"))
   expect_identical(names(c(f[1], f[3])), c("a", "c"))
 })
+
+test_that("rep() and [[ work on tf_mv (#304)", {
+  set.seed(1)
+  mv <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  names(mv) <- c("a", "b", "c")
+  r <- rep(mv, 2)
+  expect_s3_class(r, "tfd_mv")
+  expect_length(r, 6)
+  expect_equal(r, mv[c(1:3, 1:3)])
+  expect_equal(rep(mv, each = 2), mv[c(1, 1, 2, 2, 3, 3)])
+  expect_equal(mv[[2]], mv[2])
+  expect_equal(mv[["c"]], mv[3])
+  expect_error(mv[[4]], "past the end")
+})
+
+test_that("Summary generics with a leading numeric do not fabricate numbers (#308)", {
+  set.seed(1)
+  mv <- tfd_mv(list(x = tf_rgp(3), y = tf_rgp(3)))
+  expect_true(is.na(suppressWarnings(max(0, mv))))
+  expect_true(is.na(suppressWarnings(sum(0, mv))))
+  # the tf_mv-first call is the supported one
+  expect_s3_class(max(mv, 0), "tfd_mv")
+})

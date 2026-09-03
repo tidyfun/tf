@@ -105,7 +105,7 @@ median.tf <- function(x, na.rm = FALSE, depth = "MBD", ...) {
     return(summarize_tf(x, na.rm = na.rm, op = "median", eval = is_tfd(x), ...))
   }
   prepared <- depth_data(x, depth, na.rm = TRUE, ...)
-  med <- prepared$x[prepared$d == max(prepared$d)]
+  med <- prepared$x[which(prepared$d == max(prepared$d, na.rm = TRUE))]
   if (length(med) > 1) {
     cli::cli_inform(c(
       x = "{length(med)} observations with maximal depth, returning their mean."
@@ -173,7 +173,7 @@ summary.tf <- function(object, ..., depth = "MBD") {
     return(ret)
   }
   prepared <- depth_data(object, depth, na.rm = TRUE, ...)
-  central <- which(prepared$d >= stats::median(prepared$d))
+  central <- which(prepared$d >= stats::median(prepared$d, na.rm = TRUE))
 
   c(
     min = min(object, na.rm = TRUE),
@@ -226,8 +226,11 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
     names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
     return(ret[seq_len(min(length(ret), 5))])
   }
-  o <- order(prepared$d)
-  ret <- prepared$x[o[fivenum_positions(length(prepared$x))]]
+  # curves without a finite depth (irregular data not complete on the common
+  # grid) cannot be ranked and are left out
+  ranked <- prepared$x[is.finite(prepared$d)]
+  o <- order(prepared$d[is.finite(prepared$d)])
+  ret <- ranked[o[fivenum_positions(length(ranked))]]
   names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
   ret
 }
@@ -265,7 +268,7 @@ summary.tf_mv <- function(object, ..., depth = "MBD") {
   }
   complete <- object[!is.na(object)]
   d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
-  central <- complete[d >= stats::median(d)]
+  central <- complete[which(d >= stats::median(d, na.rm = TRUE))]
   ret <- vctrs::vec_c(
     min(object, na.rm = TRUE),
     min(central, na.rm = TRUE),
@@ -295,8 +298,9 @@ fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
     return(ret)
   }
   d <- tf_depth(complete, depth = depth, na.rm = FALSE, ...)
-  o <- base::order(d)
-  ret <- complete[o[fivenum_positions(vec_size(complete))]]
+  ranked <- complete[is.finite(d)]
+  o <- base::order(d[is.finite(d)])
+  ret <- ranked[o[fivenum_positions(vec_size(ranked))]]
   names(ret) <- nms
   ret
 }

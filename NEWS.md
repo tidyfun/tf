@@ -11,6 +11,24 @@
   "subscript out of bounds" (#296).
 * `tf_evaluate()` on `tfb` objects (and hence `f[i, j]`) no longer errors when
   evaluating at a single `arg` value that is not on the original grid (#302).
+* `as.data.frame(<tf_mv>, unnest = TRUE)` honours `interpolate = FALSE` on the
+  default union grid, returning `NA` where a component was not observed, like
+  `as.matrix()` does (#303).
+* `rep()` and `[[` work on `tf_mv` vectors; `f[[i]]` returns the `i`-th curve
+  as a length-1 `tf_mv` (#304).
+* `tf_evaluate(<tf_mv>, arg = list(...))` recycles a length-1 `arg` list to all
+  curves, as the univariate method does (#305).
+* Cumulative `tf_arclength()` keeps the object's domain, so
+  `tf_reparam_arclength()` works when `domain` is wider than `range(arg)` (#306).
+* `tf_depth()` returns `NA` for curves that are not completely observed on the
+  common grid instead of silently returning fewer values than curves;
+  `tf_depth(<tf_mv>)` no longer crashes on such input, and the depth-based
+  summaries (`median`, `summary`, `fivenum`) rank the curves with finite
+  depth. All-incomplete input gives an informative error (#307).
+* `max(0, f)` and friends with a `tf_mv` in a non-leading position return `NA`
+  instead of a number silently computed from internal curve indices. (R only
+  dispatches the `Summary` group on the first argument, so put the `tf_mv`
+  first.) (#308)
 
 ## Internal
 

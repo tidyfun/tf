@@ -485,10 +485,11 @@ arclength_polyline <- function(f, arg, lower, upper, definite) {
     }
     cum_evals <- map(per_curve_segs, function(s) c(0, cumsum(s)))
     same_grid <- all_equal_to_first(grids)
+    # keep the object's domain, which may be wider than range(arg) (#306)
     if (same_grid) {
-      tfd(do.call(rbind, cum_evals), arg = grids[[1]])
+      tfd(do.call(rbind, cum_evals), arg = grids[[1]], domain = tf_domain(f))
     } else {
-      tfd(cum_evals, arg = grids)
+      tfd(cum_evals, arg = grids, domain = tf_domain(f))
     }
   }
 }
