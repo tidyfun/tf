@@ -83,3 +83,14 @@ test_that("tfd_mv aborts on widening tfb component domains", {
     "extrapolate"
   )
 })
+
+test_that("tfd(list()) returns the length-0 prototype (#296)", {
+  x <- tfd(list())
+  expect_s3_class(x, "tfd")
+  expect_length(x, 0)
+  expect_identical(x, tfd(numeric(0)))
+  expect_identical(
+    tfd(list(), domain = c(0, 1), evaluator = tf_approx_spline),
+    tfd(numeric(0), domain = c(0, 1), evaluator = tf_approx_spline)
+  )
+})

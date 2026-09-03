@@ -351,6 +351,12 @@ tfd.list <- function(
   ...
 ) {
   evaluator <- as_name(enexpr(evaluator))
+  # an empty list carries no arg information: route to the length-0 prototype
+  # via the numeric path so `tfd(list())` and `tfd(numeric(0))` agree (#296)
+  if (!length(data)) {
+    args <- list(numeric(0), arg = arg, domain = domain, evaluator = evaluator)
+    return(do.call(tfd, args))
+  }
   vectors <- map_lgl(data, \(x) is.null(x) || (is.numeric(x) & !is.array(x)))
   if (all(vectors)) {
     where_na <- map(data, is.na)
