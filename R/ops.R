@@ -85,52 +85,33 @@ vec_arith.tfd.default <- function(op, x, y, ...) {
   stop_incompatible_op(op, x, y)
 }
 
+# the binary arithmetic operators that are defined pointwise for tfd
+tfd_arith_ops <- c("+", "-", "*", "/", "^", "%%", "%/%")
+
+tfd_arith <- function(op, x, y, worker) {
+  if (op %in% tfd_arith_ops) {
+    worker(op, x, y)
+  } else {
+    stop_incompatible_op(op, x, y)
+  }
+}
+
 #' @export
 #' @method vec_arith.tfd tfd
 vec_arith.tfd.tfd <- function(op, x, y, ...) {
-  switch(
-    op,
-    `+` = ,
-    `-` = ,
-    `*` = ,
-    `/` = ,
-    `^` = ,
-    `%%` = ,
-    `%/%` = tfd_op_tfd(op, x, y),
-    stop_incompatible_op(op, x, y)
-  )
+  tfd_arith(op, x, y, tfd_op_tfd)
 }
 
 #' @export
 #' @method vec_arith.tfd numeric
 vec_arith.tfd.numeric <- function(op, x, y, ...) {
-  switch(
-    op,
-    `+` = ,
-    `-` = ,
-    `*` = ,
-    `/` = ,
-    `^` = ,
-    `%%` = ,
-    `%/%` = tfd_op_numeric(op, x, y),
-    stop_incompatible_op(op, x, y)
-  )
+  tfd_arith(op, x, y, tfd_op_numeric)
 }
 
 #' @export
 #' @method vec_arith.numeric tfd
 vec_arith.numeric.tfd <- function(op, x, y, ...) {
-  switch(
-    op,
-    `+` = ,
-    `-` = ,
-    `*` = ,
-    `/` = ,
-    `^` = ,
-    `%%` = ,
-    `%/%` = numeric_op_tfd(op, x, y),
-    stop_incompatible_op(op, x, y)
-  )
+  tfd_arith(op, x, y, numeric_op_tfd)
 }
 
 #' @export
@@ -320,21 +301,11 @@ tfd_numeric_op <- function(op, x, y, tf_left) {
     tf_evaluations(tf_side),
     num_side,
     \(evals, num) {
-      if (is.null(evals)) {
-        return(NULL)
-      }
-      operands <- if (tf_left) list(evals, num) else list(num, evals)
-      result <- do.call(op, operands)
-      if (allMissing(result)) NULL else result
+      if (tf_left) op_or_null(op, evals, num) else op_or_null(op, num, evals)
     }
   )
   if (is_irreg(tf_side)) {
-    ret <- map2(tf_arg(tf_side), ret, \(.arg, .ret) {
-      if (is.null(.ret)) {
-        return(NULL)
-      }
-      list(arg = .arg, value = .ret)
-    })
+    ret <- irreg_pairs(tf_arg(tf_side), ret)
   }
   attributes(ret) <- attributes(tf_side)
   if (vec_size(num_side) > 1) {
@@ -362,13 +333,7 @@ tfb_multdiv_numeric <- function(op, x, y) {
     return(tfb_op_numeric(op, x, y))
   }
   # if not, * and / can simply be applied to the basis coefficients:
-  ret <- map2(vec_data(x), y, \(x, y) {
-    if (is.null(x)) {
-      return(NULL)
-    }
-    result <- do.call(op, list(e1 = x, e2 = y))
-    if (allMissing(result)) NULL else result
-  })
+  ret <- map2(vec_data(x), y, \(coefs, num) op_or_null(op, coefs, num))
   attributes(ret) <- attributes(x)
   ret
 }
@@ -402,24 +367,27 @@ tfb_lossy_rebase <- function(eval, rebase_target, ref_tfb = rebase_target) {
   restore_na_entries(rebased, na_entries, names(eval))
 }
 
-tfb_op_numeric <- function(op, x, y) {
+warn_lossy_tfb_op <- function(op, x, y) {
+  both_tfb <- is_tfb(x) && is_tfb(y)
   cli::cli_warn(
-    "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
+    "Potentially lossy cast{if (both_tfb) 's'} to {.cls tfd} and back \\
+     {if (both_tfb) 'for' else 'in'} {.cls {vec_ptype_full(x)}} {op} \\
+     {.cls {vec_ptype_full(y)}}."
   )
+}
+
+tfb_op_numeric <- function(op, x, y) {
+  warn_lossy_tfb_op(op, x, y)
   tfb_lossy_rebase(tfd_op_numeric(op, tfd(x), y), rebase_target = x)
 }
 
 numeric_op_tfb <- function(op, x, y) {
-  cli::cli_warn(
-    "Potentially lossy cast to {.cls tfd} and back in {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
-  )
+  warn_lossy_tfb_op(op, x, y)
   tfb_lossy_rebase(numeric_op_tfd(op, x, tfd(y)), rebase_target = y)
 }
 
 tfb_op_tfb <- function(op, x, y) {
-  cli::cli_warn(
-    "Potentially lossy casts to {.cls tfd} and back for {.cls {vec_ptype_full(x)}} {op} {.cls {vec_ptype_full(y)}}."
-  )
+  warn_lossy_tfb_op(op, x, y)
   ret_ptype <- if (vec_size(x) >= vec_size(y)) vec_ptype(x) else vec_ptype(y)
   tfb_lossy_rebase(
     tfd_op_tfd(op, tfd(x), tfd(y)),
@@ -451,17 +419,7 @@ tfb_plusminus_tfb <- function(op, x, y) {
   if (!all(c(attr(x, "family")$link, attr(y, "family")$link) == "identity")) {
     return(tfb_op_tfb(op, x, y))
   }
-  ret <- map2(
-    vec_data(x),
-    vec_data(y),
-    \(x, y) {
-      if (is.null(x) || is.null(y)) {
-        return(NULL)
-      }
-      result <- do.call(op, list(e1 = x, e2 = y))
-      if (allMissing(result)) NULL else result
-    }
-  )
+  ret <- map2(vec_data(x), vec_data(y), \(a, b) op_or_null(op, a, b))
   attributes(ret) <- if (vec_size(x) >= vec_size(y)) {
     attributes(x)
   } else {

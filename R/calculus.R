@@ -205,11 +205,13 @@ tf_derive.tfd <- function(f, arg = tf_arg(f), order = 1, ...) {
   data <- as.matrix(f, arg, interpolate = TRUE)
   arg <- as.numeric(colnames(data))
   derived <- derive_matrix(data[!na_entries, , drop = FALSE], arg, order)
-  ret <- tfd(
-    derived$data,
-    derived$arg,
-    domain = tf_domain(f)
-  )
+  derived_like(f, derived$data, derived$arg, na_entries)
+}
+
+# assemble the derivative of the non-NA entries of `f` as a tfd carrying f's
+# domain and evaluator, with the NA entries reinserted
+derived_like <- function(f, data, arg, na_entries) {
+  ret <- tfd(data, arg, domain = tf_domain(f))
   tf_evaluator(ret) <- attr(f, "evaluator_name")
   restore_na_entries(ret, na_entries, names(f))
 }
@@ -234,14 +236,7 @@ tf_derive.tfd_irreg <- function(f, arg, order = 1, ...) {
     d <- derive_matrix(rbind(evals[[i]]), args[[i]], order)
     derived_data[[i]] <- d$data[1, ]
   }
-  derived_data[na_entries] <- list(NULL)
-  ret <- tfd(
-    derived_data[!na_entries],
-    args[!na_entries],
-    domain = tf_domain(f)
-  )
-  tf_evaluator(ret) <- attr(f, "evaluator_name")
-  restore_na_entries(ret, na_entries, names(f))
+  derived_like(f, derived_data[!na_entries], args[!na_entries], na_entries)
 }
 
 #' @export
@@ -426,81 +421,39 @@ tf_integrate.tfd <- function(
     limits,
     \(x, y) c(y[1], x[x > y[1] & x < y[2]], y[2])
   )
+  # quadrature only for the non-NA entries; NA entries are reinserted below
   na_entries <- is.na(f)
-
-  if (definite && any(na_entries)) {
-    arg_non_na <- if (length(arg) == 1) arg else arg[!na_entries]
-    if (any(!na_entries)) {
-      evaluations <- tf_evaluate(f[!na_entries], arg_non_na)
-      quads <- map2(
-        arg_non_na,
-        evaluations,
-        \(x, y) quad_trapez(arg = x, evaluations = y)
-      )
-    } else {
-      quads <- list()
-    }
+  arg_non_na <- if (length(arg) == 1) arg else arg[!na_entries]
+  quads <- if (any(!na_entries)) {
+    map2(
+      arg_non_na,
+      tf_evaluate(f[!na_entries], arg_non_na),
+      \(x, y) quad_trapez(arg = x, evaluations = y)
+    )
+  } else {
+    list()
+  }
+  if (definite) {
     ret <- rep(NA_real_, length(f))
-    if (any(!na_entries)) {
-      ret[!na_entries] <- map_dbl(quads, sum)
-    }
+    ret[!na_entries] <- map_dbl(quads, sum)
     return(setNames(ret, names(f)))
   }
-
-  if (!definite && length(arg) == 1 && any(na_entries)) {
-    arg_non_na <- arg
-    if (any(!na_entries)) {
-      evaluations <- tf_evaluate(f[!na_entries], arg_non_na)
-      quads <- map(
-        evaluations,
-        \(y) quad_trapez(arg = arg_non_na[[1]], evaluations = y)
-      )
-      data_non_na <- map(quads, cumsum)
-      names(data_non_na) <- names(f)[!na_entries]
-    } else {
-      data_non_na <- matrix(numeric(), nrow = 0, ncol = length(arg_non_na[[1]]))
-    }
-    ret <- tfd(
-      data = data_non_na,
-      arg = arg_non_na[[1]],
-      # `limits` is now always a list (possibly of one 2-vector)
-      domain = as.numeric(limits[[1]]),
-      evaluator = !!attr(f, "evaluator_name")
-    )
-    return(restore_na_entries(ret, na_entries, names(f)))
-  }
-
-  evaluations <- tf_evaluate(f, arg)
-  quads <- map2(arg, evaluations, \(x, y) quad_trapez(arg = x, evaluations = y))
-  if (definite) {
-    map_dbl(quads, sum) |> setNames(names(f))
-  } else {
-    data_list <- map(quads, cumsum)
-    names(data_list) <- names(f)
-    # for irregular `f`, `arg` holds per-curve grids and must stay a list;
-    # flattening would yield an unsorted vector and fail `tfd.list`'s checks.
-    arg_out <- if (length(arg) == 1) arg[[1]] else arg
-    # with per-curve limits (irregular f, default args) `limits` is a list of
-    # 2-vectors; collapse to a single [min(lower), max(upper)] domain.
-    domain_out <- if (is.list(limits)) {
-      lims <- do.call(rbind, limits)
-      c(min(lims[, 1]), max(lims[, 2]))
-    } else {
-      as.numeric(limits)
-    }
-    tfd(
-      data = data_list,
-      arg = arg_out,
-      domain = domain_out,
-      evaluator = !!attr(f, "evaluator_name")
-    )
-  }
-  # this is too slow:
-  # turn into functions, return definite integrals
-  # (Why the hell does this not work without vectorize....?)
-  # map(f, ~ possibly(stats::tf_integrate, list(value = NA))(
-  #  Vectorize(as.function(.x)), lower = lower, upper = upper, ...)) |>
-  # map("value")
+  data_list <- map(quads, cumsum)
+  names(data_list) <- names(f)[!na_entries]
+  # for irregular `f`, `arg` holds per-curve grids and must stay a list;
+  # flattening would yield an unsorted vector and fail `tfd.list`'s checks.
+  arg_out <- if (length(arg_non_na) == 1) arg_non_na[[1]] else arg_non_na
+  # with per-curve limits (irregular f, default args) `limits` is a list of
+  # 2-vectors; collapse to a single [min(lower), max(upper)] domain.
+  lims <- do.call(rbind, limits)
+  domain_out <- c(min(lims[, 1]), max(lims[, 2]))
+  ret <- tfd(
+    data = data_list,
+    arg = arg_out,
+    domain = domain_out,
+    evaluator = !!attr(f, "evaluator_name")
+  )
+  restore_na_entries(ret, na_entries, names(f))
 }
 
 #' @rdname tf_integrate

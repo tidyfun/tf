@@ -187,24 +187,14 @@ srvf_mv_array_to_tfd_mv <- function(
   domain,
   curve_names = NULL
 ) {
-  dims <- dim(beta)
-  if (length(dims) == 2L) {
-    components <- map(seq_len(dims[1]), \(k) {
-      mat <- matrix(beta[k, ], nrow = 1L)
-      if (!is.null(curve_names)) {
-        rownames(mat) <- curve_names
-      }
-      mat
-    })
-  } else {
-    components <- map(seq_len(dims[1]), \(k) {
-      mat <- t(beta[k, , ])
-      if (!is.null(curve_names)) {
-        rownames(mat) <- curve_names
-      }
-      mat
-    })
-  }
+  # `beta` is [component, arg] for a single curve, [component, arg, curve]
+  # otherwise; components become [curve, arg] matrices
+  single_curve <- length(dim(beta)) == 2L
+  components <- map(seq_len(dim(beta)[1]), \(k) {
+    mat <- if (single_curve) matrix(beta[k, ], nrow = 1L) else t(beta[k, , ])
+    rownames(mat) <- curve_names
+    mat
+  })
   names(components) <- comp_names
   tfd_mv(components, arg = arg, domain = domain)
 }

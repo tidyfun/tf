@@ -11,20 +11,15 @@ traj_curve_par <- c("col", "lty", "lwd", "pch", "cex", "lend", "ljoin")
 # directly rather than reach into this private helper.
 mv_paired_xy <- function(x) {
   arr <- as.matrix(x, interpolate = TRUE) # [n_curve, n_arg, 2]
-  list(
-    x = matrix(
-      arr[,, 1L],
-      nrow = dim(arr)[1L],
-      ncol = dim(arr)[2L],
-      dimnames = dimnames(arr)[1:2]
-    ),
-    y = matrix(
-      arr[,, 2L],
+  slice <- function(k) {
+    matrix(
+      arr[,, k],
       nrow = dim(arr)[1L],
       ncol = dim(arr)[2L],
       dimnames = dimnames(arr)[1:2]
     )
-  )
+  }
+  list(x = slice(1L), y = slice(2L))
 }
 
 # Draw each curve (row of mx/my) as a column of a matrix so that matlines() /

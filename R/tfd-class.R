@@ -351,10 +351,15 @@ tfd.list <- function(
   ...
 ) {
   evaluator <- as_name(enexpr(evaluator))
-  # an empty list carries no arg information: route to the length-0 prototype
-  # via the numeric path so `tfd(list())` and `tfd(numeric(0))` agree (#296)
+  # an empty list carries no data: route to the length-0 prototype via the
+  # matrix path (on the supplied grid, if any) so that `tfd(list())` and
+  # `tfd(numeric(0))` agree (#296)
   if (!length(data)) {
-    args <- list(numeric(0), arg = arg, domain = domain, evaluator = evaluator)
+    if (is.list(arg)) {
+      arg <- if (length(arg)) arg[[1]] else NULL
+    }
+    empty <- matrix(numeric(0), nrow = 0, ncol = length(arg))
+    args <- list(empty, arg = arg, domain = domain, evaluator = evaluator)
     return(do.call(tfd, args))
   }
   vectors <- map_lgl(data, \(x) is.null(x) || (is.numeric(x) & !is.array(x)))
@@ -604,13 +609,7 @@ as.tfd_irreg <- function(data, ...) UseMethod("as.tfd_irreg")
 
 #' @export
 as.tfd_irreg.tfd_reg <- function(data, ...) {
-  arg <- ensure_list(tf_arg(data))
-  ret <- map2(tf_evaluations(data), arg, \(x, y) {
-    if (is.null(x)) {
-      return(NULL)
-    }
-    list(arg = y, value = x)
-  })
+  ret <- irreg_pairs(ensure_list(tf_arg(data)), tf_evaluations(data))
   attributes(ret) <- attributes(data)
   attr(ret, "arg") <- numeric(0)
   class(ret)[1] <- "tfd_irreg"

@@ -155,6 +155,10 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
   summarize_tf(x, na.rm = na.rm, op = "var", eval = is_tfd(x))
 }
 
+# entry names of the functional summary / five-number summary vectors
+summary_names <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+fivenum_names <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+
 #' @param object a `tfd` object
 #' @param depth depth method used for computing the median and central region.
 #'   See [tf_depth()] for available methods, or pass a custom depth function.
@@ -163,14 +167,10 @@ var.tf <- function(x, y = NULL, na.rm = FALSE, use) {
 #' @rdname tfsummaries
 summary.tf <- function(object, ..., depth = "MBD") {
   if (length(object) == 0) {
-    ret <- c(object, rep(NA, 6))
-    names(ret) <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
-    return(ret)
+    return(setNames(c(object, rep(NA, 6)), summary_names))
   }
   if (all(is.na(object))) {
-    ret <- object[rep(1, 6)]
-    names(ret) <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
-    return(ret)
+    return(setNames(object[rep(1, 6)], summary_names))
   }
   prepared <- depth_data(object, depth, na.rm = TRUE, ...)
   central <- which(prepared$d >= stats::median(prepared$d, na.rm = TRUE))
@@ -222,8 +222,7 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
   }
   prepared <- depth_data(x, depth, na.rm = na.rm, ...)
   if (is.null(prepared$d)) {
-    ret <- c(prepared$x, rep(NA, 5))
-    names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+    ret <- setNames(c(prepared$x, rep(NA, 5)), fivenum_names)
     return(ret[seq_len(min(length(ret), 5))])
   }
   # curves without a finite depth (irregular data not complete on the common
@@ -232,8 +231,7 @@ fivenum.tf <- function(x, na.rm = FALSE, depth = "MHI", ...) {
   ranked <- prepared$x[finite]
   o <- order(prepared$d[finite])
   ret <- ranked[o[fivenum_positions(length(ranked))]]
-  names(ret) <- c("min", "lower_hinge", "median", "upper_hinge", "max")
-  ret
+  setNames(ret, fivenum_names)
 }
 
 # Order-statistic positions for a depth-based five-number summary; for small
@@ -256,7 +254,7 @@ fivenum_positions <- function(n) {
 #' @export
 #' @rdname tfsummaries
 summary.tf_mv <- function(object, ..., depth = "MBD") {
-  nms <- c("min", "lower_mid", "median", "mean", "upper_mid", "max")
+  nms <- summary_names
   if (vec_size(object) == 0 || all(is.na(object))) {
     # vec_init, not `[NA_integer_]`: NA subscripts are a hard error for tf_mv.
     ret <- if (vec_size(object) == 0) {
@@ -285,7 +283,7 @@ summary.tf_mv <- function(object, ..., depth = "MBD") {
 #' @export
 #' @rdname fivenum
 fivenum.tf_mv <- function(x, na.rm = FALSE, depth = "MBD", ...) {
-  nms <- c("min", "lower_hinge", "median", "upper_hinge", "max")
+  nms <- fivenum_names
   if (!na.rm && any(is.na(x))) {
     ret <- tf_na_like(x)[rep(1L, 5)]
     names(ret) <- nms

@@ -35,6 +35,12 @@
 * `tf_evaluate.tfb()` with a per-curve list of `arg` values builds the basis
   design matrix once on the union of all requested values instead of once per
   curve.
+* Internal deduplication: shared helpers for NULL-propagating element-wise
+  operations (`op_or_null()`), irregular `(arg, value)` pairing
+  (`irreg_pairs()`), derivative assembly, registration backends, printing of
+  `tf` entries and plotting grids; `tf_integrate.tfd()` handles `NA` entries
+  in a single code path; `new_tfb_fpc()` reuses the MFPCA component assembler.
+  No user-visible changes.
 
 # tf 0.5.0
 

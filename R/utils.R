@@ -104,11 +104,24 @@ common_args <- function(e1, e2) {
   map2(arg1, arg2, \(x, y) intersect(x, y) |> sort())
 }
 
-# get union of arg vectors
-all_args <- function(e1, e2) {
-  arg1 <- tf_arg(e1) |> ensure_list()
-  arg2 <- tf_arg(e2) |> ensure_list()
-  map2(arg1, arg2, \(x, y) union(x, y) |> sort())
+# Pair per-curve arg vectors with per-curve value vectors as the
+# `list(arg, value)` entries of a tfd_irreg; NULL (NA-function) entries are
+# kept as NULL.
+irreg_pairs <- function(args, values) {
+  map2(args, values, \(arg, value) {
+    if (is.null(value)) NULL else list(arg = arg, value = value)
+  })
+}
+
+# Apply `op` to the (evaluation / coefficient) vectors in `...`, propagating
+# NULL (NA-function) operands and turning all-NA results into NULL.
+op_or_null <- function(op, ...) {
+  args <- list(...)
+  if (any(map_lgl(args, is.null))) {
+    return(NULL)
+  }
+  result <- do.call(op, args)
+  if (allMissing(result)) NULL else result
 }
 
 

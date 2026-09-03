@@ -23,6 +23,13 @@ prep_plotting_arg <- function(f, n_grid) {
     sort()
 }
 
+# single evaluation grid for plotting: irregular (per-curve) grids are
+# collapsed to their sorted union, as needed by as.matrix() below
+plotting_grid <- function(x, n_grid) {
+  arg <- prep_plotting_arg(x, n_grid)
+  if (is_irreg(x)) sort_unique(arg, simplify = TRUE) else arg
+}
+
 #' `base` plots for `tf`s
 #'
 #' Some `base` functions for displaying functional data in
@@ -70,13 +77,7 @@ plot.tf <- function(
   type <- match.arg(type)
   assert_logical(points)
   assert_number(n_grid, na.ok = TRUE)
-  if (missing(y)) {
-    arg <- prep_plotting_arg(x, n_grid)
-    # irreg args need to be turned to a vector for as.matrix below:
-    if (is_irreg(x)) arg <- sort_unique(arg, simplify = TRUE)
-  } else {
-    arg <- y
-  }
+  arg <- if (missing(y)) plotting_grid(x, n_grid) else y
   m <- if (is_tfd(x)) {
     as.matrix(x, arg = arg, interpolate = TRUE)
   } else {
@@ -143,9 +144,7 @@ linespoints_tf <- function(
 ) {
   assert_number(n_grid, na.ok = TRUE)
   if (missing(arg)) {
-    arg <- prep_plotting_arg(x, n_grid)
-    # irreg args need to be turned to a vector for as.matrix below:
-    if (is_irreg(x)) arg <- sort_unique(arg, simplify = TRUE)
+    arg <- plotting_grid(x, n_grid)
   }
   m <- if (is_tfd(x)) {
     suppressWarnings(

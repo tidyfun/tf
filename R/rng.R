@@ -193,12 +193,21 @@ tf_jiggle.default <- function(f, amount = 0.4, ...) {
 #' @export
 #' @rdname tf_jiggle
 tf_jiggle.tf_mv <- function(f, amount = 0.4, same_arg = TRUE, ...) {
+  tf_mv_perturb(f, same_arg, "tf_jiggle", \(comp) {
+    tf_jiggle(comp, amount = amount, ...)
+  })
+}
+
+# apply a random per-component perturbation `.f` either independently per
+# component or (same_arg = TRUE) with the same RNG state for every component,
+# so that all components receive identical argument-grid changes
+tf_mv_perturb <- function(f, same_arg, op, .f) {
   assert_flag(same_arg)
   if (!same_arg) {
-    return(map_components(f, \(comp) tf_jiggle(comp, amount = amount, ...)))
+    return(map_components(f, .f))
   }
-  tf_mv_assert_shared_arg(f, op = "tf_jiggle")
-  tf_mv_map_same_rng(f, \(comp) tf_jiggle(comp, amount = amount, ...))
+  tf_mv_assert_shared_arg(f, op = op)
+  tf_mv_map_same_rng(f, .f)
 }
 
 tf_jiggle_args <- function(arg, amount) {
@@ -247,12 +256,9 @@ tf_sparsify.default <- function(f, dropout = 0.5, ...) {
 #' @export
 #' @rdname tf_jiggle
 tf_sparsify.tf_mv <- function(f, dropout = 0.5, same_arg = TRUE, ...) {
-  assert_flag(same_arg)
-  if (!same_arg) {
-    return(map_components(f, \(comp) tf_sparsify(comp, dropout = dropout, ...)))
-  }
-  tf_mv_assert_shared_arg(f, op = "tf_sparsify")
-  tf_mv_map_same_rng(f, \(comp) tf_sparsify(comp, dropout = dropout, ...))
+  tf_mv_perturb(f, same_arg, "tf_sparsify", \(comp) {
+    tf_sparsify(comp, dropout = dropout, ...)
+  })
 }
 
 tf_component_arg_list <- function(comp, n = vec_size(comp)) {

@@ -67,8 +67,8 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
   generic <- .Generic
   dots <- list(...)
   mv_args <- map_lgl(dots, is_tf_mv)
-  x <- dots[[which(mv_args)[1]]]
-  walk(dots[mv_args], \(arg) check_compatible_mv(x, arg))
+  first_mv <- which(mv_args)[1]
+  walk(dots[mv_args], \(arg) check_compatible_mv(dots[[first_mv]], arg))
   # demote tfb_mfpc operands (loudly, once) -- Summary works on the components
   first_mfpc <- which(map_lgl(dots[mv_args], is_tfb_mfpc))[1]
   if (!is.na(first_mfpc)) {
@@ -87,9 +87,8 @@ Summary.tf_mv <- function(..., na.rm = FALSE) {
     mv_complete,
     na.rm = na.rm
   )
-  x <- dots[[which(mv_args)[1]]]
   imap_components(
-    x,
+    dots[[first_mv]],
     function(comp, nm) {
       comp_args <- map(dots, function(arg) {
         if (is_tf_mv(arg)) tf_component(arg, nm) else arg

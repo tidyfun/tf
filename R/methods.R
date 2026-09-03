@@ -198,12 +198,7 @@ tf_basis <- function(f, as_tfd = FALSE) {
   if (length(value) == 1) {
     value <- rep(value, length(x))
   }
-  ret <- map2(tf_evaluations(x), value, \(v, y) {
-    if (is.null(v)) {
-      return(NULL)
-    }
-    list(arg = y, value = v)
-  })
+  ret <- irreg_pairs(value, tf_evaluations(x))
   attributes(ret) <- attributes(x)
   ret
 }
@@ -255,9 +250,7 @@ rev.tf <- function(x) {
 
 #' @export
 #' @rdname tfmethods
-rev.tf_mv <- function(x) {
-  x[rev(seq_along(x))]
-}
+rev.tf_mv <- rev.tf
 
 #-------------------------------------------------------------------------------
 
