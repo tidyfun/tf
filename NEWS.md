@@ -1,5 +1,23 @@
 # tf (development version)
 
+## New features
+
+* New `gait_mv` dataset: the `gait` hip- and knee-angle trajectories as a single
+  vector-valued `tfd_mv` curve per subject (#300).
+
+## Bug fixes
+
+* `tfd(list())` returns the length-0 prototype instead of erroring with
+  "subscript out of bounds" (#296).
+* `tf_evaluate()` on `tfb` objects (and hence `f[i, j]`) no longer errors when
+  evaluating at a single `arg` value that is not on the original grid (#302).
+
+## Internal
+
+* `tf_evaluate.tfb()` with a per-curve list of `arg` values builds the basis
+  design matrix once on the union of all requested values instead of once per
+  curve.
+
 # tf 0.5.0
 
 ## Internal
