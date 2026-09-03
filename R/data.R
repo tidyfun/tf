@@ -55,4 +55,28 @@
 #' }
 #' @examples
 #' head(gait)
+#' @seealso [gait_mv] for the same data as a single vector-valued curve per subject.
 "gait"
+
+#' Hip and knee angle while walking data, as vector-valued curves
+#'
+#' The same trajectories as in [gait], but with the hip and knee angles of each
+#' subject bundled into one vector-valued curve \eqn{t \mapsto (\text{hip}(t),
+#' \text{knee}(t))} of class `tfd_mv`, see [tfd_mv()].
+#'
+#' @references
+#' `r format_bib("olshen1989gait")`
+#'
+#' @format A data frame with 39 rows and 2 variables:
+#' \describe{
+#'   \item{subject_id}{subject identifier}
+#'   \item{joint_angle}{a `tfd_mv` column with components `hip` and `knee`,
+#'     the hip- and knee-joint angles (degrees)}
+#' }
+#' @examples
+#' head(gait_mv)
+#' plot(gait_mv$joint_angle)
+#' # component access:
+#' gait_mv$joint_angle$hip
+#' @seealso [gait]
+"gait_mv"
